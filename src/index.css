@@ -1,0 +1,229 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..800;1,400..800&display=swap');
+@import "tailwindcss";
+
+/* React Quill overrides */
+.prose-editor-container .ql-container {
+  font-size: 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.prose-editor-container .ql-editor {
+  min-height: 250px;
+  height: 400px;
+  overflow-y: auto;
+  resize: vertical;
+}
+.prose-editor-container.fullscreen .ql-editor {
+  height: 100%;
+  resize: none;
+}
+.prose-editor-container .ql-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.25rem;
+}
+.prose-editor-container .ql-toolbar {
+  background-color: white;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+}
+
+
+@theme {
+  --font-sans: "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Space Grotesk", "Manrope", sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  
+  --color-slate-950: #05080f; /* Main background */
+  --color-slate-900: #0b1120; /* Card background */
+  --color-slate-850: color-mix(in srgb, #c5a059 20%, transparent); /* Borders */
+  --color-slate-800: color-mix(in srgb, #c5a059 40%, transparent);
+  --color-slate-400: #b0b8c4; /* Main text */
+  --color-slate-350: #b0b8c4;
+  --color-slate-300: #b0b8c4;
+  --color-slate-200: #e2e8f0; /* Heading whiteish */
+  --color-white: #ffffff;
+  
+  --color-emerald-500: #c5a059; /* Brand Accent Gold */
+  --color-emerald-450: #c5a059;
+  --color-emerald-400: #c5a059;
+  
+  --color-rose-500: #ff4d4f; /* Sale Tag */
+  --color-teal-500: #00b894; /* Rent Tag */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a; /* Slate 900 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #047857; /* Emerald 700 */
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #10b981; /* Emerald 500 */
+}
+
+/* Hide scrollbar utility */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Base resets & utilities */
+html, body {
+  max-width: 100vw;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #05080f; /* Deep cosmic slate background */
+  color: #b0b8c4;
+}
+
+/* =========================================================
+   RICH TEXT RENDERING (.prose)
+   ========================================================= */
+.prose {
+  color: #cbd5e1; /* slate-300 */
+  line-height: 1.6;
+  font-size: 0.95rem;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Paragraph spacing */
+.prose p {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+  text-indent: 1.5rem;
+}
+
+/* Headings */
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+  background: linear-gradient(to right, #fde68a, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+}
+
+.prose h1 {
+  font-size: 1.75rem;
+}
+
+.prose h2 {
+  font-size: 1.5rem;
+}
+
+.prose h3 {
+  font-size: 1.25rem;
+}
+
+/* Links (URLs) */
+.prose a {
+  color: #34d399; /* emerald-400 */
+  text-decoration: none;
+  font-weight: 500;
+  border-bottom: 1px dashed #34d399;
+  transition: all 0.2s;
+}
+
+.prose a:hover {
+  color: #10b981; /* emerald-500 */
+  border-bottom-style: solid;
+}
+
+/* Bold / Keywords */
+.prose strong, .prose b {
+  color: #f8fafc; /* slate-50 */
+  font-weight: 700;
+}
+
+/* Unordered Lists */
+.prose ul {
+  list-style-type: none;
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose ul li {
+  position: relative;
+  margin-bottom: 0.25rem;
+}
+
+.prose ul li::before {
+  content: "✦";
+  color: #f59e0b; /* amber-500 */
+  font-size: 0.8rem;
+  position: absolute;
+  left: -1.25rem;
+  top: 0.25rem;
+}
+
+/* Ordered Lists */
+.prose ol {
+  padding-left: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose ol li {
+  margin-bottom: 0.25rem;
+}
+
+.prose ol li::marker {
+  color: #f59e0b;
+  font-weight: 600;
+}
+
+/* Blockquotes */
+.prose blockquote {
+  border-left: 4px solid #f59e0b;
+  padding-left: 1.25rem;
+  margin: 1.5rem 0;
+  font-style: italic;
+  color: #94a3b8; /* slate-400 */
+  background: rgba(245, 158, 11, 0.05); /* very light amber */
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+  border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* Images inside prose */
+.prose img {
+  border-radius: 0.5rem;
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Horizontal Rule */
+.prose hr {
+  border-color: rgba(245, 158, 11, 0.2);
+  margin: 2rem 0;
+}
+
+/* =========================================================
+   EXCLUSIVE DENSE RESPONSIVE OVERRIDES (Padding & Density)
+   ========================================================= */

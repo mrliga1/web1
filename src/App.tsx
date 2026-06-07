@@ -47,6 +47,7 @@ import { handleFirestoreError, OperationType } from "./firebase-errors";
 import { RouteState, Product } from "./types";
 import { getPageDefaultSections, GENERIC_CUSTOM_SECTIONS } from "./lib/layouts";
 import { notifyAdminEmail } from "./lib/email";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 // Children Components
 import Navbar from "./components/Navbar";
@@ -1973,6 +1974,7 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+      <SpeedInsights />
     </div>
   );
 }

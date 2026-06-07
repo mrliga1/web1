@@ -9,6 +9,7 @@ import {
   getDoc,
   setDoc,
 } from "./firebase";
+import { SpeedInsights } from '@vercel/speed-insights/react';
 import { AnimatePresence, motion } from "motion/react";
 import {
   Building2,
@@ -1973,6 +1974,7 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+      <SpeedInsights />
     </div>
   );
 }

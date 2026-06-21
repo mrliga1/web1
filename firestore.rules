@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    function isAdmin() {
+      return request.auth != null && (
+        request.auth.token.email == 'nguyenthanhthuan091095@gmail.com' ||
+        request.auth.token.email == 'thuankdbds@gmail.com' ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    match /products/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin() || true;
+    }
+
+    match /projects/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin() || true;
+    }
+
+    match /news/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin() || true;
+    }
+
+    match /consultations/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /settings/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin() || true;
+    }
+
+    match /layouts/{document=**} {
+      allow read: if true;
+      allow write: if isAdmin() || true;
+    }
+    
+    match /users/{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /{document=**} {
+      allow read: if true;
+      allow write: if true;
+    }
+  }
+}

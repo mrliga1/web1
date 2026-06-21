@@ -1,0 +1,46 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "A real estate property for sale or rent",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "Title of the property listing" },
+        "priceText": { "type": "string", "description": "Formatted price text, e.g. 5 tỷ or 15 triệu/tháng" },
+        "priceVal": { "type": "number", "description": "Numeric price in VND for filtering" },
+        "type": { "type": "string", "enum": ["sale", "rent"], "description": "Category of property listing" },
+        "district": { "type": "string", "description": "District location of the property" },
+        "phone": { "type": "string", "description": "Contact phone number" },
+        "description": { "type": "string", "description": "HTML rich text description" },
+        "imageUrl": { "type": "string", "description": "Main image of the property" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "createdBy": { "type": "string", "description": "Creator user ID" }
+      },
+      "required": ["title", "priceText", "priceVal", "type", "district", "phone", "description", "createdAt"]
+    },
+    "Consultation": {
+      "title": "Consultation",
+      "description": "Consultation request from prospective clients",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Client's name" },
+        "phone": { "type": "string", "description": "Client's phone number" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Submission timestamp" },
+        "status": { "type": "string", "enum": ["pending", "processed"], "description": "Fulfillment status" },
+        "propertyId": { "type": "string", "description": "Referenced property ID, if any" },
+        "propertyTitle": { "type": "string", "description": "Referenced property title, if any" }
+      },
+      "required": ["name", "phone", "createdAt", "status"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Database of real estate products"
+    },
+    "/consultations/{consultationId}": {
+      "schema": "Consultation",
+      "description": "Forms submitted by prospects"
+    }
+  }
+}

@@ -6,6 +6,7 @@ import {
   getDocs,
   addDoc,
   doc,
+  getDoc,
   updateDoc,
   deleteDoc,
   onSnapshot,
@@ -90,69 +91,13 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
 import AdminFiltersTab from "./AdminFiltersTab";
-
-function decodeBase64(str: string): string | null {
-  try {
-    const normalized = str.trim().replace(/-/g, "+").replace(/_/g, "/");
-    return atob(normalized);
-  } catch (error) {
-    console.error(
-      "[AdminPanel] decodeBase64 thất bại – chuỗi Base64 không hợp lệ:",
-      error,
-    );
-    return null;
-  }
-}
-
-function resolveGithubToken(
-  rawToken: string | undefined,
-): { token: string } | { error: string } {
-  if (rawToken === undefined || rawToken.trim() === "") {
-    return {
-      error:
-        "VITE_GITHUB_TOKEN chưa được cấu hình hoặc rỗng. Vui lòng kiểm tra file .env.",
-    };
-  }
-
-  const trimmed = rawToken.trim();
-
-  if (trimmed.startsWith("ghp_") || trimmed.startsWith("github_pat_")) {
-    return { token: trimmed };
-  }
-
-  if (trimmed.startsWith("base64:")) {
-    const base64Part = trimmed.slice(7);
-    if (
-      base64Part.startsWith("ghp_") ||
-      base64Part.startsWith("github_pat_")
-    ) {
-      return { token: base64Part };
-    }
-    const decoded = decodeBase64(base64Part);
-    if (!decoded || decoded.trim() === "") {
-      return {
-        error:
-          "VITE_GITHUB_TOKEN (base64:...) không giải mã được. Kiểm tra lại giá trị trong .env.",
-      };
-    }
-    return { token: decoded.trim() };
-  }
-
-  const decoded = decodeBase64(trimmed);
-  if (!decoded || decoded.trim() === "") {
-    return {
-      error:
-        "VITE_GITHUB_TOKEN không phải chuỗi Base64 hợp lệ. Kiểm tra lại giá trị trong .env.",
-    };
-  }
-  return { token: decoded.trim() };
-}
-
-function buildGithubAuthHeader(token: string): string {
-  return token.startsWith("ghp_") || token.startsWith("github_pat_")
-    ? `token ${token}`
-    : `Bearer ${token}`;
-}
+import {
+  GITHUB_DEFAULTS,
+  GithubFirestoreConfig,
+  buildGithubAuthHeader,
+  resolveGithubUploadSettings,
+  testGithubConnection,
+} from "../lib/githubConfig";
 
 interface AdminPanelProps {
   onShowNotification: (message: string, type: "success" | "error") => void;
@@ -311,6 +256,8 @@ export default function AdminPanel({
   const [configRepo, setConfigRepo] = useState("");
   const [configBranch, setConfigBranch] = useState("main");
   const [savingConfig, setSavingConfig] = useState(false);
+  const [githubFirestoreConfig, setGithubFirestoreConfig] =
+    useState<GithubFirestoreConfig | null>(null);
 
   // Selection editor formatting helper
   const formatSelectedText = (tagOpen: string, tagClose: string) => {
@@ -389,41 +336,18 @@ export default function AdminPanel({
         uploadFileName = nameWithoutExt + ".webp";
       }
 
-      const owner = import.meta.env.VITE_GITHUB_OWNER?.trim();
-      const repo = import.meta.env.VITE_GITHUB_REPO?.trim();
-      const branch = import.meta.env.VITE_GITHUB_BRANCH?.trim();
-
-      if (!owner || !repo || !branch) {
-        const missing = [
-          !owner && "VITE_GITHUB_OWNER",
-          !repo && "VITE_GITHUB_REPO",
-          !branch && "VITE_GITHUB_BRANCH",
-        ]
-          .filter(Boolean)
-          .join(", ");
-        throw new Error(
-          `${missing} chưa được cấu hình. Vui lòng kiểm tra file .env.`,
-        );
+      const githubSettings = resolveGithubUploadSettings(githubFirestoreConfig);
+      if ("error" in githubSettings) {
+        console.error("[AdminPanel] GitHub config:", githubSettings.error);
+        throw new Error(githubSettings.error);
       }
 
-      const tokenResult = resolveGithubToken(import.meta.env.VITE_GITHUB_TOKEN);
-      if ("error" in tokenResult) {
-        console.error("[AdminPanel] GitHub token:", tokenResult.error);
-        throw new Error(tokenResult.error);
-      }
+      const { owner, repo, branch, token: realToken } = githubSettings;
 
-      const realToken = tokenResult.token;
-      if (
-        !realToken.startsWith("ghp_") &&
-        !realToken.startsWith("github_pat_")
-      ) {
-        console.error(
-          "[AdminPanel] Token sau khi giải mã không có định dạng GitHub hợp lệ.",
-        );
-        throw new Error(
-          "Token GitHub không hợp lệ sau khi giải mã. Kiểm tra lại VITE_GITHUB_TOKEN trong .env.",
-        );
-      }
+      const uniqueFileName = uploadFileName.replace(
+        /(\.[^.]+)$/,
+        `-${Date.now()}$1`,
+      );
 
       setUploadStatus("Đang tải ảnh lên GitHub...");
 
@@ -432,7 +356,7 @@ export default function AdminPanel({
         throw new Error("Không thể đọc dữ liệu ảnh Base64.");
       }
 
-      const githubApiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/public/uploads/${uploadFileName}`;
+      const githubApiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/public/uploads/${uniqueFileName}`;
 
       const response = await fetch(githubApiUrl, {
         method: "PUT",
@@ -443,7 +367,7 @@ export default function AdminPanel({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          message: `Upload ảnh ${uploadFileName} từ Admin`,
+          message: `Upload ảnh ${uniqueFileName} từ Admin`,
           content: pureBase64,
           branch,
         }),
@@ -461,7 +385,7 @@ export default function AdminPanel({
       const responseData = await response.json();
       const relativeUrl =
         responseData.content?.download_url ||
-        `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/public/uploads/${uploadFileName}`;
+        `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/public/uploads/${uniqueFileName}`;
 
       if (relativeUrl) {
         if (targetField.startsWith("subdivisionCardImage:")) {
@@ -1080,20 +1004,40 @@ export default function AdminPanel({
     );
   }, [products, projects, news, uploadedLibraryImages]);
 
-  const checkGithubConnection = async () => {
+  const openGithubConfigModal = () => {
+    setConfigOwner(
+      githubFirestoreConfig?.owner?.trim() || GITHUB_DEFAULTS.owner,
+    );
+    setConfigRepo(githubFirestoreConfig?.repo?.trim() || GITHUB_DEFAULTS.repo);
+    setConfigBranch(
+      githubFirestoreConfig?.branch?.trim() || GITHUB_DEFAULTS.branch,
+    );
+    setConfigToken("");
+    setShowGithubConfigModal(true);
+  };
+
+  const checkGithubConnection = async (
+    configOverride?: GithubFirestoreConfig | null,
+  ) => {
     try {
       setCheckingGithub(true);
-      const res = await fetch("/api/github-status");
-      if (res.ok) {
-        const data = await res.json();
-        setGithubStatus(data);
-      } else {
-        setGithubStatus({
-          configured: true,
-          status: "LỖI KẾT NỐI",
-          message: "Không thể nhận phản hồi từ API trạng thái.",
-        });
+      const activeConfig =
+        configOverride !== undefined ? configOverride : githubFirestoreConfig;
+
+      try {
+        const res = await fetch("/api/github-status");
+        if (res.ok) {
+          const data = await res.json();
+          setGithubStatus(data);
+          return;
+        }
+      } catch {
+        // Firebase Hosting không có server – kiểm tra trực tiếp qua GitHub API
       }
+
+      const settings = resolveGithubUploadSettings(activeConfig);
+      const status = await testGithubConnection(settings);
+      setGithubStatus(status);
     } catch (err: any) {
       setGithubStatus({
         configured: true,
@@ -1117,33 +1061,54 @@ export default function AdminPanel({
 
     try {
       setSavingConfig(true);
-      const res = await fetch("/api/github-config", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          token: configToken,
-          owner: configOwner,
-          repo: configRepo,
-          branch: configBranch,
-        }),
-      });
 
-      if (res.ok) {
-        const data = await res.json();
+      const tokenEncoded = `base64:${btoa(configToken.trim())}`;
+      const firestorePayload: GithubFirestoreConfig = {
+        tokenEncoded,
+        owner: configOwner.trim(),
+        repo: configRepo.trim(),
+        branch: configBranch.trim() || GITHUB_DEFAULTS.branch,
+      };
+
+      await setDoc(doc(db, "settings", "github"), firestorePayload, {
+        merge: true,
+      });
+      setGithubFirestoreConfig(firestorePayload);
+
+      try {
+        const res = await fetch("/api/github-config", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: configToken,
+            owner: configOwner,
+            repo: configRepo,
+            branch: configBranch,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          onShowNotification(
+            data.message ||
+              "Lưu cấu hình GitHub thành công (Firestore + máy chủ cục bộ)!",
+            "success",
+          );
+        } else {
+          onShowNotification(
+            "Đã lưu cấu hình GitHub vào Firestore. Upload ảnh trên web đã sẵn sàng!",
+            "success",
+          );
+        }
+      } catch {
         onShowNotification(
-          data.message || "Cập nhật cấu hình GitHub thành công!",
+          "Đã lưu cấu hình GitHub vào Firestore. Upload ảnh trên web đã sẵn sàng!",
           "success",
         );
-        setShowGithubConfigModal(false);
-        setConfigToken(""); // Clear token input for security
-        // Re-run status check
-        await checkGithubConnection();
-      } else {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Xảy ra lỗi khi lưu cấu hình.");
       }
+
+      setShowGithubConfigModal(false);
+      setConfigToken("");
+      await checkGithubConnection(firestorePayload);
     } catch (err: any) {
       console.error(err);
       onShowNotification(`Lỗi cập nhật: ${err.message || err}`, "error");
@@ -1152,11 +1117,38 @@ export default function AdminPanel({
     }
   };
 
-  // Check GitHub Connection Status immediately once logged in
+  // Load GitHub config from Firestore and check connection on login
   useEffect(() => {
-    if (isLoggedIn) {
-      checkGithubConnection();
-    }
+    if (!isLoggedIn) return;
+
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const snap = await getDoc(doc(db, "settings", "github"));
+        const config = snap.exists()
+          ? (snap.data() as GithubFirestoreConfig)
+          : null;
+        if (!cancelled) {
+          setGithubFirestoreConfig(config);
+          const settings = resolveGithubUploadSettings(config);
+          const status = await testGithubConnection(settings);
+          if (!cancelled) setGithubStatus(status);
+        }
+      } catch (err: any) {
+        if (!cancelled) {
+          setGithubStatus({
+            configured: false,
+            status: "LỖI HỆ THỐNG",
+            message: err.message || String(err),
+          });
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [isLoggedIn]);
 
   // Add IPs management logic
@@ -3073,7 +3065,7 @@ export default function AdminPanel({
                 <div className="flex gap-2 shrink-0">
                   <button
                     type="button"
-                    onClick={() => setShowGithubConfigModal(true)}
+                    onClick={openGithubConfigModal}
                     className="text-[10px] font-bold text-slate-350 hover:text-white px-3 py-1.5 bg-slate-900 hover:bg-slate-850 rounded-lg border border-slate-800 transition-colors font-mono cursor-pointer"
                   >
                     Cấu hình PAT
@@ -8189,12 +8181,12 @@ export default function AdminPanel({
                         🔒 Bảo Mật Tuyệt Đối
                       </span>
                       <p className="text-[11px] text-slate-300 leading-relaxed font-sans">
-                        Mã Token (PAT) của bạn sẽ được{" "}
-                        <strong>mã hóa tự động (Base64)</strong> ngay trên máy
-                        chủ trước khi lưu vào tệp bảo mật <code>.env</code>.
-                        Điều này giúp ngăn chặn hoàn toàn việc các bot quét bí
-                        mật tự động của chính GitHub phát hiện và thu hồi khóa
-                        (revoke) của bạn!
+                        Mã Token (PAT) được{" "}
+                        <strong>mã hóa Base64</strong> trước khi lưu vào{" "}
+                        <strong>Firestore</strong> (dùng trên Firebase Hosting) và
+                        file <code>.env</code> (khi chạy local). Điều này giúp
+                        upload ảnh hoạt động trên web production mà không cần
+                        rebuild.
                       </p>
                     </div>
 

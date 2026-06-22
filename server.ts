@@ -37,7 +37,7 @@ function getEnv(key: string): string {
 }
 
 function getDecodedGithubToken(): string {
-  let githubToken = getEnv('GITHUB_TOKEN');
+  let githubToken = getEnv('GITHUB_TOKEN') || getEnv('VITE_GITHUB_TOKEN');
   if (githubToken.startsWith('base64:')) {
     const base64Part = githubToken.slice(7);
     if (base64Part.startsWith('ghp_') || base64Part.startsWith('github_pat_')) {
@@ -191,9 +191,9 @@ app.post('/api/upload', async (req, res) => {
     let fallbackCommitError = '';
 
     let githubToken = getDecodedGithubToken();
-    let githubOwner = getEnv('GITHUB_OWNER');
-    let githubRepo = getEnv('GITHUB_REPO');
-    let githubBranch = getEnv('GITHUB_BRANCH') || 'main';
+    let githubOwner = getEnv('GITHUB_OWNER') || getEnv('VITE_GITHUB_OWNER');
+    let githubRepo = getEnv('GITHUB_REPO') || getEnv('VITE_GITHUB_REPO');
+    let githubBranch = getEnv('GITHUB_BRANCH') || getEnv('VITE_GITHUB_BRANCH') || 'main';
 
     // Safeguard check and defensive swap if variables are inverted
     if (githubOwner.startsWith('ghp_') || githubOwner.startsWith('github_pat_')) {

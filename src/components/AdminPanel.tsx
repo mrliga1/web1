@@ -320,24 +320,40 @@ export default function AdminPanel({
           img.onerror = () => resolve(base64); // Fallback
           img.src = base64;
         });
-        
+
         base64 = convertedBase64;
-        const nameWithoutExt = file.name.includes('.') 
-            ? file.name.substring(0, file.name.lastIndexOf('.')) 
-            : file.name;
+        const nameWithoutExt = file.name.includes('.')
+          ? file.name.substring(0, file.name.lastIndexOf('.'))
+          : file.name;
         uploadFileName = nameWithoutExt + ".webp";
       }
 
       setUploadStatus("Đang tải ảnh lên máy chủ...");
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
+      // 1. Lấy và giải mã cấu hình từ file .env
+      const tokenBase64 = import.meta.env.VITE_GITHUB_TOKEN;
+      const realToken = atob(tokenBase64);
+      const repo = import.meta.env.VITE_GITHUB_REPO;
+      const owner = import.meta.env.VITE_GITHUB_OWNER;
+      const branch = import.meta.env.VITE_GITHUB_BRANCH;
+
+      // 2. Tách phần data ảnh thuần túy (GitHub không nhận tiền tố data:image/webp;base64,)
+      const pureBase64 = base64.includes(',') ? base64.split(',')[1] : base64;
+
+      // 3. Đường dẫn lưu file trên GitHub (lưu vào thư mục public/uploads/)
+      const githubApiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/public/uploads/${uploadFileName}`;
+
+      // 4. Bắn ảnh thẳng lên GitHub bằng lệnh PUT
+      const response = await fetch(githubApiUrl, {
+        method: "PUT",
         headers: {
+          "Authorization": `Bearer ${realToken}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: uploadFileName,
-          base64: base64,
+          message: `Upload ảnh ${uploadFileName} từ Admin`,
+          content: pureBase64,
+          branch: branch
         }),
       });
 
@@ -1411,12 +1427,12 @@ export default function AdminPanel({
             ...(news.length > 0
               ? news.map((n: News) => n.category)
               : [
-                  "Tin thị trường",
-                  "Lưu ý khi mua nhà",
-                  "Phong thủy",
-                  "Thông tin dự án",
-                  "Bất động sản hạng sang",
-                ]),
+                "Tin thị trường",
+                "Lưu ý khi mua nhà",
+                "Phong thủy",
+                "Thông tin dự án",
+                "Bất động sản hạng sang",
+              ]),
           ]),
         ).filter(Boolean);
         finalCategory = fallbacks[0] || "Khác";
@@ -1427,12 +1443,12 @@ export default function AdminPanel({
             ...(products.length > 0
               ? products.map((p: Product) => p.category)
               : [
-                  "Biệt thự sinh thái",
-                  "Căn hộ cao cấp",
-                  "Nhà phố liền kề",
-                  "Đất nền quy hoạch",
-                  "Shophouse kinh doanh",
-                ]),
+                "Biệt thự sinh thái",
+                "Căn hộ cao cấp",
+                "Nhà phố liền kề",
+                "Đất nền quy hoạch",
+                "Shophouse kinh doanh",
+              ]),
           ]),
         ).filter(Boolean);
         finalCategory = fallbacks[0] || "Khác";
@@ -2393,34 +2409,34 @@ export default function AdminPanel({
       if (currentUserRole !== "admin") {
         throw new Error("Chỉ Admin mới có quyền xóa tài khoản");
       }
-      
+
       // Xóa bên Auth ĐẦU TIÊN để đảm bảo xóa triệt để
       let authWarning = "";
       try {
         const fetchRes = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
         const resData = await fetchRes.json();
-        
+
         if (!fetchRes.ok) {
-           if (resData.error && resData.error.includes('no user record')) {
-              console.log("Ignored missing auth user.");
-           } else if (resData.error && resData.error.includes('Chưa cấu hình Firebase Admin')) {
-              throw new Error("Xóa thất bại: Chưa cấu hình Firebase Admin SDK. Vui lòng cấu hình tại 'Cài đặt hệ thống' > 'Cấu hình Firebase Admin'.");
-           } else {
-              throw new Error(`Xóa Auth thất bại: ${resData.error || 'Unknown error'}`);
-           }
+          if (resData.error && resData.error.includes('no user record')) {
+            console.log("Ignored missing auth user.");
+          } else if (resData.error && resData.error.includes('Chưa cấu hình Firebase Admin')) {
+            throw new Error("Xóa thất bại: Chưa cấu hình Firebase Admin SDK. Vui lòng cấu hình tại 'Cài đặt hệ thống' > 'Cấu hình Firebase Admin'.");
+          } else {
+            throw new Error(`Xóa Auth thất bại: ${resData.error || 'Unknown error'}`);
+          }
         }
       } catch (e: any) {
-         if (e.message && e.message.includes('Xóa thất bại')) {
-            throw e; // quăng tiếp để dừng lại
-         }
-         console.warn("Lỗi kết nối mạng tới Server khi xóa Auth", e);
-         authWarning = " (Cảnh báo: Không thể kết nối đến máy chủ để xóa Auth)";
-         throw new Error("Không thể kết nối đến server để xóa Auth: " + e.message);
+        if (e.message && e.message.includes('Xóa thất bại')) {
+          throw e; // quăng tiếp để dừng lại
+        }
+        console.warn("Lỗi kết nối mạng tới Server khi xóa Auth", e);
+        authWarning = " (Cảnh báo: Không thể kết nối đến máy chủ để xóa Auth)";
+        throw new Error("Không thể kết nối đến server để xóa Auth: " + e.message);
       }
 
       // Xóa trong Firestore
       await deleteDoc(doc(db, "users", userId));
-      
+
       onShowNotification("Đã xóa người dùng thành công khỏi hệ thống." + authWarning, "success");
     } catch (err: any) {
       console.error(err);
@@ -2482,9 +2498,8 @@ export default function AdminPanel({
     >
       {/* 1. wordpress left sidebar navigation panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 bg-slate-900 border-r border-slate-850 flex flex-col transition-all duration-300 lg:translate-x-0 lg:static overflow-hidden shrink-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } ${desktopSidebarOpen ? "w-64" : "w-64 lg:w-16"}`}
+        className={`fixed inset-y-0 left-0 z-50 bg-slate-900 border-r border-slate-850 flex flex-col transition-all duration-300 lg:translate-x-0 lg:static overflow-hidden shrink-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } ${desktopSidebarOpen ? "w-64" : "w-64 lg:w-16"}`}
         id="wp-admin-sidebar"
       >
         {/* Sidebar Header branding */}
@@ -2540,18 +2555,17 @@ export default function AdminPanel({
                 setActiveTab("listings");
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                activeTab === "listings"
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "listings"
                   ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                   : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-              }`}
+                }`}
             >
               <LayoutGrid className="w-4 h-4 shrink-0 text-amber-500" />
               <span>Kho Sản Phẩm BĐS</span>
               <span className="ml-auto text-[9px] bg-slate-950 px-2 py-0.5 rounded-full text-slate-500 font-mono">
                 {currentUserRole === "member" || currentUserRole === "user"
                   ? products.filter((p) => p.createdBy === currentMemberEmail)
-                      .length
+                    .length
                   : products.length}
               </span>
             </button>
@@ -2562,11 +2576,10 @@ export default function AdminPanel({
                   setActiveTab("projects");
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                  activeTab === "projects"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "projects"
                     ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                     : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                }`}
+                  }`}
               >
                 <Compass className="w-4 h-4 shrink-0 text-amber-500" />
                 <span>Dự Án Quy Hoạch</span>
@@ -2581,18 +2594,17 @@ export default function AdminPanel({
                 setActiveTab("articles");
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                activeTab === "articles"
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "articles"
                   ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                   : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-              }`}
+                }`}
             >
               <FileText className="w-4 h-4 shrink-0 text-amber-500" />
               <span>Tin Tức Phong Thủy</span>
               <span className="ml-auto text-[9px] bg-slate-950 px-2 py-0.5 rounded-full text-slate-500 font-mono">
                 {currentUserRole === "member" || currentUserRole === "user"
                   ? news.filter((n) => n.createdBy === currentMemberEmail)
-                      .length
+                    .length
                   : news.length}
               </span>
             </button>
@@ -2610,11 +2622,10 @@ export default function AdminPanel({
                     setActiveTab("categories");
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === "categories"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "categories"
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
                   <List className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Danh Mục Sản Phẩm</span>
@@ -2625,11 +2636,10 @@ export default function AdminPanel({
                     setActiveTab("filters" as any);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === "filters" as any
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "filters" as any
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
                   <Filter className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Bộ Lọc Tìm Kiếm</span>
@@ -2640,11 +2650,10 @@ export default function AdminPanel({
                     setActiveTab("general" as any);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === "general" as any
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "general" as any
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
                   <MapPin className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Liên Hệ & MXH</span>
@@ -2655,11 +2664,10 @@ export default function AdminPanel({
                     setActiveTab("integrations" as any);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === "integrations" as any
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "integrations" as any
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
                   <Share2 className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Ai & Auto-Post</span>
@@ -2670,11 +2678,10 @@ export default function AdminPanel({
                     setActiveTab("seo");
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === "seo"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "seo"
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
                   <Settings className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Cấu hình SEO & Logo</span>
@@ -2685,11 +2692,10 @@ export default function AdminPanel({
                     setActiveTab("google");
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === "google"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "google"
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
                   <Activity className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Google Tracking & Ads</span>
@@ -2700,11 +2706,10 @@ export default function AdminPanel({
                     setActiveTab("blocked_ips" as any);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === "blocked_ips"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "blocked_ips"
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
                   <ShieldAlert className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Danh Sách Chặn IP</span>
@@ -2714,13 +2719,12 @@ export default function AdminPanel({
                     setActiveTab("firebase_admin" as any);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === "firebase_admin"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "firebase_admin"
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
-                  <svg className="w-4 h-4 shrink-0 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                  <svg className="w-4 h-4 shrink-0 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></svg>
                   <span>Cấu Hình Firebase Admin</span>
                 </button>
 
@@ -2729,11 +2733,10 @@ export default function AdminPanel({
                     setActiveTab("gallery" as any);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === ("gallery" as any)
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === ("gallery" as any)
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
                   <Image className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Kho Hình Ảnh</span>
@@ -2747,11 +2750,10 @@ export default function AdminPanel({
                     setActiveTab("users");
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    activeTab === "users"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "users"
                       ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                       : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                  }`}
+                    }`}
                 >
                   <UserPlus className="w-4 h-4 shrink-0 text-amber-500" />
                   <span>Quản Lý Người Dùng</span>
@@ -2768,23 +2770,22 @@ export default function AdminPanel({
                   setActiveTab("leads");
                   setSidebarOpen(false);
                 }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                  activeTab === "leads"
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "leads"
                     ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                     : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-                }`}
+                  }`}
               >
                 <Mail className="w-4 h-4 shrink-0 text-amber-500" />
                 <span>Kho Khách Hàng (CRM)</span>
                 {displayConsultations.filter((c) => c.status === "pending")
                   .length > 0 && (
-                  <span className="ml-auto text-[9px] bg-red-500 text-white font-extrabold px-2 py-0.5 rounded-full font-mono animate-pulse">
-                    {
-                      displayConsultations.filter((c) => c.status === "pending")
-                        .length
-                    }
-                  </span>
-                )}
+                    <span className="ml-auto text-[9px] bg-red-500 text-white font-extrabold px-2 py-0.5 rounded-full font-mono animate-pulse">
+                      {
+                        displayConsultations.filter((c) => c.status === "pending")
+                          .length
+                      }
+                    </span>
+                  )}
               </button>
             )}
 
@@ -2796,11 +2797,10 @@ export default function AdminPanel({
                 setActiveTab("new_wizard" as any);
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                activeTab === ("new_wizard" as any)
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === ("new_wizard" as any)
                   ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                   : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-              }`}
+                }`}
             >
               <PlusCircle className="w-4 h-4 shrink-0 text-amber-500" />
               <span>Viết Bài / Khởi Đăng Tin</span>
@@ -2811,11 +2811,10 @@ export default function AdminPanel({
                 setActiveTab("profile");
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                activeTab === "profile"
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "profile"
                   ? "text-white bg-amber-500/10 border-l-[3px] border-amber-500 font-bold"
                   : "text-slate-400 hover:text-slate-100 hover:bg-slate-850"
-              }`}
+                }`}
             >
               <UserCheck className="w-4 h-4 shrink-0 text-amber-500" />
               <span>Hồ Sơ Cá Nhân</span>
@@ -2903,15 +2902,14 @@ export default function AdminPanel({
               <button
                 onClick={checkGithubConnection}
                 disabled={checkingGithub}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold font-mono transition-all border shrink-0 cursor-pointer ${
-                  checkingGithub
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold font-mono transition-all border shrink-0 cursor-pointer ${checkingGithub
                     ? "bg-slate-900 border-slate-800 text-slate-400"
                     : !githubStatus
                       ? "bg-amber-500/10 border-amber-500/20 text-amber-400 hover:bg-amber-500/25"
                       : githubStatus.status === "HOẠT ĐỘNG"
                         ? "bg-amber-500/10 border-amber-500/25 text-amber-400"
                         : "bg-rose-500/10 border-rose-500/25 text-rose-455 hover:bg-rose-500/20"
-                }`}
+                  }`}
                 title={
                   githubStatus
                     ? githubStatus.message
@@ -3009,8 +3007,8 @@ export default function AdminPanel({
                   <div className="text-[12px] leading-[12px] font-bold text-amber-400">
                     {currentUserRole === "member" || currentUserRole === "user"
                       ? products.filter(
-                          (p) => p.createdBy === currentMemberEmail,
-                        ).length
+                        (p) => p.createdBy === currentMemberEmail,
+                      ).length
                       : products.length}
                   </div>
                 </div>
@@ -3030,8 +3028,8 @@ export default function AdminPanel({
                   <div className="text-[12px] leading-[12px] font-bold text-amber-400">
                     {currentUserRole === "member" || currentUserRole === "user"
                       ? projects.filter(
-                          (p) => p.createdBy === currentMemberEmail,
-                        ).length
+                        (p) => p.createdBy === currentMemberEmail,
+                      ).length
                       : projects.length}
                   </div>
                 </div>
@@ -3051,7 +3049,7 @@ export default function AdminPanel({
                   <div className="text-[12px] leading-[12px] font-bold text-indigo-400">
                     {currentUserRole === "member" || currentUserRole === "user"
                       ? news.filter((n) => n.createdBy === currentMemberEmail)
-                          .length
+                        .length
                       : news.length}
                   </div>
                 </div>
@@ -3169,20 +3167,19 @@ export default function AdminPanel({
                             </td>
                             <td className="px-[5px] py-0 hidden sm:table-cell">
                               <span
-                                className={`text-[10px] font-mono font-bold px-[5px] py-[5px] rounded-full border ${
-                                  item.approvalStatus === "approved"
+                                className={`text-[10px] font-mono font-bold px-[5px] py-[5px] rounded-full border ${item.approvalStatus === "approved"
                                     ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
                                     : item.approvalStatus === "rejected"
                                       ? "bg-rose-500/10 border-rose-500/20 text-rose-500"
                                       : "bg-yellow-500/10 border-yellow-500/20 text-yellow-500"
-                                }`}
+                                  }`}
                               >
                                 {item.approvalStatus === "approved" ? "Đã duyệt" : item.approvalStatus === "rejected" ? "Bị từ chối" : "Chờ duyệt"}
                               </span>
                             </td>
                             <td className="px-5 py-3 hidden lg:table-cell">
                               <div className="text-[10px] text-slate-400 font-mono">
-                                ID: {item.id.slice(0, 5)}<br/>
+                                ID: {item.id.slice(0, 5)}<br />
                                 <span className="text-slate-300">{item.createdBy || "Admin"}</span>
                               </div>
                             </td>
@@ -3392,45 +3389,45 @@ export default function AdminPanel({
                         {users
                           .filter(user => usersFilter === "all" || user.role === usersFilter)
                           .map((user, index) => (
-                          <tr
-                            key={user.id}
-                            className="hover:bg-slate-800/30 transition-colors"
-                          >
-                            <td className="px-2 sm:px-[10px] py-1 font-mono text-slate-500 text-[10px] sm:text-xs text-center sm:text-left h-[50px] w-[34px]">
-                              {(index + 1).toString().padStart(2, "0")}
-                            </td>
-                            <td className="px-[10px] py-1 w-auto h-[45px]">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 text-amber-500 font-bold shrink-0 text-xs hidden sm:flex">
-                                  {(user.employeeName || user.displayName || user.username || user.email || "?").charAt(0).toUpperCase()}
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                  <div className="font-bold text-amber-500 whitespace-nowrap text-sm truncate max-w-[150px] sm:max-w-[200px]">
-                                    {user.employeeName || user.displayName || user.username || "Chưa đặt tên NV"}
+                            <tr
+                              key={user.id}
+                              className="hover:bg-slate-800/30 transition-colors"
+                            >
+                              <td className="px-2 sm:px-[10px] py-1 font-mono text-slate-500 text-[10px] sm:text-xs text-center sm:text-left h-[50px] w-[34px]">
+                                {(index + 1).toString().padStart(2, "0")}
+                              </td>
+                              <td className="px-[10px] py-1 w-auto h-[45px]">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center border border-slate-700 text-amber-500 font-bold shrink-0 text-xs hidden sm:flex">
+                                    {(user.employeeName || user.displayName || user.username || user.email || "?").charAt(0).toUpperCase()}
                                   </div>
-                                  <div className="text-[10px] sm:text-xs text-slate-400 font-mono truncate max-w-[150px] sm:max-w-[200px]">
-                                    {user.email}
+                                  <div className="flex flex-col gap-1">
+                                    <div className="font-bold text-amber-500 whitespace-nowrap text-sm truncate max-w-[150px] sm:max-w-[200px]">
+                                      {user.employeeName || user.displayName || user.username || "Chưa đặt tên NV"}
+                                    </div>
+                                    <div className="text-[10px] sm:text-xs text-slate-400 font-mono truncate max-w-[150px] sm:max-w-[200px]">
+                                      {user.email}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td className="p-0 w-auto h-[50px] px-[5px]">
-                              <span className={`text-[10px] sm:text-xs font-medium px-[5px] py-1 rounded-full ${user.role === "admin" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : user.role === "editor" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : user.role === "member" ? "bg-blue-500/10 text-blue-500 border border-blue-500/20" : "bg-slate-800 text-slate-400"}`}>
-                                {user.role === "admin" ? "Admin" : user.role === "editor" ? "Biên tập" : user.role === "member" ? "Môi giới" : "Người dùng"}
-                              </span>
-                            </td>
-                            <td className="px-[10px] py-1 text-right">
-                              <button
-                                onClick={() => setSelectedUser(user)}
-                                className="p-2 text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded flex gap-2 items-center text-xs ml-auto transition-all"
-                                title="Xem chi tiết"
-                              >
-                                <Eye className="w-3.5 h-3.5" />
-                                <span className="hidden xl:block font-medium">Chi tiết</span>
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td className="p-0 w-auto h-[50px] px-[5px]">
+                                <span className={`text-[10px] sm:text-xs font-medium px-[5px] py-1 rounded-full ${user.role === "admin" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" : user.role === "editor" ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : user.role === "member" ? "bg-blue-500/10 text-blue-500 border border-blue-500/20" : "bg-slate-800 text-slate-400"}`}>
+                                  {user.role === "admin" ? "Admin" : user.role === "editor" ? "Biên tập" : user.role === "member" ? "Môi giới" : "Người dùng"}
+                                </span>
+                              </td>
+                              <td className="px-[10px] py-1 text-right">
+                                <button
+                                  onClick={() => setSelectedUser(user)}
+                                  className="p-2 text-white bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded flex gap-2 items-center text-xs ml-auto transition-all"
+                                  title="Xem chi tiết"
+                                >
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span className="hidden xl:block font-medium">Chi tiết</span>
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
                         {users.filter(user => usersFilter === "all" || user.role === usersFilter).length === 0 && (
                           <tr>
                             <td
@@ -3504,7 +3501,7 @@ export default function AdminPanel({
                           <UserCheck className="w-3.5 h-3.5 text-amber-500" />
                           Thông tin người dùng
                         </div>
-                        
+
                         <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[140px_1fr]">
                           <div className="bg-slate-800/80 p-2 sm:p-3 border-b border-r border-slate-700 font-semibold text-[10px] sm:text-[11px] flex items-center">
                             Tên hiển thị (NV)
@@ -3520,7 +3517,7 @@ export default function AdminPanel({
                                   onKeyDown={(e) => {
                                     if (e.key === "Enter") {
                                       handleUpdateEmployeeName(selectedUser.id, editingEmployeeName.trim());
-                                      setSelectedUser({...selectedUser, employeeName: editingEmployeeName.trim()});
+                                      setSelectedUser({ ...selectedUser, employeeName: editingEmployeeName.trim() });
                                     }
                                     if (e.key === "Escape") setEditingEmployeeId(null);
                                   }}
@@ -3529,7 +3526,7 @@ export default function AdminPanel({
                                 <button
                                   onClick={() => {
                                     handleUpdateEmployeeName(selectedUser.id, editingEmployeeName.trim());
-                                    setSelectedUser({...selectedUser, employeeName: editingEmployeeName.trim()});
+                                    setSelectedUser({ ...selectedUser, employeeName: editingEmployeeName.trim() });
                                   }}
                                   className="text-emerald-500 hover:text-emerald-400"
                                   title="Lưu"
@@ -3585,7 +3582,7 @@ export default function AdminPanel({
                               value={selectedUser.role}
                               onChange={(e) => {
                                 handleUpdateUserRole(selectedUser.id, e.target.value);
-                                setSelectedUser({...selectedUser, role: e.target.value});
+                                setSelectedUser({ ...selectedUser, role: e.target.value });
                               }}
                             >
                               <option value="user" className="bg-slate-900">User (Người dùng)</option>
@@ -3702,13 +3699,12 @@ export default function AdminPanel({
                             </td>
                             <td className="px-5 py-3 hidden sm:table-cell">
                               <span
-                                className={`text-[10px] font-mono font-bold px-2 py-1 rounded-full border ${
-                                  n.approvalStatus === "approved"
+                                className={`text-[10px] font-mono font-bold px-2 py-1 rounded-full border ${n.approvalStatus === "approved"
                                     ? "bg-amber-500/10 border-amber-500/20 text-amber-500"
                                     : n.approvalStatus === "rejected"
                                       ? "bg-rose-500/10 border-rose-500/20 text-rose-500"
                                       : "bg-yellow-500/10 border-yellow-500/20 text-yellow-500"
-                                }`}
+                                  }`}
                               >
                                 {n.approvalStatus === "approved" ? "Đã duyệt" : n.approvalStatus === "rejected" ? "Bị từ chối" : "Chờ duyệt"}
                               </span>
@@ -4030,20 +4026,20 @@ export default function AdminPanel({
                     Cấu Hình AI (Trợ lý Content)
                   </h3>
                   <div className="space-y-3">
-                     <p className="text-xs text-slate-400 text-left">Kết nối Gemini API để tự động viết bài SEO, sinh mô tả dự án và tự động điền thông số.</p>
-                     <div className="space-y-1 text-left">
-                        <label className="text-[10px] font-bold text-slate-400">
-                          Google Gemini API Key
-                        </label>
-                        <input
-                          type="password"
-                          placeholder="AIzaSyB..."
-                          className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-[10px] text-[10px] text-white outline-none"
-                        />
-                     </div>
-                     <button className="bg-amber-500 text-slate-950 font-bold px-4 py-2 text-xs rounded hover:bg-amber-400 transition-colors">
-                        Lưu & Kích hoạt AI
-                     </button>
+                    <p className="text-xs text-slate-400 text-left">Kết nối Gemini API để tự động viết bài SEO, sinh mô tả dự án và tự động điền thông số.</p>
+                    <div className="space-y-1 text-left">
+                      <label className="text-[10px] font-bold text-slate-400">
+                        Google Gemini API Key
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="AIzaSyB..."
+                        className="w-full bg-slate-950 border border-slate-850 rounded-lg px-3 py-[10px] text-[10px] text-white outline-none"
+                      />
+                    </div>
+                    <button className="bg-amber-500 text-slate-950 font-bold px-4 py-2 text-xs rounded hover:bg-amber-400 transition-colors">
+                      Lưu & Kích hoạt AI
+                    </button>
                   </div>
                 </div>
 
@@ -4060,36 +4056,36 @@ export default function AdminPanel({
                       {/* Batdongsan.com.vn */}
                       <div className="p-4 border border-slate-800 rounded-lg bg-slate-950/50">
                         <div className="flex justify-between items-center mb-3">
-                           <span className="font-bold text-sm text-red-500">BatDongSan.com.vn</span>
-                           <span className="px-2 py-0.5 bg-slate-800 text-[10px] rounded text-slate-400 uppercase">Chưa kết nối</span>
+                          <span className="font-bold text-sm text-red-500">BatDongSan.com.vn</span>
+                          <span className="px-2 py-0.5 bg-slate-800 text-[10px] rounded text-slate-400 uppercase">Chưa kết nối</span>
                         </div>
                         <input type="text" placeholder="Access Token / API Key" className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-xs mb-2 outline-none text-white" />
                         <button className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-2 text-[11px] rounded transition-colors">
-                           Lưu Cấu Hình
+                          Lưu Cấu Hình
                         </button>
                       </div>
 
                       {/* Chotot */}
                       <div className="p-4 border border-slate-800 rounded-lg bg-slate-950/50">
                         <div className="flex justify-between items-center mb-3">
-                           <span className="font-bold text-sm text-yellow-500">ChoTot.com</span>
-                           <span className="px-2 py-0.5 bg-slate-800 text-[10px] rounded text-slate-400 uppercase">Chưa kết nối</span>
+                          <span className="font-bold text-sm text-yellow-500">ChoTot.com</span>
+                          <span className="px-2 py-0.5 bg-slate-800 text-[10px] rounded text-slate-400 uppercase">Chưa kết nối</span>
                         </div>
                         <input type="text" placeholder="Access Token / API Key" className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-xs mb-2 outline-none text-white" />
                         <button className="w-full bg-slate-800 hover:bg-slate-700 text-white font-medium px-4 py-2 text-[11px] rounded transition-colors">
-                           Lưu Cấu Hình
+                          Lưu Cấu Hình
                         </button>
                       </div>
-                      
+
                       {/* Facebook */}
                       <div className="p-4 border border-slate-800 rounded-lg bg-slate-950/50 md:col-span-2">
                         <div className="flex justify-between items-center mb-3">
-                           <span className="font-bold text-sm text-blue-500">Facebook Page (Auto-Post)</span>
-                           <span className="px-2 py-0.5 bg-slate-800 text-[10px] rounded text-slate-400 uppercase">Chưa kết nối</span>
+                          <span className="font-bold text-sm text-blue-500">Facebook Page (Auto-Post)</span>
+                          <span className="px-2 py-0.5 bg-slate-800 text-[10px] rounded text-slate-400 uppercase">Chưa kết nối</span>
                         </div>
                         <input type="text" placeholder="Facebook Page Access Token" className="w-full bg-slate-900 border border-slate-800 rounded px-3 py-2 text-xs mb-2 outline-none text-white" />
                         <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2 text-[11px] rounded transition-colors">
-                           Kết Nối Facebook Graph API
+                          Kết Nối Facebook Graph API
                         </button>
                       </div>
                     </div>
@@ -4282,11 +4278,10 @@ export default function AdminPanel({
                       <button
                         key={tab}
                         onClick={() => setGoogleServiceTab(tab)}
-                        className={`px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-xs font-bold tracking-wider rounded-md transition-all whitespace-nowrap ${
-                          googleServiceTab === tab
+                        className={`px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-xs font-bold tracking-wider rounded-md transition-all whitespace-nowrap ${googleServiceTab === tab
                             ? "bg-slate-800 text-amber-400 shadow-sm"
                             : "text-slate-500 hover:text-slate-300"
-                        }`}
+                          }`}
                       >
                         {tab === "ga4"
                           ? "Analytics (GA4)"
@@ -4419,7 +4414,7 @@ export default function AdminPanel({
                               ViewContent.
                             </p>
                           </div>
-                          
+
 
                         </div>
                       )}
@@ -4890,7 +4885,7 @@ export default function AdminPanel({
                                       : googleServiceTab === "adsense"
                                         ? "revenue"
                                         : googleServiceTab === "fb" ||
-                                            googleServiceTab === "tiktok"
+                                          googleServiceTab === "tiktok"
                                           ? "events"
                                           : "views"
                                   }
@@ -5010,57 +5005,57 @@ export default function AdminPanel({
                 <div className="bg-slate-900 border border-slate-850 p-6 rounded-lg text-left">
                   <div className="mb-6">
                     <h3 className="font-display font-medium text-white text-lg flex items-center gap-2">
-                      <svg className="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+                      <svg className="w-5 h-5 text-amber-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" /></svg>
                       Cấu hình Firebase Admin
                     </h3>
                     <p className="text-sm text-slate-400 mt-2">
-                       Do giới hạn bảo mật của Firebase, việc xóa tài khoản hoàn toàn khỏi Authentication cần khóa Service Account (Node.js SDK). <br />
-                       Vui lòng lấy file JSON trong <strong>Project settings &gt; Service accounts &gt; Generate new private key</strong> và dán vào đây.
+                      Do giới hạn bảo mật của Firebase, việc xóa tài khoản hoàn toàn khỏi Authentication cần khóa Service Account (Node.js SDK). <br />
+                      Vui lòng lấy file JSON trong <strong>Project settings &gt; Service accounts &gt; Generate new private key</strong> và dán vào đây.
                     </p>
                   </div>
-                  
+
                   <div className="mb-4">
                     <div className="text-sm mb-2 text-slate-300 font-medium">Trạng thái cấu hình:</div>
                     {firebaseAdminStatus === null ? (
                       <span className="text-slate-500 font-mono text-sm bg-slate-950 px-3 py-1 rounded">Đang kiểm tra...</span>
                     ) : firebaseAdminStatus ? (
                       <span className="text-emerald-400 font-bold text-sm bg-emerald-950 px-3 py-1 rounded border border-emerald-900 flex items-center inline-flex gap-2 w-max">
-                        <CheckCircle className="w-4 h-4"/> Đã cấu hình và sẵn sàng (Cho phép xóa Auth)
+                        <CheckCircle className="w-4 h-4" /> Đã cấu hình và sẵn sàng (Cho phép xóa Auth)
                       </span>
                     ) : (
                       <span className="text-rose-400 font-bold text-sm bg-rose-950 px-3 py-1 rounded border border-rose-900 flex items-center inline-flex gap-2 w-max">
-                        <ShieldAlert className="w-4 h-4"/> Chưa cấu hình (Chỉ xóa được dữ liệu Firestore)
+                        <ShieldAlert className="w-4 h-4" /> Chưa cấu hình (Chỉ xóa được dữ liệu Firestore)
                       </span>
                     )}
                   </div>
-                  
+
                   <textarea
                     placeholder='{"type": "service_account", "project_id": "...", ...}'
                     className="w-full bg-slate-950 border border-slate-800 text-slate-300 p-4 rounded-xl font-mono text-xs mb-4 min-h-[200px] outline-none focus:border-amber-500"
                     value={serviceAccountJson}
                     onChange={e => setServiceAccountJson(e.target.value)}
                   />
-                  
+
                   <button
                     onClick={async () => {
                       if (!serviceAccountJson) {
-                         onShowNotification("Vui lòng nhập JSON Server Account", "error");
-                         return;
+                        onShowNotification("Vui lòng nhập JSON Server Account", "error");
+                        return;
                       }
                       setLoading(true);
                       try {
                         const r = await fetch('/api/firebase-admin-config', {
-                           method: 'POST',
-                           headers: { 'Content-Type': 'application/json' },
-                           body: JSON.stringify({ serviceAccountJson })
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ serviceAccountJson })
                         });
                         const d = await r.json();
                         if (d.success) {
-                           onShowNotification("Đã lưu khóa Admin thành công!", "success");
-                           setServiceAccountJson("");
-                           setFirebaseAdminStatus(true);
+                          onShowNotification("Đã lưu khóa Admin thành công!", "success");
+                          setServiceAccountJson("");
+                          setFirebaseAdminStatus(true);
                         } else {
-                           onShowNotification(d.error || "Lỗi cấu hình", "error");
+                          onShowNotification(d.error || "Lỗi cấu hình", "error");
                         }
                       } catch (e: any) {
                         onShowNotification("Lỗi kết nối", "error");
@@ -5349,12 +5344,12 @@ export default function AdminPanel({
                         <div className="text-[12px] leading-[12px] font-bold text-white">
                           {displayConsultations.length > 0
                             ? Math.round(
-                                (displayConsultations.filter(
-                                  (c) => c.status === "won",
-                                ).length /
-                                  displayConsultations.length) *
-                                  100,
-                              )
+                              (displayConsultations.filter(
+                                (c) => c.status === "won",
+                              ).length /
+                                displayConsultations.length) *
+                              100,
+                            )
                             : 0}
                           %
                         </div>
@@ -5428,27 +5423,27 @@ export default function AdminPanel({
                             <tr className="bg-slate-950 border-b border-slate-800 text-[10px] font-bold text-slate-400 tracking-wider h-[30.5px]">
                               {(currentUserRole === "admin" ||
                                 currentUserRole === "editor") && (
-                                <th className="px-2 sm:px-4 pt-[3px] pb-0 w-[40px]">
-                                  <input
-                                    type="checkbox"
-                                    checked={
-                                      displayConsultations.length > 0 &&
-                                      selectedLeadIds.length ===
+                                  <th className="px-2 sm:px-4 pt-[3px] pb-0 w-[40px]">
+                                    <input
+                                      type="checkbox"
+                                      checked={
+                                        displayConsultations.length > 0 &&
+                                        selectedLeadIds.length ===
                                         displayConsultations.length
-                                    }
-                                    onChange={(e) => {
-                                      if (e.target.checked) {
-                                        setSelectedLeadIds(
-                                          displayConsultations.map((c) => c.id),
-                                        );
-                                      } else {
-                                        setSelectedLeadIds([]);
                                       }
-                                    }}
-                                    className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-amber-500/30 cursor-pointer"
-                                  />
-                                </th>
-                              )}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setSelectedLeadIds(
+                                            displayConsultations.map((c) => c.id),
+                                          );
+                                        } else {
+                                          setSelectedLeadIds([]);
+                                        }
+                                      }}
+                                      className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-amber-500/30 cursor-pointer"
+                                    />
+                                  </th>
+                                )}
                               <th className="px-2 sm:px-4 pt-[3px] pb-0">
                                 Khách hàng
                               </th>
@@ -5507,23 +5502,23 @@ export default function AdminPanel({
                                   >
                                     {(currentUserRole === "admin" ||
                                       currentUserRole === "editor") && (
-                                      <td
-                                        className="px-2 sm:px-4 py-0"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={selectedLeadIds.includes(
-                                            lead.id,
-                                          )}
-                                          onChange={(e) => {
-                                            e.stopPropagation();
-                                            toggleLeadSelection(lead.id);
-                                          }}
-                                          className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-amber-500/30 cursor-pointer"
-                                        />
-                                      </td>
-                                    )}
+                                        <td
+                                          className="px-2 sm:px-4 py-0"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            checked={selectedLeadIds.includes(
+                                              lead.id,
+                                            )}
+                                            onChange={(e) => {
+                                              e.stopPropagation();
+                                              toggleLeadSelection(lead.id);
+                                            }}
+                                            className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-700 text-amber-500 focus:ring-amber-500/30 cursor-pointer"
+                                          />
+                                        </td>
+                                      )}
                                     <td className="px-2 sm:px-4 py-0">
                                       <div className="font-bold text-white max-w-[140px] md:max-w-none truncate sm:text-sm text-xs">
                                         {lead.name}
@@ -5553,8 +5548,7 @@ export default function AdminPanel({
                                     </td>
                                     <td className="px-2 sm:px-4 py-0">
                                       <span
-                                        className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded inline-block ${
-                                          mappedStatus === "new"
+                                        className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded inline-block ${mappedStatus === "new"
                                             ? "bg-blue-500/20 text-blue-400"
                                             : mappedStatus === "contacted"
                                               ? "bg-amber-500/20 text-amber-400"
@@ -5563,7 +5557,7 @@ export default function AdminPanel({
                                                 : mappedStatus === "won"
                                                   ? "bg-emerald-500/20 text-emerald-400"
                                                   : "bg-slate-700 text-slate-300"
-                                        }`}
+                                          }`}
                                       >
                                         {mappedStatus === "new"
                                           ? "Khách mới"
@@ -5603,16 +5597,16 @@ export default function AdminPanel({
                                         </button>
                                         {(currentUserRole === "admin" ||
                                           currentUserRole === "editor") && (
-                                          <button
-                                            onClick={() =>
-                                              handleDeleteLead(lead.id)
-                                            }
-                                            className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-lg transition-colors inline-block"
-                                            title="Xóa khách hàng"
-                                          >
-                                            <Trash2 className="w-4 h-4" />
-                                          </button>
-                                        )}
+                                            <button
+                                              onClick={() =>
+                                                handleDeleteLead(lead.id)
+                                              }
+                                              className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-lg transition-colors inline-block"
+                                              title="Xóa khách hàng"
+                                            >
+                                              <Trash2 className="w-4 h-4" />
+                                            </button>
+                                          )}
                                       </div>
                                     </td>
                                   </tr>
@@ -5655,13 +5649,13 @@ export default function AdminPanel({
                       <div className="flex items-center gap-2">
                         {(currentUserRole === "admin" ||
                           currentUserRole === "editor") && (
-                          <button
-                            onClick={() => handleDeleteLead(crmSelectedLead.id)}
-                            className="cursor-pointer text-[11px] text-rose-500 font-bold hover:text-rose-400 px-3 py-1.5 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 rounded flex items-center gap-1 transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" /> Xóa
-                          </button>
-                        )}
+                            <button
+                              onClick={() => handleDeleteLead(crmSelectedLead.id)}
+                              className="cursor-pointer text-[11px] text-rose-500 font-bold hover:text-rose-400 px-3 py-1.5 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 rounded flex items-center gap-1 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Xóa
+                            </button>
+                          )}
                       </div>
                     </div>
 
@@ -5956,7 +5950,7 @@ export default function AdminPanel({
                               </tr>
 
                               {!crmSelectedLead.careHistory ||
-                              crmSelectedLead.careHistory.length === 0 ? (
+                                crmSelectedLead.careHistory.length === 0 ? (
                                 <tr>
                                   <td
                                     colSpan={3}
@@ -6033,15 +6027,15 @@ export default function AdminPanel({
                     </button>
                     {(currentUserRole === "admin" ||
                       currentUserRole === "editor") && (
-                      <button
-                        onClick={() => {
-                          setCreateType("project");
-                        }}
-                        className={`px-3 py-1.5 text-[10px] font-bold rounded ${createType === "project" ? "bg-amber-500 text-slate-950" : "bg-slate-950 text-slate-400"}`}
-                      >
-                        Dự án
-                      </button>
-                    )}
+                        <button
+                          onClick={() => {
+                            setCreateType("project");
+                          }}
+                          className={`px-3 py-1.5 text-[10px] font-bold rounded ${createType === "project" ? "bg-amber-500 text-slate-950" : "bg-slate-950 text-slate-400"}`}
+                        >
+                          Dự án
+                        </button>
+                      )}
                     <button
                       onClick={() => {
                         setCreateType("article");
@@ -6127,21 +6121,21 @@ export default function AdminPanel({
                                 ? news.length > 0
                                   ? news.map((n) => n.category)
                                   : [
-                                      "Tin thị trường",
-                                      "Lưu ý khi mua nhà",
-                                      "Phong thủy",
-                                      "Thông tin dự án",
-                                      "Bất động sản hạng sang",
-                                    ]
+                                    "Tin thị trường",
+                                    "Lưu ý khi mua nhà",
+                                    "Phong thủy",
+                                    "Thông tin dự án",
+                                    "Bất động sản hạng sang",
+                                  ]
                                 : products.length > 0
                                   ? products.map((p) => p.category)
                                   : [
-                                      "Biệt thự sinh thái",
-                                      "Căn hộ cao cấp",
-                                      "Nhà phố liền kề",
-                                      "Đất nền quy hoạch",
-                                      "Shophouse kinh doanh",
-                                    ]),
+                                    "Biệt thự sinh thái",
+                                    "Căn hộ cao cấp",
+                                    "Nhà phố liền kề",
+                                    "Đất nền quy hoạch",
+                                    "Shophouse kinh doanh",
+                                  ]),
                             ]),
                           )
                             .filter(Boolean)
@@ -6355,18 +6349,18 @@ export default function AdminPanel({
                         </div>
                         {(currentUserRole === "admin" ||
                           currentUserRole === "editor") && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setLibraryTargetField("imageUrl");
-                              setIsLibraryOpen(true);
-                            }}
-                            className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all"
-                          >
-                            <Image className="w-3.5 h-3.5 text-slate-950" />
-                            <span>Chọn từ kho</span>
-                          </button>
-                        )}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setLibraryTargetField("imageUrl");
+                                setIsLibraryOpen(true);
+                              }}
+                              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all"
+                            >
+                              <Image className="w-3.5 h-3.5 text-slate-950" />
+                              <span>Chọn từ kho</span>
+                            </button>
+                          )}
                       </div>
                       <div className="flex flex-wrap gap-1.5 pt-1">
                         {assetPresets.map((ps, idx) => (
@@ -6374,11 +6368,10 @@ export default function AdminPanel({
                             key={idx}
                             type="button"
                             onClick={() => setImageUrl(ps.url)}
-                            className={`text-[9px] px-2 py-0.5 rounded border border-slate-800 transition-all ${
-                              imageUrl === ps.url
+                            className={`text-[9px] px-2 py-0.5 rounded border border-slate-800 transition-all ${imageUrl === ps.url
                                 ? "bg-amber-500 text-slate-900 border-transparent font-bold"
                                 : "text-slate-400 font-sans"
-                            }`}
+                              }`}
                           >
                             {ps.label}
                           </button>
@@ -6429,17 +6422,17 @@ export default function AdminPanel({
                           </div>
                           {(currentUserRole === "admin" ||
                             currentUserRole === "editor") && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setLibraryTargetField("album");
-                                setIsLibraryOpen(true);
-                              }}
-                              className="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs py-1.5 px-3 rounded-lg transition-all flex items-center justify-center cursor-pointer"
-                            >
-                              Chọn từ kho
-                            </button>
-                          )}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setLibraryTargetField("album");
+                                  setIsLibraryOpen(true);
+                                }}
+                                className="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs py-1.5 px-3 rounded-lg transition-all flex items-center justify-center cursor-pointer"
+                              >
+                                Chọn từ kho
+                              </button>
+                            )}
                         </div>
 
                         {imageUrls.length > 0 && (
@@ -6519,22 +6512,22 @@ export default function AdminPanel({
                               </div>
                               {(currentUserRole === "admin" ||
                                 currentUserRole === "editor") && (
-                                <>
-                                  <span className="text-slate-650 text-[10px]">
-                                    •
-                                  </span>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setLibraryTargetField("avatarUrl");
-                                      setIsLibraryOpen(true);
-                                    }}
-                                    className="text-[10px] text-amber-400 font-bold hover:underline bg-transparent border-0 cursor-pointer"
-                                  >
-                                    Chọn từ kho lưu trữ
-                                  </button>
-                                </>
-                              )}
+                                  <>
+                                    <span className="text-slate-650 text-[10px]">
+                                      •
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setLibraryTargetField("avatarUrl");
+                                        setIsLibraryOpen(true);
+                                      }}
+                                      className="text-[10px] text-amber-400 font-bold hover:underline bg-transparent border-0 cursor-pointer"
+                                    >
+                                      Chọn từ kho lưu trữ
+                                    </button>
+                                  </>
+                                )}
                             </div>
                           </div>
                         </div>
@@ -7342,17 +7335,17 @@ export default function AdminPanel({
                                   </div>
                                   {(currentUserRole === "admin" ||
                                     currentUserRole === "editor") && (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setLibraryTargetField("amenityAlbum");
-                                        setIsLibraryOpen(true);
-                                      }}
-                                      className="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs py-1.5 px-3 rounded-lg transition-all flex items-center justify-center cursor-pointer"
-                                    >
-                                      Từ kho
-                                    </button>
-                                  )}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setLibraryTargetField("amenityAlbum");
+                                          setIsLibraryOpen(true);
+                                        }}
+                                        className="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs py-1.5 px-3 rounded-lg transition-all flex items-center justify-center cursor-pointer"
+                                      >
+                                        Từ kho
+                                      </button>
+                                    )}
                                 </div>
                                 {amenityImages.length > 0 && (
                                   <div className="pt-3">
@@ -7446,17 +7439,17 @@ export default function AdminPanel({
                                 </div>
                                 {(currentUserRole === "admin" ||
                                   currentUserRole === "editor") && (
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setLibraryTargetField("floorPlanAlbum");
-                                      setIsLibraryOpen(true);
-                                    }}
-                                    className="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs py-1.5 px-3 rounded-lg transition-all flex items-center justify-center cursor-pointer"
-                                  >
-                                    Từ kho
-                                  </button>
-                                )}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setLibraryTargetField("floorPlanAlbum");
+                                        setIsLibraryOpen(true);
+                                      }}
+                                      className="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs py-1.5 px-3 rounded-lg transition-all flex items-center justify-center cursor-pointer"
+                                    >
+                                      Từ kho
+                                    </button>
+                                  )}
                               </div>
                               {floorPlanImages.length > 0 && (
                                 <div className="pt-3">
@@ -7614,22 +7607,22 @@ export default function AdminPanel({
                                                       {(currentUserRole ===
                                                         "admin" ||
                                                         currentUserRole ===
-                                                          "editor") && (
-                                                        <button
-                                                          type="button"
-                                                          onClick={() => {
-                                                            setLibraryTargetField(
-                                                              `tabImage:${tab.id}`,
-                                                            );
-                                                            setIsLibraryOpen(
-                                                              true,
-                                                            );
-                                                          }}
-                                                          className="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs py-1.5 px-3 rounded-lg transition-all flex items-center justify-center cursor-pointer"
-                                                        >
-                                                          Từ kho
-                                                        </button>
-                                                      )}
+                                                        "editor") && (
+                                                          <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                              setLibraryTargetField(
+                                                                `tabImage:${tab.id}`,
+                                                              );
+                                                              setIsLibraryOpen(
+                                                                true,
+                                                              );
+                                                            }}
+                                                            className="bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 font-bold text-xs py-1.5 px-3 rounded-lg transition-all flex items-center justify-center cursor-pointer"
+                                                          >
+                                                            Từ kho
+                                                          </button>
+                                                        )}
                                                     </div>
                                                   </div>
                                                   {tab.images.length > 0 && (
@@ -7849,7 +7842,7 @@ export default function AdminPanel({
                                     >
                                       <Trash2 className="w-4 h-4" />
                                     </button>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                       <div className="space-y-1">
                                         <label className="text-[10px] text-slate-400 font-bold font-display">Tiêu đề bài viết</label>
@@ -7887,7 +7880,7 @@ export default function AdminPanel({
                                         </select>
                                       </div>
                                     </div>
-                                    
+
                                     <div className="space-y-1">
                                       <label className="text-[10px] text-slate-400 font-bold font-display">Nội dung</label>
                                       <div className="bg-white rounded border border-slate-800 text-slate-900 relative">
@@ -8042,11 +8035,10 @@ export default function AdminPanel({
                     <button
                       type="submit"
                       disabled={isUploading || loading}
-                      className={`bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold text-xs py-2.5 px-6 rounded-lg transition-all flex items-center gap-2 ${
-                        isUploading || loading
+                      className={`bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold text-xs py-2.5 px-6 rounded-lg transition-all flex items-center gap-2 ${isUploading || loading
                           ? "opacity-50 cursor-not-allowed"
                           : "cursor-pointer"
-                      }`}
+                        }`}
                     >
                       {isUploading || loading ? (
                         <>
@@ -8194,11 +8186,10 @@ export default function AdminPanel({
                       <button
                         type="submit"
                         disabled={savingConfig}
-                        className={`bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold text-xs py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 ${
-                          savingConfig
+                        className={`bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold text-xs py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 ${savingConfig
                             ? "opacity-50 cursor-not-allowed"
                             : "cursor-pointer"
-                        }`}
+                          }`}
                       >
                         {savingConfig ? (
                           <>
@@ -8523,8 +8514,8 @@ export default function AdminPanel({
                                   const imgTag = `<a href="${href}" class="text-emerald-400 font-medium hover:underline cursor-pointer transition-colors" title="${item.title}">${selected}</a>`;
                                   setHtmlContent(
                                     text.substring(0, start) +
-                                      imgTag +
-                                      text.substring(end),
+                                    imgTag +
+                                    text.substring(end),
                                   );
                                   setEditorCursorMatch(null);
                                 } else {
@@ -8551,13 +8542,12 @@ export default function AdminPanel({
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
                                   <span
-                                    className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${
-                                      item._type === "product"
+                                    className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${item._type === "product"
                                         ? "bg-amber-500/20 text-amber-500"
                                         : item._type === "project"
                                           ? "bg-indigo-500/20 text-indigo-400"
                                           : "bg-sky-500/20 text-sky-400"
-                                    }`}
+                                      }`}
                                   >
                                     {item._label}
                                   </span>

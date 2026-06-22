@@ -91,6 +91,68 @@ import { useAuth } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
 import AdminFiltersTab from "./AdminFiltersTab";
 
+function decodeBase64(str: string): string | null {
+  try {
+    const normalized = str.trim().replace(/-/g, "+").replace(/_/g, "/");
+    return atob(normalized);
+  } catch (error) {
+    console.error(
+      "[AdminPanel] decodeBase64 thất bại – chuỗi Base64 không hợp lệ:",
+      error,
+    );
+    return null;
+  }
+}
+
+function resolveGithubToken(
+  rawToken: string | undefined,
+): { token: string } | { error: string } {
+  if (rawToken === undefined || rawToken.trim() === "") {
+    return {
+      error:
+        "VITE_GITHUB_TOKEN chưa được cấu hình hoặc rỗng. Vui lòng kiểm tra file .env.",
+    };
+  }
+
+  const trimmed = rawToken.trim();
+
+  if (trimmed.startsWith("ghp_") || trimmed.startsWith("github_pat_")) {
+    return { token: trimmed };
+  }
+
+  if (trimmed.startsWith("base64:")) {
+    const base64Part = trimmed.slice(7);
+    if (
+      base64Part.startsWith("ghp_") ||
+      base64Part.startsWith("github_pat_")
+    ) {
+      return { token: base64Part };
+    }
+    const decoded = decodeBase64(base64Part);
+    if (!decoded || decoded.trim() === "") {
+      return {
+        error:
+          "VITE_GITHUB_TOKEN (base64:...) không giải mã được. Kiểm tra lại giá trị trong .env.",
+      };
+    }
+    return { token: decoded.trim() };
+  }
+
+  const decoded = decodeBase64(trimmed);
+  if (!decoded || decoded.trim() === "") {
+    return {
+      error:
+        "VITE_GITHUB_TOKEN không phải chuỗi Base64 hợp lệ. Kiểm tra lại giá trị trong .env.",
+    };
+  }
+  return { token: decoded.trim() };
+}
+
+function buildGithubAuthHeader(token: string): string {
+  return token.startsWith("ghp_") || token.startsWith("github_pat_")
+    ? `token ${token}`
+    : `Bearer ${token}`;
+}
 
 interface AdminPanelProps {
   onShowNotification: (message: string, type: "success" | "error") => void;
@@ -282,7 +344,6 @@ export default function AdminPanel({
     setHtmlContent((prev) => prev + tagOpen + "Nội dung mẫu" + tagClose);
   };
 
-  // Real upload with base64 conversion and internal server endpoint (/api/upload)
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     targetField: string,
@@ -312,59 +373,97 @@ export default function AdminPanel({
             canvas.width = img.width;
             canvas.height = img.height;
             const ctx = canvas.getContext("2d");
-            if (!ctx) return resolve(base64); // Fallback to original
+            if (!ctx) return resolve(base64);
             ctx.drawImage(img, 0, 0);
-            const webpDataUrl = canvas.toDataURL("image/webp", 0.85); // 85% quality
+            const webpDataUrl = canvas.toDataURL("image/webp", 0.85);
             resolve(webpDataUrl);
           };
-          img.onerror = () => resolve(base64); // Fallback
+          img.onerror = () => resolve(base64);
           img.src = base64;
         });
 
         base64 = convertedBase64;
-        const nameWithoutExt = file.name.includes('.')
-          ? file.name.substring(0, file.name.lastIndexOf('.'))
+        const nameWithoutExt = file.name.includes(".")
+          ? file.name.substring(0, file.name.lastIndexOf("."))
           : file.name;
         uploadFileName = nameWithoutExt + ".webp";
       }
 
-      setUploadStatus("Đang tải ảnh lên máy chủ...");
+      const owner = import.meta.env.VITE_GITHUB_OWNER?.trim();
+      const repo = import.meta.env.VITE_GITHUB_REPO?.trim();
+      const branch = import.meta.env.VITE_GITHUB_BRANCH?.trim();
 
-      // 1. Lấy và giải mã cấu hình từ file .env
-      const tokenBase64 = import.meta.env.VITE_GITHUB_TOKEN;
-      const realToken = atob(tokenBase64);
-      const repo = import.meta.env.VITE_GITHUB_REPO;
-      const owner = import.meta.env.VITE_GITHUB_OWNER;
-      const branch = import.meta.env.VITE_GITHUB_BRANCH;
+      if (!owner || !repo || !branch) {
+        const missing = [
+          !owner && "VITE_GITHUB_OWNER",
+          !repo && "VITE_GITHUB_REPO",
+          !branch && "VITE_GITHUB_BRANCH",
+        ]
+          .filter(Boolean)
+          .join(", ");
+        throw new Error(
+          `${missing} chưa được cấu hình. Vui lòng kiểm tra file .env.`,
+        );
+      }
 
-      // 2. Tách phần data ảnh thuần túy (GitHub không nhận tiền tố data:image/webp;base64,)
-      const pureBase64 = base64.includes(',') ? base64.split(',')[1] : base64;
+      const tokenResult = resolveGithubToken(import.meta.env.VITE_GITHUB_TOKEN);
+      if ("error" in tokenResult) {
+        console.error("[AdminPanel] GitHub token:", tokenResult.error);
+        throw new Error(tokenResult.error);
+      }
 
-      // 3. Đường dẫn lưu file trên GitHub (lưu vào thư mục public/uploads/)
+      const realToken = tokenResult.token;
+      if (
+        !realToken.startsWith("ghp_") &&
+        !realToken.startsWith("github_pat_")
+      ) {
+        console.error(
+          "[AdminPanel] Token sau khi giải mã không có định dạng GitHub hợp lệ.",
+        );
+        throw new Error(
+          "Token GitHub không hợp lệ sau khi giải mã. Kiểm tra lại VITE_GITHUB_TOKEN trong .env.",
+        );
+      }
+
+      setUploadStatus("Đang tải ảnh lên GitHub...");
+
+      const pureBase64 = base64.includes(",") ? base64.split(",")[1] : base64;
+      if (!pureBase64) {
+        throw new Error("Không thể đọc dữ liệu ảnh Base64.");
+      }
+
       const githubApiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/public/uploads/${uploadFileName}`;
 
-      // 4. Bắn ảnh thẳng lên GitHub bằng lệnh PUT
       const response = await fetch(githubApiUrl, {
         method: "PUT",
         headers: {
-          "Authorization": `Bearer ${realToken}`,
+          Authorization: buildGithubAuthHeader(realToken),
+          Accept: "application/vnd.github+json",
+          "X-GitHub-Api-Version": "2022-11-28",
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           message: `Upload ảnh ${uploadFileName} từ Admin`,
           content: pureBase64,
-          branch: branch
+          branch,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Server error uploading image.");
+        const message =
+          errorData.message ||
+          errorData.error ||
+          `GitHub API trả về lỗi ${response.status}.`;
+        throw new Error(message);
       }
 
       const responseData = await response.json();
-      if (responseData.success && responseData.url) {
-        const relativeUrl = responseData.url;
+      const relativeUrl =
+        responseData.content?.download_url ||
+        `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/public/uploads/${uploadFileName}`;
+
+      if (relativeUrl) {
         if (targetField.startsWith("subdivisionCardImage:")) {
           const idxStr = targetField.split(":")[1];
           const idx = parseInt(idxStr, 10);

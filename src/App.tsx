@@ -48,6 +48,13 @@ import { RouteState, Product } from "./types";
 import { getPageDefaultSections, GENERIC_CUSTOM_SECTIONS } from "./lib/layouts";
 import { notifyAdminEmail } from "./lib/email";
 import { generateSlug } from "./lib/utils";
+import {
+  parseSlugTitleFromPath,
+  resolveItemTitle,
+  setDocumentFavicon,
+  setDocumentTitle,
+} from "./lib/documentHead";
+import { Helmet } from "react-helmet-async";
 
 // Children Components
 import Navbar from "./components/Navbar";
@@ -714,6 +721,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    if (logoUrl) setDocumentFavicon(logoUrl);
+  }, [logoUrl]);
+
+  useEffect(() => {
     const root = window.document.documentElement;
     const body = window.document.body;
     root.classList.add("dark");
@@ -771,100 +782,117 @@ export default function App() {
     ogDesc.setAttribute("content", desc);
   };
 
-  // Hook watching route navigation and fetching appropriate item SEO configurations
+  // Cập nhật title tạm từ slug URL ngay khi vào trang chi tiết
+  useEffect(() => {
+    const path = window.location.pathname;
+    if (route.screen === "news-detail" && route.newsId) {
+      const slugTitle = parseSlugTitleFromPath(path, "/news/");
+      if (slugTitle) setDocumentTitle(`${slugTitle} | Greenia Homes`);
+      return;
+    }
+    if (route.screen === "product-detail" && route.productId) {
+      const slugTitle = parseSlugTitleFromPath(path, "/product/");
+      if (slugTitle) setDocumentTitle(`${slugTitle} | Greenia Homes`);
+      return;
+    }
+    if (route.screen === "project-detail" && route.projectId) {
+      const slugTitle = parseSlugTitleFromPath(path, "/project/");
+      if (slugTitle) setDocumentTitle(`${slugTitle} | Dự Án Greenia Homes`);
+    }
+  }, [route.screen, route.newsId, route.productId, route.projectId]);
+
+  // SEO trang tĩnh + danh mục
+  useEffect(() => {
+    if (
+      route.screen === "product-detail" ||
+      route.screen === "project-detail" ||
+      route.screen === "news-detail"
+    ) {
+      return;
+    }
+
+    let suffix = "";
+    if (route.screen === "san-pham") suffix = " | Giỏ hàng Bất Động Sản";
+    else if (route.screen === "du-an") suffix = " | Dự Án Quy Hoạch Nổi Bật";
+    else if (route.screen === "tin-tuc") suffix = " | Cẩm Nang Phong Thủy & Tin Tức";
+    else if (route.screen === "lien-he") suffix = " | Liên Hệ Chuyên Gia Môi Giới";
+    else if (route.screen === "admin") suffix = " | Hệ Thống Tổng Đài Admin";
+
+    if (route.screen === "category-news" && route.categoryName) {
+      updateHtmlMeta(
+        `${route.categoryName} | Cẩm Nang Phong Thủy & Tin Tức`,
+        globalMetaDesc,
+        globalMetaKeywords,
+      );
+      return;
+    }
+
+    if (route.screen === "category-product" && route.categoryName) {
+      updateHtmlMeta(
+        `Danh mục ${route.categoryName} | Giỏ hàng BĐS`,
+        globalMetaDesc,
+        globalMetaKeywords,
+      );
+      return;
+    }
+
+    if (route.screen === "latest-sales") {
+      updateHtmlMeta(
+        "Quỹ Biệt Thự & Nhà Bán Mới Nhất | Mua Bán BĐS",
+        globalMetaDesc,
+        globalMetaKeywords,
+      );
+      return;
+    }
+
+    if (route.screen === "latest-rents") {
+      updateHtmlMeta(
+        "Quỹ Căn Hộ & Nhà Cho thuê Mới Nhất | Cho thuê BĐS",
+        globalMetaDesc,
+        globalMetaKeywords,
+      );
+      return;
+    }
+
+    updateHtmlMeta(
+      globalMetaTitle + (suffix ? suffix : ""),
+      globalMetaDesc,
+      globalMetaKeywords,
+    );
+  }, [route, globalMetaTitle, globalMetaDesc, globalMetaKeywords]);
+
+  // SEO trang chi tiết – tách riêng để không bị globalMeta ghi đè
   useEffect(() => {
     let active = true;
 
-    async function applySEO() {
-      if (
-        route.screen !== "product-detail" &&
-        route.screen !== "project-detail" &&
-        route.screen !== "news-detail" &&
-        route.screen !== "category-news" &&
-        route.screen !== "category-product" &&
-        route.screen !== "latest-sales" &&
-        route.screen !== "latest-rents"
-      ) {
-        let suffix = "";
-        if (route.screen === "san-pham") suffix = " | Giỏ hàng Bất Động Sản";
-        else if (route.screen === "du-an")
-          suffix = " | Dự Án Quy Hoạch Nổi Bật";
-        else if (route.screen === "tin-tuc")
-          suffix = " | Cẩm Nang Phong Thủy & Tin Tức";
-        else if (route.screen === "lien-he")
-          suffix = " | Liên Hệ Chuyên Gia Môi Giới";
-        else if (route.screen === "admin")
-          suffix = " | Hệ Thống Tổng Đài Admin";
-
-        updateHtmlMeta(
-          globalMetaTitle + (suffix ? suffix : ""),
-          globalMetaDesc,
-          globalMetaKeywords,
-        );
-        return;
-      }
-
-      if (route.screen === "category-news" && route.categoryName) {
-        updateHtmlMeta(
-          `${route.categoryName} | Cẩm Nang Phong Thủy & Tin Tức`,
-          globalMetaDesc,
-          globalMetaKeywords,
-        );
-        return;
-      }
-
-      if (route.screen === "category-product" && route.categoryName) {
-        updateHtmlMeta(
-          `Danh mục ${route.categoryName} | Giỏ hàng BĐS`,
-          globalMetaDesc,
-          globalMetaKeywords,
-        );
-        return;
-      }
-
-      if (route.screen === "latest-sales") {
-        updateHtmlMeta(
-          `Quỹ Biệt Thự & Nhà Bán Mới Nhất | Mua Bán BĐS`,
-          globalMetaDesc,
-          globalMetaKeywords,
-        );
-        return;
-      }
-
-      if (route.screen === "latest-rents") {
-        updateHtmlMeta(
-          `Quỹ Căn Hộ & Nhà Cho thuê Mới Nhất | Cho thuê BĐS`,
-          globalMetaDesc,
-          globalMetaKeywords,
-        );
-        return;
-      }
-
+    async function applyDetailSEO() {
       if (route.screen === "product-detail" && route.productId) {
         try {
           const docSnap = await getDoc(doc(db, "products", route.productId));
-          if (!active) return;
-          if (docSnap.exists()) {
-            const item = docSnap.data();
-            const draftTitle =
-              item.metaTitle || `${item.title} | Greenia Homes`;
-            const cleanDesc = stripHtmlText(item.description || item.title);
-            const draftDesc =
-              item.metaDesc ||
-              (cleanDesc.length > 155
-                ? cleanDesc.substring(0, 155) + "..."
-                : cleanDesc);
-            const draftKeywords =
-              item.metaKeywords ||
-              `${item.category || "Bất động sản"}, ${item.district || "Nam Sài Gòn"}, greenia homes`;
-            updateHtmlMeta(draftTitle, draftDesc, draftKeywords);
+          if (!active || !docSnap.exists()) return;
+          const item = docSnap.data();
+          const draftTitle = resolveItemTitle(item, "Greenia Homes");
+          const cleanDesc = stripHtmlText(item.description || item.title);
+          const draftDesc =
+            item.metaDesc ||
+            item.seoDesc ||
+            (cleanDesc.length > 155
+              ? cleanDesc.substring(0, 155) + "..."
+              : cleanDesc);
+          const draftKeywords =
+            item.metaKeywords ||
+            item.seoKeywords ||
+            `${item.category || "Bất động sản"}, ${item.district || "Nam Sài Gòn"}, greenia homes`;
+          updateHtmlMeta(draftTitle, draftDesc, draftKeywords);
 
-            // Dynamic slug fallback rewrite for beautiful address/search bar URL
-            const itemSlug = generateSlug(item.title);
-            const currentPath = window.location.pathname;
-            if (itemSlug && !currentPath.includes(itemSlug)) {
-              window.history.replaceState(null, "", `/product/${itemSlug}-${route.productId}`);
-            }
+          const itemSlug = generateSlug(item.title);
+          const currentPath = window.location.pathname;
+          if (itemSlug && !currentPath.includes(itemSlug)) {
+            window.history.replaceState(
+              null,
+              "",
+              `/product/${itemSlug}-${route.productId}`,
+            );
           }
         } catch (err) {
           console.error("SEO loading error for product", err);
@@ -875,28 +903,30 @@ export default function App() {
       if (route.screen === "project-detail" && route.projectId) {
         try {
           const docSnap = await getDoc(doc(db, "projects", route.projectId));
-          if (!active) return;
-          if (docSnap.exists()) {
-            const proj = docSnap.data();
-            const draftTitle =
-              proj.metaTitle || `${proj.title} | Dự Án Greenia Homes`;
-            const cleanDesc = stripHtmlText(proj.description || proj.title);
-            const draftDesc =
-              proj.metaDesc ||
-              (cleanDesc.length > 155
-                ? cleanDesc.substring(0, 155) + "..."
-                : cleanDesc);
-            const draftKeywords =
-              proj.metaKeywords ||
-              `${proj.location || "Dự án"}, quy hoạch đại đô thị, greenia homes`;
-            updateHtmlMeta(draftTitle, draftDesc, draftKeywords);
+          if (!active || !docSnap.exists()) return;
+          const proj = docSnap.data();
+          const draftTitle = resolveItemTitle(proj, "Dự Án Greenia Homes");
+          const cleanDesc = stripHtmlText(proj.description || proj.title);
+          const draftDesc =
+            proj.metaDesc ||
+            proj.seoDesc ||
+            (cleanDesc.length > 155
+              ? cleanDesc.substring(0, 155) + "..."
+              : cleanDesc);
+          const draftKeywords =
+            proj.metaKeywords ||
+            proj.seoKeywords ||
+            `${proj.location || "Dự án"}, quy hoạch đại đô thị, greenia homes`;
+          updateHtmlMeta(draftTitle, draftDesc, draftKeywords);
 
-            // Dynamic slug fallback rewrite for beautiful address/search bar URL
-            const projSlug = generateSlug(proj.title);
-            const currentPath = window.location.pathname;
-            if (projSlug && !currentPath.includes(projSlug)) {
-              window.history.replaceState(null, "", `/project/${projSlug}-${route.projectId}`);
-            }
+          const projSlug = generateSlug(proj.title);
+          const currentPath = window.location.pathname;
+          if (projSlug && !currentPath.includes(projSlug)) {
+            window.history.replaceState(
+              null,
+              "",
+              `/project/${projSlug}-${route.projectId}`,
+            );
           }
         } catch (err) {
           console.error("SEO loading error for project", err);
@@ -907,44 +937,44 @@ export default function App() {
       if (route.screen === "news-detail" && route.newsId) {
         try {
           const docSnap = await getDoc(doc(db, "news", route.newsId));
-          if (!active) return;
-          if (docSnap.exists()) {
-            const article = docSnap.data();
-            const draftTitle =
-              article.metaTitle || `${article.title} | Tin Tức Greenia`;
-            const cleanDesc = stripHtmlText(
-              article.content || article.description || article.title,
-            );
-            const draftDesc =
-              article.metaDesc ||
-              (cleanDesc.length > 155
-                ? cleanDesc.substring(0, 155) + "..."
-                : cleanDesc);
-            const draftKeywords =
-              article.metaKeywords ||
-              `${article.category || "Tin tức"}, kiến thức phong thủy, tin bat dong san`;
-            updateHtmlMeta(draftTitle, draftDesc, draftKeywords);
+          if (!active || !docSnap.exists()) return;
+          const article = docSnap.data();
+          const draftTitle = resolveItemTitle(article, "Greenia Homes");
+          const cleanDesc = stripHtmlText(
+            article.content || article.description || article.title,
+          );
+          const draftDesc =
+            article.metaDesc ||
+            article.seoDesc ||
+            (cleanDesc.length > 155
+              ? cleanDesc.substring(0, 155) + "..."
+              : cleanDesc);
+          const draftKeywords =
+            article.metaKeywords ||
+            article.seoKeywords ||
+            `${article.category || "Tin tức"}, kiến thức phong thủy, tin bat dong san`;
+          updateHtmlMeta(draftTitle, draftDesc, draftKeywords);
 
-            // Dynamic slug fallback rewrite for beautiful address/search bar URL
-            const newsSlug = generateSlug(article.title);
-            const currentPath = window.location.pathname;
-            if (newsSlug && !currentPath.includes(newsSlug)) {
-              window.history.replaceState(null, "", `/news/${newsSlug}-${route.newsId}`);
-            }
+          const newsSlug = generateSlug(article.title);
+          const currentPath = window.location.pathname;
+          if (newsSlug && !currentPath.includes(newsSlug)) {
+            window.history.replaceState(
+              null,
+              "",
+              `/news/${newsSlug}-${route.newsId}`,
+            );
           }
         } catch (err) {
           console.error("SEO loading error for news", err);
         }
-        return;
       }
     }
 
-    applySEO();
-
+    applyDetailSEO();
     return () => {
       active = false;
     };
-  }, [route, globalMetaTitle, globalMetaDesc, globalMetaKeywords]);
+  }, [route.screen, route.productId, route.projectId, route.newsId]);
 
   // Custom Toast State
   const [notification, setNotification] = useState<{
@@ -1374,6 +1404,19 @@ export default function App() {
       className="flex flex-col min-h-screen bg-slate-950 text-slate-100 selection:bg-amber-500 selection:text-slate-950 font-sans"
       id="app-root"
     >
+      <Helmet>
+        {logoUrl ? (
+          <>
+            <link rel="icon" href={logoUrl} />
+            <link rel="apple-touch-icon" href={logoUrl} />
+          </>
+        ) : (
+          <>
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+            <link rel="apple-touch-icon" href="/favicon.svg" />
+          </>
+        )}
+      </Helmet>
       {/* Toast Notification popups */}
       <AnimatePresence>
         {notification && (

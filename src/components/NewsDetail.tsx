@@ -4,6 +4,7 @@ import { doc, getDoc, collection, getDocs, addDoc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2 } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
+import { parseSlugTitleFromPath, resolveItemTitle } from '../lib/documentHead';
 import AdBanner from './AdBanner';
 import ProductCard from './ProductCard';
 import StarRatingInteractive from './StarRatingInteractive';
@@ -184,12 +185,22 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
     }
   };
 
+  const fallbackTitle = `${parseSlugTitleFromPath(typeof window !== 'undefined' ? window.location.pathname : '', '/news/') || 'Đang tải...'} | Greenia Homes`;
+  const pageTitle = article
+    ? resolveItemTitle(article, 'Greenia Homes')
+    : fallbackTitle;
+
   if (loading) {
     return (
-      <div className="py-32 text-center space-y-4 max-w-sm mx-auto" id="news-detail-loading">
+      <>
+        <Helmet>
+          <title>{pageTitle}</title>
+        </Helmet>
+        <div className="py-32 text-center space-y-4 max-w-sm mx-auto" id="news-detail-loading">
         <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="text-slate-400 text-xs font-light">Đang mở bài phân tích tư liệu...</p>
       </div>
+      </>
     );
   }
 
@@ -254,7 +265,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-12 animate-in fade-in" id="news-detail-root-container">
       <Helmet>
-        <title>{article.seoTitle || article.title} | Greenia Homes</title>
+        <title>{resolveItemTitle(article, 'Greenia Homes')}</title>
         <meta name="description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
         {article.seoKeywords && <meta name="keywords" content={article.seoKeywords} />}
         <meta property="og:type" content="article" />

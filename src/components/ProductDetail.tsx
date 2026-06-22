@@ -24,6 +24,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
 import StarRatingInteractive from "./StarRatingInteractive";
@@ -303,17 +304,27 @@ export default function ProductDetail({
     }
   };
 
+  const fallbackTitle = `${parseSlugTitleFromPath(typeof window !== "undefined" ? window.location.pathname : "", "/product/") || "Đang tải..."} | Greenia Homes`;
+  const pageTitle = product
+    ? resolveItemTitle(product, "Greenia Homes")
+    : fallbackTitle;
+
   if (loading) {
     return (
-      <div
-        className="py-44 text-center space-y-4 max-w-sm mx-auto"
-        id="product-detail-loader"
-      >
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-slate-400 text-xs font-light font-mono">
-          Đang tải chi tiết...
-        </p>
-      </div>
+      <>
+        <Helmet>
+          <title>{pageTitle}</title>
+        </Helmet>
+        <div
+          className="py-44 text-center space-y-4 max-w-sm mx-auto"
+          id="product-detail-loader"
+        >
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-slate-400 text-xs font-light font-mono">
+            Đang tải chi tiết...
+          </p>
+        </div>
+      </>
     );
   }
 
@@ -419,7 +430,7 @@ export default function ProductDetail({
       id={`product-detail-viewport-${product.id}`}
     >
       <Helmet>
-        <title>{product.title} | Greenia Homes</title>
+        <title>{resolveItemTitle(product, "Greenia Homes")}</title>
         <meta
           name="description"
           content={(product.description || "")

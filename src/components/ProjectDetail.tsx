@@ -30,6 +30,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
 import StarRatingInteractive from "./StarRatingInteractive";
@@ -551,17 +552,27 @@ export default function ProjectDetail({
     ));
   };
 
+  const fallbackTitle = `${parseSlugTitleFromPath(typeof window !== "undefined" ? window.location.pathname : "", "/project/") || "Đang tải..."} | Dự Án Greenia Homes`;
+  const pageTitle = project
+    ? resolveItemTitle(project, "Dự Án Greenia Homes")
+    : fallbackTitle;
+
   if (loading) {
     return (
-      <div
-        className="py-32 text-center space-y-4 max-w-sm mx-auto"
-        id="project-detail-loading"
-      >
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-slate-400 text-xs font-light">
-          Đang mở tệp thông tin quy hoạch dự án...
-        </p>
-      </div>
+      <>
+        <Helmet>
+          <title>{pageTitle}</title>
+        </Helmet>
+        <div
+          className="py-32 text-center space-y-4 max-w-sm mx-auto"
+          id="project-detail-loading"
+        >
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-slate-400 text-xs font-light">
+            Đang mở tệp thông tin quy hoạch dự án...
+          </p>
+        </div>
+      </>
     );
   }
 
@@ -619,7 +630,7 @@ export default function ProjectDetail({
   return (
     <div className="pb-10" id="project-detail-view-root">
       <Helmet>
-        <title>{project.seoTitle || project.title} | Greenia Homes</title>
+        <title>{resolveItemTitle(project, "Dự Án Greenia Homes")}</title>
         <meta
           name="description"
           content={

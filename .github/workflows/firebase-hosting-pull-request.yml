@@ -16,8 +16,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-      - run: rm -rf package-lock.json node_modules && npm install && npm run build && rm -f .gitignore
+          node-version: 20
+      - run: npm ci && npm run build && rm -f .gitignore
         env:
           VITE_GITHUB_TOKEN: ${{ secrets.VITE_GITHUB_TOKEN }}
           VITE_GITHUB_OWNER: ${{ secrets.VITE_GITHUB_OWNER }}

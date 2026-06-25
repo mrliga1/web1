@@ -26,92 +26,56 @@
     <meta name="geo.position" content="10.733852;106.715344" />
     <meta name="ICBM" content="10.733852, 106.715344" />
     <style>
-      body { background-color: #05080f; margin: 0; font-family: "Inter", sans-serif; }
-      .skeleton-hero {
-        position: relative;
-        min-height: 640px;
+    <style>
+      body { background-color: #05080f; margin: 0; font-family: "Inter", sans-serif; overflow: hidden; }
+      .app-loader-wrapper {
+        position: fixed;
+        inset: 0;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 1.5rem;
         background-color: #05080f;
-        overflow: hidden;
+        z-index: 99999;
+        transition: opacity 0.8s ease-out, visibility 0.8s ease-out;
       }
-      .skeleton-bg {
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(circle at 80% 20%, #065f46, transparent 45%);
-        opacity: 0.35;
+      .app-loader-wrapper.fade-out {
+        opacity: 0;
+        visibility: hidden;
       }
-      .skeleton-img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        opacity: 0.15;
-        filter: grayscale(100%) contrast(125%);
-        mix-blend-mode: overlay;
+      .app-loader-logo {
+        width: 120px;
+        height: auto;
+        margin-bottom: 2rem;
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        filter: drop-shadow(0 0 15px rgba(197, 160, 89, 0.4));
       }
-      .skeleton-content {
-        max-width: 80rem;
-        width: 100%;
-        margin: 0 auto;
-        position: relative;
-        z-index: 10;
-        padding-top: 10px;
-      }
-      .skeleton-title {
-        font-family: Georgia, serif;
-        font-size: 45px;
-        color: #c5a059;
-        margin-bottom: 0.25rem;
-      }
-      .skeleton-subtitle {
-        font-size: 15px;
-        color: #34d399;
-        text-decoration: underline;
-        text-underline-offset: 4px;
-        margin-bottom: 1.5rem;
-      }
-      .skeleton-text {
-        color: #cbd5e1;
-        font-size: 14px;
-        max-width: 36rem;
-        line-height: 1.6;
-        margin-bottom: 1rem;
-      }
-      .app-loader {
-        width: 24px;
-        height: 24px;
-        border: 3px solid rgba(245, 158, 11, 0.2);
+      .app-loader-spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(197, 160, 89, 0.2);
         border-radius: 50%;
-        border-top-color: #f59e0b;
+        border-top-color: #c5a059;
         animation: spin 1s ease-in-out infinite;
-        margin-top: 1rem;
-      }
-      @media (min-width: 1024px) {
-        .skeleton-title { font-size: 60px; }
-        .skeleton-hero { padding: 5rem; }
       }
       @keyframes spin {
         to { transform: rotate(360deg); }
+      }
+      @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: .7; transform: scale(0.95); }
       }
     </style>
   </head>
   <body>
     <div id="root">
-      <div class="skeleton-hero">
-        <div class="skeleton-bg"></div>
-        <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600" class="skeleton-img" alt="Background" />
-        <div class="skeleton-content">
-          <div class="skeleton-title">Greenia Homes</div>
-          <div class="skeleton-subtitle">Đồng hành - Tận Tâm - Vững Bước Tương Lai</div>
-          <div class="skeleton-text">
-            Greenia Homes là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư Greenia Homes tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS.
-          </div>
-          <div class="app-loader"></div>
-        </div>
+      <div class="app-loader-wrapper" id="initial-loader">
+        <svg class="app-loader-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="100" cy="100" r="96" stroke="#c5a059" stroke-width="4" stroke-dasharray="10 10"/>
+          <path d="M100 20 L150 70 L130 70 L130 150 L70 150 L70 70 L50 70 Z" fill="#c5a059"/>
+          <path d="M90 150 L90 100 L110 100 L110 150 Z" fill="#05080f"/>
+        </svg>
+        <div class="app-loader-spinner"></div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

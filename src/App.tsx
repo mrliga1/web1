@@ -578,6 +578,15 @@ function App() {
   };
 
   useEffect(() => {
+    // Hide initial loader if it exists
+    const loader = document.getElementById("initial-loader");
+    if (loader) {
+      setTimeout(() => {
+        loader.classList.add("fade-out");
+        setTimeout(() => loader.remove(), 800); // Remove from DOM after transition
+      }, 500); // Small delay to ensure React has painted
+    }
+
     const unsub = onSnapshot(
       doc(db, "settings", "general"),
       (snapshot) => {

@@ -103,7 +103,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             <EditableText 
               sectionId="hero" 
               field="title" 
-              value={sec.title === "Greenia Homes Phân phối, Chuyển nhượng BĐS Chuyên nghiệp" ? "Greenia Homes" : sec.title} 
+              value={sec.title || "Phân Phối Bất Động Sản Xanh, Sang & Đẳng Cấp"} 
               isEditMode={isEditMode}
               sections={sections}
               onUpdateSections={onUpdateSections}
@@ -113,7 +113,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             <EditableText 
               sectionId="hero" 
               field="subtitle" 
-              value={!sec.subtitle || sec.subtitle === "Greenia Homes Phân phối, Chuyển nhượng BĐS Chuyên nghiệp" || sec.subtitle === "Đồng hành cùng nhà đầu tư bất động sản" ? "Đồng hành - Tận Tâm - Vững Bước Tương Lai" : sec.subtitle} 
+              value={sec.subtitle || "Đồng hành cùng nhà đầu tư bất động sản"} 
               isEditMode={isEditMode}
               sections={sections}
               onUpdateSections={onUpdateSections}
@@ -125,7 +125,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
           <EditableText 
             sectionId="hero" 
             field="description" 
-            value={sec.description?.startsWith("Greenia Homes là điểm tựa an tâm cho giới tinh hoa") ? "Greenia Homes là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư Greenia Homes tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS.\n\nGreenia Homes chuyên cung cấp và phân phối các sản phẩm từ những CĐT uy tín như: Vinhomes, Masteri Homes, Sun Group... Các dòng sản phẩm chủ lực: Căn hộ Cao cấp, Nhà phố, Biệt thự, Dinh thự..." : sec.description} 
+            value={sec.description || "Tận tâm đồng hành cùng quý khách."} 
             isEditMode={isEditMode}
             sections={sections}
             onUpdateSections={onUpdateSections}

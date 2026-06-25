@@ -214,26 +214,7 @@ function sanitizeHomeSections(sects: any[]): any[] {
 
   filtered = filtered.map((s) => {
     let newS = { ...s };
-    const targetStr1 = "Phân Phối Bất Động Sản";
-    const targetStr2 = "Xanh, Sang & Đẳng Cấp";
-    const replacement = "Greenia Homes Phân phối, Chuyển nhượng BĐS Chuyên nghiệp";
-    
-    if (typeof newS.title === "string") {
-      newS.title = newS.title.replace(new RegExp(`${targetStr1}[\\s\\n]*${targetStr2}|${targetStr1}[\\s\\n]*\\[gradient\\]${targetStr2}\\[/gradient\\]`, 'gi'), replacement);
-      // also match HTML tags around gradient
-      newS.title = newS.title.replace(/Phân Phối Bất Động Sản/gi, "Greenia Homes Phân phối, Chuyển nhượng BĐS Chuyên nghiệp");
-      newS.title = newS.title.replace(/Xanh, Sang & Đẳng Cấp/gi, "");
-    }
-    if (typeof newS.subtitle === "string") {
-      newS.subtitle = newS.subtitle.replace(/Phân Phối Bất Động Sản[\s\n]*Xanh, Sang & Đẳng Cấp/gi, replacement);
-      newS.subtitle = newS.subtitle.replace(/Phân Phối Bất Động Sản/gi, "Greenia Homes Phân phối, Chuyển nhượng BĐS Chuyên nghiệp");
-      newS.subtitle = newS.subtitle.replace(/Xanh, Sang & Đẳng Cấp/gi, "");
-    }
-    if (typeof newS.description === "string") {
-      newS.description = newS.description.replace(/Phân Phối Bất Động Sản[\s\n]*Xanh, Sang & Đẳng Cấp/gi, replacement);
-      newS.description = newS.description.replace(/Phân Phối Bất Động Sản/gi, "Greenia Homes Phân phối, Chuyển nhượng BĐS Chuyên nghiệp");
-      newS.description = newS.description.replace(/Xanh, Sang & Đẳng Cấp/gi, "");
-    }
+    // Mọi logic ghi đè nội dung ("Greenia Homes Phân phối...") đã bị xóa để tôn trọng CMS của khách hàng
     return newS;
   });
 

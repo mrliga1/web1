@@ -11,9 +11,10 @@ interface NavbarProps {
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   logoUrl?: string;
+  isSettingsLoaded?: boolean;
 }
 
-export default function Navbar({ currentRoute, onNavigate, onShowNotification, logoUrl }: NavbarProps) {
+export default function Navbar({ currentRoute, onNavigate, onShowNotification, logoUrl, isSettingsLoaded = false }: NavbarProps) {
   const { currentUser, userProfile, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -65,7 +66,11 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 alt="Greenia Homes" 
                 className="h-7 md:h-8 max-h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-all duration-300"
                 referrerPolicy="no-referrer"
+                width={120}
+                height={32}
               />
+            ) : !isSettingsLoaded ? (
+              <div className="w-[120px] h-8 bg-slate-200/20 rounded-md animate-pulse"></div>
             ) : (
               <>
                 <div className="bg-[#059669] text-white p-1.5 rounded-lg shadow-md group-hover:scale-105 transition-all duration-300">

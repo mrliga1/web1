@@ -268,6 +268,7 @@ export default function App() {
   const [route, setRoute] = useState<RouteState>({ screen: "home" });
   const [seeding, setSeeding] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
   const theme = "dark";
 
   // Global SEO tags managed by Firestore general configurations
@@ -586,6 +587,7 @@ export default function App() {
           } else {
             setLogoUrl("");
           }
+          setIsSettingsLoaded(true);
 
           // Live update reactive global SEO states
           if (data.metaTitle) setGlobalMetaTitle(data.metaTitle);
@@ -711,6 +713,8 @@ export default function App() {
             }(window, document, 'ttq');
           `;
           }
+        } else {
+          setIsSettingsLoaded(true);
         }
       },
       (error) => {
@@ -1449,6 +1453,7 @@ export default function App() {
         onNavigate={handleNavigate}
         onShowNotification={triggerNotification}
         logoUrl={logoUrl}
+        isSettingsLoaded={isSettingsLoaded}
       />
 
       <div className="flex-1 flex flex-col lg:flex-row" id="app-workspace-flow">

@@ -8,8 +8,8 @@ export default function CookieConsent() {
     // Check if the user has already consented
     const consent = localStorage.getItem("cookie_consent");
     if (!consent) {
-        // Show after a small delay to not block initial render
-      const timer = setTimeout(() => setShow(true), 1500);
+        // Show after a delay to prevent blocking initial render and LCP
+      const timer = setTimeout(() => setShow(true), 6000);
       return () => clearTimeout(timer);
     }
   }, []);

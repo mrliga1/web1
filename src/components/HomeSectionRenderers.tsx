@@ -107,7 +107,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
               isEditMode={isEditMode}
               sections={sections}
               onUpdateSections={onUpdateSections}
-              className="text-[45px] lg:text-[60px] block font-[Georgia] text-amber-500" 
+              className="text-[45px] lg:text-[60px] block font-[Georgia] text-emerald-500" 
               tag="span" 
             />
             <EditableText 
@@ -145,9 +145,9 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             
             <a 
               href="tel:0932966700"
-              className="group flex items-center justify-center gap-1 sm:gap-2 font-mono text-[11px] sm:text-xs text-slate-400 bg-slate-900/60 backdrop-blur border border-slate-800 rounded-full px-3 sm:px-5 py-2 sm:py-3 hover:border-amber-500 hover:text-amber-400 transition-all cursor-pointer hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] hover:-translate-y-0.5 whitespace-nowrap"
+              className="group flex items-center justify-center gap-1 sm:gap-2 font-mono text-[11px] sm:text-xs text-slate-400 bg-slate-900/60 backdrop-blur border border-slate-800 rounded-full px-3 sm:px-5 py-2 sm:py-3 hover:border-emerald-500 hover:text-emerald-400 transition-all cursor-pointer hover:shadow-[0_0_15px_rgba(197,160,89,0.3)] hover:-translate-y-0.5 whitespace-nowrap"
             >
-              <Phone className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+              <Phone className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
               <EditableText 
                 sectionId="hero" 
                 field="extraData" 
@@ -156,7 +156,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
                 isEditMode={isEditMode}
                 sections={sections}
                 onUpdateSections={onUpdateSections}
-                className="text-xs text-slate-300 group-hover:text-amber-400 transition-colors" 
+                className="text-xs text-slate-300 group-hover:text-emerald-400 transition-colors" 
                 tag="span" 
               />
             </a>

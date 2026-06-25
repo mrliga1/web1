@@ -1868,6 +1868,7 @@ export default function App() {
                   href="https://www.facebook.com/greeniahomes"
                   target="_blank"
                   rel="noreferrer"
+                  aria-label="Facebook Greenia Homes"
                   className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-amber-500 hover:text-slate-950 hover:-translate-y-1 transition-all"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 320 512">
@@ -1878,6 +1879,7 @@ export default function App() {
                   href="https://www.youtube.com/@greeniahomes.vn"
                   target="_blank"
                   rel="noreferrer"
+                  aria-label="YouTube Greenia Homes"
                   className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-amber-500 hover:text-slate-950 hover:-translate-y-1 transition-all"
                 >
                   <svg className="w-5 h-5 fill-current" viewBox="0 0 576 512">
@@ -1888,6 +1890,7 @@ export default function App() {
                   href="https://www.tiktok.com/@greeniahomes.vn"
                   target="_blank"
                   rel="noreferrer"
+                  aria-label="TikTok Greenia Homes"
                   className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-amber-500 hover:text-slate-950 hover:-translate-y-1 transition-all"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 448 512">
@@ -1898,6 +1901,7 @@ export default function App() {
                   href="https://zalo.me/0932966700"
                   target="_blank"
                   rel="noreferrer"
+                  aria-label="Zalo Greenia Homes"
                   className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-amber-500 hover:text-slate-950 hover:-translate-y-1 transition-all"
                 >
                   <MessageSquare className="w-4 h-4" />

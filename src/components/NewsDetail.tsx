@@ -375,7 +375,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
                 })()}
               </div>
 
-              <div className="flex gap-4 box-border animate-marquee pr-4 flex-nowrap" aria-hidden="true">
+              <div className="flex gap-4 box-border animate-marquee pr-4 flex-nowrap">
                 {(() => {
                   const relatedList = generalNewsList.filter(n => n.id !== article.id && n.category === article.category).slice(0, 5);
                   

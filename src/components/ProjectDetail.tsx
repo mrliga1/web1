@@ -2037,7 +2037,6 @@ export default function ProjectDetail({
               id="contact"
               ref={(el) => (sectionRefs.current[6] = el)}
               className="absolute h-0 w-full"
-              aria-hidden="true"
             ></div>
 
             {/* AD banner */}

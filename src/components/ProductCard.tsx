@@ -61,6 +61,7 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor }:
         </div>
         <button
           onClick={toggleFavorite}
+          aria-label={isFavorite ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
           className={`absolute top-1 right-1 sm:top-2 sm:right-2 z-20 p-[3px] sm:p-1.5 rounded-full backdrop-blur-md border border-white/20 transition-colors ${isFavorite ? 'bg-amber-500/80 text-white' : 'bg-black/40 text-slate-300 hover:text-white hover:bg-black/60'}`}
         >
           <Heart className={`w-3 h-3 sm:w-4 sm:h-4 ${isFavorite ? 'fill-current' : ''}`} />

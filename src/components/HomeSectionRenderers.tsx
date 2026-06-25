@@ -69,9 +69,13 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,#065f46,transparent_45%)] opacity-35" />
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/90 to-slate-950" />
-      <div 
-        className="absolute inset-0 opacity-15 grayscale contrast-125 mix-blend-overlay"
-        style={{ backgroundImage: `url('${sec.imageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600'}')`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+      <img
+        src={sec.imageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600'}
+        alt="Hero Background"
+        // @ts-ignore
+        fetchpriority="high"
+        className="absolute inset-0 w-full h-full object-cover opacity-15 grayscale contrast-125 mix-blend-overlay"
+        referrerPolicy="no-referrer"
       />
       {isEditMode && (
         <div className="absolute top-16 right-4 z-40 bg-slate-900 border border-slate-800 p-2.5 rounded-lg shadow-2xl flex items-center gap-2" onClick={e => e.stopPropagation()}>

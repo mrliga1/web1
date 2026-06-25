@@ -130,6 +130,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 onClick={() => onNavigate({ screen: 'favorites' })}
                 className={`p-1.5 rounded-full transition-all cursor-pointer border ${theme === 'dark' ? 'border-amber-500/20 text-amber-500 hover:bg-amber-500/20' : 'border-amber-500/50 text-amber-600 hover:bg-amber-100'}`}
                 title="Danh sách Yêu thích"
+                aria-label="Danh sách Yêu thích"
               >
                 <Heart className="w-4 h-4" />
               </button>
@@ -155,6 +156,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                   <button
                     id="user-menu-btn"
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                    aria-label="Tài khoản người dùng"
                     className={`flex items-center justify-center border p-0.5 rounded-full transition-all cursor-pointer select-none ${
                       theme === 'dark'
                         ? 'bg-slate-900 border-slate-800 hover:border-amber-500/50'
@@ -241,6 +243,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 onClick={() => onNavigate({ screen: 'favorites' })}
                 className="sm:hidden flex items-center justify-center border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 p-2 rounded-lg"
                 title="Yêu thích"
+                aria-label="Yêu thích"
               >
                 <Heart className="w-5 h-5" />
               </button>
@@ -248,6 +251,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
               <button
                 id="mobile-toggle"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                aria-label="Menu di động"
                 className="text-slate-405 hover:text-white p-2 rounded-lg"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

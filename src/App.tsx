@@ -1412,8 +1412,8 @@ export default function App() {
           </>
         ) : (
           <>
-            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-            <link rel="apple-touch-icon" href="/favicon.svg" />
+            <link rel="icon" type="image/webp" href="/favicon.webp" />
+            <link rel="apple-touch-icon" href="/favicon.webp" />
           </>
         )}
       </Helmet>
@@ -1465,12 +1465,7 @@ export default function App() {
           )}
 
           <React.Suspense
-            fallback={
-              <div className="flex h-screen items-center justify-center text-amber-500 font-mono text-sm tracking-widest">
-                <Compass className="w-5 h-5 mr-2 animate-spin" /> VUI LÒNG
-                CHỜ...
-              </div>
-            }
+            fallback={<div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div></div>}
           >
             <AnimatePresence mode="wait">
               <motion.div
@@ -1644,7 +1639,7 @@ export default function App() {
         </main>
       </div>
 
-      <React.Suspense fallback={null}>
+      <React.Suspense fallback={<div className="flex justify-center items-center h-screen bg-slate-950"><div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div></div>}>
         <CookieConsent />
       </React.Suspense>
 
@@ -2013,6 +2008,7 @@ export default function App() {
                 </h3>
                 <button
                   onClick={closeQuotePopup}
+                  aria-label="Đóng popup"
                   className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition"
                 >
                   <X className="w-5 h-5" />

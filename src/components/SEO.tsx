@@ -27,8 +27,8 @@ export const SEO: React.FC<SEOProps> = ({
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:image" content={image} />
-      <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-      <link rel="apple-touch-icon" href="/favicon.svg" />
+      <link rel="icon" type="image/webp" href="/favicon.webp" />
+      <link rel="apple-touch-icon" href="/favicon.webp" />
 
       {/* Twitter */}
       <meta property="twitter:card" content="summary_large_image" />

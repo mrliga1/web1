@@ -686,8 +686,8 @@ export default function ProductList({
                 ) : (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
-                      {filteredProducts.slice(0, mainGridLimit).map((item) => (
-                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} />
+                      {filteredProducts.slice(0, mainGridLimit).map((item, index) => (
+                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} priority={index < 4} />
                       ))}
                     </div>
 

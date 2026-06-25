@@ -21,16 +21,5 @@ export default defineConfig(() => {
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: null,
     },
-    build: {
-      outDir: 'dist',
-      rollupOptions: {
-        output: {
-          manualChunks: {
-            vendor: ['react', 'react-dom', 'firebase/app', 'firebase/firestore', 'firebase/auth', 'firebase/storage'],
-            ui: ['lucide-react', 'motion/react'],
-          },
-        },
-      },
-    },
   };
 });

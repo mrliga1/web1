@@ -70,6 +70,8 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,#065f46,transparent_45%)] opacity-35" />
       <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/90 to-slate-950" />
       <img
+        loading="eager"
+        decoding="async"
         src={sec.imageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600'}
         srcSet={!sec.imageUrl ? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=60&w=600 600w, https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200 1200w, https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600 1600w' : undefined}
         sizes="100vw"

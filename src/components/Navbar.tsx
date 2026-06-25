@@ -61,9 +61,11 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
             id="logo-container"
           >
             {logoUrl ? (
-              <img loading="lazy" decoding="async" 
+              <img loading="eager" decoding="async" 
                 src={(logoUrl) || undefined} 
                 alt="Greenia Homes" 
+                // @ts-ignore
+                fetchpriority="high"
                 className="h-7 md:h-8 max-h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-all duration-300"
                 referrerPolicy="no-referrer"
                 width={120}

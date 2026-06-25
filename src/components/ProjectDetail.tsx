@@ -714,8 +714,10 @@ export default function ProjectDetail({
                 }}
               >
                 <img
-                  loading="lazy"
+                  loading={idx === 0 ? "eager" : "lazy"}
                   decoding="async"
+                  // @ts-ignore
+                  fetchpriority={idx === 0 ? "high" : "auto"}
                   src={img || undefined}
                   alt={`${project.title} - Image ${idx + 1}`}
                   referrerPolicy="no-referrer"

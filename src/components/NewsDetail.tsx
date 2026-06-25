@@ -323,7 +323,9 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
           
           {/* Main big cover photo */}
           <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-slate-900 bg-slate-950">
-            <img loading="lazy" decoding="async" src={(article.imageUrl) || undefined} alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img loading="eager" decoding="async" src={(article.imageUrl) || undefined} alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
+              // @ts-ignore
+              fetchpriority="high" />
           </div>
 
           {/* HTML rendered prose */}

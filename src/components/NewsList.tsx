@@ -360,7 +360,9 @@ export default function NewsList({
                     {/* Cover highlight */}
                     <div className="md:col-span-5 lg:col-span-5 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-col group cursor-pointer hover:border-amber-500 transition-colors">
                       <div className="h-[260px] overflow-hidden relative">
-                        <img loading="lazy" decoding="async"
+                        <img loading="eager" decoding="async"
+                          // @ts-ignore
+                          fetchpriority="high"
                           src={(displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600") || undefined}
                           alt={displayArticle?.title}
                           referrerPolicy="no-referrer"

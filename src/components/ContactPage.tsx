@@ -142,7 +142,7 @@ export default function ContactPage({
   };
 
   return (
-    <div className="relative min-h-screen">
+    <main className="relative min-h-screen">
       <div className="space-y-4 pb-0 font-sans" id="contact-catalog-root-wrapper">
         {sections.map((section, idx) => {
           if (!section.visible && !isEditMode) return null;
@@ -243,13 +243,13 @@ export default function ContactPage({
                     <div className="bg-slate-950 p-4 rounded-lg border border-slate-850 flex flex-col items-start gap-4">
                       <p className="text-[12px] font-bold uppercase tracking-wider text-slate-400">Kết nối với chúng tôi</p>
                       <div className="flex gap-6 items-center">
-                        <a href="#" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform" title="Zalo">
+                        <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Zalo" className="hover:scale-110 transition-transform" title="Zalo">
                           <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" className="w-6 h-6 object-contain" />
                         </a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform" title="Facebook">
+                        <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:scale-110 transition-transform" title="Facebook">
                           <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook" className="w-6 h-6 object-contain" />
                         </a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" className="hover:scale-110 transition-transform" title="YouTube">
+                        <a href="#" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hover:scale-110 transition-transform" title="YouTube">
                           <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube" className="w-7 h-7 object-contain" />
                         </a>
                       </div>
@@ -430,6 +430,6 @@ export default function ContactPage({
           );
         })}
       </div>
-    </div>
+    </main>
   );
 }

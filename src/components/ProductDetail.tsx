@@ -509,8 +509,10 @@ export default function ProductDetail({
           <div className="space-y-4 !mb-[10px]">
             <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-slate-900 bg-slate-950 shadow-xl">
               <img
-                loading="lazy"
+                loading="eager"
                 decoding="async"
+                // @ts-ignore
+                fetchpriority="high"
                 src={selectedImage || undefined}
                 alt={product.title}
                 referrerPolicy="no-referrer"

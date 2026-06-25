@@ -350,7 +350,7 @@ export default function NewsList({
             cardContent = (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
                 {loading ? (
-                  <div className="py-12 text-center">
+                  <div className="py-12 text-center min-h-[500px] flex items-center justify-center">
                     <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
                   </div>
                 ) : filteredNews.length === 0 ? (

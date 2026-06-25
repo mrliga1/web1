@@ -55,6 +55,7 @@ import {
   setDocumentTitle,
 } from "./lib/documentHead";
 import { Helmet } from "react-helmet-async";
+import { AuthProvider } from "./contexts/AuthContext";
 
 // Children Components
 import Navbar from "./components/Navbar";
@@ -264,7 +265,7 @@ function sanitizeHomeSections(sects: any[]): any[] {
   return filtered;
 }
 
-export default function App() {
+function App() {
   const [route, setRoute] = useState<RouteState>({ screen: "home" });
   const [seeding, setSeeding] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
@@ -2125,5 +2126,13 @@ export default function App() {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function AppWithProvider() {
+  return (
+    <AuthProvider>
+      <App />
+    </AuthProvider>
   );
 }

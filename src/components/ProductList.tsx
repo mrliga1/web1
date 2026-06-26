@@ -176,11 +176,21 @@ export default function ProductList({
 
         setLoading(true);
 
-        const [generalSnap, filterSnap, prodSnap, projSnap] = await Promise.all([
+        // Fetch projects in the background since they are only used below the fold
+        getDocs(collection(db, 'projects')).then(projSnap => {
+          const projList: Project[] = [];
+          projSnap.forEach((doc) => {
+            projList.push({ id: doc.id, ...doc.data() } as Project);
+          });
+          if (isMounted.current) {
+            setProjects(projList);
+          }
+        }).catch(err => console.error("Error fetching background projects:", err));
+
+        const [generalSnap, filterSnap, prodSnap] = await Promise.all([
           getDoc(doc(db, 'settings', 'general')),
           getDoc(doc(db, 'settings', 'filters')),
-          getDocs(collection(db, 'products')),
-          getDocs(collection(db, 'projects'))
+          getDocs(collection(db, 'products'))
         ]);
 
         if (generalSnap.exists()) {
@@ -218,12 +228,6 @@ export default function ProductList({
         list.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
         setProducts(list);
         setDistricts(adminConfiguredDistricts.length > 0 ? adminConfiguredDistricts : Array.from(uniqueDistricts).sort());
-
-        const projList: Project[] = [];
-        projSnap.forEach((doc) => {
-          projList.push({ id: doc.id, ...doc.data() } as Project);
-        });
-        setProjects(projList);
 
         const viewedIds: string[] = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
         if (viewedIds.length > 0) {

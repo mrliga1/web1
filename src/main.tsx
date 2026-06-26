@@ -1,11 +1,10 @@
-import {StrictMode, Suspense, lazy} from 'react';
+import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './index.css';
 import { ErrorBoundary } from './ErrorBoundary';
-
-const App = lazy(() => import('./App.tsx'));
+import App from './App';
 
 const queryClient = new QueryClient({
   defaultOptions: {

@@ -174,13 +174,20 @@ export default function ProductList({
       try {
         setLoading(true);
 
-        const generalSnap = await getDoc(doc(db, 'settings', 'general'));
+        setLoading(true);
+
+        const [generalSnap, filterSnap, prodSnap, projSnap] = await Promise.all([
+          getDoc(doc(db, 'settings', 'general')),
+          getDoc(doc(db, 'settings', 'filters')),
+          getDocs(collection(db, 'products')),
+          getDocs(collection(db, 'projects'))
+        ]);
+
         if (generalSnap.exists()) {
           setProductCategoriesExt(generalSnap.data().productCategoriesExt || []);
         }
 
         let adminConfiguredDistricts: string[] = [];
-        const filterSnap = await getDoc(doc(db, 'settings', 'filters'));
         if (filterSnap.exists()) {
           const fd = filterSnap.data();
           setPriceSaleConfig(fd.priceSale || []);
@@ -196,8 +203,6 @@ export default function ProductList({
           setAreaConfig([]);
         }
 
-        const prodCol = collection(db, 'products');
-        const prodSnap = await getDocs(prodCol);
         const list: Product[] = [];
         const uniqueDistricts = new Set<string>();
 
@@ -214,8 +219,6 @@ export default function ProductList({
         setProducts(list);
         setDistricts(adminConfiguredDistricts.length > 0 ? adminConfiguredDistricts : Array.from(uniqueDistricts).sort());
 
-        const projCol = collection(db, 'projects');
-        const projSnap = await getDocs(projCol);
         const projList: Project[] = [];
         projSnap.forEach((doc) => {
           projList.push({ id: doc.id, ...doc.data() } as Project);

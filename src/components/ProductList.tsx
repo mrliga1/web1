@@ -681,7 +681,28 @@ export default function ProductList({
                   </div>
                 )}
 
-                {filteredProducts.length === 0 ? (
+                {loading ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
+                      {Array.from({ length: 10 }).map((_, index) => (
+                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm animate-pulse">
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800" />
+                          <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
+                            <div className="h-4 bg-slate-800 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-800 rounded w-1/2 mb-4"></div>
+                            <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
+                              <div className="h-4 bg-slate-800 rounded w-1/3 mb-2"></div>
+                              <div className="flex gap-2">
+                                <div className="h-3 bg-slate-800 rounded w-1/4"></div>
+                                <div className="h-3 bg-slate-800 rounded w-1/4"></div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : filteredProducts.length === 0 ? (
                   <div className="text-center py-12 text-slate-500 text-xs">Không tìm thấy sản phẩm nào khớp bộ lọc lựa chọn của bạn.</div>
                 ) : (
                   <div className="space-y-6">
@@ -784,9 +805,24 @@ export default function ProductList({
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
-                    {latestSales.slice(0, 5).map((item) => (
-                      <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Bán" badgeColor="bg-rose-500 text-white" />
-                    ))}
+                    {loading ? (
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm animate-pulse">
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800" />
+                          <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
+                            <div className="h-4 bg-slate-800 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-800 rounded w-1/2 mb-4"></div>
+                            <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
+                              <div className="h-4 bg-slate-800 rounded w-1/3 mb-2"></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      latestSales.slice(0, 5).map((item) => (
+                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Bán" badgeColor="bg-rose-500 text-white" />
+                      ))
+                    )}
                   </div>
                 </section>
               </div>
@@ -818,9 +854,24 @@ export default function ProductList({
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
-                    {latestRents.slice(0, 5).map((item) => (
-                      <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Cho thuê" badgeColor="bg-amber-500 text-slate-950" />
-                    ))}
+                    {loading ? (
+                      Array.from({ length: 5 }).map((_, index) => (
+                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm animate-pulse">
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800" />
+                          <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
+                            <div className="h-4 bg-slate-800 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-800 rounded w-1/2 mb-4"></div>
+                            <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
+                              <div className="h-4 bg-slate-800 rounded w-1/3 mb-2"></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      latestRents.slice(0, 5).map((item) => (
+                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Cho thuê" badgeColor="bg-amber-500 text-slate-950" />
+                      ))
+                    )}
                   </div>
                 </section>
               </div>

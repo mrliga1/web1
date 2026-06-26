@@ -82,7 +82,7 @@ export function EditableText({
           <span key={lidx}>
             {parts.map((part, i) => 
               part === 'Greenia Homes' 
-                ? <strong key={i} className="text-amber-500 font-bold">{part}</strong> 
+                ? <strong key={i} className="text-white font-bold">{part}</strong> 
                 : part
             )}
           </span>

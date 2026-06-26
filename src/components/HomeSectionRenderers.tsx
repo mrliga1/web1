@@ -107,7 +107,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
               isEditMode={isEditMode}
               sections={sections}
               onUpdateSections={onUpdateSections}
-              className="text-[45px] lg:text-[60px] block font-[Georgia] text-white" 
+              className="text-[45px] lg:text-[60px] block font-[Georgia] text-slate-200" 
               tag="span" 
             />
             <EditableText 
@@ -117,7 +117,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
               isEditMode={isEditMode}
               sections={sections}
               onUpdateSections={onUpdateSections}
-              className="text-[15px] font-light text-slate-300 block underline underline-offset-4" 
+              className="text-[15px] font-light text-amber-200 block underline underline-offset-4" 
               tag="span" 
             />
           </h1>

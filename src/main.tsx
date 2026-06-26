@@ -2,7 +2,6 @@ import {StrictMode, Suspense, lazy} from 'react';
 import {createRoot} from 'react-dom/client';
 import { HelmetProvider } from 'react-helmet-async';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { onCLS, onINP, onLCP, onFCP, onTTFB } from 'web-vitals';
 import './index.css';
 import { ErrorBoundary } from './ErrorBoundary';
 
@@ -18,16 +17,6 @@ const queryClient = new QueryClient({
   },
 });
 
-export function reportWebVitals(onPerfEntry?: any) {
-  if (onPerfEntry && onPerfEntry instanceof Function) {
-    onCLS(onPerfEntry);
-    onINP(onPerfEntry);
-    onLCP(onPerfEntry);
-    onFCP(onPerfEntry);
-    onTTFB(onPerfEntry);
-  }
-}
-
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>
@@ -41,6 +30,3 @@ createRoot(document.getElementById('root')!).render(
     </ErrorBoundary>
   </StrictMode>,
 );
-
-// Bật tracking Web Vitals trong console để đo lường hiệu suất
-reportWebVitals(console.log);

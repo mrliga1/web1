@@ -158,8 +158,8 @@ export default function ProductList({
     scrollToGrid();
   }, [searchQuery, selectedPriceRange, selectedAreaRange, selectedDistrict, selectedCategory, selectedType]);
 
-  // Load limits for Ajax See-Mores
-  const [mainGridLimit, setMainGridLimit] = useState(10);
+  // Load limits for Ajax See-Mores - optimize mobile DOM size
+  const [mainGridLimit, setMainGridLimit] = useState(typeof window !== 'undefined' && window.innerWidth < 768 ? 4 : 10);
   const [recentGridLimit, setRecentGridLimit] = useState(5);
 
   const [districts, setDistricts] = useState<string[]>([]);
@@ -244,18 +244,26 @@ export default function ProductList({
   }, []);
 
   useEffect(() => {
+    // Only run slider auto-scroll if it's explicitly needed and doesn't thrash layout continuously
+    let isRunning = true;
     const interval = setInterval(() => {
-       if (window.innerWidth >= 1024) return;
-       const slider = document.getElementById('featured-projects-slider');
-       if (!slider) return;
-       const maxScroll = slider.scrollWidth - slider.clientWidth;
-       let nextScroll = slider.scrollLeft + slider.clientWidth;
-       if (nextScroll >= maxScroll - 10) {
-          nextScroll = 0;
-       }
-       slider.scrollTo({ left: nextScroll, behavior: 'smooth' });
-    }, 4000);
-    return () => clearInterval(interval);
+       if (!isRunning || window.innerWidth >= 1024) return;
+       // We use requestAnimationFrame to prevent layout thrashing
+       requestAnimationFrame(() => {
+         const slider = document.getElementById('featured-projects-slider');
+         if (!slider) return;
+         const maxScroll = slider.scrollWidth - slider.clientWidth;
+         let nextScroll = slider.scrollLeft + slider.clientWidth;
+         if (nextScroll >= maxScroll - 10) {
+            nextScroll = 0;
+         }
+         slider.scrollTo({ left: nextScroll, behavior: 'smooth' });
+       });
+    }, 5000);
+    return () => {
+      isRunning = false;
+      clearInterval(interval);
+    };
   }, []);
 
   const resetFilters = () => {
@@ -711,7 +719,7 @@ export default function ProductList({
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                       {filteredProducts.slice(0, mainGridLimit).map((item, index) => (
-                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} priority={index < 4} />
+                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} priority={index < 2} />
                       ))}
                     </div>
 

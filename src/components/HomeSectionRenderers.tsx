@@ -103,21 +103,21 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             <EditableText 
               sectionId="hero" 
               field="title" 
-              value={(sec.title === "Phân Phối Bất Động Sản\n[gradient]Xanh, Sang & Đẳng Cấp[/gradient]") ? "Greenia Homes" : sec.title || "Greenia Homes"} 
+              value={sec.title || "Greenia Homes"} 
               isEditMode={isEditMode}
               sections={sections}
               onUpdateSections={onUpdateSections}
-              className="text-[45px] lg:text-[60px] block font-[Georgia] text-emerald-500" 
+              className="text-[45px] lg:text-[60px] block font-[Georgia] text-white" 
               tag="span" 
             />
             <EditableText 
               sectionId="hero" 
               field="subtitle" 
-              value={(sec.subtitle === "") ? "Đồng hành - Tận Tâm - Vững Bước Tương Lai" : sec.subtitle || "Đồng hành - Tận Tâm - Vững Bước Tương Lai"} 
+              value={sec.subtitle || "Đồng hành - Tận Tâm - Vững Bước Tương Lai"} 
               isEditMode={isEditMode}
               sections={sections}
               onUpdateSections={onUpdateSections}
-              className="text-[15px] font-light text-emerald-400 block underline underline-offset-4" 
+              className="text-[15px] font-light text-slate-300 block underline underline-offset-4" 
               tag="span" 
             />
           </h1>
@@ -125,7 +125,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
           <EditableText 
             sectionId="hero" 
             field="description" 
-            value={(sec.description?.startsWith("Greenia Homes là điểm tựa an tâm cho giới tinh hoa")) ? "Greenia Homes là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư Greenia Homes tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS." : sec.description || "Greenia Homes là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư Greenia Homes tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS."} 
+            value={sec.description || "Greenia Homes là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư Greenia Homes tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS."} 
             isEditMode={isEditMode}
             sections={sections}
             onUpdateSections={onUpdateSections}

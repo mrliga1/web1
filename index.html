@@ -31,7 +31,62 @@
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <style>
+        .initial-loader {
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          width: 100vw;
+          background-color: #020617; /* bg-slate-950 */
+          position: fixed;
+          top: 0;
+          left: 0;
+          z-index: 9999;
+          overflow: hidden;
+        }
+        .skeleton-nav {
+          height: 72px;
+          background: #0f172a; /* slate-900 */
+          border-bottom: 1px solid #1e293b;
+          display: flex;
+          align-items: center;
+          padding: 0 16px;
+        }
+        .skeleton-logo {
+          width: 120px;
+          height: 24px;
+          background: #334155;
+          border-radius: 4px;
+        }
+        .skeleton-body {
+          flex: 1;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+        .spinner {
+          width: 40px;
+          height: 40px;
+          border: 4px solid rgba(245, 158, 11, 0.2); /* amber-500/20 */
+          border-top: 4px solid #f59e0b; /* amber-500 */
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+      <div class="initial-loader">
+        <div class="skeleton-nav">
+          <div class="skeleton-logo"></div>
+        </div>
+        <div class="skeleton-body">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

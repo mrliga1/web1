@@ -350,6 +350,13 @@ export default function ProductList({
     };
   };
 
+  const [showBelowFold, setShowBelowFold] = useState(false);
+  useEffect(() => {
+    // Defer rendering below-the-fold sections by 1500ms to allow LCP and TTI to finish quickly
+    const timer = setTimeout(() => setShowBelowFold(true), 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (    <>
       <SEO title="Sản phẩm | Mua Bán Nhà Đất" />
 
@@ -357,6 +364,14 @@ export default function ProductList({
       <div className="font-sans" id="product-hub-view-root" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
         {sections.map((section, idx) => {
           if (!section.visible && !isEditMode) return null;
+          
+          // DEFER HEAVY SECTIONS THAT ARE BELOW THE FOLD
+          const isHeavySection = ['recently_viewed', 'latest_sales', 'latest_rents', 'featured_projects'].includes(section.id);
+          if (isHeavySection && !showBelowFold && !isEditMode) {
+            return (
+              <div key={section.id} className="min-h-[200px]" /> // Placeholder
+            );
+          }
 
           let cardContent = null;
           const sec = getSection(section.id);

@@ -266,7 +266,7 @@ export default function ProductList({
     onShowNotification('Đã đặt lại toàn bộ bộ lọc và giới hạn dòng xem sản phầm!', 'success');
   };
 
-  const filteredProducts = products.filter(p => {
+  const filteredProducts = React.useMemo(() => products.filter(p => {
     const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           p.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (p.category && p.category.trim().toLowerCase().includes(searchQuery.toLowerCase()));
@@ -321,10 +321,10 @@ export default function ProductList({
     }
 
     return matchesSearch && matchesType && matchesDistrict && matchesCategory && matchesPrice && matchesArea;
-  });
+  }), [products, searchQuery, selectedType, selectedDistrict, selectedCategory, selectedPriceRange, selectedAreaRange, priceSaleConfig, priceRentConfig, areaConfig]);
 
-  const latestSales = products.filter(p => p.type !== 'rent').slice(0, 8);
-  const latestRents = products.filter(p => p.type === 'rent').slice(0, 8);
+  const latestSales = React.useMemo(() => products.filter(p => p.type !== 'rent').slice(0, 8), [products]);
+  const latestRents = React.useMemo(() => products.filter(p => p.type === 'rent').slice(0, 8), [products]);
 
   const getSection = (id: string) => {
     return sections.find(s => s.id === id) || {
@@ -685,16 +685,16 @@ export default function ProductList({
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                       {Array.from({ length: 10 }).map((_, index) => (
-                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm animate-pulse">
-                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800" />
+                        <div key={index} className={`w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm ${index > 3 ? 'hidden sm:flex' : ''}`}>
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800/50" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-                            <div className="h-4 bg-slate-800 rounded w-3/4 mb-2"></div>
-                            <div className="h-3 bg-slate-800 rounded w-1/2 mb-4"></div>
+                            <div className="h-4 bg-slate-800/50 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-800/50 rounded w-1/2 mb-4"></div>
                             <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
-                              <div className="h-4 bg-slate-800 rounded w-1/3 mb-2"></div>
+                              <div className="h-4 bg-slate-800/50 rounded w-1/3 mb-2"></div>
                               <div className="flex gap-2">
-                                <div className="h-3 bg-slate-800 rounded w-1/4"></div>
-                                <div className="h-3 bg-slate-800 rounded w-1/4"></div>
+                                <div className="h-3 bg-slate-800/50 rounded w-1/4"></div>
+                                <div className="h-3 bg-slate-800/50 rounded w-1/4"></div>
                               </div>
                             </div>
                           </div>
@@ -807,13 +807,13 @@ export default function ProductList({
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                     {loading ? (
                       Array.from({ length: 5 }).map((_, index) => (
-                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm animate-pulse">
-                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800" />
+                        <div key={index} className={`w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm ${index > 1 ? 'hidden sm:flex' : ''}`}>
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800/50" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-                            <div className="h-4 bg-slate-800 rounded w-3/4 mb-2"></div>
-                            <div className="h-3 bg-slate-800 rounded w-1/2 mb-4"></div>
+                            <div className="h-4 bg-slate-800/50 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-800/50 rounded w-1/2 mb-4"></div>
                             <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
-                              <div className="h-4 bg-slate-800 rounded w-1/3 mb-2"></div>
+                              <div className="h-4 bg-slate-800/50 rounded w-1/3 mb-2"></div>
                             </div>
                           </div>
                         </div>
@@ -856,13 +856,13 @@ export default function ProductList({
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                     {loading ? (
                       Array.from({ length: 5 }).map((_, index) => (
-                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm animate-pulse">
-                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800" />
+                        <div key={index} className={`w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm ${index > 1 ? 'hidden sm:flex' : ''}`}>
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800/50" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-                            <div className="h-4 bg-slate-800 rounded w-3/4 mb-2"></div>
-                            <div className="h-3 bg-slate-800 rounded w-1/2 mb-4"></div>
+                            <div className="h-4 bg-slate-800/50 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-800/50 rounded w-1/2 mb-4"></div>
                             <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
-                              <div className="h-4 bg-slate-800 rounded w-1/3 mb-2"></div>
+                              <div className="h-4 bg-slate-800/50 rounded w-1/3 mb-2"></div>
                             </div>
                           </div>
                         </div>

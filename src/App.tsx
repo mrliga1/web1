@@ -514,6 +514,13 @@ function App() {
     return () => unsub();
   }, [route.screen]);
 
+  React.useLayoutEffect(() => {
+    if (!layoutLoading) {
+      const skeleton = document.getElementById('static-skeleton');
+      if (skeleton) skeleton.remove();
+    }
+  }, [layoutLoading]);
+
   // Firestore update layouts callback helper
   const handleUpdateSections = async (newSections: any[]) => {
     let layoutDocName = route.screen;

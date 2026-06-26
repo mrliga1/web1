@@ -685,7 +685,7 @@ export default function ProductList({
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                       {Array.from({ length: 10 }).map((_, index) => (
-                        <div key={index} className={`w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm ${index > 3 ? 'hidden sm:flex' : ''}`}>
+                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
                           <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800/50" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
                             <div className="h-4 bg-slate-800/50 rounded w-3/4 mb-2"></div>
@@ -807,7 +807,7 @@ export default function ProductList({
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                     {loading ? (
                       Array.from({ length: 5 }).map((_, index) => (
-                        <div key={index} className={`w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm ${index > 1 ? 'hidden sm:flex' : ''}`}>
+                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
                           <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800/50" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
                             <div className="h-4 bg-slate-800/50 rounded w-3/4 mb-2"></div>
@@ -856,7 +856,7 @@ export default function ProductList({
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                     {loading ? (
                       Array.from({ length: 5 }).map((_, index) => (
-                        <div key={index} className={`w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm ${index > 1 ? 'hidden sm:flex' : ''}`}>
+                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
                           <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800/50" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
                             <div className="h-4 bg-slate-800/50 rounded w-3/4 mb-2"></div>

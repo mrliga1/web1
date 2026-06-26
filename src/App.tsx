@@ -62,7 +62,7 @@ import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 
 // Lazy loaded for performance (Code Splitting like Next.js)
-const ProductList = React.lazy(() => import("./components/ProductList"));
+import ProductList from "./components/ProductList";
 const ProjectList = React.lazy(() => import("./components/ProjectList"));
 const NewsList = React.lazy(() => import("./components/NewsList"));
 const NewsDetail = React.lazy(() => import("./components/NewsDetail"));

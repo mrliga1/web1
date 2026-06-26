@@ -56,6 +56,8 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
         <img 
           src={(safeImageUrl) || undefined} 
           alt={item.title || 'Product'} 
+          width="400"
+          height="300"
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           // @ts-ignore
@@ -72,9 +74,9 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
         <button
           onClick={toggleFavorite}
           aria-label={isFavorite ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
-          className={`absolute top-1 right-1 sm:top-2 sm:right-2 z-20 p-[3px] sm:p-1.5 rounded-full backdrop-blur-md border border-white/20 transition-colors ${isFavorite ? 'bg-amber-500/80 text-white' : 'bg-black/40 text-slate-300 hover:text-white hover:bg-black/60'}`}
+          className={`absolute top-0 right-0 sm:top-2 sm:right-2 z-20 w-8 h-8 sm:w-8 sm:h-8 flex items-center justify-center rounded-full backdrop-blur-md border border-white/20 transition-colors ${isFavorite ? 'bg-amber-500/80 text-white' : 'bg-black/40 text-slate-300 hover:text-white hover:bg-black/60'}`}
         >
-          <Heart className={`w-3 h-3 sm:w-4 sm:h-4 ${isFavorite ? 'fill-current' : ''}`} />
+          <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
         </button>
       </div>
       <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">

@@ -477,7 +477,7 @@ export default function ProductList({
                           placeholder="Tìm dự án, khu vực..." 
                           className="w-full bg-slate-900 border border-amber-500/30 pl-3 pr-8 py-[4px] rounded-lg text-white outline-none text-[11px] transition-colors focus:border-amber-500 h-[26px]"
                         />
-                        <button className="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 p-1 bg-transparent border-none">
+                        <button aria-label="Tìm kiếm" className="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 p-1 bg-transparent border-none">
                           <Search size={10} strokeWidth={3} />
                         </button>
                       </div>
@@ -485,7 +485,7 @@ export default function ProductList({
 
                     {/* Mobile Search Icon */}
                     <div className="absolute right-[5px] md:hidden z-50 bg-slate-950/80 backdrop-blur-sm h-full flex items-center px-0">
-                      <button onClick={() => setIsSearchOpen(!isSearchOpen)} className="w-[28px] h-[28px] flex items-center justify-center text-amber-500 bg-slate-900 border border-amber-500/30 shadow shadow-amber-500/20 rounded hover:bg-amber-500/20 active:scale-95 transition-all">
+                      <button aria-label="Mở tìm kiếm" onClick={() => setIsSearchOpen(!isSearchOpen)} className="w-[28px] h-[28px] flex items-center justify-center text-amber-500 bg-slate-900 border border-amber-500/30 shadow shadow-amber-500/20 rounded hover:bg-amber-500/20 active:scale-95 transition-all">
                         {isSearchOpen ? <X size={13} strokeWidth={2.5} /> : <Search size={13} strokeWidth={2.5} />}
                       </button>
                     </div>

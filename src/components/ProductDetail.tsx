@@ -32,6 +32,7 @@ import StarRatingInteractive from "./StarRatingInteractive";
 
 interface ProductDetailProps {
   productId: string;
+  slug?: string;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: "success" | "error") => void;
   logoUrl?: string;
@@ -83,6 +84,7 @@ declare global {
 
 export default function ProductDetail({
   productId,
+  slug,
   onNavigate,
   onShowNotification,
   logoUrl,
@@ -90,7 +92,8 @@ export default function ProductDetail({
   const [product, setProduct] = useState<Product | null>(() => {
     if (
       typeof window !== "undefined" &&
-      window.__SERVER_DATA__?.product?.id === productId
+      (window.__SERVER_DATA__?.product?.id === productId || 
+       (slug && generateSlug(window.__SERVER_DATA__?.product?.title) === slug))
     ) {
       return window.__SERVER_DATA__.product;
     }
@@ -106,7 +109,8 @@ export default function ProductDetail({
   const [selectedImage, setSelectedImage] = useState(() => {
     if (
       typeof window !== "undefined" &&
-      window.__SERVER_DATA__?.product?.id === productId
+      (window.__SERVER_DATA__?.product?.id === productId || 
+       (slug && generateSlug(window.__SERVER_DATA__?.product?.title) === slug))
     ) {
       return window.__SERVER_DATA__.product.imageUrl || "";
     }
@@ -170,19 +174,29 @@ export default function ProductDetail({
       try {
         if (!product) setLoading(true);
 
-        // 1. Fetch single active product
-        const docRef = doc(db, "products", productId);
-        const docSnap = await getDoc(docRef);
+        let activeProd: Product | null = product;
+        let finalProductId = productId;
 
-        // Fetch categories config
-        const genSnap = await getDoc(doc(db, "settings", "general"));
-        if (genSnap.exists() && genSnap.data().productCategoriesExt) {
-          setProductCategoriesExt(genSnap.data().productCategoriesExt);
+        if (finalProductId) {
+          const docRef = doc(db, "products", finalProductId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            activeProd = { id: docSnap.id, ...docSnap.data() } as Product;
+          }
+        } else if (slug) {
+          const prodCol = collection(db, "products");
+          const prodSnap = await getDocs(prodCol);
+          for (const doc of prodSnap.docs) {
+            const data = doc.data();
+            if (generateSlug(data.title) === slug && (!data.approvalStatus || data.approvalStatus === "approved")) {
+              activeProd = { id: doc.id, ...data } as Product;
+              finalProductId = doc.id;
+              break;
+            }
+          }
         }
 
-        let activeProd: Product | null = product;
-        if (docSnap.exists()) {
-          activeProd = { id: docSnap.id, ...docSnap.data() } as Product;
+        if (activeProd) {
           setProduct(activeProd);
           if (!selectedImage)
             setSelectedImage(activeProd.imageUrl || sampleThumbs[0]);
@@ -221,8 +235,10 @@ export default function ProductDetail({
         const viewedIds: string[] = JSON.parse(
           localStorage.getItem("recentlyViewed") || "[]",
         );
-        const updatedList = viewedIds.filter((id) => id !== productId);
-        updatedList.unshift(productId);
+        const updatedList = viewedIds.filter((id) => id !== finalProductId);
+        if (finalProductId) {
+          updatedList.unshift(finalProductId);
+        }
         localStorage.setItem(
           "recentlyViewed",
           JSON.stringify(updatedList.slice(0, 30)),
@@ -242,7 +258,7 @@ export default function ProductDetail({
     }
 
     loadProductData();
-  }, [productId]);
+  }, [productId, slug]);
 
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -270,7 +286,7 @@ export default function ProductDetail({
         message: clientDemand.trim(),
         createdAt: new Date().toISOString(),
         status: "pending",
-        propertyId: productId,
+        propertyId: product?.id || productId || slug || "unknown",
         propertyTitle: `Đăng ký xem căn hộ: ${product?.title}`,
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,

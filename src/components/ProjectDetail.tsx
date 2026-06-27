@@ -39,6 +39,7 @@ import { useScrollDirection } from "../hooks/useScrollDirection";
 
 interface ProjectDetailProps {
   projectId: string;
+  slug?: string;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: "success" | "error") => void;
   logoUrl?: string;
@@ -49,6 +50,7 @@ import { fetchClientIp } from "../lib/ip";
 
 export default function ProjectDetail({
   projectId,
+  slug,
   onNavigate,
   onShowNotification,
   logoUrl,
@@ -56,7 +58,8 @@ export default function ProjectDetail({
   const [project, setProject] = useState<Project | null>(() => {
     if (
       typeof window !== "undefined" &&
-      window.__SERVER_DATA__?.project?.id === projectId
+      (window.__SERVER_DATA__?.project?.id === projectId ||
+       (slug && generateSlug(window.__SERVER_DATA__?.project?.title) === slug))
     ) {
       return window.__SERVER_DATA__.project;
     }
@@ -291,12 +294,29 @@ export default function ProjectDetail({
     async function loadProject() {
       try {
         if (!project) setLoading(true);
-        const docRef = doc(db, "projects", projectId);
-        const docSnap = await getDoc(docRef);
-
         let fetchedProject: Project | null = project;
-        if (docSnap.exists()) {
-          fetchedProject = { id: docSnap.id, ...docSnap.data() } as Project;
+        let finalProjectId = projectId;
+
+        if (finalProjectId) {
+          const docRef = doc(db, "projects", finalProjectId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            fetchedProject = { id: docSnap.id, ...docSnap.data() } as Project;
+          }
+        } else if (slug) {
+          const projCol = collection(db, "projects");
+          const projSnap = await getDocs(projCol);
+          for (const doc of projSnap.docs) {
+            const data = doc.data();
+            if (generateSlug(data.title) === slug) {
+              fetchedProject = { id: doc.id, ...data } as Project;
+              finalProjectId = doc.id;
+              break;
+            }
+          }
+        }
+
+        if (fetchedProject) {
           setProject(fetchedProject);
           if (
             fetchedProject.floorPlanTabs &&
@@ -311,8 +331,8 @@ export default function ProjectDetail({
           const newsList: any[] = [];
 
           let targetCategory = "";
-          if (docSnap.data().newsCategoryUrl) {
-            targetCategory = docSnap.data().newsCategoryUrl.trim();
+          if (fetchedProject.newsCategoryUrl) {
+            targetCategory = fetchedProject.newsCategoryUrl.trim();
             // Tries to parse categoryName if it looks like a URL
             try {
               const urlMatch = targetCategory.match(/categoryName=([^&]+)/);
@@ -418,7 +438,7 @@ export default function ProjectDetail({
     }
 
     loadProject();
-  }, [projectId]);
+  }, [projectId, slug]);
 
   const handleConsultSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -449,7 +469,7 @@ export default function ProjectDetail({
         message: clientDemand.trim(),
         createdAt: new Date().toISOString(),
         status: "pending",
-        propertyId: projectId,
+        propertyId: project?.id || projectId || slug || "unknown",
         propertyTitle: `Đăng ký xem dự án: ${project?.title}`,
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,

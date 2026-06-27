@@ -52,7 +52,6 @@ import {
   parseSlugTitleFromPath,
   resolveItemTitle,
   setDocumentFavicon,
-  setDocumentTitle,
 } from "./lib/documentHead";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -255,33 +254,42 @@ function getInitialRoute(): RouteState {
   } else if (path === "/san-pham") {
     return { screen: "san-pham" };
   } else if (path.startsWith("/san-pham/")) {
-    const pathPart = path.replace("/san-pham/", "");
-    const parts = pathPart.split("-");
+    const slug = path.replace("/san-pham/", "");
+    const parts = slug.split("-");
     let id = parts[parts.length - 1];
-    if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
-      id = parts[0];
+    if (id && id.length === 20 && /^[a-zA-Z0-9]+$/.test(id)) {
+      return { screen: "product-detail", productId: id };
     }
-    return { screen: "product-detail", productId: id };
+    if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
+      return { screen: "product-detail", productId: parts[0] };
+    }
+    return { screen: "product-detail", slug: slug, productId: "" };
   } else if (path === "/du-an") {
     return { screen: "du-an" };
   } else if (path.startsWith("/du-an/")) {
-    const pathPart = path.replace("/du-an/", "");
-    const parts = pathPart.split("-");
+    const slug = path.replace("/du-an/", "");
+    const parts = slug.split("-");
     let id = parts[parts.length - 1];
-    if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
-      id = parts[0];
+    if (id && id.length === 20 && /^[a-zA-Z0-9]+$/.test(id)) {
+      return { screen: "project-detail", projectId: id };
     }
-    return { screen: "project-detail", projectId: id };
+    if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
+      return { screen: "project-detail", projectId: parts[0] };
+    }
+    return { screen: "project-detail", slug: slug, projectId: "" };
   } else if (path === "/tin-tuc") {
     return { screen: "tin-tuc" };
   } else if (path.startsWith("/tin-tuc/")) {
-    const pathPart = path.replace("/tin-tuc/", "");
-    const parts = pathPart.split("-");
+    const slug = path.replace("/tin-tuc/", "");
+    const parts = slug.split("-");
     let id = parts[parts.length - 1];
-    if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
-      id = parts[0];
+    if (id && id.length === 20 && /^[a-zA-Z0-9]+$/.test(id)) {
+      return { screen: "news-detail", newsId: id };
     }
-    return { screen: "news-detail", newsId: id };
+    if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
+      return { screen: "news-detail", newsId: parts[0] };
+    }
+    return { screen: "news-detail", slug: slug, newsId: "" };
   } else if (path === "/lien-he") {
     return { screen: "lien-he" };
   } else if (path === "/admin") {
@@ -801,73 +809,14 @@ function App() {
       .trim();
   };
 
-  // Dynamically update document title and head metadata
-  const updateHtmlMeta = (title: string, desc: string, keywords: string) => {
-    document.title = title;
-
-    // Meta description
-    let descMeta = document.querySelector('meta[name="description"]');
-    if (!descMeta) {
-      descMeta = document.createElement("meta");
-      descMeta.setAttribute("name", "description");
-      document.head.appendChild(descMeta);
-    }
-    descMeta.setAttribute("content", desc);
-
-    // Meta keywords
-    let kwsMeta = document.querySelector('meta[name="keywords"]');
-    if (!kwsMeta) {
-      kwsMeta = document.createElement("meta");
-      kwsMeta.setAttribute("name", "keywords");
-      document.head.appendChild(kwsMeta);
-    }
-    kwsMeta.setAttribute("content", keywords);
-
-    // Facebook / OpenGraph optimization
-    let ogTitle = document.querySelector('meta[property="og:title"]');
-    if (!ogTitle) {
-      ogTitle = document.createElement("meta");
-      ogTitle.setAttribute("property", "og:title");
-      document.head.appendChild(ogTitle);
-    }
-    ogTitle.setAttribute("content", title);
-
-    let ogDesc = document.querySelector('meta[property="og:description"]');
-    if (!ogDesc) {
-      ogDesc = document.createElement("meta");
-      ogDesc.setAttribute("property", "og:description");
-      document.head.appendChild(ogDesc);
-    }
-    ogDesc.setAttribute("content", desc);
-  };
-
-  // Cập nhật title tạm từ slug URL ngay khi vào trang chi tiết
-  useEffect(() => {
-    const path = window.location.pathname;
-    if (route.screen === "news-detail" && route.newsId) {
-      const slugTitle = parseSlugTitleFromPath(path, "/news/");
-      if (slugTitle) setDocumentTitle(`${slugTitle} | Greenia Homes`);
-      return;
-    }
-    if (route.screen === "product-detail" && route.productId) {
-      const slugTitle = parseSlugTitleFromPath(path, "/product/");
-      if (slugTitle) setDocumentTitle(`${slugTitle} | Greenia Homes`);
-      return;
-    }
-    if (route.screen === "project-detail" && route.projectId) {
-      const slugTitle = parseSlugTitleFromPath(path, "/project/");
-      if (slugTitle) setDocumentTitle(`${slugTitle} | Dự Án Greenia Homes`);
-    }
-  }, [route.screen, route.newsId, route.productId, route.projectId]);
-
   // SEO trang tĩnh + danh mục
-  useEffect(() => {
+  const currentSeo = useMemo(() => {
     if (
       route.screen === "product-detail" ||
       route.screen === "project-detail" ||
       route.screen === "news-detail"
     ) {
-      return;
+      return null; // Detail pages handle their own SEO via Helmet
     }
 
     let suffix = "";
@@ -878,162 +827,43 @@ function App() {
     else if (route.screen === "admin") suffix = " | Hệ Thống Tổng Đài Admin";
 
     if (route.screen === "category-news" && route.categoryName) {
-      updateHtmlMeta(
-        `${route.categoryName} | Cẩm Nang Phong Thủy & Tin Tức`,
-        globalMetaDesc,
-        globalMetaKeywords,
-      );
-      return;
+      return {
+        title: `${route.categoryName} | Cẩm Nang Phong Thủy & Tin Tức`,
+        desc: globalMetaDesc,
+        keywords: globalMetaKeywords,
+      };
     }
 
     if (route.screen === "category-product" && route.categoryName) {
-      updateHtmlMeta(
-        `Danh mục ${route.categoryName} | Giỏ hàng BĐS`,
-        globalMetaDesc,
-        globalMetaKeywords,
-      );
-      return;
+      return {
+        title: `Danh mục ${route.categoryName} | Giỏ hàng BĐS`,
+        desc: globalMetaDesc,
+        keywords: globalMetaKeywords,
+      };
     }
 
     if (route.screen === "latest-sales") {
-      updateHtmlMeta(
-        "Quỹ Biệt Thự & Nhà Bán Mới Nhất | Mua Bán BĐS",
-        globalMetaDesc,
-        globalMetaKeywords,
-      );
-      return;
+      return {
+        title: "Quỹ Biệt Thự & Nhà Bán Mới Nhất | Mua Bán BĐS",
+        desc: globalMetaDesc,
+        keywords: globalMetaKeywords,
+      };
     }
 
     if (route.screen === "latest-rents") {
-      updateHtmlMeta(
-        "Quỹ Căn Hộ & Nhà Cho thuê Mới Nhất | Cho thuê BĐS",
-        globalMetaDesc,
-        globalMetaKeywords,
-      );
-      return;
+      return {
+        title: "Quỹ Căn Hộ & Nhà Cho thuê Mới Nhất | Cho thuê BĐS",
+        desc: globalMetaDesc,
+        keywords: globalMetaKeywords,
+      };
     }
 
-    updateHtmlMeta(
-      globalMetaTitle + (suffix ? suffix : ""),
-      globalMetaDesc,
-      globalMetaKeywords,
-    );
-  }, [route, globalMetaTitle, globalMetaDesc, globalMetaKeywords]);
-
-  // SEO trang chi tiết – tách riêng để không bị globalMeta ghi đè
-  useEffect(() => {
-    let active = true;
-
-    async function applyDetailSEO() {
-      if (route.screen === "product-detail" && route.productId) {
-        try {
-          const docSnap = await getDoc(doc(db, "products", route.productId));
-          if (!active || !docSnap.exists()) return;
-          const item = docSnap.data();
-          const draftTitle = resolveItemTitle(item, "Greenia Homes");
-          const cleanDesc = stripHtmlText(item.description || item.title);
-          const draftDesc =
-            item.metaDesc ||
-            item.seoDesc ||
-            (cleanDesc.length > 155
-              ? cleanDesc.substring(0, 155) + "..."
-              : cleanDesc);
-          const draftKeywords =
-            item.metaKeywords ||
-            item.seoKeywords ||
-            `${item.category || "Bất động sản"}, ${item.district || "Nam Sài Gòn"}, greenia homes`;
-          updateHtmlMeta(draftTitle, draftDesc, draftKeywords);
-
-          const itemSlug = generateSlug(item.title);
-          const currentPath = window.location.pathname;
-          if (itemSlug && !currentPath.includes(itemSlug)) {
-            window.history.replaceState(
-              null,
-              "",
-              `/product/${itemSlug}-${route.productId}`,
-            );
-          }
-        } catch (err) {
-          console.error("SEO loading error for product", err);
-        }
-        return;
-      }
-
-      if (route.screen === "project-detail" && route.projectId) {
-        try {
-          const docSnap = await getDoc(doc(db, "projects", route.projectId));
-          if (!active || !docSnap.exists()) return;
-          const proj = docSnap.data();
-          const draftTitle = resolveItemTitle(proj, "Dự Án Greenia Homes");
-          const cleanDesc = stripHtmlText(proj.description || proj.title);
-          const draftDesc =
-            proj.metaDesc ||
-            proj.seoDesc ||
-            (cleanDesc.length > 155
-              ? cleanDesc.substring(0, 155) + "..."
-              : cleanDesc);
-          const draftKeywords =
-            proj.metaKeywords ||
-            proj.seoKeywords ||
-            `${proj.location || "Dự án"}, quy hoạch đại đô thị, greenia homes`;
-          updateHtmlMeta(draftTitle, draftDesc, draftKeywords);
-
-          const projSlug = generateSlug(proj.title);
-          const currentPath = window.location.pathname;
-          if (projSlug && !currentPath.includes(projSlug)) {
-            window.history.replaceState(
-              null,
-              "",
-              `/project/${projSlug}-${route.projectId}`,
-            );
-          }
-        } catch (err) {
-          console.error("SEO loading error for project", err);
-        }
-        return;
-      }
-
-      if (route.screen === "news-detail" && route.newsId) {
-        try {
-          const docSnap = await getDoc(doc(db, "news", route.newsId));
-          if (!active || !docSnap.exists()) return;
-          const article = docSnap.data();
-          const draftTitle = resolveItemTitle(article, "Greenia Homes");
-          const cleanDesc = stripHtmlText(
-            article.content || article.description || article.title,
-          );
-          const draftDesc =
-            article.metaDesc ||
-            article.seoDesc ||
-            (cleanDesc.length > 155
-              ? cleanDesc.substring(0, 155) + "..."
-              : cleanDesc);
-          const draftKeywords =
-            article.metaKeywords ||
-            article.seoKeywords ||
-            `${article.category || "Tin tức"}, kiến thức phong thủy, tin bat dong san`;
-          updateHtmlMeta(draftTitle, draftDesc, draftKeywords);
-
-          const newsSlug = generateSlug(article.title);
-          const currentPath = window.location.pathname;
-          if (newsSlug && !currentPath.includes(newsSlug)) {
-            window.history.replaceState(
-              null,
-              "",
-              `/news/${newsSlug}-${route.newsId}`,
-            );
-          }
-        } catch (err) {
-          console.error("SEO loading error for news", err);
-        }
-      }
-    }
-
-    applyDetailSEO();
-    return () => {
-      active = false;
+    return {
+      title: globalMetaTitle + (suffix ? suffix : ""),
+      desc: globalMetaDesc,
+      keywords: globalMetaKeywords,
     };
-  }, [route.screen, route.productId, route.projectId, route.newsId]);
+  }, [route, globalMetaTitle, globalMetaDesc, globalMetaKeywords]);
 
   // Custom Toast State
   const [notification, setNotification] = useState<{
@@ -1063,12 +893,12 @@ function App() {
     else if (newRoute.screen === "du-an") targetPath = "/du-an";
     else if (newRoute.screen === "tin-tuc") targetPath = "/tin-tuc";
     else if (newRoute.screen === "lien-he") targetPath = "/lien-he";
-    else if (newRoute.screen === "product-detail" && newRoute.productId)
-      targetPath = `/san-pham/${newRoute.slug ? `${newRoute.slug}-` : ""}${newRoute.productId}`;
-    else if (newRoute.screen === "project-detail" && newRoute.projectId)
-      targetPath = `/du-an/${newRoute.slug ? `${newRoute.slug}-` : ""}${newRoute.projectId}`;
-    else if (newRoute.screen === "news-detail" && newRoute.newsId)
-      targetPath = `/tin-tuc/${newRoute.slug ? `${newRoute.slug}-` : ""}${newRoute.newsId}`;
+    else if (newRoute.screen === "product-detail" && (newRoute.slug || newRoute.productId))
+      targetPath = `/san-pham/${newRoute.slug || newRoute.productId}`;
+    else if (newRoute.screen === "project-detail" && (newRoute.slug || newRoute.projectId))
+      targetPath = `/du-an/${newRoute.slug || newRoute.projectId}`;
+    else if (newRoute.screen === "news-detail" && (newRoute.slug || newRoute.newsId))
+      targetPath = `/tin-tuc/${newRoute.slug || newRoute.newsId}`;
     else if (newRoute.screen === "admin") targetPath = "/admin";
     else if (newRoute.screen === "category-product" && newRoute.categoryName)
       targetPath = `/category-product/${encodeURIComponent(newRoute.categoryName)}`;
@@ -1408,6 +1238,15 @@ function App() {
       id="app-root"
     >
       <Helmet>
+        {currentSeo && (
+          <>
+            <title>{currentSeo.title}</title>
+            <meta name="description" content={currentSeo.desc} />
+            <meta name="keywords" content={currentSeo.keywords} />
+            <meta property="og:title" content={currentSeo.title} />
+            <meta property="og:description" content={currentSeo.desc} />
+          </>
+        )}
         {logoUrl ? (
           <>
             <link rel="icon" href={logoUrl} />
@@ -1553,27 +1392,30 @@ function App() {
                   />
                 )}
 
-                {route.screen === "product-detail" && route.productId && (
+                {route.screen === "product-detail" && (route.productId || route.slug) && (
                   <ProductDetail
-                    productId={route.productId}
+                    productId={route.productId || ""}
+                    slug={route.slug}
                     onNavigate={handleNavigate}
                     onShowNotification={triggerNotification}
                     logoUrl={logoUrl}
                   />
                 )}
 
-                {route.screen === "project-detail" && route.projectId && (
+                {route.screen === "project-detail" && (route.projectId || route.slug) && (
                   <ProjectDetail
-                    projectId={route.projectId}
+                    projectId={route.projectId || ""}
+                    slug={route.slug}
                     onNavigate={handleNavigate}
                     onShowNotification={triggerNotification}
                     logoUrl={logoUrl}
                   />
                 )}
 
-                {route.screen === "news-detail" && route.newsId && (
+                {route.screen === "news-detail" && (route.newsId || route.slug) && (
                   <NewsDetail
-                    newsId={route.newsId}
+                    newsId={route.newsId || ""}
+                    slug={route.slug}
                     onNavigate={handleNavigate}
                     onShowNotification={triggerNotification}
                   />

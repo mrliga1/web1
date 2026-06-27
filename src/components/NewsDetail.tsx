@@ -11,6 +11,7 @@ import StarRatingInteractive from './StarRatingInteractive';
 
 interface NewsDetailProps {
   newsId: string;
+  slug?: string;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
 }
@@ -47,13 +48,29 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
       try {
         if (!article) setLoading(true);
 
-        // Fetch primary article
-        const docRef = doc(db, 'news', newsId);
-        const docSnap = await getDoc(docRef);
-
         let fetchedArticle: News | null = article;
-        if (docSnap.exists()) {
-          fetchedArticle = { id: docSnap.id, ...docSnap.data() } as News;
+        let finalNewsId = newsId;
+
+        if (finalNewsId) {
+          const docRef = doc(db, 'news', finalNewsId);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            fetchedArticle = { id: docSnap.id, ...docSnap.data() } as News;
+          }
+        } else if (slug) {
+          const newsCol = collection(db, 'news');
+          const newsSnap = await getDocs(newsCol);
+          for (const doc of newsSnap.docs) {
+            const data = doc.data();
+            if (generateSlug(data.title) === slug) {
+              fetchedArticle = { id: doc.id, ...data } as News;
+              finalNewsId = doc.id;
+              break;
+            }
+          }
+        }
+
+        if (fetchedArticle) {
           setArticle(fetchedArticle);
         } else {
           setLoading(false);
@@ -129,7 +146,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
     }
 
     loadArticleData();
-  }, [newsId]);
+  }, [newsId, slug]);
 
   const handleSidebarConsultSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,7 +174,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
         message: clientDemand.trim(),
         createdAt: new Date().toISOString(),
         status: 'pending',
-        propertyId: newsId,
+        propertyId: article?.id || newsId || slug || 'unknown',
         propertyTitle: `Đăng ký tư vấn từ bài tin: ${article?.title}`,
         sourceUrl: friendlyUrl,
         ipAddress: clientIp

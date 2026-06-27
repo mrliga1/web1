@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Heart } from 'lucide-react';
 import { db } from '../firebase';
-import { doc, onSnapshot } from 'firebase/firestore';
+import { doc, getDoc } from 'firebase/firestore';
 
 interface AdBannerProps {
   slot?: string;
@@ -13,7 +13,7 @@ export default function AdBanner({ slot = "default-ad-slot", className = "", con
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'settings', 'general'), (snapshot) => {
+    getDoc(doc(db, 'settings', 'general')).then((snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data.googleAdSenseCode) {
@@ -23,11 +23,10 @@ export default function AdBanner({ slot = "default-ad-slot", className = "", con
         }
       }
       setLoading(false);
-    }, (error) => {
-      console.error("AdSense load error: ", error);
+    }).catch(err => {
+      console.error("Lỗi AdBanner:", err);
       setLoading(false);
     });
-    return () => unsub();
   }, []);
 
   const containerRef = React.useRef<HTMLDivElement>(null);

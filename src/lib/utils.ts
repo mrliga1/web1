@@ -15,7 +15,7 @@ export function generateSlug(text: string): string {
     .replace(/-+$/, '');
 }
 
-export function optimizeImageUrl(url: string | undefined | null): string {
+export function optimizeImageUrl(url: string | undefined | null, width?: number): string {
   if (!url) return '';
   let finalUrl = url;
   if (url.includes('raw.githubusercontent.com')) {
@@ -29,7 +29,11 @@ export function optimizeImageUrl(url: string | undefined | null): string {
   // Use wsrv.nl image proxy for automatic WebP/AVIF compression
   // Skip local SVGs, Unsplash, or already proxied URLs
   if (finalUrl.startsWith('http') && !finalUrl.includes('wsrv.nl') && !finalUrl.includes('unsplash.com') && !finalUrl.endsWith('.svg')) {
-     return `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&output=webp&q=80`;
+     let optimized = `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&output=webp&q=80`;
+     if (width) {
+       optimized += `&w=${width}`;
+     }
+     return optimized;
   }
   
   return finalUrl;

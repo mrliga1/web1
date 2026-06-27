@@ -1255,7 +1255,7 @@ export default function ProductDetail({
                     <img
                       loading="lazy"
                       decoding="async"
-                      src={optimizeImageUrl(p.images?.[0]) || undefined}
+                      src={optimizeImageUrl(p.images?.[0], 400) || undefined}
                       alt={p.title}
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 block"

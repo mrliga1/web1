@@ -23,7 +23,7 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
       safeImageUrl += '&w=400&q=70';
     }
   }
-  safeImageUrl = optimizeImageUrl(safeImageUrl);
+  safeImageUrl = optimizeImageUrl(safeImageUrl, 400);
 
   const [isFavorite, setIsFavorite] = useState(false);
 

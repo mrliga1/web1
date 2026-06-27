@@ -1810,7 +1810,7 @@ export default function ProjectDetail({
                         <img
                           loading="lazy"
                           decoding="async"
-                          src={optimizeImageUrl(proj.images?.[0]) || undefined}
+                          src={optimizeImageUrl(proj.images?.[0], 400) || undefined}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           alt={proj.title}
                           onError={(e) => {

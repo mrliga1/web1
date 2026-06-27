@@ -881,7 +881,7 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
                   >
                     <div className="relative aspect-[16/10] overflow-hidden">
                       <img loading="lazy" decoding="async"
-                        src={(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800") || undefined}
+                        src={optimizeImageUrl(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                         alt={proj.title}
                         width="800"
                         height="500"
@@ -1006,7 +1006,7 @@ export const NewsBody: React.FC<NewsProps> = ({
                 >
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <img loading="lazy" decoding="async"
-                      src={(article.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800") || undefined}
+                      src={optimizeImageUrl(article.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                       alt={article.title}
                       width="800"
                       height="500"

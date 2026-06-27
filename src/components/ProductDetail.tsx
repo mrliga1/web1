@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { generateSlug } from "../lib/utils";
+import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
 import { doc, getDoc, collection, getDocs, addDoc, db } from "../firebase";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import { Product, Project, RouteState } from "../types";
@@ -23,7 +23,7 @@ import {
   Facebook,
   Link as LinkIcon,
 } from "lucide-react";
-import { optimizeImageUrl } from '../lib/utils';
+
 import { Helmet } from "react-helmet-async";
 import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";
 import AdBanner from "./AdBanner";

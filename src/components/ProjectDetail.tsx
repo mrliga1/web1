@@ -376,8 +376,8 @@ export default function ProjectDetail({
           const productsList: any[] = [];
 
           let targetProdCategory = "";
-          if (docSnap.data().productCategoryUrl) {
-            targetProdCategory = docSnap.data().productCategoryUrl.trim();
+          if (fetchedProject.productCategoryUrl) {
+            targetProdCategory = fetchedProject.productCategoryUrl.trim();
             // Tries to parse categoryName if it looks like a URL
             try {
               const prodUrlMatch =

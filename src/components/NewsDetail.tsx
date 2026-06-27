@@ -19,7 +19,7 @@ interface NewsDetailProps {
 import { notifyAdminEmail } from '../lib/email';
 import { fetchClientIp } from '../lib/ip';
 
-export default function NewsDetail({ newsId, onNavigate, onShowNotification }: NewsDetailProps) {
+export default function NewsDetail({ newsId, slug, onNavigate, onShowNotification }: NewsDetailProps) {
   const [article, setArticle] = useState<News | null>(() => {
     if (typeof window !== 'undefined' && window.__SERVER_DATA__?.news?.id === newsId) {
       return window.__SERVER_DATA__.news;

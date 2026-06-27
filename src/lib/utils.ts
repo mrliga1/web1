@@ -28,7 +28,7 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
   
   // Use wsrv.nl image proxy for automatic WebP/AVIF compression
   // Skip local SVGs, Unsplash, or already proxied URLs
-  if (finalUrl.startsWith('http') && !finalUrl.includes('wsrv.nl') && !finalUrl.includes('unsplash.com') && !finalUrl.endsWith('.svg')) {
+  if (finalUrl.startsWith('http') && !finalUrl.includes('wsrv.nl') && !finalUrl.endsWith('.svg')) {
      let optimized = `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&output=webp&q=70`;
      if (width) {
        optimized += `&w=${width}`;

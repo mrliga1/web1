@@ -51,9 +51,11 @@ export function setDocumentTitle(title: string) {
   if (next) document.title = next;
 }
 
+import { optimizeImageUrl } from './utils';
+
 export function setDocumentFavicon(href: string) {
   if (!href?.trim()) return;
-  const url = href.trim();
+  const url = optimizeImageUrl(href.trim());
   for (const rel of ["icon", "shortcut icon", "apple-touch-icon"]) {
     let link = document.querySelector<HTMLLinkElement>(
       `link[rel="${rel}"]`,

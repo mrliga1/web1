@@ -47,15 +47,16 @@ import { handleFirestoreError, OperationType } from "./firebase-errors";
 import { RouteState, Product } from "./types";
 import { getPageDefaultSections, GENERIC_CUSTOM_SECTIONS } from "./lib/layouts";
 import { notifyAdminEmail } from "./lib/email";
-import { generateSlug } from "./lib/utils";
+import { generateSlug, optimizeImageUrl } from "./lib/utils";
 import {
   parseSlugTitleFromPath,
   resolveItemTitle,
   setDocumentFavicon,
   setDocumentTitle,
 } from "./lib/documentHead";
-import { Helmet } from "react-helmet-async";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./contexts/AuthContext";
+import AuthModal from "./components/AuthModal";
 
 // Children Components
 import Navbar from "./components/Navbar";
@@ -642,7 +643,7 @@ function App() {
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data.logoUrl) {
-          setLogoUrl(data.logoUrl);
+          setLogoUrl(optimizeImageUrl(data.logoUrl));
         } else {
           setLogoUrl("");
         }

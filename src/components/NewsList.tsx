@@ -507,7 +507,7 @@ export default function NewsList({
                               >
                                 <div className="w-[100px] h-[85px] shrink-0 rounded overflow-hidden border border-[#232d45] relative">
                                   {sec.type === 'product' && (
-                                    <span className={`absolute top-0 left-0 px-[5px] py-[3px] text-[10px] font-semibold text-white z-10 rounded-br-[5px] ${p.type === 'rent' ? 'bg-[#00b894]' : 'bg-[#ff4d4f]'}`}>
+                                    <span className={`absolute top-0 left-0 px-[5px] py-[3px] text-[10px] font-semibold text-white z-10 rounded-br-[5px] ${p.type === 'rent' ? 'bg-emerald-700' : 'bg-rose-700'}`}>
                                       {p.type === 'rent' ? 'Cho thuê' : 'Đang bán'}
                                     </span>
                                   )}
@@ -570,7 +570,7 @@ export default function NewsList({
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
                       {latestSales.map((item) => (
                         <div key={item.id} className="w-full">
-                          <ProductCard item={item} onNavigate={onNavigate} badgeText="Bán" badgeColor="bg-[#ff4d4f] text-white" />
+                          <ProductCard item={item} onNavigate={onNavigate} badgeText="Bán" badgeColor="bg-rose-700 text-white" />
                         </div>
                       ))}
                     </div>
@@ -588,7 +588,7 @@ export default function NewsList({
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
                       {latestRents.map((item) => (
                         <div key={item.id} className="w-full">
-                          <ProductCard item={item} onNavigate={onNavigate} badgeText="Cho thuê" badgeColor="bg-[#00b894] text-white" />
+                          <ProductCard item={item} onNavigate={onNavigate} badgeText="Cho thuê" badgeColor="bg-emerald-700 text-white" />
                         </div>
                       ))}
                     </div>

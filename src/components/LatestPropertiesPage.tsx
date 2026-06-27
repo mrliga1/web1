@@ -100,7 +100,7 @@ export default function LatestPropertiesPage({ onNavigate, type, categoryName }:
                   item={item} 
                   onNavigate={onNavigate} 
                   badgeText={item.type !== 'rent' ? 'Bán' : 'Cho thuê'} 
-                  badgeColor={item.type !== 'rent' ? 'bg-rose-500 text-white' : 'bg-amber-500 text-slate-950'} 
+                  badgeColor={item.type !== 'rent' ? 'bg-rose-700 text-white' : 'bg-amber-500 text-slate-950'} 
                 />
               ))}
             </div>

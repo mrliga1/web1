@@ -14,7 +14,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ item, onNavigate, badgeText, badgeColor, priority = false }: ProductCardProps) {
   const displayBadgeText = badgeText || (item.type === 'rent' ? 'Cho thuê' : 'Bán');
-  const displayBadgeColor = badgeColor || (item.type === 'rent' ? 'bg-[#00b894] text-white' : 'bg-[#ff4d4f] text-white');
+  const displayBadgeColor = badgeColor || (item.type === 'rent' ? 'bg-emerald-700 text-white' : 'bg-rose-700 text-white');
   let safeImageUrl = item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'https://placehold.co/600x400/1e293b/a4b5fd?text=No+Image');
   if (safeImageUrl.includes('images.unsplash.com')) {
     if (!safeImageUrl.includes('?')) {

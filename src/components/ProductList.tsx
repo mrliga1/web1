@@ -789,7 +789,7 @@ export default function ProductList({
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                       {recentlyViewed.slice(0, recentGridLimit).map((item) => (
-                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Vừa xem" badgeColor="bg-pink-500 text-white" />
+                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Vừa xem" badgeColor="bg-pink-700 text-white" />
                       ))}
                     </div>
 
@@ -850,7 +850,7 @@ export default function ProductList({
                       ))
                     ) : (
                       latestSales.slice(0, 5).map((item) => (
-                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Bán" badgeColor="bg-rose-500 text-white" />
+                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Bán" badgeColor="bg-rose-700 text-white" />
                       ))
                     )}
                   </div>

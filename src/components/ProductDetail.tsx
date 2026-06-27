@@ -523,8 +523,8 @@ export default function ProductDetail({
                 <span
                   className={`text-[10px] font-semibold px-[10px] py-[5px] rounded-br-[5px] uppercase tracking-wider inline-block ${
                     product.type === "rent"
-                      ? "bg-[#00b894] text-white"
-                      : "bg-[#ff4d4f] text-white"
+                      ? "bg-emerald-700 text-white"
+                      : "bg-rose-700 text-white"
                   }`}
                 >
                   {product.type === "rent" ? "Cho thuê" : "Bán"}
@@ -1138,7 +1138,7 @@ export default function ProductDetail({
                   item={item}
                   onNavigate={onNavigate}
                   badgeText="Vừa xem"
-                  badgeColor="bg-pink-500 text-white"
+                  badgeColor="bg-pink-700 text-white"
                 />
               ))}
             </div>
@@ -1170,7 +1170,7 @@ export default function ProductDetail({
                 item={item}
                 onNavigate={onNavigate}
                 badgeText="Bán"
-                badgeColor="bg-[#ff4d4f] text-white"
+                badgeColor="bg-rose-700 text-white"
               />
             </div>
           ))}
@@ -1198,7 +1198,7 @@ export default function ProductDetail({
                 item={item}
                 onNavigate={onNavigate}
                 badgeText="Cho thuê"
-                badgeColor="bg-[#00b894] text-white"
+                badgeColor="bg-emerald-700 text-white"
               />
             </div>
           ))}

@@ -380,7 +380,7 @@ export default function ProductDetail({
       ? product.imageUrls
       : [
           product.imageUrl ||
-            "https://placehold.co/1200x600/1e293b/a4b5fd?text=No+Image",
+            "/no-image.svg",
         ];
 
   const rawBaseRating = product.baseRating || 5;
@@ -869,7 +869,7 @@ export default function ProductDetail({
                   decoding="async"
                   src={
                     product.avatarUrl ||
-                    "https://placehold.co/100x100/1e293b/c5a059?text=CV"
+                    "/cv-image.svg"
                   }
                   alt="Chuyên viên tư vấn"
                   className="h-16 w-16 rounded-full object-cover border-2 border-amber-500/50"
@@ -877,7 +877,7 @@ export default function ProductDetail({
                   onError={(e) => { e.currentTarget.onerror = null;
                     const target = e.target as HTMLImageElement;
                     target.src =
-                      "https://placehold.co/100x100/1e293b/c5a059?text=CV";
+                      "/cv-image.svg";
                   }}
                 />
                 <h3 className="text-amber-500 font-display font-bold text-[15px] tracking-wide m-0 p-0">
@@ -935,7 +935,7 @@ export default function ProductDetail({
                 <img
                   loading="lazy"
                   decoding="async"
-                  src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg"
+                  src="/zalo-icon.svg"
                   alt="Zalo"
                   className="w-5 h-5 drop-shadow-md"
                 />
@@ -1254,7 +1254,7 @@ export default function ProductDetail({
                     <img
                       loading="lazy"
                       decoding="async"
-                      src={p.imageUrl || undefined}
+                      src={optimizeImageUrl() || undefined}
                       alt={p.title}
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 block"

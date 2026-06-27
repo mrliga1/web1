@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, RouteState } from '../types';
 import { MapPin, Tag, Layers, Bookmark, Bath, Heart } from 'lucide-react';
-import { generateSlug } from '../lib/utils';
+import { generateSlug, optimizeImageUrl } from '../lib/utils';
 
 interface ProductCardProps {
   key?: React.Key;
@@ -15,7 +15,7 @@ interface ProductCardProps {
 export default function ProductCard({ item, onNavigate, badgeText, badgeColor, priority = false }: ProductCardProps) {
   const displayBadgeText = badgeText || (item.type === 'rent' ? 'Cho thuê' : 'Bán');
   const displayBadgeColor = badgeColor || (item.type === 'rent' ? 'bg-emerald-700 text-white' : 'bg-rose-700 text-white');
-  let safeImageUrl = item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : 'https://placehold.co/600x400/1e293b/a4b5fd?text=No+Image');
+  let safeImageUrl = item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : '/no-image.svg');
   if (safeImageUrl.includes('images.unsplash.com')) {
     if (!safeImageUrl.includes('?')) {
       safeImageUrl += '?auto=format&fit=crop&w=400&q=70';
@@ -23,6 +23,7 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
       safeImageUrl += '&w=400&q=70';
     }
   }
+  safeImageUrl = optimizeImageUrl(safeImageUrl);
 
   const [isFavorite, setIsFavorite] = useState(false);
 
@@ -65,7 +66,7 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
           referrerPolicy="no-referrer" 
           onError={(e) => { e.currentTarget.onerror = null;
-            (e.target as HTMLImageElement).src = 'https://placehold.co/600x400/1e293b/a4b5fd?text=No+Image';
+            (e.target as HTMLImageElement).src = '/no-image.svg';
           }}
         />
         <div className={`absolute top-0 left-0 text-[10px] font-semibold px-[8px] py-[4px] rounded-br-[5px] z-10 ${displayBadgeColor}`}>

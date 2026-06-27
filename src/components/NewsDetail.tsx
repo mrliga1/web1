@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateSlug } from '../lib/utils';
+import { , optimizeImageUrl } from '../lib/utils';
 import { doc, getDoc, collection, getDocs, addDoc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2 } from 'lucide-react';
@@ -233,7 +233,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
     .slice(0, 5);
 
-  const articleImage = article.imageUrl || 'https://placehold.co/1200x600/1e293b/a4b5fd?text=No+Image';
+  const articleImage = article.imageUrl || '/no-image.svg';
 
   const rawBaseRating = article.baseRating || 5;
   const rawBaseCount = article.baseReviewCount || 0;
@@ -323,7 +323,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
           
           {/* Main big cover photo */}
           <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-slate-900 bg-slate-950">
-            <img loading="eager" decoding="async" src={(article.imageUrl) || undefined} alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
+            <img loading="eager" decoding="async" src={optimizeImageUrl() || undefined} alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
               // @ts-ignore
               fetchpriority="high" />
           </div>
@@ -365,7 +365,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
                     onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
                     className="w-[280px] shrink-0 bg-slate-900/30 border border-slate-850 hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
                   >
-                    <img loading="lazy" decoding="async" src={(n.imageUrl) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={optimizeImageUrl() || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
                       <h4 className="text-sm lg:text-xs font-semibold text-white line-clamp-2">{n.title}</h4>
                       <span className="text-[10px] lg:text-[9px] text-slate-500 font-mono block mt-1">
@@ -387,7 +387,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
                     onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
                     className="w-[280px] shrink-0 bg-slate-900/30 border border-slate-850 hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
                   >
-                    <img loading="lazy" decoding="async" src={(n.imageUrl) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={optimizeImageUrl() || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
                       <h4 className="text-sm lg:text-xs font-semibold text-white line-clamp-2">{n.title}</h4>
                       <span className="text-[10px] lg:text-[9px] text-slate-500 font-mono block mt-1">
@@ -421,7 +421,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
                   onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
                   className="flex gap-2.5 text-left group cursor-pointer border-b border-slate-950 pb-2 last:border-0 items-start"
                 >
-                  <img loading="lazy" decoding="async" src={(n.imageUrl) || undefined} alt={n.title} className="w-[45px] h-[45px] object-cover rounded shrink-0" referrerPolicy="no-referrer" />
+                  <img loading="lazy" decoding="async" src={optimizeImageUrl() || undefined} alt={n.title} className="w-[45px] h-[45px] object-cover rounded shrink-0" referrerPolicy="no-referrer" />
                   <div className="flex-1 space-y-0.5 mt-[-1px]">
                     <h5 className="text-[11px] font-semibold text-slate-300 group-hover:text-amber-400 leading-[14px] line-clamp-2">
                       {n.title}
@@ -484,7 +484,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
                     <span className={`absolute top-0 left-0 px-[5px] py-[3px] text-[10px] font-semibold text-white z-10 rounded-br-[5px] ${p.type === 'rent' ? 'bg-emerald-700' : 'bg-rose-700'}`}>
                       {p.type === 'rent' ? 'Cho thuê' : 'Đang bán'}
                     </span>
-                    <img loading="lazy" decoding="async" src={(p.imageUrl) || undefined} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={optimizeImageUrl() || undefined} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center min-w-0">
@@ -618,7 +618,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
                 onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
                 className="w-full bg-slate-900/30 border border-slate-850 hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
               >
-                <img loading="lazy" decoding="async" src={(n.imageUrl) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
+                <img loading="lazy" decoding="async" src={optimizeImageUrl() || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                 <div className="text-left space-y-1">
                   <h4 className="text-sm lg:text-xs font-semibold text-white line-clamp-2">{n.title}</h4>
                   <span className="text-[10px] lg:text-[9px] text-slate-500 font-mono block mt-1">
@@ -722,7 +722,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
                         {statusText}
                       </span>
                       <img loading="lazy" decoding="async"
-                        src={(p.imageUrl) || undefined}
+                        src={optimizeImageUrl() || undefined}
                         alt={p.title}
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 block"

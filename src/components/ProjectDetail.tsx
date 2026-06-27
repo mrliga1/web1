@@ -583,11 +583,11 @@ export default function ProjectDetail({
       ? project.imageUrls
       : [
           project.imageUrl ||
-            "https://placehold.co/1200x600/1e293b/a4b5fd?text=No+Image",
-          "https://placehold.co/1200x600/0f172a/a4b5fd?text=Image+2",
-          "https://placehold.co/1200x600/334155/a4b5fd?text=Image+3",
-          "https://placehold.co/1200x600/475569/a4b5fd?text=Image+4",
-          "https://placehold.co/1200x600/64748b/a4b5fd?text=Image+5",
+            "/no-image.svg",
+          "/no-image.svg",
+          "/no-image.svg",
+          "/no-image.svg",
+          "/no-image.svg",
         ];
 
   const rawBaseRating = project.baseRating || 5;
@@ -1809,13 +1809,13 @@ export default function ProjectDetail({
                         <img
                           loading="lazy"
                           decoding="async"
-                          src={proj.imageUrl || undefined}
+                          src={optimizeImageUrl() || undefined}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           alt={proj.title}
                           onError={(e) => {
                             e.currentTarget.onerror = null;
                             (e.target as HTMLImageElement).src =
-                              "https://placehold.co/600x400/1e293b/a4b5fd?text=No+Image";
+                              "/no-image.svg";
                           }}
                         />
                         <div className="absolute top-2 left-2 px-2 py-1 bg-amber-500 text-slate-950 text-[10px] font-bold uppercase rounded">
@@ -1998,7 +1998,7 @@ export default function ProjectDetail({
                           onError={(e) => {
                             e.currentTarget.onerror = null;
                             (e.target as HTMLImageElement).src =
-                              "https://placehold.co/600x400/1e293b/a4b5fd?text=No+Image";
+                              "/no-image.svg";
                           }}
                         />
                       </div>
@@ -2237,7 +2237,7 @@ export default function ProjectDetail({
                         <img
                           loading="lazy"
                           decoding="async"
-                          src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg"
+                          src="/zalo-icon.svg"
                           alt="Zalo"
                           className="w-4 h-4"
                         />

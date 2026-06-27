@@ -244,7 +244,7 @@ export default function ContactPage({
                       <p className="text-[12px] font-bold uppercase tracking-wider text-slate-400">Kết nối với chúng tôi</p>
                       <div className="flex gap-6 items-center">
                         <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Zalo" className="hover:scale-110 transition-transform" title="Zalo">
-                          <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" alt="Zalo" className="w-6 h-6 object-contain" />
+                          <img loading="lazy" decoding="async" src="/zalo-icon.svg" alt="Zalo" className="w-6 h-6 object-contain" />
                         </a>
                         <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:scale-110 transition-transform" title="Facebook">
                           <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook" className="w-6 h-6 object-contain" />

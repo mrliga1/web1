@@ -1995,7 +1995,7 @@ function App() {
             <img 
               loading="lazy" 
               decoding="async" 
-              src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg" 
+              src="/zalo-icon.svg" 
               alt="Zalo" 
               className="w-[35px] h-[35px] object-contain drop-shadow-sm md:group-hover:drop-shadow-none" 
             />

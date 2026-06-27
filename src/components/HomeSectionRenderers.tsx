@@ -1,5 +1,5 @@
 import React from 'react';
-import { generateSlug } from '../lib/utils';
+import { , optimizeImageUrl } from '../lib/utils';
 import { 
   Sparkles, ArrowRight, User, Phone, CheckCircle2, 
   MapPin, ChevronRight, Compass, Shield, Award, Calendar,
@@ -314,7 +314,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
                     <img
                       loading="lazy"
                       decoding="async"
-                      src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg"
+                      src="/zalo-icon.svg"
                       alt="Zalo"
                       width="16"
                       height="16"

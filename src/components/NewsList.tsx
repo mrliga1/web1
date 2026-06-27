@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateSlug } from '../lib/utils';
+import { , optimizeImageUrl } from '../lib/utils';
 import { SEO } from './SEO';
 import { collection, getDocs, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
@@ -420,7 +420,7 @@ export default function NewsList({
                             className="cursor-pointer group flex items-center gap-2.5 mb-4"
                           >
                             <div className="w-[70px] h-[50px] shrink-0 rounded overflow-hidden border border-white/10">
-                              <img loading="lazy" decoding="async" src={(article.imageUrl) || undefined} alt={`Ảnh thu nhỏ bài viết: ${article.title}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              <img loading="lazy" decoding="async" src={optimizeImageUrl() || undefined} alt={`Ảnh thu nhỏ bài viết: ${article.title}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
                               <h4 className="text-[12px] text-white hover:text-amber-500 transition-colors font-semibold line-clamp-2 m-0 mb-1 leading-snug">
@@ -457,7 +457,7 @@ export default function NewsList({
                           className="flex gap-3 pb-[15px] border-b border-dashed border-[#232d45] transition-colors cursor-pointer group hover:border-b-amber-500 items-center"
                         >
                           <div className="w-[90px] h-[65px] rounded overflow-hidden shrink-0 border border-[#232d45] relative">
-                            <img loading="lazy" decoding="async" src={(article.imageUrl) || undefined} alt={article.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                            <img loading="lazy" decoding="async" src={optimizeImageUrl() || undefined} alt={article.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                           </div>
 
                           <div className="flex-1 flex flex-col justify-center">
@@ -511,7 +511,7 @@ export default function NewsList({
                                       {p.type === 'rent' ? 'Cho thuê' : 'Đang bán'}
                                     </span>
                                   )}
-                                  <img loading="lazy" decoding="async" src={(p.imageUrl) || undefined} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                                  <img loading="lazy" decoding="async" src={optimizeImageUrl() || undefined} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                                 </div>
 
                                 <div className="flex-1 flex flex-col justify-center min-w-0">
@@ -626,7 +626,7 @@ export default function NewsList({
                                   {statusText}
                                 </span>
                                 <img loading="lazy" decoding="async"
-                                  src={(p.imageUrl) || undefined}
+                                  src={optimizeImageUrl() || undefined}
                                   alt={p.title}
                                   referrerPolicy="no-referrer"
                                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 block"

@@ -383,9 +383,7 @@ export default function AdminPanel({
       }
 
       const responseData = await response.json();
-      const relativeUrl =
-        responseData.content?.download_url ||
-        `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/public/uploads/${uniqueFileName}`;
+      const relativeUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/public/uploads/${uniqueFileName}`;
 
       if (relativeUrl) {
         if (targetField.startsWith("subdivisionCardImage:")) {

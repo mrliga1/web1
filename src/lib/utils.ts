@@ -14,3 +14,17 @@ export function generateSlug(text: string): string {
     .replace(/^-+/, '') 
     .replace(/-+$/, '');
 }
+
+export function optimizeImageUrl(url: string | undefined | null): string {
+  if (!url) return '';
+  if (url.includes('raw.githubusercontent.com')) {
+    // https://raw.githubusercontent.com/owner/repo/branch/path
+    // -> https://cdn.jsdelivr.net/gh/owner/repo@branch/path
+    const match = url.match(/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+)/);
+    if (match) {
+      const [, owner, repo, branch, path] = match;
+      return `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`;
+    }
+  }
+  return url;
+}

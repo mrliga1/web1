@@ -1,5 +1,5 @@
 import React from 'react';
-import { optimizeImageUrl } from '../lib/utils';
+import { optimizeImageUrl, generateSlug } from '../lib/utils';
 import { 
   Sparkles, ArrowRight, User, Phone, CheckCircle2, 
   MapPin, ChevronRight, Compass, Shield, Award, Calendar,

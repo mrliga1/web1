@@ -303,7 +303,7 @@ function getInitialRoute(): RouteState {
   } else if (path === "/privacy-policy") {
     return { screen: "privacy-policy" };
   } else if (path === "/yeu-thich") {
-    return { screen: "yeu-thich" };
+    return { screen: "favorites" };
   }
   return { screen: "home" };
 }

@@ -23,7 +23,6 @@ import {
   Facebook,
   Link as LinkIcon,
 } from "lucide-react";
-import { useParams } from 'react-router-dom';
 import { optimizeImageUrl } from '../lib/utils';
 import { Helmet } from "react-helmet-async";
 import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";

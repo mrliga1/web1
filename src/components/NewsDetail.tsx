@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { optimizeImageUrl } from '../lib/utils';
+import { optimizeImageUrl, generateSlug } from '../lib/utils';
 import { doc, getDoc, collection, getDocs, addDoc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2 } from 'lucide-react';

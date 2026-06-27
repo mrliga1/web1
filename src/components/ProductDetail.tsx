@@ -23,6 +23,8 @@ import {
   Facebook,
   Link as LinkIcon,
 } from "lucide-react";
+import { useParams } from 'react-router-dom';
+import { optimizeImageUrl } from '../lib/utils';
 import { Helmet } from "react-helmet-async";
 import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";
 import AdBanner from "./AdBanner";
@@ -1254,7 +1256,7 @@ export default function ProductDetail({
                     <img
                       loading="lazy"
                       decoding="async"
-                      src={optimizeImageUrl() || undefined}
+                      src={optimizeImageUrl(p.images?.[0]) || undefined}
                       alt={p.title}
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 block"

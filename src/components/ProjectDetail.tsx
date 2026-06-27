@@ -30,6 +30,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
+import { optimizeImageUrl } from '../lib/utils';
 import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
@@ -1809,7 +1810,7 @@ export default function ProjectDetail({
                         <img
                           loading="lazy"
                           decoding="async"
-                          src={optimizeImageUrl() || undefined}
+                          src={optimizeImageUrl(proj.images?.[0]) || undefined}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                           alt={proj.title}
                           onError={(e) => {

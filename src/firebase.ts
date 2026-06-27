@@ -29,6 +29,9 @@ export const storage = getStorage(app);
 // Initialize Firestore using the correct cloud database ID instance
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
+import { getFirestore as getFirestoreLite } from 'firebase/firestore/lite';
+export const dbLite = getFirestoreLite(app, firebaseConfig.firestoreDatabaseId);
+
 export enum OperationType {
   CREATE = 'create',
   UPDATE = 'update',

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SEO } from './SEO';
-import { collection, getDocs, addDoc, db } from '../firebase';
+import { collection as collectionLite, getDocs } from 'firebase/firestore/lite';
+import { dbLite, addDoc, collection, db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { Product, Project, News, RouteState } from '../types';
 import AdBanner from './AdBanner';
+import { generateSlug, optimizeImageUrl } from '../lib/utils';
 import { 
   HeroSectionBody, CorporateIntroBody, ReasonsBody, 
   FeaturedListingsBody, ProjectsBody, NewsBody 
@@ -58,7 +60,7 @@ export default function Home({
       try {
         setLoading(true);
 
-        const prodSnap = await getDocs(collection(db, 'products'));
+        const prodSnap = await getDocs(collectionLite(dbLite, 'products'));
         const prodList: Product[] = [];
         prodSnap.forEach((doc) => {
           const data = doc.data();
@@ -69,7 +71,7 @@ export default function Home({
         prodList.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
         setProducts(prodList);
 
-        const projCol = collection(db, 'projects');
+        const projCol = collectionLite(dbLite, 'projects');
         const projSnap = await getDocs(projCol);
         const projList: Project[] = [];
         projSnap.forEach((doc) => {
@@ -80,7 +82,7 @@ export default function Home({
         });
         setProjects(projList);
 
-        const newsSnap = await getDocs(collection(db, 'news'));
+        const newsSnap = await getDocs(collectionLite(dbLite, 'news'));
         const newsList: News[] = [];
         newsSnap.forEach((doc) => {
           const data = doc.data();

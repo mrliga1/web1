@@ -784,7 +784,6 @@ function App() {
         handleFirestoreError(error, OperationType.GET, "settings/general");
       },
     );
-    return () => unsub();
   }, []);
 
   useEffect(() => {

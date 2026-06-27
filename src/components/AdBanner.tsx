@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Heart } from 'lucide-react';
-import { db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { dbLite } from '../firebase';
+import { doc as docLite, getDoc as getDocLite } from 'firebase/firestore/lite';
 
 interface AdBannerProps {
   slot?: string;
@@ -13,7 +13,7 @@ export default function AdBanner({ slot = "default-ad-slot", className = "", con
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getDoc(doc(db, 'settings', 'general')).then((snapshot) => {
+    getDocLite(docLite(dbLite, 'settings', 'general')).then((snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data.googleAdSenseCode) {

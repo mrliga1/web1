@@ -10,6 +10,8 @@ import {
   setDoc,
 } from "./firebase";
 import { AnimatePresence, motion } from "motion/react";
+import { dbLite } from "./firebase";
+import { getDoc as getDocLite, doc as docLite } from "firebase/firestore/lite";
 import {
   Building2,
   Phone,
@@ -639,7 +641,7 @@ function App() {
       }, 500); // Small delay to ensure React has painted
     }
 
-    getDoc(doc(db, "settings", "general")).then((snapshot) => {
+    getDocLite(docLite(dbLite, "settings", "general")).then((snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data.logoUrl) {

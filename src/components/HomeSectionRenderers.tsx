@@ -1,5 +1,5 @@
 import React from 'react';
-import { optimizeImageUrl, generateSlug } from '../lib/utils';
+import { optimizeImageUrl, generateSrcSet, generateSlug } from '../lib/utils';
 import { 
   Sparkles, ArrowRight, User, Phone, CheckCircle2, 
   MapPin, ChevronRight, Compass, Shield, Award, Calendar,
@@ -72,7 +72,9 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
       <img
         loading="eager"
         decoding="async"
-        src={optimizeImageUrl(sec.imageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600', 1600) || undefined}
+        src={optimizeImageUrl(sec.imageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600', 800) || undefined}
+        srcSet={generateSrcSet(sec.imageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c')}
+        sizes="100vw"
         alt="Hero Background"
         width="1600"
         height="900"

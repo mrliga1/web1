@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, RouteState } from '../types';
 import { MapPin, Tag, Layers, Bookmark, Bath, Heart } from 'lucide-react';
-import { generateSlug, optimizeImageUrl } from '../lib/utils';
+import { generateSlug, optimizeImageUrl, generateSrcSet } from '../lib/utils';
 
 interface ProductCardProps {
   key?: React.Key;
@@ -55,7 +55,9 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
     >
       <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] overflow-hidden bg-slate-950 flex items-center justify-center">
         <img 
-          src={(safeImageUrl) || undefined} 
+          src={safeImageUrl || undefined}
+          srcSet={generateSrcSet(item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : null))}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
           alt={item.title || 'Product'} 
           width="400"
           height="300"

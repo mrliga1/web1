@@ -636,7 +636,7 @@ function App() {
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data.logoUrl) {
-          setLogoUrl(optimizeImageUrl(data.logoUrl));
+          setLogoUrl(optimizeImageUrl(data.logoUrl, 200));
         } else {
           setLogoUrl("");
         }

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore/lite';
 import { db } from '../firebase';
 import { User, Phone, Save, Shield, ShieldCheck } from 'lucide-react';
 

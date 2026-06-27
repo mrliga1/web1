@@ -2,19 +2,24 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getStorage, ref, uploadString, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { 
-  getFirestore, 
+  getFirestore as getFirestoreLite, 
   collection, 
   getDocs, 
   addDoc, 
   doc, 
   updateDoc, 
   deleteDoc, 
-  onSnapshot, 
   query, 
   orderBy, 
   getDoc, 
   setDoc,
   increment
+} from 'firebase/firestore/lite';
+import { 
+  getFirestore as getFirestoreRealtime,
+  onSnapshot,
+  doc as docRealtime,
+  collection as collectionRealtime
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
@@ -26,11 +31,13 @@ export const auth = getAuth(app);
 // Initialize Firebase Storage
 export const storage = getStorage(app);
 
-// Initialize Firestore using the correct cloud database ID instance
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Initialize Lite Firestore as default for everything
+export const db = getFirestoreLite(app, firebaseConfig.firestoreDatabaseId);
 
-import { getFirestore as getFirestoreLite } from 'firebase/firestore/lite';
-export const dbLite = getFirestoreLite(app, firebaseConfig.firestoreDatabaseId);
+// Initialize Realtime Firestore ONLY for Admin Panel subscriptions
+export const dbRealtime = getFirestoreRealtime(app, firebaseConfig.firestoreDatabaseId);
+
+export const dbLite = db; // Keep for backward compatibility during transition
 
 export enum OperationType {
   CREATE = 'create',
@@ -92,6 +99,8 @@ export {
   orderBy,
   getDoc,
   setDoc,
+  docRealtime,
+  collectionRealtime,
   increment
 };
 

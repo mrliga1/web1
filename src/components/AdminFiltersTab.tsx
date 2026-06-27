@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db, doc, onSnapshot, setDoc } from '../firebase';
+import { dbRealtime, docRealtime, onSnapshot, setDoc, db, doc } from '../firebase';
 import { Plus, Trash2, Save } from 'lucide-react';
 
 export default function AdminFiltersTab({ onShowNotification }: { onShowNotification: (msg: string, type: 'success' | 'error') => void }) {
@@ -13,7 +13,7 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, 'settings', 'filters'), (docSnap) => {
+    const unsub = onSnapshot(docRealtime(dbRealtime, 'settings', 'filters'), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setDistricts(data.districts || []);

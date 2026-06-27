@@ -13,6 +13,9 @@ import {
   db,
   auth,
   setDoc,
+  docRealtime,
+  collectionRealtime,
+  dbRealtime
 } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import {
@@ -1236,7 +1239,7 @@ export default function AdminPanel({
     setLoading(true);
 
     const unsubProducts = onSnapshot(
-      collection(db, "products"),
+      collectionRealtime(dbRealtime, "products"),
       (snap) => {
         const items: Product[] = [];
         snap.forEach((d) => {
@@ -1255,7 +1258,7 @@ export default function AdminPanel({
     );
 
     const unsubProjects = onSnapshot(
-      collection(db, "projects"),
+      collectionRealtime(dbRealtime, "projects"),
       (snap) => {
         const items: Project[] = [];
         snap.forEach((d) => {
@@ -1274,7 +1277,7 @@ export default function AdminPanel({
     );
 
     const unsubNews = onSnapshot(
-      collection(db, "news"),
+      collectionRealtime(dbRealtime, "news"),
       (snap) => {
         const items: News[] = [];
         snap.forEach((d) => {
@@ -1293,7 +1296,7 @@ export default function AdminPanel({
     );
 
     const unsubConsultations = onSnapshot(
-      collection(db, "consultations"),
+      collectionRealtime(dbRealtime, "consultations"),
       (snap) => {
         const items: any[] = [];
         snap.forEach((d) => {
@@ -1313,7 +1316,7 @@ export default function AdminPanel({
     );
 
     const unsubSettings = onSnapshot(
-      doc(db, "settings", "general"),
+      docRealtime(dbRealtime, "settings", "general"),
       (snapshot) => {
         if (snapshot.exists()) {
           const data = snapshot.data();
@@ -1365,7 +1368,7 @@ export default function AdminPanel({
     );
 
     const unsubUsers = onSnapshot(
-      collection(db, "users"),
+      collectionRealtime(dbRealtime, "users"),
       (snap) => {
         const items: any[] = [];
         snap.forEach((d) => {

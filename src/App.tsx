@@ -246,8 +246,67 @@ function sanitizeHomeSections(sects: any[]): any[] {
   return filtered;
 }
 
+function getInitialRoute(): RouteState {
+  if (typeof window === 'undefined') return { screen: "home" };
+  const path = window.location.pathname;
+  if (!path || path === "/" || path === "/home" || path === "#home") {
+    return { screen: "home" };
+  } else if (path === "/san-pham") {
+    return { screen: "san-pham" };
+  } else if (path === "/du-an") {
+    return { screen: "du-an" };
+  } else if (path === "/tin-tuc") {
+    return { screen: "tin-tuc" };
+  } else if (path === "/lien-he") {
+    return { screen: "lien-he" };
+  } else if (path.startsWith("/product/")) {
+    const pathPart = path.replace("/product/", "");
+    const parts = pathPart.split("-");
+    let id = parts[parts.length - 1];
+    if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
+      id = parts[0];
+    }
+    return { screen: "product-detail", productId: id };
+  } else if (path.startsWith("/project/")) {
+    const pathPart = path.replace("/project/", "");
+    const parts = pathPart.split("-");
+    let id = parts[parts.length - 1];
+    if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
+      id = parts[0];
+    }
+    return { screen: "project-detail", projectId: id };
+  } else if (path.startsWith("/news/")) {
+    const pathPart = path.replace("/news/", "");
+    const parts = pathPart.split("-");
+    let id = parts[parts.length - 1];
+    if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
+      id = parts[0];
+    }
+    return { screen: "news-detail", newsId: id };
+  } else if (path === "/admin") {
+    return { screen: "admin" };
+  } else if (path.startsWith("/category-product/")) {
+    const catName = decodeURIComponent(path.replace("/category-product/", ""));
+    return { screen: "category-product", categoryName: catName };
+  } else if (path.startsWith("/category-news/")) {
+    const catName = decodeURIComponent(path.replace("/category-news/", ""));
+    return { screen: "category-news", categoryName: catName };
+  } else if (path === "/latest-sales") {
+    return { screen: "latest-sales" };
+  } else if (path === "/latest-rents") {
+    return { screen: "latest-rents" };
+  } else if (path === "/terms-of-use") {
+    return { screen: "terms-of-use" };
+  } else if (path === "/privacy-policy") {
+    return { screen: "privacy-policy" };
+  } else if (path === "/yeu-thich") {
+    return { screen: "yeu-thich" };
+  }
+  return { screen: "home" };
+}
+
 function App() {
-  const [route, setRoute] = useState<RouteState>({ screen: "home" });
+  const [route, setRoute] = useState<RouteState>(getInitialRoute);
   const [seeding, setSeeding] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
@@ -266,7 +325,14 @@ function App() {
 
   // LadiPage Builder Global States for All Pages!
   const isEditMode = false;
-  const [sections, setSections] = useState<any[]>([]);
+  const [sections, setSections] = useState<any[]>(() => {
+    const initRoute = getInitialRoute();
+    const editableScreens = ["home", "san-pham", "du-an", "tin-tuc", "lien-he"];
+    if (editableScreens.includes(initRoute.screen)) {
+      return sanitizeHomeSections(getPageDefaultSections(initRoute.screen));
+    }
+    return [];
+  });
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
     null,
   );
@@ -983,63 +1049,7 @@ function App() {
   // Sync routing triggers for browsers
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname;
-      if (!path || path === "/" || path === "/home" || path === "#home") {
-        setRoute({ screen: "home" });
-      } else if (path === "/san-pham") {
-        setRoute({ screen: "san-pham" });
-      } else if (path === "/du-an") {
-        setRoute({ screen: "du-an" });
-      } else if (path === "/tin-tuc") {
-        setRoute({ screen: "tin-tuc" });
-      } else if (path === "/lien-he") {
-        setRoute({ screen: "lien-he" });
-      } else if (path.startsWith("/product/")) {
-        // Extract the ID from the end of the URL (e.g. /product/slug-ID), or fallback to front (e.g. ID-slug)
-        const pathPart = path.replace("/product/", "");
-        const parts = pathPart.split("-");
-        let id = parts[parts.length - 1];
-        if (parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
-          id = parts[0];
-        }
-        setRoute({ screen: "product-detail", productId: id });
-      } else if (path.startsWith("/project/")) {
-        const pathPart = path.replace("/project/", "");
-        const parts = pathPart.split("-");
-        let id = parts[parts.length - 1];
-        if (parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
-          id = parts[0];
-        }
-        setRoute({ screen: "project-detail", projectId: id });
-      } else if (path.startsWith("/news/")) {
-        const pathPart = path.replace("/news/", "");
-        const parts = pathPart.split("-");
-        let id = parts[parts.length - 1];
-        if (parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
-          id = parts[0];
-        }
-        setRoute({ screen: "news-detail", newsId: id });
-      } else if (path === "/admin") {
-        setRoute({ screen: "admin" });
-      } else if (path.startsWith("/category-product/")) {
-        const catName = decodeURIComponent(
-          path.replace("/category-product/", ""),
-        );
-        setRoute({ screen: "category-product", categoryName: catName });
-      } else if (path.startsWith("/category-news/")) {
-        const catName = decodeURIComponent(path.replace("/category-news/", ""));
-        setRoute({ screen: "category-news", categoryName: catName });
-      } else if (path === "/latest-sales") {
-        setRoute({ screen: "latest-sales" });
-      } else if (path === "/latest-rents") {
-        setRoute({ screen: "latest-rents" });
-      } else if (path === "/terms-of-use") {
-        setRoute({ screen: "terms-of-use" });
-      } else if (path === "/privacy-policy") {
-        setRoute({ screen: "privacy-policy" });
-      } else {
-        // Fallback for unknown paths
-      }
+      setRoute(getInitialRoute());
     };
 
     window.addEventListener("popstate", handlePopState);

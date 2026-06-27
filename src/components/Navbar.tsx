@@ -117,9 +117,10 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                   {active && (
                     <>
                       <motion.div 
-                        layoutId="nav-pill"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         className={`absolute inset-0 rounded-full ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/10' : 'bg-[#eef3f6]'}`}
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        transition={{ duration: 0.15 }}
                       />
                     </>
                   )}

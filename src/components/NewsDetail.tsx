@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { optimizeImageUrl, generateSlug } from '../lib/utils';
+import { optimizeImageUrl, generateSlug, generateSrcSet } from '../lib/utils';
 import { doc, getDoc, collection, getDocs, addDoc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2 } from 'lucide-react';
@@ -323,7 +323,7 @@ export default function NewsDetail({ newsId, onNavigate, onShowNotification }: N
           
           {/* Main big cover photo */}
           <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-slate-900 bg-slate-950">
-            <img loading="eager" decoding="async" src={optimizeImageUrl(article.thumbnail, 800) || undefined} alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
+            <img loading="eager" decoding="async" src={article.thumbnail ? optimizeImageUrl(article.thumbnail, 800) : undefined} srcSet={article.thumbnail ? generateSrcSet(article.thumbnail) : undefined} sizes="(max-width: 1024px) 100vw, 800px" alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
               // @ts-ignore
               fetchpriority="high" />
           </div>

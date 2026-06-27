@@ -514,7 +514,9 @@ export default function ProductDetail({
                 decoding="async"
                 // @ts-ignore
                 fetchpriority="high"
-                src={selectedImage || undefined}
+                src={selectedImage ? optimizeImageUrl(selectedImage, 1200) : undefined}
+                srcSet={selectedImage ? generateSrcSet(selectedImage) : undefined}
+                sizes="(max-width: 1024px) 100vw, 800px"
                 alt={product.title}
                 referrerPolicy="no-referrer"
                 className="w-full h-full object-cover transition-all duration-300"
@@ -562,7 +564,7 @@ export default function ProductDetail({
                   <img
                     loading="lazy"
                     decoding="async"
-                    src={imgUrl || undefined}
+                    src={imgUrl ? optimizeImageUrl(imgUrl, 200) : undefined}
                     alt={`${product.title} - ảnh thu nhỏ ${thumbIdx + 1}`}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"

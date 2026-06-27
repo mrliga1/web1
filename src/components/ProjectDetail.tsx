@@ -30,7 +30,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { Helmet } from "react-helmet-async";
-import { optimizeImageUrl } from '../lib/utils';
+import { optimizeImageUrl, generateSrcSet } from '../lib/utils';
 import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
@@ -719,7 +719,9 @@ export default function ProjectDetail({
                   decoding="async"
                   // @ts-ignore
                   fetchpriority={idx === 0 ? "high" : "auto"}
-                  src={img || undefined}
+                  src={img ? optimizeImageUrl(img, 1200) : undefined}
+                  srcSet={img ? generateSrcSet(img) : undefined}
+                  sizes="(max-width: 1024px) 100vw, 1200px"
                   alt={`${project.title} - Image ${idx + 1}`}
                   referrerPolicy="no-referrer"
                   className={`w-full max-h-[85vh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-700 ${isCenter ? "ring-1 ring-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]" : "cursor-pointer hover:opacity-100"}`}
@@ -777,7 +779,7 @@ export default function ProjectDetail({
                 <img
                   loading="lazy"
                   decoding="async"
-                  src={img || undefined}
+                  src={img ? optimizeImageUrl(img, 200) : undefined}
                   alt={`Hình thu nhỏ tổng quan ${project.title} - ${idx + 1}`}
                   className="w-full h-full object-cover"
                 />

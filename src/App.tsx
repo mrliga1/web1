@@ -254,36 +254,36 @@ function getInitialRoute(): RouteState {
     return { screen: "home" };
   } else if (path === "/san-pham") {
     return { screen: "san-pham" };
-  } else if (path === "/du-an") {
-    return { screen: "du-an" };
-  } else if (path === "/tin-tuc") {
-    return { screen: "tin-tuc" };
-  } else if (path === "/lien-he") {
-    return { screen: "lien-he" };
-  } else if (path.startsWith("/product/")) {
-    const pathPart = path.replace("/product/", "");
+  } else if (path.startsWith("/san-pham/")) {
+    const pathPart = path.replace("/san-pham/", "");
     const parts = pathPart.split("-");
     let id = parts[parts.length - 1];
     if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
       id = parts[0];
     }
     return { screen: "product-detail", productId: id };
-  } else if (path.startsWith("/project/")) {
-    const pathPart = path.replace("/project/", "");
+  } else if (path === "/du-an") {
+    return { screen: "du-an" };
+  } else if (path.startsWith("/du-an/")) {
+    const pathPart = path.replace("/du-an/", "");
     const parts = pathPart.split("-");
     let id = parts[parts.length - 1];
     if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
       id = parts[0];
     }
     return { screen: "project-detail", projectId: id };
-  } else if (path.startsWith("/news/")) {
-    const pathPart = path.replace("/news/", "");
+  } else if (path === "/tin-tuc") {
+    return { screen: "tin-tuc" };
+  } else if (path.startsWith("/tin-tuc/")) {
+    const pathPart = path.replace("/tin-tuc/", "");
     const parts = pathPart.split("-");
     let id = parts[parts.length - 1];
     if (parts[0] && parts[0].length === 20 && /^[a-zA-Z0-9]+$/.test(parts[0])) {
       id = parts[0];
     }
     return { screen: "news-detail", newsId: id };
+  } else if (path === "/lien-he") {
+    return { screen: "lien-he" };
   } else if (path === "/admin") {
     return { screen: "admin" };
   } else if (path.startsWith("/category-product/")) {
@@ -1064,11 +1064,11 @@ function App() {
     else if (newRoute.screen === "tin-tuc") targetPath = "/tin-tuc";
     else if (newRoute.screen === "lien-he") targetPath = "/lien-he";
     else if (newRoute.screen === "product-detail" && newRoute.productId)
-      targetPath = `/product/${newRoute.slug ? `${newRoute.slug}-` : ""}${newRoute.productId}`;
+      targetPath = `/san-pham/${newRoute.slug ? `${newRoute.slug}-` : ""}${newRoute.productId}`;
     else if (newRoute.screen === "project-detail" && newRoute.projectId)
-      targetPath = `/project/${newRoute.slug ? `${newRoute.slug}-` : ""}${newRoute.projectId}`;
+      targetPath = `/du-an/${newRoute.slug ? `${newRoute.slug}-` : ""}${newRoute.projectId}`;
     else if (newRoute.screen === "news-detail" && newRoute.newsId)
-      targetPath = `/news/${newRoute.slug ? `${newRoute.slug}-` : ""}${newRoute.newsId}`;
+      targetPath = `/tin-tuc/${newRoute.slug ? `${newRoute.slug}-` : ""}${newRoute.newsId}`;
     else if (newRoute.screen === "admin") targetPath = "/admin";
     else if (newRoute.screen === "category-product" && newRoute.categoryName)
       targetPath = `/category-product/${encodeURIComponent(newRoute.categoryName)}`;

@@ -329,6 +329,15 @@ function App() {
     const initRoute = getInitialRoute();
     const editableScreens = ["home", "san-pham", "du-an", "tin-tuc", "lien-he"];
     if (editableScreens.includes(initRoute.screen)) {
+      try {
+        const cached = localStorage.getItem(`greenia_layout_${initRoute.screen}`);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return sanitizeHomeSections(parsed);
+          }
+        }
+      } catch (e) {}
       return sanitizeHomeSections(getPageDefaultSections(initRoute.screen));
     }
     return [];
@@ -344,6 +353,15 @@ function App() {
   const [quoteMessage, setQuoteMessage] = useState("");
   const [quoteSubmitting, setQuoteSubmitting] = useState(false);
   const [quoteSuccess, setQuoteSuccess] = useState(false);
+
+  // Cache sections to localStorage for instant FCP on next reload
+  useEffect(() => {
+    if (sections && sections.length > 0) {
+      try {
+        localStorage.setItem(`greenia_layout_${route.screen}`, JSON.stringify(sections));
+      } catch (e) {}
+    }
+  }, [sections, route.screen]);
 
   const handleQuoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

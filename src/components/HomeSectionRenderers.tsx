@@ -109,7 +109,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
               isEditMode={isEditMode}
               sections={sections}
               onUpdateSections={onUpdateSections}
-              className="text-[45px] lg:text-[60px] block font-[Georgia] text-slate-200" 
+              className="text-[45px] lg:text-[60px] block font-display text-slate-200" 
               tag="span" 
             />
             <EditableText 

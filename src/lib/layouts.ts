@@ -8,10 +8,10 @@ export const DEFAULT_HOME_SECTIONS: VisualSection[] = [
     visible: true,
     paddingTop: 12,
     paddingBottom: 24,
-    title: "Cố Vấn Bất Động Sản\n[gradient]Chuyên Sâu & Tận Tâm[/gradient]",
-    subtitle: "Chuyên Sâu & Tận Tâm",
+    title: "Greenia Homes",
+    subtitle: "Đồng hành - Tận Tâm - Vững Bước Tương Lai",
     description:
-      "Với kinh nghiệm thực chiến sâu rộng trên thị trường bất động sản cao cấp, tôi và đội ngũ Greenia Homes cam kết đồng hành cùng nhà đầu tư. Từ quy hoạch pháp lý, phân tích dòng tiền đến lựa chọn phong thủy, mọi quyết định của quý khách đều được bảo chứng bởi dữ liệu chuẩn xác và trách nhiệm lâu dài.",
+      "Greenia Homes là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư Greenia Homes tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS.\n\nGreenia Homes chuyên cung cấp và phân phối các sản phẩm từ những CĐT uy tín như: Vinhomes, Masteri Homes, Sun Group... Các dòng sản phẩm chủ lực: Căn hộ Cao cấp, Nhà phố, Biệt thự, Dinh thự...",
     imageUrl:
       "https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1600",
     extraData: {

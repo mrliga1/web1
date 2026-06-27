@@ -16,13 +16,7 @@ export default defineConfig(() => {
     },
     build: {
       rollupOptions: {
-        output: {
-          manualChunks: {
-            'react-vendor': ['react', 'react-dom', 'react-helmet-async'],
-            'firebase-vendor': ['firebase/app', 'firebase/firestore', 'firebase/auth', 'firebase/storage'],
-            'ui-vendor': ['lucide-react', 'motion/react'],
-          }
-        }
+      // Let Vite/Rollup handle chunking naturally to reduce unused JS
       }
     },
     server: {

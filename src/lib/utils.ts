@@ -17,14 +17,20 @@ export function generateSlug(text: string): string {
 
 export function optimizeImageUrl(url: string | undefined | null): string {
   if (!url) return '';
+  let finalUrl = url;
   if (url.includes('raw.githubusercontent.com')) {
-    // https://raw.githubusercontent.com/owner/repo/branch/path
-    // -> https://cdn.jsdelivr.net/gh/owner/repo@branch/path
     const match = url.match(/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+)/);
     if (match) {
       const [, owner, repo, branch, path] = match;
-      return `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`;
+      finalUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`;
     }
   }
-  return url;
+  
+  // Use wsrv.nl image proxy for automatic WebP/AVIF compression
+  // Skip local SVGs, Unsplash, or already proxied URLs
+  if (finalUrl.startsWith('http') && !finalUrl.includes('wsrv.nl') && !finalUrl.includes('unsplash.com') && !finalUrl.endsWith('.svg')) {
+     return `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&output=webp&q=80`;
+  }
+  
+  return finalUrl;
 }

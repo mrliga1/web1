@@ -462,13 +462,12 @@ function App() {
 
     setLayoutLoading(true);
     const docRef = doc(db, "layouts", layoutDocName);
-    const unsub = onSnapshot(
-      docRef,
-      async (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          if (data.sections && Array.isArray(data.sections)) {
-            let loaded = deserializeSectionsFromFirestore(data.sections);
+    
+    getDoc(docRef).then(async (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.sections && Array.isArray(data.sections)) {
+          let loaded = deserializeSectionsFromFirestore(data.sections);
 
             let needsPatch = false;
             loaded = loaded.map((sec) => {
@@ -569,35 +568,22 @@ function App() {
           if (route.screen === "home") {
             defaults = sanitizeHomeSections(defaults);
           }
-          try {
-            await setDoc(docRef, {
-              sections: serializeSectionsForFirestore(defaults),
-            });
-            setSections(defaults);
-          } catch (e) {
-            console.error("Lỗi đồng bộ cấu trúc mặc định:", e);
-            setSections(defaults);
-          }
+          setDoc(docRef, {
+            sections: serializeSectionsForFirestore(defaults),
+          }).catch(e => console.error("Lỗi đồng bộ cấu trúc mặc định:", e));
+          setSections(defaults);
         }
         setLayoutLoading(false);
-      },
-      (error) => {
-        console.error(
-          `Sự cố lắng nghe layout cho trang ${route.screen}:`,
-          error,
-        );
-        let defaults = getPageDefaultSections(route.screen);
-        if (route.screen === "home") {
-          defaults = sanitizeHomeSections(defaults);
-        }
-        setSections(defaults);
-        setLayoutLoading(false);
-      },
-    );
-
-    return () => unsub();
+    }).catch(error => {
+      console.error(`Sự cố tải layout cho trang ${route.screen}:`, error);
+      let defaults = getPageDefaultSections(route.screen);
+      if (route.screen === "home") {
+        defaults = sanitizeHomeSections(defaults);
+      }
+      setSections(defaults);
+      setLayoutLoading(false);
+    });
   }, [route.screen]);
-
   // Firestore update layouts callback helper
   const handleUpdateSections = async (newSections: any[]) => {
     let layoutDocName = route.screen;
@@ -652,17 +638,15 @@ function App() {
       }, 500); // Small delay to ensure React has painted
     }
 
-    const unsub = onSnapshot(
-      doc(db, "settings", "general"),
-      (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          if (data.logoUrl) {
-            setLogoUrl(data.logoUrl);
-          } else {
-            setLogoUrl("");
-          }
-          setIsSettingsLoaded(true);
+    getDoc(doc(db, "settings", "general")).then((snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.data();
+        if (data.logoUrl) {
+          setLogoUrl(data.logoUrl);
+        } else {
+          setLogoUrl("");
+        }
+        setIsSettingsLoaded(true);
 
           // Live update reactive global SEO states
           if (data.metaTitle) setGlobalMetaTitle(data.metaTitle);

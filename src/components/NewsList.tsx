@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { optimizeImageUrl, generateSlug } from '../lib/utils';
 import { SEO } from './SEO';
-import { collection, getDocs, db } from '../firebase';
+import { collection, getDocs, getDoc, doc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { Calendar, Eye, Compass, Search, User, ChevronRight, BadgeDollarSign, MapPin, Sparkles, Heart, Bookmark, Layers, Bath, Building2 } from 'lucide-react';
 import AdBanner from './AdBanner';
@@ -74,7 +74,6 @@ export default function NewsList({
       try {
         setLoading(true);
 
-        const { getDoc, doc } = await import('firebase/firestore');
         const docSnap = await getDoc(doc(db, 'settings', 'general'));
         if (docSnap.exists() && docSnap.data().newsCategoriesExt) {
           setNewsCategoriesExt(docSnap.data().newsCategoriesExt);

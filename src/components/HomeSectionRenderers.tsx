@@ -76,6 +76,8 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
         srcSet={!sec.imageUrl ? 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=60&w=600 600w, https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200 1200w, https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600 1600w' : undefined}
         sizes="100vw"
         alt="Hero Background"
+        width="1600"
+        height="900"
         // @ts-ignore
         fetchpriority="high"
         className="absolute inset-0 w-full h-full object-cover opacity-15 grayscale contrast-125 mix-blend-overlay"
@@ -314,6 +316,8 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
                       decoding="async"
                       src="https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg"
                       alt="Zalo"
+                      width="16"
+                      height="16"
                       className="w-4 h-4"
                     />
                     <span className="text-[10px] font-medium">Chat qua Zalo</span>
@@ -879,6 +883,8 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
                       <img loading="lazy" decoding="async"
                         src={(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800") || undefined}
                         alt={proj.title}
+                        width="800"
+                        height="500"
                         referrerPolicy="no-referrer"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
@@ -1002,6 +1008,8 @@ export const NewsBody: React.FC<NewsProps> = ({
                     <img loading="lazy" decoding="async"
                       src={(article.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800") || undefined}
                       alt={article.title}
+                      width="800"
+                      height="500"
                       referrerPolicy="no-referrer"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { , optimizeImageUrl } from '../lib/utils';
+import { optimizeImageUrl } from '../lib/utils';
 import { SEO } from './SEO';
 import { collection, getDocs, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';

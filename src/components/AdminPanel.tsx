@@ -9,14 +9,16 @@ import {
   getDoc,
   updateDoc,
   deleteDoc,
-  onSnapshot,
   db,
   auth,
   setDoc,
+} from "../firebase";
+import {
   docRealtime,
   collectionRealtime,
-  dbRealtime
-} from "../firebase";
+  dbRealtime,
+  onSnapshot,
+} from "../firebase-realtime";
 import { onAuthStateChanged } from "firebase/auth";
 import {
   PlusCircle,

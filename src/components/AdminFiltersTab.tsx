@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { dbRealtime, docRealtime, onSnapshot, setDoc, db, doc } from '../firebase';
+import { setDoc, db, doc } from '../firebase';
+import { dbRealtime, docRealtime, onSnapshot } from '../firebase-realtime';
 import { Plus, Trash2, Save } from 'lucide-react';
 
 export default function AdminFiltersTab({ onShowNotification }: { onShowNotification: (msg: string, type: 'success' | 'error') => void }) {

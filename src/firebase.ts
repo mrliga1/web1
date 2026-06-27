@@ -15,15 +15,10 @@ import {
   setDoc,
   increment
 } from 'firebase/firestore/lite';
-import { 
-  getFirestore as getFirestoreRealtime,
-  onSnapshot,
-  doc as docRealtime,
-  collection as collectionRealtime
-} from 'firebase/firestore';
+
 import firebaseConfig from '../firebase-applet-config.json';
 
-const app = initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication
 export const auth = getAuth(app);
@@ -35,7 +30,7 @@ export const storage = getStorage(app);
 export const db = getFirestoreLite(app, firebaseConfig.firestoreDatabaseId);
 
 // Initialize Realtime Firestore ONLY for Admin Panel subscriptions
-export const dbRealtime = getFirestoreRealtime(app, firebaseConfig.firestoreDatabaseId);
+
 
 export const dbLite = db; // Keep for backward compatibility during transition
 
@@ -94,13 +89,10 @@ export {
   doc,
   updateDoc,
   deleteDoc,
-  onSnapshot,
   query,
   orderBy,
   getDoc,
   setDoc,
-  docRealtime,
-  collectionRealtime,
   increment
 };
 

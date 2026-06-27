@@ -5,7 +5,6 @@ import {
   addDoc,
   db,
   doc,
-  onSnapshot,
   getDoc,
   setDoc,
 } from "./firebase";

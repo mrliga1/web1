@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateSlug } from '../lib/utils';
 import { SEO } from './SEO';
-import { collection, getDocs, getDoc, doc, db, onSnapshot } from '../firebase';
+import { collection, getDocs, getDoc, doc, db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { Product, Project, RouteState } from '../types';
 import { Search, MapPin, SlidersHorizontal, RefreshCw, ChevronRight, Compass, Heart, ArrowUpRight, Layers, Building2, ChevronDown, X } from 'lucide-react';

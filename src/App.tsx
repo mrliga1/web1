@@ -248,6 +248,9 @@ function sanitizeHomeSections(sects: any[]): any[] {
 
 function getInitialRoute(): RouteState {
   if (typeof window === 'undefined') return { screen: "home" };
+  if ((window as any).__NEXT_INITIAL_ROUTE__) {
+    return (window as any).__NEXT_INITIAL_ROUTE__;
+  }
   const path = window.location.pathname;
   if (!path || path === "/" || path === "/home" || path === "#home") {
     return { screen: "home" };

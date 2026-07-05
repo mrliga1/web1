@@ -54,7 +54,7 @@ import {
   setDocumentFavicon,
 } from "./lib/documentHead";
 import { Helmet, HelmetProvider } from "react-helmet-async";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AuthModal from "./components/AuthModal";
 
 // Children Components
@@ -322,6 +322,7 @@ function App() {
   const [seeding, setSeeding] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+  const { currentUser, userProfile } = useAuth();
   const theme = "dark";
 
   // Global SEO tags managed by Firestore general configurations
@@ -896,6 +897,8 @@ function App() {
     }
   }, [currentSeo]);
 
+
+
   // Custom Toast State
   const [notification, setNotification] = useState<{
     message: string;
@@ -951,6 +954,16 @@ function App() {
     // Scroll to top
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  useEffect(() => {
+    if (currentUser && userProfile?.role === 'admin') {
+      const redirect = sessionStorage.getItem('redirect_after_login');
+      if (redirect === 'true') {
+        sessionStorage.removeItem('redirect_after_login');
+        handleNavigate({ screen: 'admin' });
+      }
+    }
+  }, [currentUser, userProfile]);
 
   // Toast helper setup
   const triggerNotification = (message: string, type: "success" | "error") => {

@@ -41,7 +41,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (data) {
         let profile = data as UserProfile;
-        if (user.email?.toLowerCase() === 'nguyenthanhthuan091095@gmail.com' && profile.role !== 'admin') {
+        const emailLower = user.email?.toLowerCase() || '';
+        const isAdmin = emailLower === 'nguyenthanhthuan091095@gmail.com' || emailLower === 'thuankdbds@gmail.com';
+        if (isAdmin && profile.role !== 'admin') {
           profile.role = 'admin';
           await supabase.from('users').update({ role: 'admin' }).eq('uid', user.id);
         }
@@ -50,7 +52,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Record not found
         let role: UserRole = 'user';
         const email = user.email || '';
-        if (email.toLowerCase() === 'nguyenthanhthuan091095@gmail.com') {
+        const emailLower = email.toLowerCase();
+        if (emailLower === 'nguyenthanhthuan091095@gmail.com' || emailLower === 'thuankdbds@gmail.com') {
           role = 'admin';
         }
         const newProfile: UserProfile = {

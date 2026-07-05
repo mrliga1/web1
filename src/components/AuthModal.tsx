@@ -159,8 +159,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      sessionStorage.setItem('redirect_after_login', 'true');
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+      
+      const user = result?.user;
+      if (!user) return; // Supabase OAuth redirects, so user will be null here
       
       const userDocRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(userDocRef);

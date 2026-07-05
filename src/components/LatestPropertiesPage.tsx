@@ -65,19 +65,19 @@ export default function LatestPropertiesPage({ onNavigate, type, categoryName }:
   }
 
   return (
-    <div className="min-h-screen pb-0 font-sans bg-slate-950">
-      <div className="pt-10 pb-6 border-b border-slate-900 bg-slate-900/30">
+    <div className="min-h-screen pb-0 font-sans bg-bg-surface">
+      <div className="pt-10 pb-6 border-b border-border-color bg-bg-surface/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col justify-center items-center text-center space-y-3">
           <button 
             onClick={() => onNavigate({ screen: 'home' })}
-            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-amber-400 mb-2 transition-colors cursor-pointer border-none bg-transparent"
+            className="flex items-center gap-1.5 text-xs text-text-secondary hover:text-primary mb-2 transition-colors cursor-pointer border-none bg-transparent"
           >
             <ArrowLeft className="w-3.5 h-3.5" /> Trở về trang quản trị trung tâm
           </button>
           
-          <span className="text-xs text-amber-400 font-bold uppercase tracking-widest">{subtitle}</span>
-          <h1 className="text-2xl sm:text-4xl font-display font-medium text-white tracking-tight">{title}</h1>
-          <p className="text-slate-400 font-light text-xs max-w-xl mx-auto">
+          <span className="text-xs text-primary font-bold uppercase tracking-widest">{subtitle}</span>
+          <h1 className="text-2xl sm:text-4xl font-display font-medium text-text-primary tracking-tight">{title}</h1>
+          <p className="text-text-secondary font-light text-xs max-w-xl mx-auto">
             Hệ thống hiển thị các sản phẩm mới nhất được chọn lọc thủ công, đảm bảo pháp lý và sẵn sàng giao dịch.
           </p>
         </div>
@@ -85,12 +85,12 @@ export default function LatestPropertiesPage({ onNavigate, type, categoryName }:
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
-          <div className="text-center py-20 text-slate-400 text-xs animate-pulse">
-            <RefreshCw className="w-5 h-5 mx-auto mb-2 animate-spin text-amber-500" />
+          <div className="text-center py-20 text-text-secondary text-xs animate-pulse">
+            <RefreshCw className="w-5 h-5 mx-auto mb-2 animate-spin text-primary" />
             ĐANG TẢI DỮ LIỆU...
           </div>
         ) : products.length === 0 ? (
-          <div className="text-center py-20 text-slate-500 text-xs">Không tìm thấy bất động sản nào.</div>
+          <div className="text-center py-20 text-white/70 text-xs">Không tìm thấy bất động sản nào.</div>
         ) : (
           <div className="space-y-10">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
@@ -100,7 +100,7 @@ export default function LatestPropertiesPage({ onNavigate, type, categoryName }:
                   item={item} 
                   onNavigate={onNavigate} 
                   badgeText={item.type !== 'rent' ? 'Bán' : 'Cho thuê'} 
-                  badgeColor={item.type !== 'rent' ? 'bg-rose-700 text-white' : 'bg-amber-500 text-slate-950'} 
+                  badgeColor={item.type !== 'rent' ? 'bg-rose-700 text-white' : 'bg-primary text-black'} 
                 />
               ))}
             </div>
@@ -110,7 +110,7 @@ export default function LatestPropertiesPage({ onNavigate, type, categoryName }:
                 <button
                   type="button"
                   onClick={() => setGridLimit(prev => prev + 10)}
-                  className="bg-slate-900 border border-slate-800 text-slate-300 hover:bg-slate-850 hover:text-white px-6 py-3 rounded-full text-xs font-semibold tracking-wider font-display transition-all cursor-pointer"
+                  className="bg-bg-surface border border-border-color text-text-secondary hover:bg-slate-850 hover:text-text-primary px-6 py-3 rounded-full text-xs font-semibold tracking-wider font-display transition-all cursor-pointer"
                 >
                   Tải Thêm (Ajax +10)
                 </button>

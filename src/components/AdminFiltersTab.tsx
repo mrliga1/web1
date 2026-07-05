@@ -47,12 +47,12 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto w-full">
-      <div className="flex justify-between items-center bg-slate-900 border border-slate-850 p-[5px] text-[16px] rounded-lg shadow-xl">
-        <h2 className="text-white font-display font-bold text-[14px]">Cấu hình Bộ Lọc Tìm Kiếm</h2>
+      <div className="flex justify-between items-center bg-bg-inverse border border-slate-850 p-[5px] text-[16px] rounded-lg shadow-xl">
+        <h2 className="text-slate-900 font-display font-bold text-[14px]">Cấu hình Bộ Lọc Tìm Kiếm</h2>
         <button 
           onClick={handleSave} 
           disabled={loading}
-          className="bg-amber-500 text-slate-950 font-bold pl-[16px] pr-4 py-[5px] text-[11px] rounded-lg cursor-pointer flex items-center gap-2 hover:bg-amber-400"
+          className="bg-accent text-black font-bold pl-[16px] pr-4 py-[5px] text-[11px] rounded-lg cursor-pointer flex items-center gap-2 hover:bg-yellow-400"
         >
           <Save size={14} />
           {loading ? 'Đang lưu...' : 'Lưu Thay Đổi'}
@@ -61,11 +61,11 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* District list */}
-        <div className="bg-slate-900 border border-slate-850 pt-5 px-[10px] pb-[10px] rounded-lg shadow-xl">
-          <h3 className="text-white font-bold text-sm mb-[10px] border-b border-slate-800 pb-0">Khu vực (Quận/Huyện)</h3>
+        <div className="bg-bg-inverse border border-slate-850 pt-5 px-[10px] pb-[10px] rounded-lg shadow-xl">
+          <h3 className="text-slate-900 font-bold text-sm mb-[10px] border-b border-border-inverse pb-0">Khu vực (Quận/Huyện)</h3>
           <div className="flex gap-2 mb-4">
             <input 
-              className="flex-1 bg-slate-950 border border-slate-800 rounded px-3 py-1.5 text-xs text-white outline-none" 
+              className="flex-1 bg-bg-inverse border border-border-inverse rounded px-3 py-1.5 text-xs text-slate-900 outline-none" 
               placeholder="VD: Quận 1"
               value={newDistrict}
               onChange={e => setNewDistrict(e.target.value)}
@@ -83,15 +83,15 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
                   setNewDistrict('');
                 }
               }}
-              className="bg-amber-500/10 text-amber-500 border border-amber-500/20 px-3 py-1.5 rounded hover:bg-amber-500/20"
+              className="bg-accent/10 text-accent border border-yellow-500/20 px-3 py-1.5 rounded hover:bg-accent/20"
             >
               <Plus size={14} />
             </button>
           </div>
           <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
             {districts.map((d, i) => (
-              <div key={i} className="flex justify-between items-center bg-slate-950 border border-slate-800 px-3 py-2 rounded text-xs">
-                <span className="text-slate-300">{d}</span>
+              <div key={i} className="flex justify-between items-center bg-bg-inverse border border-border-inverse px-3 py-2 rounded text-xs">
+                <span className="text-slate-800">{d}</span>
                 <button onClick={() => setDistricts(districts.filter((_, idx) => idx !== i))} className="text-rose-400 hover:text-rose-300">
                   <Trash2 size={14} />
                 </button>
@@ -102,21 +102,21 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
         </div>
 
         {/* Area */}
-        <div className="bg-slate-900 border border-slate-850 pt-5 px-[10px] pb-[10px] rounded-lg shadow-xl">
-          <div className="flex justify-between items-center mb-[10px] border-b border-slate-800 pb-0">
-            <h3 className="text-white font-bold text-sm">Diện tích (m²)</h3>
+        <div className="bg-bg-inverse border border-slate-850 pt-5 px-[10px] pb-[10px] rounded-lg shadow-xl">
+          <div className="flex justify-between items-center mb-[10px] border-b border-border-inverse pb-0">
+            <h3 className="text-slate-900 font-bold text-sm">Diện tích (m²)</h3>
             <button 
               onClick={() => setAreaRanges([...areaRanges, { id: generateId(), min: 0, max: 100, label: 'Dưới 100 m²' }])}
-              className="text-amber-500 text-[10px] hover:underline flex items-center gap-1"
+              className="text-accent text-[10px] hover:underline flex items-center gap-1"
             >
               <Plus size={12} /> Thêm
             </button>
           </div>
           <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
             {areaRanges.map((a, i) => (
-              <div key={a.id} className="bg-slate-950 flex flex-col gap-2 p-3 rounded border border-slate-800">
+              <div key={a.id} className="bg-bg-inverse flex flex-col gap-2 p-3 rounded border border-border-inverse">
                 <input 
-                  className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full"
+                  className="bg-bg-inverse border border-border-inverse rounded px-2 py-1 text-xs text-slate-900 w-full"
                   value={a.label} onChange={e => {
                     const newArr = [...areaRanges];
                     newArr[i].label = e.target.value;
@@ -126,11 +126,11 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
                 />
                 <div className="flex gap-2 items-center">
                    <div className="flex-1 flex items-center gap-2">
-                     <input type="number" className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full" placeholder="Min" value={a.min} onChange={e => {
+                     <input type="number" className="bg-bg-inverse border border-border-inverse rounded px-2 py-1 text-xs text-slate-900 w-full" placeholder="Min" value={a.min} onChange={e => {
                        const newArr = [...areaRanges]; newArr[i].min = Number(e.target.value); setAreaRanges(newArr);
                      }} />
                      <span className="text-slate-500 text-xs">-</span>
-                     <input type="number" className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full" placeholder="Max (Để trống nếu ko giới hạn)" value={a.max || ''} onChange={e => {
+                     <input type="number" className="bg-bg-inverse border border-border-inverse rounded px-2 py-1 text-xs text-slate-900 w-full" placeholder="Max (Để trống nếu ko giới hạn)" value={a.max || ''} onChange={e => {
                        const newArr = [...areaRanges]; newArr[i].max = e.target.value ? Number(e.target.value) : null; setAreaRanges(newArr);
                      }} />
                    </div>
@@ -145,21 +145,21 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
         </div>
 
         {/* Price Sale */}
-        <div className="bg-slate-900 border border-slate-850 pt-[10px] px-[10px] pb-[19px] rounded-lg shadow-xl">
-          <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-[7px]">
-            <h3 className="text-white font-bold text-sm">Khoảng Giá Bán (VNĐ)</h3>
+        <div className="bg-bg-inverse border border-slate-850 pt-[10px] px-[10px] pb-[19px] rounded-lg shadow-xl">
+          <div className="flex justify-between items-center mb-4 border-b border-border-inverse pb-[7px]">
+            <h3 className="text-slate-900 font-bold text-sm">Khoảng Giá Bán (VNĐ)</h3>
             <button 
               onClick={() => setPriceSale([...priceSale, { id: generateId(), min: 0, max: 3000000000, label: 'Dưới 3 Tỷ' }])}
-              className="text-amber-500 text-[10px] hover:underline flex items-center gap-1"
+              className="text-accent text-[10px] hover:underline flex items-center gap-1"
             >
               <Plus size={12} /> Thêm
             </button>
           </div>
           <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
             {priceSale.map((p, i) => (
-              <div key={p.id} className="bg-slate-950 flex flex-col gap-2 p-3 rounded border border-slate-800">
+              <div key={p.id} className="bg-bg-inverse flex flex-col gap-2 p-3 rounded border border-border-inverse">
                 <input 
-                  className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full"
+                  className="bg-bg-inverse border border-border-inverse rounded px-2 py-1 text-xs text-slate-900 w-full"
                   value={p.label} onChange={e => {
                     const newArr = [...priceSale]; newArr[i].label = e.target.value; setPriceSale(newArr);
                   }}
@@ -167,11 +167,11 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
                 />
                 <div className="flex gap-2 items-center">
                    <div className="flex-1 flex items-center gap-2">
-                     <input type="number" className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-[10px] text-white w-full" placeholder="Min" value={p.min} onChange={e => {
+                     <input type="number" className="bg-bg-inverse border border-border-inverse rounded px-2 py-1 text-[10px] text-slate-900 w-full" placeholder="Min" value={p.min} onChange={e => {
                        const newArr = [...priceSale]; newArr[i].min = Number(e.target.value); setPriceSale(newArr);
                      }} />
                      <span className="text-slate-500">-</span>
-                     <input type="number" className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-[10px] text-white w-full" placeholder="Max" value={p.max || ''} onChange={e => {
+                     <input type="number" className="bg-bg-inverse border border-border-inverse rounded px-2 py-1 text-[10px] text-slate-900 w-full" placeholder="Max" value={p.max || ''} onChange={e => {
                        const newArr = [...priceSale]; newArr[i].max = e.target.value ? Number(e.target.value) : null; setPriceSale(newArr);
                      }} />
                    </div>
@@ -186,21 +186,21 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
         </div>
 
         {/* Price Rent */}
-        <div className="bg-slate-900 border border-slate-850 pt-[10px] px-[10px] pb-[10px] rounded-lg shadow-xl">
-          <div className="flex justify-between items-center mb-[10px] border-b border-slate-800 pb-0">
-            <h3 className="text-white font-bold text-sm">Khoảng Giá Cho Thuê (VNĐ)</h3>
+        <div className="bg-bg-inverse border border-slate-850 pt-[10px] px-[10px] pb-[10px] rounded-lg shadow-xl">
+          <div className="flex justify-between items-center mb-[10px] border-b border-border-inverse pb-0">
+            <h3 className="text-slate-900 font-bold text-sm">Khoảng Giá Cho Thuê (VNĐ)</h3>
             <button 
               onClick={() => setPriceRent([...priceRent, { id: generateId(), min: 0, max: 15000000, label: 'Dưới 15 Triệu/tháng' }])}
-              className="text-amber-500 text-[10px] hover:underline flex items-center gap-1"
+              className="text-accent text-[10px] hover:underline flex items-center gap-1"
             >
               <Plus size={12} /> Thêm
             </button>
           </div>
           <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
             {priceRent.map((p, i) => (
-              <div key={p.id} className="bg-slate-950 flex flex-col gap-2 p-3 rounded border border-slate-800">
+              <div key={p.id} className="bg-bg-inverse flex flex-col gap-2 p-3 rounded border border-border-inverse">
                 <input 
-                  className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-white w-full"
+                  className="bg-bg-inverse border border-border-inverse rounded px-2 py-1 text-xs text-slate-900 w-full"
                   value={p.label} onChange={e => {
                     const newArr = [...priceRent]; newArr[i].label = e.target.value; setPriceRent(newArr);
                   }}
@@ -208,11 +208,11 @@ export default function AdminFiltersTab({ onShowNotification }: { onShowNotifica
                 />
                 <div className="flex gap-2 items-center">
                    <div className="flex-1 flex items-center gap-2">
-                     <input type="number" className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-[10px] text-white w-full" placeholder="Min" value={p.min} onChange={e => {
+                     <input type="number" className="bg-bg-inverse border border-border-inverse rounded px-2 py-1 text-[10px] text-slate-900 w-full" placeholder="Min" value={p.min} onChange={e => {
                        const newArr = [...priceRent]; newArr[i].min = Number(e.target.value); setPriceRent(newArr);
                      }} />
                      <span className="text-slate-500">-</span>
-                     <input type="number" className="bg-slate-900 border border-slate-800 rounded px-2 py-1 text-[10px] text-white w-full" placeholder="Max" value={p.max || ''} onChange={e => {
+                     <input type="number" className="bg-bg-inverse border border-border-inverse rounded px-2 py-1 text-[10px] text-slate-900 w-full" placeholder="Max" value={p.max || ''} onChange={e => {
                        const newArr = [...priceRent]; newArr[i].max = e.target.value ? Number(e.target.value) : null; setPriceRent(newArr);
                      }} />
                    </div>

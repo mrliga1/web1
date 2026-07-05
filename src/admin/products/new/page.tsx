@@ -183,15 +183,15 @@ export default function NewProductPage() {
   const isFormDisabled = isUploading || isSubmitLoading;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white font-sans p-6 md:p-12 flex justify-center items-start">
-      <div className="w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-lg shadow-xl p-6 md:p-8 space-y-6">
+    <div className="min-h-screen bg-bg-inverse text-white font-sans p-6 md:p-12 flex justify-center items-start">
+      <div className="w-full max-w-3xl bg-bg-inverse border border-border-inverse rounded-lg shadow-xl p-6 md:p-8 space-y-6">
         
         {/* Header styling */}
-        <div className="border-b border-slate-800 pb-4">
-          <h1 id="page-title" className="text-xl md:text-2xl font-bold text-amber-400 tracking-tight flex items-center gap-2">
+        <div className="border-b border-border-inverse pb-4">
+          <h1 id="page-title" className="text-xl md:text-2xl font-bold text-accent tracking-tight flex items-center gap-2">
             ✨ Thêm Sản Phẩm Bất Động Sản Mới
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-white/70 mt-1">
             Nhánh quy hoạch dữ liệu hệ thống /products kết hợp bộ lọc Realtime Database & Firebase Storage
           </p>
         </div>
@@ -200,7 +200,7 @@ export default function NewProductPage() {
         {feedback && (
           <div className={`p-4 rounded-lg text-xs leading-relaxed border transition-all ${
             feedback.type === 'success' 
-              ? 'bg-amber-950/40 border-amber-500/20 text-amber-400' 
+              ? 'bg-amber-950/40 border-yellow-500/20 text-accent' 
               : 'bg-rose-950/40 border-rose-500/20 text-rose-300'
           }`}>
             <p className="font-semibold mb-0.5">
@@ -212,12 +212,12 @@ export default function NewProductPage() {
 
         {/* Processing/Loading feedback details */}
         {statusMessage && (
-          <div className="bg-slate-950 border border-slate-850 p-3 rounded-lg flex items-center gap-3 text-xs text-amber-400 font-mono">
-            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+          <div className="bg-bg-inverse border border-slate-850 p-3 rounded-lg flex items-center gap-3 text-xs text-accent font-mono">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping"></span>
             <span>{statusMessage}</span>
             {uploadProgress !== null && (
-              <div className="w-32 bg-slate-800 h-1.5 rounded-full overflow-hidden ml-auto">
-                <div className="bg-amber-400 h-full transition-all" style={{ width: `${uploadProgress}%` }}></div>
+              <div className="w-32 bg-bg-inverse-alt h-1.5 rounded-full overflow-hidden ml-auto">
+                <div className="bg-yellow-400 h-full transition-all" style={{ width: `${uploadProgress}%` }}></div>
               </div>
             )}
           </div>
@@ -230,7 +230,7 @@ export default function NewProductPage() {
             
             {/* Title */}
             <div className="space-y-1 md:col-span-2">
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              <label className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
                 Tiêu đề sản phẩm <span className="text-rose-400">*</span>
               </label>
               <input
@@ -239,14 +239,14 @@ export default function NewProductPage() {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Ví dụ: Biệt thự nghỉ dưỡng sinh thái ven sông Quận 7"
                 disabled={isFormDisabled}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
+                className="w-full bg-bg-inverse border border-border-inverse focus:border-yellow-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
                 required
               />
             </div>
 
             {/* Price Text */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              <label className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
                 Thuyết minh giá (Hiển thị)
               </label>
               <input
@@ -255,13 +255,13 @@ export default function NewProductPage() {
                 onChange={(e) => setPriceText(e.target.value)}
                 placeholder="Ví dụ: 12.5 Tỷ hoặc 15 Triệu/tháng"
                 disabled={isFormDisabled}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
+                className="w-full bg-bg-inverse border border-border-inverse focus:border-yellow-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
               />
             </div>
 
             {/* Price Val */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              <label className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
                 Mức giá lưu lọc (Số VND)
               </label>
               <input
@@ -270,20 +270,20 @@ export default function NewProductPage() {
                 onChange={(e) => setPriceVal(e.target.value)}
                 placeholder="Ví dụ: 12500000000"
                 disabled={isFormDisabled}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
+                className="w-full bg-bg-inverse border border-border-inverse focus:border-yellow-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
               />
             </div>
 
             {/* Category selection */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              <label className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
                 Danh mục bất động sản
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
                 disabled={isFormDisabled}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg py-2.5 px-3 text-xs outline-none cursor-pointer transition-colors"
+                className="w-full bg-bg-inverse border border-border-inverse focus:border-yellow-500 rounded-lg py-2.5 px-3 text-xs outline-none cursor-pointer transition-colors"
               >
                 {CATEGORIES.map((cat) => (
                   <option key={cat} value={cat}>
@@ -295,14 +295,14 @@ export default function NewProductPage() {
 
             {/* Type transaction */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              <label className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
                 Hình thức giao dịch
               </label>
               <select
                 value={type}
                 onChange={(e) => setType(e.target.value as 'sale' | 'rent')}
                 disabled={isFormDisabled}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg py-2.5 px-3 text-xs outline-none cursor-pointer transition-colors"
+                className="w-full bg-bg-inverse border border-border-inverse focus:border-yellow-500 rounded-lg py-2.5 px-3 text-xs outline-none cursor-pointer transition-colors"
               >
                 <option value="sale">Mua bán chuyển nhượng</option>
                 <option value="rent">Cho thuê</option>
@@ -311,7 +311,7 @@ export default function NewProductPage() {
 
             {/* Address / Location District */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              <label className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
                 Khu vực (Quận / Huyện)
               </label>
               <input
@@ -320,13 +320,13 @@ export default function NewProductPage() {
                 onChange={(e) => setDistrict(e.target.value)}
                 placeholder="Ví dụ: Quận 7, TP. HCM"
                 disabled={isFormDisabled}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
+                className="w-full bg-bg-inverse border border-border-inverse focus:border-yellow-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
               />
             </div>
 
             {/* Hotline Phone */}
             <div className="space-y-1">
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+              <label className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
                 Điện thoại chuyên gia đăng tin <span className="text-rose-400">*</span>
               </label>
               <input
@@ -335,19 +335,19 @@ export default function NewProductPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="Ví dụ: 0932 966 700"
                 disabled={isFormDisabled}
-                className="w-full bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
+                className="w-full bg-bg-inverse border border-border-inverse focus:border-yellow-500 rounded-lg py-2.5 px-3.5 text-xs outline-none transition-colors"
                 required
               />
             </div>
 
             {/* CRITICAL MODULE: Storage photo uploader */}
-            <div className="space-y-2 md:col-span-2 border-t border-slate-800 pt-4">
+            <div className="space-y-2 md:col-span-2 border-t border-border-inverse pt-4">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] uppercase tracking-wider text-amber-400 font-bold">
+                <label className="text-[10px] uppercase tracking-wider text-accent font-bold">
                   Hình ảnh đại diện sản phẩm (Tải lên Firebase Storage) <span className="text-rose-400">*</span>
                 </label>
                 {imageUrl && (
-                  <span className="text-[9px] text-amber-400 font-mono font-bold">
+                  <span className="text-[9px] text-accent font-mono font-bold">
                     ✓ Đã định vị URL
                   </span>
                 )}
@@ -362,18 +362,18 @@ export default function NewProductPage() {
                     disabled={isFormDisabled}
                     className="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10"
                   />
-                  <div className="w-full bg-slate-950 border-2 border-dashed border-slate-800 hover:border-amber-500/50 rounded-lg p-4 flex flex-col items-center justify-center text-center transition-colors">
-                    <span className="text-slate-400 font-semibold text-xs text-amber-400">
+                  <div className="w-full bg-bg-inverse border-2 border-dashed border-border-inverse hover:border-yellow-500/50 rounded-lg p-4 flex flex-col items-center justify-center text-center transition-colors">
+                    <span className="text-white/70 font-semibold text-xs text-accent">
                       {isUploading ? 'ĐANG TẢI ẢNH...' : 'Bấm hoặc kéo thả ảnh vào đây để tự động Upload'}
                     </span>
-                    <span className="text-[10px] text-slate-500 mt-1">
+                    <span className="text-[10px] text-white/70 mt-1">
                       Hệ thống tự động cắt đuôi mở rộng và lưu vào thư mục /products
                     </span>
                   </div>
                 </div>
 
                 {/* Real-time graphic preview */}
-                <div className="h-24 md:h-auto bg-slate-950 border border-slate-850 rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="h-24 md:h-auto bg-bg-inverse border border-slate-850 rounded-lg flex items-center justify-center overflow-hidden">
                   {imageUrl ? (
                     <img
                       src={(imageUrl) || undefined}
@@ -382,7 +382,7 @@ export default function NewProductPage() {
                       referrerPolicy="no-referrer"
                     />
                   ) : (
-                    <span className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+                    <span className="text-[9px] text-white/70 font-bold uppercase tracking-wider">
                       Chưa có hình
                     </span>
                   )}
@@ -390,16 +390,16 @@ export default function NewProductPage() {
               </div>
 
               {imageUrl && (
-                <div className="text-[10px] text-slate-500 bg-slate-950 border border-slate-850 p-2 rounded-md font-mono select-all overflow-x-auto">
-                  <span className="text-amber-400 font-bold block mb-1">Đường dẫn ảnh thật trên StorageBucket:</span>
+                <div className="text-[10px] text-white/70 bg-bg-inverse border border-slate-850 p-2 rounded-md font-mono select-all overflow-x-auto">
+                  <span className="text-accent font-bold block mb-1">Đường dẫn ảnh thật trên StorageBucket:</span>
                   {imageUrl}
                 </div>
               )}
             </div>
 
             {/* Description (Rich Text HTML Area) */}
-            <div className="space-y-1.5 md:col-span-2 border-t border-slate-800 pt-4">
-              <label className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
+            <div className="space-y-1.5 md:col-span-2 border-t border-border-inverse pt-4">
+              <label className="text-[10px] uppercase tracking-wider text-white/70 font-bold">
                 Thuyết minh / Mô tả chi tiết (Mã HTML)
               </label>
               <textarea
@@ -407,14 +407,14 @@ export default function NewProductPage() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Nhập thuyết minh văn bản hoặc viết mã HTML..."
                 disabled={isFormDisabled}
-                className="w-full h-32 bg-slate-950 border border-slate-800 focus:border-amber-500 rounded-lg py-2.5 px-3.5 text-xs outline-none font-mono transition-colors"
+                className="w-full h-32 bg-bg-inverse border border-border-inverse focus:border-yellow-500 rounded-lg py-2.5 px-3.5 text-xs outline-none font-mono transition-colors"
               />
             </div>
 
           </div>
 
           {/* Action Row buttons */}
-          <div className="flex justify-end gap-3.5 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3.5 pt-4 border-t border-border-inverse">
             <button
               type="button"
               disabled={isFormDisabled}
@@ -428,14 +428,14 @@ export default function NewProductPage() {
                 setImageUrl('');
                 setFeedback(null);
               }}
-              className="bg-slate-950 hover:bg-slate-850 text-slate-400 border border-slate-850 text-xs font-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              className="bg-bg-inverse hover:bg-slate-800 text-white/70 border border-slate-800 text-xs font-semibold px-5 py-2.5 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Đặt lại mẫu
             </button>
             <button
               type="submit"
               disabled={isFormDisabled || !imageUrl}
-              className={`bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold text-xs py-2.5 px-6 rounded-lg transition-all flex items-center gap-1.5 ${
+              className={`bg-accent hover:bg-amber-600 active:scale-95 text-black font-bold text-xs py-2.5 px-6 rounded-lg transition-all flex items-center gap-1.5 ${
                 (isFormDisabled || !imageUrl) ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'
               }`}
             >

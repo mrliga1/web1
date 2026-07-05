@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { generateSlug } from '../lib/utils';
+import { generateSlug, optimizeImageUrl } from '../lib/utils';
 import { SEO } from './SEO';
 import { collection, getDocs, getDoc, doc, db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
@@ -27,6 +27,7 @@ interface ProductListProps {
 }
 
 import ProductCard from './ProductCard';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProductList({ 
   onNavigate, 
@@ -70,33 +71,6 @@ export default function ProductList({
     setSelectedAreaRange(initialAreaRange || 'all');
   }, [initialType, initialLocation, initialCategory, initialPriceRange, initialAreaRange]);
 
-  useEffect(() => {
-    if (!loading) {
-      let filterText = '';
-      if (searchQuery) {
-        filterText += `Tìm kiếm: "${searchQuery}"`;
-      }
-      if (selectedCategory && selectedCategory !== 'all') {
-        filterText += (filterText ? ' - ' : '') + `Danh mục: ${selectedCategory}`;
-      }
-      if (selectedDistrict && selectedDistrict !== 'all') {
-        filterText += (filterText ? ' - ' : '') + `Khu vực: ${selectedDistrict}`;
-      }
-      if (selectedType && selectedType !== 'all') {
-        const typeText = selectedType === 'sale' ? 'Mua bán' : 'Cho thuê';
-        filterText += (filterText ? ' - ' : '') + typeText;
-      }
-
-      if (filterText) {
-        document.title = `${filterText} | Greenia Homes`;
-      } else if (initialCategory && initialCategory !== 'all') {
-        document.title = `Danh mục ${initialCategory} | Greenia Homes`;
-      } else {
-        document.title = "Greenia Homes - Giỏ hàng Bất Động Sản Cao Cấp";
-      }
-    }
-  }, [searchQuery, selectedCategory, selectedDistrict, selectedType, initialCategory, loading]);
-
   const handleTabClick = (e: React.MouseEvent<HTMLElement>, action: () => void) => {
     action();
     const container = tabsContainerRef.current;
@@ -124,11 +98,7 @@ export default function ProductList({
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = () => setOpenDropdown(null);
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
+  // Removed document.addEventListener('click') as we use a backdrop div for outside clicks
 
   const initialFilters = useRef({
     searchQuery, selectedPriceRange, selectedAreaRange, selectedDistrict, selectedCategory, selectedType
@@ -278,7 +248,6 @@ export default function ProductList({
     setSelectedPriceRange('all');
     setSelectedAreaRange('all');
     setMainGridLimit(10);
-    onShowNotification('Đã đặt lại toàn bộ bộ lọc và giới hạn dòng xem sản phầm!', 'success');
   };
 
   const filteredProducts = React.useMemo(() => products.filter(p => {
@@ -290,7 +259,7 @@ export default function ProductList({
     const matchesDistrict = selectedDistrict === 'all' || p.district.trim() === selectedDistrict;
     
     // Safety matching exactly for selectedCategory
-    const matchesCategory = selectedCategory === 'all' || (p.category && p.category.trim().toLowerCase() === selectedCategory.trim().toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || (p.category && (p.category.trim().toLowerCase() === selectedCategory.trim().toLowerCase() || generateSlug(p.category) === selectedCategory));
 
     let matchesPrice = true;
     if (selectedPriceRange !== 'all') {
@@ -362,8 +331,6 @@ export default function ProductList({
   }, []);
 
   return (    <>
-      <SEO title="Sản phẩm | Mua Bán Nhà Đất" />
-
     <div className="relative min-h-screen">
       <div className="font-sans" id="product-hub-view-root" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
         {sections.map((section, idx) => {
@@ -400,18 +367,18 @@ export default function ProductList({
               <div className="block max-w-7xl mx-auto px-0 mt-0">
                 
                 {/* Navbar/Filter Bar */}
-                <div className="pt-0 pr-0 border-b border-amber-500/10 shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all duration-300 z-50 relative m-0 p-0">
+                <div className="pt-0 pr-0 border-b border-border-color shadow-[0_10px_20px_rgba(0,0,0,0.05)] transition-all duration-300 z-50 relative m-0 p-0">
                   <div ref={navbarRef} className="flex items-center w-full relative m-0 px-[5px]">
                     
                     <div ref={tabsContainerRef} className="flex flex-nowrap items-center gap-[6px] md:gap-2 overflow-x-auto w-[calc(100%-36px)] md:w-full relative flex-1 z-50 pb-[2px] px-[5px] scrollbar-hide scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                       
                       {/* Mobile Type Dropdown */}
-                      <div className="relative flex shrink-0 md:hidden sticky left-[-5px] z-[60] bg-slate-950 pr-1 py-1 -my-1 outline outline-1 outline-slate-950">
+                      <div className="relative flex shrink-0 md:hidden sticky left-[-5px] z-[60] bg-bg-surface pr-1 py-1 -my-1 outline outline-1 outline-white">
                         <button 
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'type' ? null : 'type'); })}
-                          className={`px-[8px] py-[4px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType !== 'all' ? 'bg-amber-500/10 text-amber-500 border-amber-500' : 'bg-transparent border-white/10 text-amber-500 hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500'} flex items-center gap-1.5`}
+                          className={`px-[8px] py-[4px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType !== 'all' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'} flex items-center gap-1.5`}
                         >
-                          <span className={selectedType !== 'all' ? 'text-amber-500' : 'text-slate-200'}>{selectedType === 'all' ? 'Tất cả' : (selectedType === 'sale' ? 'Bán' : 'Cho thuê')}</span>
+                          <span className={selectedType !== 'all' ? 'text-primary' : 'text-text-primary'}>{selectedType === 'all' ? 'Tất cả' : (selectedType === 'sale' ? 'Bán' : 'Cho thuê')}</span>
                           <ChevronDown size={14} strokeWidth={2} />
                         </button>
                       </div>
@@ -422,7 +389,7 @@ export default function ProductList({
                           if (selectedType === 'all') scrollToGrid();
                           setSelectedType('all'); setSelectedPriceRange('all'); setSelectedDistrict('all'); 
                         })}
-                        className={`hidden md:inline-flex px-[8px] py-[4px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'all' ? 'bg-amber-500/10 text-amber-500 border-amber-500' : 'bg-transparent border-white/10 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500'}`}
+                        className={`hidden md:inline-flex px-[8px] py-[4px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'all' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                       >
                         Tất cả
                       </button>
@@ -431,7 +398,7 @@ export default function ProductList({
                           if (selectedType === 'sale') scrollToGrid();
                           setSelectedType('sale'); setSelectedPriceRange('all'); setSelectedDistrict('all'); 
                         })}
-                        className={`hidden md:inline-flex px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'sale' ? 'bg-amber-500/10 text-amber-500 border-amber-500' : 'bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500'}`}
+                        className={`hidden md:inline-flex px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'sale' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                       >
                         Bán
                       </button>
@@ -440,7 +407,7 @@ export default function ProductList({
                           if (selectedType === 'rent') scrollToGrid();
                           setSelectedType('rent'); setSelectedPriceRange('all'); setSelectedDistrict('all'); 
                         })}
-                        className={`hidden md:inline-flex px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'rent' ? 'bg-amber-500/10 text-amber-500 border-amber-500' : 'bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500'}`}
+                        className={`hidden md:inline-flex px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'rent' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                       >
                         Cho thuê
                       </button>
@@ -448,8 +415,8 @@ export default function ProductList({
                       <div className="relative inline-block shrink-0">
                         <button 
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'district' ? null : 'district'); })}
-                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500 flex items-center gap-1.5">
-                          <span className={selectedDistrict !== 'all' ? 'text-amber-500' : ''}>
+                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                          <span className={selectedDistrict !== 'all' ? 'text-primary' : ''}>
                             {selectedDistrict === 'all' ? 'Khu vực' : selectedDistrict}
                           </span>
                           <ChevronDown size={14} strokeWidth={2} />
@@ -459,8 +426,8 @@ export default function ProductList({
                       <div className="relative inline-block shrink-0">
                         <button 
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'category' ? null : 'category'); })}
-                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500 flex items-center gap-1.5">
-                          <span className={selectedCategory !== 'all' ? 'text-amber-500' : ''}>
+                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                          <span className={selectedCategory !== 'all' ? 'text-primary' : ''}>
                             {selectedCategory === 'all' ? 'Danh mục' : selectedCategory}
                           </span>
                           <ChevronDown size={14} strokeWidth={2} />
@@ -470,8 +437,8 @@ export default function ProductList({
                       <div className="relative inline-block shrink-0">
                         <button 
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'price' ? null : 'price'); })}
-                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500 flex items-center gap-1.5">
-                          <span className={selectedPriceRange !== 'all' ? 'text-amber-500' : ''}>
+                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                          <span className={selectedPriceRange !== 'all' ? 'text-primary' : ''}>
                              {selectedPriceRange === 'all' ? 'Khoảng giá' : (
                                (selectedType !== 'rent' 
                                  ? (priceSaleConfig.length > 0 ? priceSaleConfig.find(c => c.id === selectedPriceRange)?.label : undefined)
@@ -486,8 +453,8 @@ export default function ProductList({
                     <div className="relative inline-block shrink-0">
                       <button 
                         onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'area' ? null : 'area'); })}
-                        className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500 flex items-center gap-1.5">
-                        <span className={selectedAreaRange !== 'all' ? 'text-amber-500' : ''}>
+                        className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                        <span className={selectedAreaRange !== 'all' ? 'text-primary' : ''}>
                           {selectedAreaRange === 'all' ? 'Diện tích' : (
                              (areaConfig.length > 0 ? areaConfig.find(c => c.id === selectedAreaRange)?.label : undefined) || 'Diện tích'
                           )}
@@ -505,17 +472,17 @@ export default function ProductList({
                           value={searchQuery}
                           onChange={e => setSearchQuery(e.target.value)}
                           placeholder="Tìm dự án, khu vực..." 
-                          className="w-full bg-slate-900 border border-amber-500/30 pl-3 pr-8 py-[4px] rounded-lg text-white outline-none text-[11px] transition-colors focus:border-amber-500 h-[26px]"
+                          className="w-full bg-bg-surface border border-primary/20 pl-3 pr-8 py-[4px] rounded-lg text-text-primary outline-none text-[11px] transition-colors focus:border-primary h-[26px]"
                         />
-                        <button aria-label="Tìm kiếm" className="absolute right-2 top-1/2 -translate-y-1/2 text-amber-500 p-1 bg-transparent border-none">
+                        <button aria-label="Tìm kiếm" className="absolute right-2 top-1/2 -translate-y-1/2 text-primary p-1 bg-transparent border-none">
                           <Search size={10} strokeWidth={3} />
                         </button>
                       </div>
                     </div>
 
                     {/* Mobile Search Icon */}
-                    <div className="absolute right-[5px] md:hidden z-50 bg-slate-950/80 backdrop-blur-sm h-full flex items-center px-0">
-                      <button aria-label="Mở tìm kiếm" onClick={() => setIsSearchOpen(!isSearchOpen)} className="w-[28px] h-[28px] flex items-center justify-center text-amber-500 bg-slate-900 border border-amber-500/30 shadow shadow-amber-500/20 rounded hover:bg-amber-500/20 active:scale-95 transition-all">
+                    <div className="absolute right-[5px] md:hidden z-50 bg-bg-surface/80 backdrop-blur-sm h-full flex items-center px-0">
+                      <button aria-label="Mở tìm kiếm" onClick={() => setIsSearchOpen(!isSearchOpen)} className="w-[28px] h-[28px] flex items-center justify-center text-primary bg-bg-surface border border-primary/20 shadow shadow-primary/10 rounded hover:bg-[#064E3B]/10 active:scale-95 transition-all">
                         {isSearchOpen ? <X size={13} strokeWidth={2.5} /> : <Search size={13} strokeWidth={2.5} />}
                       </button>
                     </div>
@@ -524,134 +491,150 @@ export default function ProductList({
                     {openDropdown && (
                       <div className="fixed inset-0 z-[9999998]" onClick={(e) => { e.stopPropagation(); setOpenDropdown(null); }} />
                     )}
-                    <div 
-                      className="absolute top-[calc(100%+6px)] left-0 right-0 w-full md:w-auto z-[9999999] flex justify-center pointer-events-none px-4 md:px-0 transition-[left] desktop-dropdown-pos"
-                      style={{ '--left-pos': dropdownPos ? `${dropdownPos}px` : '50%' } as React.CSSProperties}
-                    >
-                      <style>{`
-                        @media (min-width: 768px) {
-                          .desktop-dropdown-pos {
-                            left: var(--left-pos, 50%) !important;
-                            right: auto !important;
-                            transform: translateX(-50%) !important;
+                    {openDropdown && (
+                      <div 
+                        className="absolute top-[calc(100%+6px)] left-0 right-0 w-full md:w-auto z-[9999999] flex justify-center pointer-events-none px-4 md:px-0 desktop-dropdown-pos"
+                        style={{ '--left-pos': dropdownPos ? `${dropdownPos}px` : '50%' } as React.CSSProperties}
+                      >
+                        <style>{`
+                          @media (min-width: 768px) {
+                            .desktop-dropdown-pos {
+                              left: var(--left-pos, 50%) !important;
+                              right: auto !important;
+                              transform: translateX(-50%) !important;
+                            }
                           }
-                        }
-                      `}</style>
-                        <div onClick={(e) => e.stopPropagation()} className={`w-full md:hidden bg-slate-900 border border-amber-500/50 rounded-lg py-1 shadow-[0_10px_40px_rgba(0,0,0,0.9)] max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 pointer-events-auto ${openDropdown === 'type' ? 'block' : 'hidden'}`}>
-                             <button onClick={() => { scrollToGrid(); setSelectedType('all'); setSelectedPriceRange('all'); setSelectedDistrict('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 text-[13px] border-none cursor-pointer flex justify-between items-center transition-colors border-b border-white/5 ${selectedType === 'all' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-transparent text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>
-                               <span>Tất cả</span>
-                             </button>
-                             <button onClick={() => { scrollToGrid(); setSelectedType('sale'); setSelectedPriceRange('all'); setSelectedDistrict('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 text-[13px] border-none cursor-pointer flex justify-between items-center transition-colors border-b border-white/5 ${selectedType === 'sale' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-transparent text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>
-                               <span>Bán</span>
-                             </button>
-                             <button onClick={() => { scrollToGrid(); setSelectedType('rent'); setSelectedPriceRange('all'); setSelectedDistrict('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 text-[13px] border-none cursor-pointer flex justify-between items-center transition-colors border-b border-white/5 ${selectedType === 'rent' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-transparent text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>
-                               <span>Cho thuê</span>
-                             </button>
-                        </div>
+                        `}</style>
                         
-                        <div onClick={(e) => e.stopPropagation()} className={`w-full md:w-[260px] bg-slate-900 border border-amber-500/50 rounded-lg py-1 shadow-[0_10px_40px_rgba(0,0,0,0.9)] max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 pointer-events-auto ${openDropdown === 'district' ? 'block' : 'hidden'}`}>
-                             <button onClick={() => { setSelectedDistrict('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-white/5 ${selectedDistrict === 'all' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-transparent text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>
-                               <span>Tất cả Khu vực</span>
-                             </button>
-                             {districts.map(dist => (
-                               <button 
-                                 key={dist}
-                                 onClick={() => { setSelectedDistrict(dist); setOpenDropdown(null); }} 
-                                 className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-white/5 ${selectedDistrict === dist ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}
-                               >
-                                 <span>{dist}</span>
+                        {openDropdown === 'type' && (
+                          <div onClick={(e) => e.stopPropagation()} className="w-full md:hidden bg-bg-surface border border-border-color shadow-md scrollbar-thumb-border-color pointer-events-auto block">
+                               <button onClick={() => { scrollToGrid(); setSelectedType('all'); setSelectedPriceRange('all'); setSelectedDistrict('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 text-[13px] border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedType === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
+                                 <span>Tất cả</span>
                                </button>
-                             ))}
-                        </div>
+                               <button onClick={() => { scrollToGrid(); setSelectedType('sale'); setSelectedPriceRange('all'); setSelectedDistrict('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 text-[13px] border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedType === 'sale' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
+                                 <span>Bán</span>
+                               </button>
+                               <button onClick={() => { scrollToGrid(); setSelectedType('rent'); setSelectedPriceRange('all'); setSelectedDistrict('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 text-[13px] border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedType === 'rent' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
+                                 <span>Cho thuê</span>
+                               </button>
+                          </div>
+                        )}
                         
-                        <div onClick={(e) => e.stopPropagation()} className={`w-full md:w-[260px] bg-slate-900 border border-amber-500/50 rounded-lg py-1 shadow-[0_10px_40px_rgba(0,0,0,0.9)] max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 pointer-events-auto ${openDropdown === 'category' ? 'block' : 'hidden'}`}>
-                             <button onClick={() => { setSelectedCategory('all'); setOpenDropdown(null); }} className={`w-full text-left !px-[10px] !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-white/5 ${selectedCategory === 'all' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-transparent text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>
-                               <span>Tất cả Danh mục</span>
-                             </button>
-                             {productCategoriesExt.map(cat => (
-                               <button 
-                                 key={cat.id}
-                                 onClick={() => { setSelectedCategory(cat.name); setOpenDropdown(null); }} 
-                                 className={`w-full text-left !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-white/5 ${cat.parentId ? '!px-[20px] text-[12px] md:text-[11px]' : '!px-[10px]'} ${selectedCategory === cat.name ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500'}`}
-                               >
-                                 <span>{cat.parentId ? `└ ${cat.name}` : cat.name}</span>
+                        {openDropdown === 'district' && (
+                          <div onClick={(e) => e.stopPropagation()} className="w-full md:w-[260px] bg-bg-surface border border-border-color shadow-md scrollbar-thumb-border-color pointer-events-auto block">
+                               <button onClick={() => { setSelectedDistrict('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedDistrict === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
+                                 <span>Tất cả Khu vực</span>
                                </button>
-                             ))}
-                        </div>
+                               {districts.map(dist => (
+                                 <button 
+                                   key={dist}
+                                   onClick={() => { setSelectedDistrict(dist); setOpenDropdown(null); }} 
+                                   className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedDistrict === dist ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}
+                                 >
+                                   <span>{dist}</span>
+                                 </button>
+                               ))}
+                          </div>
+                        )}
+                        
+                        {openDropdown === 'category' && (
+                          <div onClick={(e) => e.stopPropagation()} className="w-full md:w-[260px] bg-bg-surface border border-border-color shadow-md scrollbar-thumb-border-color pointer-events-auto block">
+                            <button onClick={() => { setSelectedCategory('all'); setOpenDropdown(null); }} className={`w-full text-left !px-[10px] !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedCategory === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
+                              <span>Tất cả Danh mục</span>
+                            </button>
+                            {productCategoriesExt.map((cat: any) => {
+                               const isSelected = selectedCategory === cat.name || selectedCategory === generateSlug(cat.name);
+                               return (
+                                 <button
+                                   key={cat.id}
+                                   onClick={() => { setSelectedCategory(cat.name); setOpenDropdown(null); onNavigate({ screen: 'category-product', categoryName: cat.name }); }}
+                                   className={`w-full text-left !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${cat.parentId ? '!px-[20px] text-[12px] md:text-[11px]' : '!px-[10px]'} ${isSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}
+                                 >
+                                   <span>{cat.parentId ? `└ ${cat.name}` : cat.name}</span>
+                                 </button>
+                               );
+                             })}
+                          </div>
+                        )}
 
-                        <div onClick={(e) => e.stopPropagation()} className={`w-full md:w-[260px] bg-slate-900 border border-amber-500/50 rounded-lg py-1 shadow-[0_10px_40px_rgba(0,0,0,0.9)] max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 pointer-events-auto ${openDropdown === 'price' ? 'block' : 'hidden'}`}>
-                             <button onClick={() => { setSelectedPriceRange('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-white/5 ${selectedPriceRange === 'all' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-transparent text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>
-                               <span>Tất cả Khoảng giá</span>
+                        {openDropdown === 'price' && (
+                          <div onClick={(e) => e.stopPropagation()} className="w-full md:w-[260px] bg-bg-surface border border-border-color shadow-md scrollbar-thumb-border-color pointer-events-auto block">
+                               <button onClick={() => { setSelectedPriceRange('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedPriceRange === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
+                                 <span>Tất cả Khoảng giá</span>
+                               </button>
+                               {selectedType !== 'rent' && (
+                                 <>
+                                   {priceSaleConfig.length > 0 ? (
+                                     priceSaleConfig.map(c => (
+                                       <button key={c.id} onClick={() => { setSelectedPriceRange(c.id); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === c.id ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>{c.label}</button>
+                                     ))
+                                   ) : (
+                                     <>
+                                       <button onClick={() => { setSelectedPriceRange('under3'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === 'under3' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Dưới 3 Tỷ</button>
+                                       <button onClick={() => { setSelectedPriceRange('3to5'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === '3to5' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Từ 3 Tỷ - 5 Tỷ</button>
+                                       <button onClick={() => { setSelectedPriceRange('5to10'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === '5to10' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Từ 5 Tỷ - 10 Tỷ</button>
+                                       <button onClick={() => { setSelectedPriceRange('10to20'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === '10to20' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Từ 10 Tỷ - 20 Tỷ</button>
+                                       <button onClick={() => { setSelectedPriceRange('20to50'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === '20to50' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Từ 20 Tỷ - 50 Tỷ</button>
+                                       <button onClick={() => { setSelectedPriceRange('over50'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === 'over50' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Trên 50 Tỷ</button>
+                                     </>
+                                   )}
+                                 </>
+                               )}
+                               {selectedType !== 'sale' && (
+                                 <>
+                                   {priceRentConfig.length > 0 ? (
+                                     priceRentConfig.map(c => (
+                                       <button key={c.id} onClick={() => { setSelectedPriceRange(c.id); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === c.id ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>{c.label}</button>
+                                     ))
+                                   ) : (
+                                     <>
+                                       <button onClick={() => { setSelectedPriceRange('under15m'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === 'under15m' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Dưới 15 Triệu/tháng</button>
+                                       <button onClick={() => { setSelectedPriceRange('15to40m'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === '15to40m' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Từ 15 - 40 Triệu/tháng</button>
+                                       <button onClick={() => { setSelectedPriceRange('over40m'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === 'over40m' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Trên 40 Triệu/tháng</button>
+                                     </>
+                                   )}
+                                 </>
+                               )}
+                          </div>
+                        )}
+
+                        {openDropdown === 'area' && (
+                          <div onClick={(e) => e.stopPropagation()} className="w-full md:w-[260px] bg-bg-surface border border-border-color shadow-md scrollbar-thumb-border-color pointer-events-auto block">
+                             <button onClick={() => { setSelectedAreaRange('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedAreaRange === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
+                               <span>Tất cả Diện tích</span>
                              </button>
-                             {selectedType !== 'rent' && (
+                             {areaConfig.length > 0 ? (
+                               areaConfig.map(c => (
+                                 <button key={c.id} onClick={() => { setSelectedAreaRange(c.id); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedAreaRange === c.id ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>{c.label}</button>
+                               ))
+                             ) : (
                                <>
-                                 {priceSaleConfig.length > 0 ? (
-                                   priceSaleConfig.map(c => (
-                                     <button key={c.id} onClick={() => { setSelectedPriceRange(c.id); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === c.id ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>{c.label}</button>
-                                   ))
-                                 ) : (
-                                   <>
-                                     <button onClick={() => { setSelectedPriceRange('under3'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === 'under3' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Dưới 3 Tỷ</button>
-                                     <button onClick={() => { setSelectedPriceRange('3to5'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === '3to5' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Từ 3 Tỷ - 5 Tỷ</button>
-                                     <button onClick={() => { setSelectedPriceRange('5to10'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === '5to10' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Từ 5 Tỷ - 10 Tỷ</button>
-                                     <button onClick={() => { setSelectedPriceRange('10to20'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === '10to20' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Từ 10 Tỷ - 20 Tỷ</button>
-                                     <button onClick={() => { setSelectedPriceRange('20to50'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === '20to50' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Từ 20 Tỷ - 50 Tỷ</button>
-                                     <button onClick={() => { setSelectedPriceRange('over50'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === 'over50' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Trên 50 Tỷ</button>
-                                   </>
-                                 )}
+                                 <button onClick={() => { setSelectedAreaRange('under100'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedAreaRange === 'under100' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Dưới 100 m²</button>
+                                 <button onClick={() => { setSelectedAreaRange('100to300'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedAreaRange === '100to300' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Từ 100 m² - 300 m²</button>
+                                 <button onClick={() => { setSelectedAreaRange('300to500'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedAreaRange === '300to500' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Từ 300 m² - 500 m²</button>
+                                 <button onClick={() => { setSelectedAreaRange('over500'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedAreaRange === 'over500' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>Trên 500 m²</button>
                                </>
                              )}
-                             {selectedType !== 'sale' && (
-                               <>
-                                 {priceRentConfig.length > 0 ? (
-                                   priceRentConfig.map(c => (
-                                     <button key={c.id} onClick={() => { setSelectedPriceRange(c.id); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === c.id ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>{c.label}</button>
-                                   ))
-                                 ) : (
-                                   <>
-                                     <button onClick={() => { setSelectedPriceRange('under15m'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === 'under15m' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Dưới 15 Triệu/tháng</button>
-                                     <button onClick={() => { setSelectedPriceRange('15to40m'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === '15to40m' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Từ 15 - 40 Triệu/tháng</button>
-                                     <button onClick={() => { setSelectedPriceRange('over40m'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedPriceRange === 'over40m' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Trên 40 Triệu/tháng</button>
-                                   </>
-                                 )}
-                               </>
-                             )}
-                        </div>
-
-                        <div onClick={(e) => e.stopPropagation()} className={`w-full md:w-[260px] bg-slate-900 border border-amber-500/50 rounded-lg py-1 shadow-[0_10px_40px_rgba(0,0,0,0.9)] max-h-[350px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 pointer-events-auto ${openDropdown === 'area' ? 'block' : 'hidden'}`}>
-                           <button onClick={() => { setSelectedAreaRange('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-white/5 ${selectedAreaRange === 'all' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-transparent text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>
-                             <span>Tất cả Diện tích</span>
-                           </button>
-                           {areaConfig.length > 0 ? (
-                             areaConfig.map(c => (
-                               <button key={c.id} onClick={() => { setSelectedAreaRange(c.id); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedAreaRange === c.id ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>{c.label}</button>
-                             ))
-                           ) : (
-                             <>
-                               <button onClick={() => { setSelectedAreaRange('under100'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedAreaRange === 'under100' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Dưới 100 m²</button>
-                               <button onClick={() => { setSelectedAreaRange('100to300'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedAreaRange === '100to300' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Từ 100 m² - 300 m²</button>
-                               <button onClick={() => { setSelectedAreaRange('300to500'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedAreaRange === '300to500' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Từ 300 m² - 500 m²</button>
-                               <button onClick={() => { setSelectedAreaRange('over500'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-white/5 ${selectedAreaRange === 'over500' ? 'bg-amber-500/10 text-amber-500 font-bold' : 'bg-slate-900 text-slate-300 hover:bg-amber-500/10 hover:text-amber-500 hover:font-bold'}`}>Trên 500 m²</button>
-                             </>
-                           )}
-                        </div>
-                    </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                   </div>
 
                   {/* Mobile Search Input Overlay */}
                   {isSearchOpen && (
-                    <div className="md:hidden w-full px-[5px] py-[5px] bg-slate-950/95 border-t border-amber-500/10">
+                    <div className="md:hidden w-full px-[5px] py-[5px] bg-white/70 border-t border-border-color">
                       <div className="relative w-full h-[32px]">
                         <input 
                           type="text" 
                           value={searchQuery}
                           onChange={e => setSearchQuery(e.target.value)}
                           placeholder="Tìm dự án, khu vực, danh mục..." 
-                          className="w-full bg-slate-900 border border-amber-500/50 pl-3 pr-8 rounded-lg text-white outline-none text-[12px] transition-colors focus:border-amber-500 h-[32px]"
+                          className="w-full bg-bg-surface border border-primary/20 pl-3 pr-8 rounded-lg text-text-primary outline-none text-[12px] transition-colors focus:border-primary h-[32px]"
                           autoFocus
                         />
-                        <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 p-1 bg-transparent border-none hover:text-amber-500 transition-colors">
+                        <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 p-1 bg-transparent border-none hover:text-primary transition-colors">
                           <X size={14} strokeWidth={2.5} />
                         </button>
                       </div>
@@ -662,11 +645,11 @@ export default function ProductList({
 
                 {/* Status bar */}
                 {(searchQuery || selectedDistrict !== 'all' || selectedPriceRange !== 'all' || selectedAreaRange !== 'all' || selectedType !== 'all' || selectedCategory !== 'all') && (
-                  <div className="pt-[15px] pb-0 mb-[15px] text-white text-[12px] flex items-center border-b border-dashed border-amber-500/30 pl-[20px]">
-                    <span className="">Tìm thấy <strong className="mx-1 text-amber-500 font-bold">{filteredProducts.length}</strong> kết quả</span>
+                  <div className="pt-[15px] pb-0 mb-[15px] text-text-secondary text-[12px] flex items-center border-b border-dashed border-border-color pl-[20px]">
+                    <span className="">Tìm thấy <strong className="mx-1 text-primary font-bold">{filteredProducts.length}</strong> kết quả</span>
                     <button 
                       onClick={resetFilters} 
-                      className="ml-3 text-rose-500 text-[12px] underline cursor-pointer bg-transparent border-none"
+                      className="ml-3 text-error text-[12px] underline cursor-pointer bg-transparent border-none"
                     >
                       Xóa bộ lọc
                     </button>
@@ -676,7 +659,7 @@ export default function ProductList({
             );
           } else if (section.id === 'products_grid') {
             cardContent = (
-              <div className="max-w-7xl mx-auto px-[2px] text-left space-y-6 pt-[10px]" id="products-grid-section">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-6 pt-[10px]" id="products-grid-section">
                 {selectedType === 'all' && selectedCategory === 'all' && selectedDistrict === 'all' && selectedPriceRange === 'all' && selectedAreaRange === 'all' && (
                   <div className="pt-[10px] px-0 pb-0">
                     <EditableText 
@@ -696,10 +679,10 @@ export default function ProductList({
                       isEditMode={isEditMode} 
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
-                      className="text-lg sm:text-xl font-display font-semibold text-white tracking-tight block border-l-4 border-amber-500 pl-3"
+                      className="text-lg sm:text-xl font-display font-semibold text-text-primary tracking-tight block border-l-4 border-primary pl-3"
                       tag="h1"
                     />
-                    <p className="text-slate-400 text-xs mt-2 pl-[5px] max-w-3xl">
+                    <p className="text-text-secondary text-xs mt-2 pl-[5px] max-w-3xl">
                       {(() => {
                           if (initialCategory) {
                             const catExt = productCategoriesExt.find(c => c.name === initialCategory);
@@ -715,16 +698,16 @@ export default function ProductList({
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                       {Array.from({ length: 10 }).map((_, index) => (
-                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
-                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800/50" />
+                        <div key={index} className="w-full shrink-0 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-200 animate-pulse" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-                            <div className="h-4 bg-slate-800/50 rounded w-3/4 mb-2"></div>
-                            <div className="h-3 bg-slate-800/50 rounded w-1/2 mb-4"></div>
-                            <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
-                              <div className="h-4 bg-slate-800/50 rounded w-1/3 mb-2"></div>
-                              <div className="flex gap-2">
-                                <div className="h-3 bg-slate-800/50 rounded w-1/4"></div>
-                                <div className="h-3 bg-slate-800/50 rounded w-1/4"></div>
+                            <div className="h-4 bg-slate-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                            <div className="h-3 bg-slate-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                            <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-border-color mt-auto">
+                              <div className="h-4 bg-slate-200 rounded w-1/3 mb-2 animate-pulse"></div>
+                              <div className="flex gap-[8px] sm:gap-[10px]">
+                                <div className="h-3 bg-slate-200 rounded w-1/4 animate-pulse"></div>
+                                <div className="h-3 bg-slate-200 rounded w-1/4 animate-pulse"></div>
                               </div>
                             </div>
                           </div>
@@ -733,7 +716,7 @@ export default function ProductList({
                     </div>
                   </div>
                 ) : filteredProducts.length === 0 ? (
-                  <div className="text-center py-12 text-slate-500 text-xs">Không tìm thấy sản phẩm nào khớp bộ lọc lựa chọn của bạn.</div>
+                  <div className="text-center py-12 text-white/70 text-xs">Không tìm thấy sản phẩm nào khớp bộ lọc lựa chọn của bạn.</div>
                 ) : (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
@@ -747,7 +730,7 @@ export default function ProductList({
                         <button
                           type="button"
                           onClick={() => setMainGridLimit(prev => prev + 10)}
-                          className="bg-slate-950 hover:bg-slate-900 text-[10px] font-bold uppercase tracking-wider text-slate-200 hover:text-amber-400 border border-slate-850 px-6 py-3.5 rounded-full cursor-pointer transition-all border-solid"
+                          className="bg-primary hover:bg-primary/80 text-[10px] font-bold uppercase tracking-wider text-white hover:text-white border border-primary px-6 py-3.5 rounded-full cursor-pointer transition-all border-solid shadow-md hover:shadow-lg"
                         >
                           Xem thêm bài đăng sàn chính (Tải thêm +10)
                         </button>
@@ -759,8 +742,8 @@ export default function ProductList({
             );
           } else if (section.id === 'recently_viewed' && recentlyViewed.length > 0) {
             cardContent = (
-              <div className="max-w-7xl mx-auto px-[2px] text-left">
-                <section className="space-y-4 pt-4 border-t border-slate-900 border-dashed text-left" id="product-hub-history">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+                <section className="space-y-4 pt-4 border-t border-border-color border-dashed text-left" id="product-hub-history">
                   <div className="flex items-end justify-between pb-2 text-[16px]">
                     <EditableText 
                       sectionId={section.id} 
@@ -769,7 +752,7 @@ export default function ProductList({
                       isEditMode={isEditMode} 
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
-                      className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3 m-0"
+                      className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3 m-0"
                       tag="h3"
                     />
                     
@@ -780,9 +763,9 @@ export default function ProductList({
                         setRecentlyViewed([]);
                         onShowNotification('Đã làm trống lịch sử xem.', 'success');
                       }}
-                      className="text-[9px] uppercase font-mono font-bold tracking-wider text-slate-500 hover:text-rose-400 transition-colors bg-transparent border-none cursor-pointer"
+                      className="text-[9px] uppercase font-mono font-bold tracking-wider text-text-secondary hover:text-error transition-colors bg-transparent border-none cursor-pointer"
                     >
-                      Bỏ lịch thử
+                      Xóa lịch sử
                     </button>
                   </div>
 
@@ -798,7 +781,7 @@ export default function ProductList({
                         <button
                           type="button"
                           onClick={() => setRecentGridLimit(prev => prev + 5)}
-                          className="bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800 text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-full cursor-pointer transition-all border-solid"
+                          className="bg-bg-surface hover:bg-bg-base text-text-secondary hover:text-primary border border-border-color/80 text-[10px] font-bold uppercase tracking-wider px-4 py-2 rounded-full cursor-pointer transition-all border-solid shadow-sm"
                         >
                           Tải thêm vệt đã xem (AJAX +5)
                         </button>
@@ -810,8 +793,8 @@ export default function ProductList({
             );
           } else if (section.id === 'latest_sales') {
             cardContent = (
-              <div className="max-w-7xl mx-auto px-[2px] text-left">
-                <section className="space-y-6 pt-8 border-t border-slate-900 border-dashed text-left">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+                <section className="space-y-6 pt-8 border-t border-border-color border-dashed text-left">
                   <div className="flex items-end justify-between pb-2 mb-[5px]">
                     <EditableText 
                       sectionId={section.id} 
@@ -820,37 +803,37 @@ export default function ProductList({
                       isEditMode={isEditMode} 
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
-                      className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3 m-0"
+                      className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3 m-0"
                       tag="h3"
                     />
 
                     <button
                       type="button"
                       onClick={() => onNavigate({ screen: 'latest-sales' })}
-                      className="flex items-center gap-1.5 text-[11px] font-mono tracking-widest text-amber-400 font-bold hover:underline bg-transparent border-none cursor-pointer"
+                      className="flex items-center gap-1.5 text-[11px] font-mono tracking-widest text-primary font-bold hover:underline bg-transparent border-none cursor-pointer"
                     >
                       <span>Xem thêm</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-amber-400" />
+                      <ArrowUpRight className="w-3.5 h-3.5 text-primary" />
                     </button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                     {loading ? (
                       Array.from({ length: 5 }).map((_, index) => (
-                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
-                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800/50" />
+                        <div key={index} className="w-full shrink-0 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-200 animate-pulse" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-                            <div className="h-4 bg-slate-800/50 rounded w-3/4 mb-2"></div>
-                            <div className="h-3 bg-slate-800/50 rounded w-1/2 mb-4"></div>
-                            <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
-                              <div className="h-4 bg-slate-800/50 rounded w-1/3 mb-2"></div>
+                            <div className="h-4 bg-slate-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                            <div className="h-3 bg-slate-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                            <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-border-color mt-auto">
+                              <div className="h-4 bg-slate-200 rounded w-1/3 mb-2 animate-pulse"></div>
                             </div>
                           </div>
                         </div>
                       ))
                     ) : (
                       latestSales.slice(0, 5).map((item) => (
-                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Bán" badgeColor="bg-rose-700 text-white" />
+                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} />
                       ))
                     )}
                   </div>
@@ -859,8 +842,8 @@ export default function ProductList({
             );
           } else if (section.id === 'latest_rents') {
             cardContent = (
-              <div className="max-w-7xl mx-auto px-[2px] text-left">
-                <section className="space-y-6 pt-8 border-t border-slate-900 border-dashed text-left">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+                <section className="space-y-6 pt-8 border-t border-border-color border-dashed text-left">
                   <div className="flex items-end justify-between pb-2 mb-[5px]">
                     <EditableText 
                       sectionId={section.id} 
@@ -869,37 +852,37 @@ export default function ProductList({
                       isEditMode={isEditMode} 
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
-                      className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3 m-0"
+                      className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3 m-0"
                       tag="h3"
                     />
 
                     <button
                       type="button"
                       onClick={() => onNavigate({ screen: 'latest-rents' })}
-                      className="flex items-center gap-1.5 text-[11px] font-mono tracking-widest text-amber-400 font-bold hover:underline bg-transparent border-none cursor-pointer"
+                      className="flex items-center gap-1.5 text-[11px] font-mono tracking-widest text-primary font-bold hover:underline bg-transparent border-none cursor-pointer"
                     >
                       <span>Xem thêm</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 text-amber-400" />
+                      <ArrowUpRight className="w-3.5 h-3.5 text-primary" />
                     </button>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                     {loading ? (
                       Array.from({ length: 5 }).map((_, index) => (
-                        <div key={index} className="w-full shrink-0 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
-                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-800/50" />
+                        <div key={index} className="w-full shrink-0 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-200 animate-pulse" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-                            <div className="h-4 bg-slate-800/50 rounded w-3/4 mb-2"></div>
-                            <div className="h-3 bg-slate-800/50 rounded w-1/2 mb-4"></div>
-                            <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
-                              <div className="h-4 bg-slate-800/50 rounded w-1/3 mb-2"></div>
+                            <div className="h-4 bg-slate-200 rounded w-3/4 mb-2 animate-pulse"></div>
+                            <div className="h-3 bg-slate-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                            <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-border-color mt-auto">
+                              <div className="h-4 bg-slate-200 rounded w-1/3 mb-2 animate-pulse"></div>
                             </div>
                           </div>
                         </div>
                       ))
                     ) : (
                       latestRents.slice(0, 5).map((item) => (
-                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Cho thuê" badgeColor="bg-amber-500 text-slate-950" />
+                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} />
                       ))
                     )}
                   </div>
@@ -908,8 +891,8 @@ export default function ProductList({
             );
           } else if (section.id === 'featured_projects') {
             cardContent = (
-              <div className="max-w-7xl mx-auto px-[2px] text-left">
-                <section className="space-y-6 pt-[27px] pb-[0px] border-t border-slate-900 border-dashed text-left">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
+                <section className="space-y-6 pt-[27px] pb-[0px] border-t border-border-color border-dashed text-left">
                   <div className="flex items-end justify-between pb-2 mb-[5px]">
                     <EditableText 
                       sectionId={section.id} 
@@ -918,14 +901,14 @@ export default function ProductList({
                       isEditMode={isEditMode} 
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
-                      className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3 m-0"
+                      className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3 m-0"
                       tag="h3"
                     />
 
                     <button
                       type="button"
                       onClick={() => onNavigate({ screen: 'du-an' })}
-                      className="flex items-center gap-1.5 text-[11px] font-mono tracking-widest text-amber-400 font-bold hover:underline bg-transparent border-none cursor-pointer"
+                      className="flex items-center gap-1.5 text-[11px] font-mono tracking-widest text-primary font-bold hover:underline bg-transparent border-none cursor-pointer"
                     >
                       <span>Xem thêm →</span>
                     </button>
@@ -938,7 +921,7 @@ export default function ProductList({
                         100% { transform: translateX(calc(-16.666666%)); }
                       }
                       .animate-product-slider {
-                        animation: productSliderScroll 25s linear infinite;
+                        animation: productSliderScroll 15s linear infinite;
                       }
                       .animate-product-sliding-container:hover .animate-product-slider {
                         animation-play-state: paused;
@@ -946,7 +929,7 @@ export default function ProductList({
                     `}</style>
                     <div className="animate-product-sliding-container flex w-max">
                       <div className="flex w-max animate-product-slider">
-                        {[...Array(6)].flatMap(() => projects.slice(0, 4)).map((proj, idx) => {
+                        {[...Array(6)].flatMap(() => projects.slice(0, 5)).map((proj, idx) => {
                           let statusText = 'Đang mở bán';
                           if (proj.status === 'handed_over') statusText = 'Đã bàn giao';
                           if (proj.status === 'coming_soon') statusText = 'Sắp ra mắt';
@@ -955,35 +938,47 @@ export default function ProductList({
                             <div
                               key={`${proj.id}-${idx}`}
                               onClick={() => onNavigate({ screen: 'project-detail', projectId: proj.id, slug: generateSlug(proj.title) })}
-                              className="w-[280px] lg:w-[320px] mr-5 shrink-0 bg-slate-900 border border-amber-500/20 rounded-lg overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-500 hover:shadow-[0_10px_20px_rgba(0,0,0,0.5)] cursor-pointer no-underline"
+                              className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
                             >
-                              <div className="h-[220px] relative overflow-hidden group w-full">
-                                <span className="absolute top-0 left-0 px-3 py-1.5 text-[11px] font-bold text-black bg-[#ff9f43] z-10 rounded-br-lg">
+                              <div className="relative aspect-[16/10] overflow-hidden">
+                                <img loading="lazy" decoding="async"
+                                  src={optimizeImageUrl(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                                  alt={proj.title}
+                                  referrerPolicy="no-referrer"
+                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+                                  onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
+                                />
+                                <div className="absolute top-2 left-2 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded shadow-sm z-10">
                                   {statusText}
-                                </span>
-                                <img loading="lazy" decoding="async" src={(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800") || undefined} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }} />
+                                </div>
                               </div>
-                              <div className="p-4 flex-1 flex flex-col items-start bg-slate-900 text-left">
-                                <h3 className="text-[13px] sm:text-[15px] font-bold text-white leading-[1.4] m-0 mb-[9px] line-clamp-2 transition-colors group-hover:text-amber-500 text-left w-full">
-                                  {proj.title}
-                                </h3>
-                                <div className="flex items-center justify-between text-xs mb-3 w-full">
-                                  <span className="text-slate-400">Giá từ:</span>
-                                  <span className="text-amber-500 font-extrabold text-[14px] sm:text-base">{proj.priceText || "Đang cập nhật"}</span>
-                                </div>
-                                <div className="flex items-center gap-[10px] text-[11px] text-slate-300 mb-2 w-full">
-                                  <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                                    <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                                    <span className="truncate" title={proj.scale || 'Đang cập nhật'}>{proj.scale || 'Đang cập nhật quy mô'}</span>
+    
+                              <div className="p-4 flex-1 flex flex-col justify-between text-left">
+                                <div>
+                                  <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
+                                    {proj.title}
+                                  </h4>
+                                  <div className="flex items-center justify-between text-xs mb-3 w-full">
+                                    <span className="text-text-secondary">Giá từ:</span>
+                                    <span className="text-primary font-bold text-[13px]">{proj.priceText || "Đang cập nhật"}</span>
                                   </div>
-                                  <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                                    <Building2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                                    <span className="truncate" title={proj.units ? String(proj.units) : 'Đang cập nhật'}>{proj.units ? `${proj.units} căn` : 'Đang cập nhật số lượng'}</span>
+                                  
+                                  <div className="flex items-center gap-2 text-[11px] text-text-secondary mb-2 w-full">
+                                    <div className="flex items-center gap-1.5 flex-1">
+                                      <Layers className="w-3 h-3 text-text-secondary shrink-0" />
+                                      <span className="truncate" title={proj.scale || 'Đang cập nhật'}>{proj.scale || 'Đang cập nhật'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 flex-1">
+                                      <Building2 className="w-3 h-3 text-text-secondary shrink-0" />
+                                      <span className="truncate" title={proj.units ? String(proj.units) : 'Đang cập nhật'}>{proj.units ? `${proj.units} căn` : 'Đang cập nhật'}</span>
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="text-xs text-[#999] flex items-start gap-1.5 leading-[1.5] mt-auto pt-1 w-full">
-                                  <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 shrink-0 mt-[2px]" />
-                                  <span className="text-left line-clamp-2">{proj.location || 'Đang cập nhật vị trí'}</span>
+                                <div className="flex items-start gap-1.5 text-[11px] text-text-secondary mt-auto pt-2 border-t border-border-color/50 w-full">
+                                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-[1px]" />
+                                  <span className="text-left line-clamp-2">
+                                    {proj.location || proj.title}
+                                  </span>
                                 </div>
                               </div>
                             </div>
@@ -1014,14 +1009,14 @@ export default function ProductList({
                 isEditMode 
                   ? `border-2 ${
                       selectedSectionId === section.id 
-                        ? 'border-amber-500 bg-amber-500/[0.01]' 
-                        : 'border-dashed border-slate-800 hover:border-amber-500/30'
+                        ? 'border-primary bg-[#064E3B]/10' 
+                        : 'border-dashed border-border-color/80 hover:border-primary/50'
                     }` 
                   : ''
-              } ${!section.visible ? 'opacity-40 bg-slate-950/20' : ''} ${
+              } ${!section.visible ? 'opacity-40 bg-white/20' : ''} ${
                 !isEditMode && section.id === 'products_filter' 
-                  ? `sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10'} z-40 bg-slate-950/95 backdrop-blur-md` 
-                  : ''
+                  ? `sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10'} z-40 bg-white/70 backdrop-blur-md shadow-sm transition-colors duration-300` 
+                  : 'relative z-10'
               }`}
               onClick={() => {
                 if (isEditMode) {

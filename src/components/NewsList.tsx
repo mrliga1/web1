@@ -40,17 +40,6 @@ export default function NewsList({
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Tất cả');
 
-  useEffect(() => {
-    if (searchQuery) {
-      document.title = `Tìm tin tức: "${searchQuery}" | Greenia Homes`;
-    } else if (categoryName) {
-      document.title = `Chuyên mục tin tức: ${categoryName} | Greenia Homes`;
-    } else if (activeTab && activeTab !== 'Tất cả') {
-      document.title = `Chuyên mục: ${activeTab} | Greenia Homes`;
-    } else {
-      document.title = "Cẩm Nang Phong Thủy & Tin Tức | Greenia Homes";
-    }
-  }, [searchQuery, categoryName, activeTab]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -209,8 +198,6 @@ export default function NewsList({
   };
 
   return (    <>
-      <SEO title="Tin Tức Bất Động Sản" />
-
     <div className="relative min-h-screen">
       <div className="space-y-4 pb-0 font-sans" id="news-catalog-root-wrapper">
         {sections.map((section, idx) => {
@@ -238,21 +225,21 @@ export default function NewsList({
             cardContent = (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[10px]">
                 {categoryName && (
-                  <div className="mb-4 flex items-center font-sans text-[13px] text-slate-400 gap-2">
-                    <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-amber-500 transition-colors font-medium">Tin tức</button>
-                    <span className="text-slate-600">/</span>
+                  <div className="mb-4 flex items-center font-sans text-[13px] text-text-secondary gap-2">
+                    <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary transition-colors font-medium">Tin tức</button>
+                    <span className="text-text-secondary">/</span>
                     {parentCategoryExt ? (
                       <>
-                        <button onClick={() => onNavigate({ screen: 'category-news', categoryName: parentCategoryExt.name })} className="hover:text-amber-500 transition-colors font-medium">{parentCategoryExt.name}</button>
-                        <span className="text-slate-600">/</span>
-                        <span className="text-amber-500 font-medium">{categoryName}</span>
+                        <button onClick={() => onNavigate({ screen: 'category-news', categoryName: parentCategoryExt.name })} className="hover:text-primary transition-colors font-medium">{parentCategoryExt.name}</button>
+                        <span className="text-text-secondary">/</span>
+                        <span className="text-primary font-medium">{categoryName}</span>
                       </>
                     ) : (
-                      <span className="text-amber-500 font-medium">{categoryName}</span>
+                      <span className="text-primary font-medium">{categoryName}</span>
                     )}
                   </div>
                 )}
-                <div className="border-b border-slate-800 mb-[15px] flex items-end overflow-x-auto hide-scrollbar gap-6 pb-1 relative">
+                <div className="border-b border-border-color mb-[15px] flex items-end overflow-x-auto hide-scrollbar gap-6 pb-1 relative">
                   {availableTabs.map((tab) => {
                     const isParent = newsCategoriesExt.some(c => c.parentId === newsCategoriesExt.find(pc => pc.name === tab)?.id);
                     return (
@@ -271,8 +258,8 @@ export default function NewsList({
                         }}
                         className={`text-base font-semibold transition-all cursor-pointer whitespace-nowrap bg-transparent border-none p-0 pb-1 mb-[-1px] font-sans ${
                           activeTab === tab 
-                            ? 'text-amber-500 border-b-2 border-amber-500 border-solid' 
-                            : 'text-slate-500 hover:text-amber-500 border-b-2 border-transparent border-solid'
+                            ? 'text-primary border-b-2 border-primary border-solid' 
+                            : 'text-text-secondary hover:text-primary border-b-2 border-transparent border-solid'
                         }`}
                       >
                         {tab}
@@ -281,15 +268,15 @@ export default function NewsList({
                   })}
                 </div>
 
-                <div className="border-b border-dashed border-slate-800 mb-0 pb-0">
+                <div className="border-b border-dashed border-border-color mb-0 pb-0">
                   <div className="space-y-2">
                     {categoryName ? (
                       <div>
-                        <h1 className="text-2xl sm:text-[26px] font-bold text-amber-500 leading-tight m-0 tracking-tight pt-[10px] pb-[8px] [&>span]:pt-0">
+                        <h1 className="text-2xl sm:text-[26px] font-bold text-primary leading-tight m-0 tracking-tight pt-[10px] pb-[8px] [&>span]:pt-0">
                           {currentCategoryExt?.seoTitle || categoryName}
                         </h1>
                         <div className="flex justify-between items-start flex-col md:flex-row gap-4 mt-2">
-                          <p className="text-slate-500 text-[13px] font-normal max-w-xl m-0">
+                          <p className="text-text-secondary text-[13px] font-normal max-w-xl m-0">
                             {currentCategoryExt?.seoDesc || `Khám phá các bài viết nổi bật thuộc chuyên mục ${categoryName}.`}
                           </p>
                           <div className="relative w-full md:w-[150px] shrink-0 h-[26px]">
@@ -298,9 +285,9 @@ export default function NewsList({
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                               placeholder="Tìm kiếm tiêu đề..."
-                              className="w-full bg-slate-900 border border-slate-800 text-slate-300 placeholder-slate-500 rounded py-[4px] pl-[26px] pr-2 text-[11px] h-[26px] focus:border-amber-500 outline-none transition-colors"
+                              className="w-full bg-bg-surface border border-border-color text-text-secondary placeholder-zinc-400 rounded py-[4px] pl-[26px] pr-2 text-[11px] h-[26px] focus:border-primary outline-none transition-colors"
                             />
-                            <Search className="absolute left-[8px] top-[8px] w-[10px] h-[10px] text-slate-500" />
+                            <Search className="absolute left-[8px] top-[8px] w-[10px] h-[10px] text-text-secondary" />
                           </div>
                         </div>
                       </div>
@@ -313,7 +300,7 @@ export default function NewsList({
                           isEditMode={isEditMode} 
                           sections={sections} 
                           onUpdateSections={onUpdateSections}
-                          className="text-2xl sm:text-[26px] font-bold text-amber-500 leading-tight m-0 pt-[10px] pb-[8px] [&>span]:pt-0"
+                          className="text-2xl sm:text-[26px] font-bold text-primary leading-tight m-0 pt-[10px] pb-[8px] [&>span]:pt-0"
                           tag="h1"
                         />
                         <div className="flex justify-between items-start flex-col md:flex-row gap-4">
@@ -325,7 +312,7 @@ export default function NewsList({
                             sections={sections} 
                             onUpdateSections={onUpdateSections}
                             isArea={true}
-                            className="text-slate-500 text-[13px] font-normal max-w-xl m-0"
+                            className="text-text-secondary text-[13px] font-normal max-w-xl m-0"
                             tag="p"
                           />
                           <div className="relative w-full md:w-[150px] shrink-0 h-[26px]">
@@ -334,9 +321,9 @@ export default function NewsList({
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                               placeholder="Tìm kiếm tiêu đề..."
-                              className="w-full bg-slate-900 border border-slate-800 text-slate-300 placeholder-slate-500 rounded py-[4px] pl-[26px] pr-2 text-[11px] h-[26px] focus:border-amber-500 outline-none transition-colors"
+                              className="w-full bg-bg-surface border border-border-color text-text-secondary placeholder-zinc-400 rounded py-[4px] pl-[26px] pr-2 text-[11px] h-[26px] focus:border-primary outline-none transition-colors"
                             />
-                            <Search className="absolute left-[8px] top-[8px] w-[10px] h-[10px] text-slate-500" />
+                            <Search className="absolute left-[8px] top-[8px] w-[10px] h-[10px] text-text-secondary" />
                           </div>
                         </div>
                       </>
@@ -350,14 +337,14 @@ export default function NewsList({
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
                 {loading ? (
                   <div className="py-12 text-center min-h-[500px] flex items-center justify-center">
-                    <div className="w-10 h-10 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
+                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
                   </div>
                 ) : filteredNews.length === 0 ? (
-                  <div className="text-center py-10 text-slate-500 text-sm">Không tìm thấy bài viết nào.</div>
+                  <div className="text-center py-10 text-text-secondary text-sm">Không tìm thấy bài viết nào.</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-10 lg:grid-cols-12 gap-6 items-start text-left">
                     {/* Cover highlight */}
-                    <div className="md:col-span-5 lg:col-span-5 bg-[#0e121b] border border-[#232d45] rounded overflow-hidden flex flex-col group cursor-pointer hover:border-amber-500 transition-colors">
+                    <div className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors">
                       <div className="h-[260px] overflow-hidden relative">
                         <img loading="eager" decoding="async"
                           // @ts-ignore
@@ -370,9 +357,9 @@ export default function NewsList({
                         />
                       </div>
 
-                      <div className="p-5 flex flex-col border-t border-[#232d45] bg-[#0e121b]">
+                      <div className="p-5 flex flex-col border-t border-border-color bg-bg-surface">
                         <h3 
-                          className="font-extrabold text-lg text-white mb-2.5 leading-snug line-clamp-2 hover:text-amber-500"
+                          className="font-extrabold text-lg text-text-primary mb-2.5 leading-snug line-clamp-2 hover:text-primary"
                           onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
                         >
                           {displayArticle?.title}
@@ -380,7 +367,7 @@ export default function NewsList({
                         <p className="text-[#888] text-[13px] mb-2.5 line-clamp-3 leading-[1.5]">
                           {displayArticle?.description}
                         </p>
-                        <div className="text-[11px] text-amber-500 font-semibold mt-2.5 flex items-center gap-1.5">
+                        <div className="text-[11px] text-primary font-semibold mt-2.5 flex items-center gap-1.5">
                           <Calendar className="w-3 h-3" />
                           {displayArticle ? new Date(displayArticle.createdAt).toLocaleDateString('vi-VN') : ''}
                         </div>
@@ -389,14 +376,14 @@ export default function NewsList({
 
                     {/* Middle grid (Hover List) */}
                     <div className="md:col-span-5 lg:col-span-4 flex flex-col">
-                      <div className="space-y-0 relative border-l border-[#232d45] md:border-none pl-4 md:pl-0">
+                      <div className="space-y-0 relative border-l border-border-color md:border-none pl-4 md:pl-0">
                         {filteredNews.slice(0, 8).map((article) => (
                           <div
                             key={article.id}
                             onMouseEnter={() => setHoveredArticle(article)}
                             onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
-                            className={`p-3 border-b border-dashed border-[#232d45] cursor-pointer text-[#94a3b8] font-medium text-[13px] transition-all leading-[1.4] ${
-                              displayArticle?.id === article.id ? 'bg-amber-500/5 text-amber-500 border-l-[3px] border-l-amber-500 pl-4 border-b-amber-500/20' : 'border-l-[3px] border-l-transparent'
+                            className={`p-3 border-b border-dashed border-border-color cursor-pointer text-[#a1a1aa] font-medium text-[13px] transition-all leading-[1.4] ${
+                              displayArticle?.id === article.id ? 'bg-primary/5 text-primary border-l-[3px] border-l-yellow-500 pl-4 border-b-yellow-500/20' : 'border-l-[3px] border-l-transparent'
                             }`}
                           >
                             <span className="line-clamp-2">{article.title}</span>
@@ -407,7 +394,7 @@ export default function NewsList({
 
                     {/* Right Trending Rail */}
                     <div className="md:col-span-10 lg:col-span-3 flex flex-col mt-6 lg:mt-0">
-                      <h3 className="text-[15px] font-bold text-amber-500 m-0 mb-4 pb-0 border-b-2 border-amber-500 w-max">
+                      <h3 className="text-[15px] font-bold text-primary m-0 mb-4 pb-0 border-b-2 border-primary w-max">
                         Tin nổi bật
                       </h3>
 
@@ -418,11 +405,11 @@ export default function NewsList({
                             onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
                             className="cursor-pointer group flex items-center gap-2.5 mb-4"
                           >
-                            <div className="w-[70px] h-[50px] shrink-0 rounded overflow-hidden border border-white/10">
+                            <div className="w-[70px] h-[50px] shrink-0 rounded overflow-hidden border border-border-inverse">
                               <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 800) || undefined} alt={`Ảnh thu nhỏ bài viết: ${article.title}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
-                              <h4 className="text-[12px] text-white hover:text-amber-500 transition-colors font-semibold line-clamp-2 m-0 mb-1 leading-snug">
+                              <h4 className="text-[12px] text-text-primary hover:text-primary transition-colors font-semibold line-clamp-2 m-0 mb-1 leading-snug">
                                 {article.title}
                               </h4>
                               <div className="flex items-center text-[10px] text-[#888] gap-1">
@@ -444,8 +431,8 @@ export default function NewsList({
                 <div className="flex flex-col md:flex-row gap-[30px] items-start mb-10 text-left">
                   {/* Left division */}
                   <div className="w-full md:w-[70%] flex flex-col md:pr-[15px]">
-                    <div className="flex justify-between items-end border-b border-[#232d45] pb-2 mb-5">
-                      <h3 className="text-[15px] font-bold text-white border-l-4 border-amber-500 pl-4 m-0 leading-none">Có thể bạn quan tâm</h3>
+                    <div className="flex justify-between items-end border-b border-border-color pb-2 mb-5">
+                      <h3 className="text-[15px] font-bold text-text-primary border-l-4 border-primary pl-4 m-0 leading-none">Có thể bạn quan tâm</h3>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-[20px] items-start content-start">
@@ -453,17 +440,17 @@ export default function NewsList({
                         <div
                           key={article.id}
                           onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
-                          className="flex gap-3 pb-[15px] border-b border-dashed border-[#232d45] transition-colors cursor-pointer group hover:border-b-amber-500 items-center"
+                          className="flex gap-3 pb-[15px] border-b border-dashed border-border-color transition-colors cursor-pointer group hover:border-b-yellow-500 items-center"
                         >
-                          <div className="w-[90px] h-[65px] rounded overflow-hidden shrink-0 border border-[#232d45] relative">
+                          <div className="w-[90px] h-[65px] rounded overflow-hidden shrink-0 border border-border-color relative">
                             <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 400) || undefined} alt={article.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                           </div>
 
                           <div className="flex-1 flex flex-col justify-center">
-                            <h4 className="text-[13px] font-semibold text-slate-200 group-hover:text-amber-500 line-clamp-2 leading-[1.4] m-0 mb-1.5 transition-colors">
+                            <h4 className="text-[13px] font-semibold text-text-primary group-hover:text-primary line-clamp-2 leading-[1.4] m-0 mb-1.5 transition-colors">
                               {article.title}
                             </h4>
-                            <div className="text-[11px] text-amber-500 flex items-center gap-1 mt-auto">
+                            <div className="text-[11px] text-primary flex items-center gap-1 mt-auto">
                               <Calendar className="w-3 h-3" />
                               {new Date(article.createdAt).toLocaleDateString('vi-VN')}
                             </div>
@@ -477,7 +464,7 @@ export default function NewsList({
                         <button
                           type="button"
                           onClick={handleInterestSeeMore}
-                          className="inline-block text-[11px] text-amber-500 font-bold uppercase py-2.5 px-[30px] border border-amber-500 rounded-lg transition-all no-underline cursor-pointer bg-transparent hover:bg-amber-500/15"
+                          className="inline-block text-[11px] text-primary font-bold uppercase py-2.5 px-[30px] border border-primary rounded-lg transition-all no-underline cursor-pointer bg-transparent hover:bg-primary/15"
                         >
                           Xem thêm bài viết
                         </button>
@@ -493,28 +480,28 @@ export default function NewsList({
                       if (sec.items.length === 0) return null;
                       return (
                         <div key={idx} className="flex flex-col">
-                          <div className={`flex justify-between items-end border-b border-[#232d45] pb-2 mb-5 ${idx === 0 ? 'mt-8 md:mt-0' : ''}`}>
-                            <h3 className="text-[15px] font-bold text-white border-l-4 border-amber-500 pl-4 m-0 leading-none text-shadow-sm">{sec.title}</h3>
+                          <div className={`flex justify-between items-end border-b border-border-color pb-2 mb-5 ${idx === 0 ? 'mt-8 md:mt-0' : ''}`}>
+                            <h3 className="text-[15px] font-bold text-text-primary border-l-4 border-primary pl-4 m-0 leading-none text-shadow-sm">{sec.title}</h3>
                           </div>
                           
                           <div className="flex flex-col gap-[15px]">
                             {sec.items.map((p: any) => (
                               <div
                                 key={p.id}
-                                onClick={() => onNavigate({ screen: sec.type === 'project' ? 'project-detail' : 'product-detail', [sec.type === 'project' ? 'projectId' : 'productId']: p.id } as any)}
+                                onClick={() => onNavigate({ screen: sec.type === 'project' ? 'project-detail' : 'product-detail', [sec.type === 'project' ? 'projectId' : 'productId']: p.id, slug: generateSlug(p.title) } as any)}
                                 className="flex gap-3 pb-[15px] border-b border-white/5 transition-colors cursor-pointer group"
                               >
-                                <div className="w-[100px] h-[85px] shrink-0 rounded overflow-hidden border border-[#232d45] relative">
+                                <div className="w-[100px] h-[85px] shrink-0 rounded overflow-hidden border border-border-color relative">
                                   {sec.type === 'product' && (
-                                    <span className={`absolute top-0 left-0 px-[5px] py-[3px] text-[10px] font-semibold text-white z-10 rounded-br-[5px] ${p.type === 'rent' ? 'bg-emerald-700' : 'bg-rose-700'}`}>
-                                      {p.type === 'rent' ? 'Cho thuê' : 'Đang bán'}
+                                    <span className={`absolute top-0 left-0 px-[5px] py-[3px] text-[10px] font-semibold text-white z-10 rounded-br-[5px] ${p.type === 'rent' ? 'bg-primary' : 'bg-rose-700'}`}>
+                                      {p.type === 'rent' ? 'Cho thuê' : 'Bán'}
                                     </span>
                                   )}
-                                  <img loading="lazy" decoding="async" src={optimizeImageUrl(p.images?.[0], 400) || undefined} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                                  <img loading="lazy" decoding="async" src={optimizeImageUrl(p.imageUrl || p.imageUrls?.[0], 400) || undefined} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                                 </div>
 
                                 <div className="flex-1 flex flex-col justify-center min-w-0">
-                                  <h4 className="text-[13px] font-semibold text-white leading-[1.4] m-0 mb-1.5 line-clamp-2 group-hover:text-amber-500">
+                                  <h4 className="text-[13px] font-semibold text-text-primary leading-[1.4] m-0 mb-1.5 line-clamp-2 group-hover:text-primary">
                                     {p.title}
                                   </h4>
                                   <div className="text-[11px] text-[#999] mb-1.5 flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -533,10 +520,10 @@ export default function NewsList({
                                     )}
                                   </div>
                                   <div className="flex justify-between items-center w-full mb-1">
-                                    <span className="text-amber-500 font-bold text-[12px]">{p.priceText}</span>
+                                    <span className="text-primary font-bold text-[12px]">{p.priceText}</span>
                                   </div>
                                   <div className="text-[11px] text-[#999] flex items-center gap-1 min-w-[70px]">
-                                    <MapPin className="w-3 h-3 text-amber-500 shrink-0" />
+                                    <MapPin className="w-3 h-3 text-primary shrink-0" />
                                     <span className="truncate">{p.district || p.location}</span>
                                   </div>
                                 </div>
@@ -550,7 +537,7 @@ export default function NewsList({
                     <div className="text-center w-full mt-6">
                        <button
                           onClick={() => onNavigate({ screen: 'san-pham' })}
-                          className="inline-block text-[10px] text-amber-500 font-bold uppercase py-[5px] px-[15px] border border-amber-500 rounded-lg transition-all no-underline cursor-pointer bg-transparent hover:bg-amber-500/15"
+                          className="inline-block text-[10px] text-primary font-bold uppercase py-[5px] px-[15px] border border-primary rounded-lg transition-all no-underline cursor-pointer bg-transparent hover:bg-primary/15"
                         >
                           Xem tất cả sản phẩm
                         </button>
@@ -565,11 +552,11 @@ export default function NewsList({
                 {/* Latest Sales */}
                 {latestSales.length > 0 && (
                   <section className="space-y-6 text-left">
-                    <h3 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">Tin Bán mới nhất</h3>
+                    <h3 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">Tin Bán mới nhất</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
                       {latestSales.map((item) => (
                         <div key={item.id} className="w-full">
-                          <ProductCard item={item} onNavigate={onNavigate} badgeText="Bán" badgeColor="bg-rose-700 text-white" />
+                          <ProductCard item={item} onNavigate={onNavigate} />
                         </div>
                       ))}
                     </div>
@@ -583,11 +570,11 @@ export default function NewsList({
                 {/* Latest Rents */}
                 {latestRents.length > 0 && (
                   <section className="space-y-6 text-left">
-                    <h3 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">Tin Cho thuê mới nhất</h3>
+                    <h3 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">Tin Cho thuê mới nhất</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
                       {latestRents.map((item) => (
                         <div key={item.id} className="w-full">
-                          <ProductCard item={item} onNavigate={onNavigate} badgeText="Cho thuê" badgeColor="bg-emerald-700 text-white" />
+                          <ProductCard item={item} onNavigate={onNavigate} />
                         </div>
                       ))}
                     </div>
@@ -598,69 +585,88 @@ export default function NewsList({
                 {featuredProjects.length > 0 && (
                   <section className="space-y-6 pt-16 text-left">
                     <div className="flex items-end justify-between pb-2">
-                      <h3 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">Dự án nổi bật</h3>
+                      <h3 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">Dự án nổi bật</h3>
                       <button
                         type="button"
                         onClick={() => onNavigate({ screen: 'du-an' })}
-                        className="flex items-center gap-1.5 text-[9px] uppercase font-mono tracking-widest text-amber-400 font-bold hover:underline bg-transparent border-none cursor-pointer p-0"
+                        className="flex items-center gap-1.5 text-[9px] uppercase font-mono tracking-widest text-primary font-bold hover:underline bg-transparent border-none cursor-pointer p-0"
                       >
                         <span>Xem thêm →</span>
                       </button>
                     </div>
-                    <div className="relative overflow-x-auto pb-4 scrollbar-thin scroll-smooth snap-x snap-mandatory">
-                      <div className="flex gap-5 box-border w-max lg:w-full">
-                        {featuredProjects.slice(0, 4).map((p) => {
-                          let statusText = 'Đang mở bán';
-                          if (p.status === 'handed_over') statusText = 'Đã bàn giao';
-                          if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
+                    <div className="relative overflow-hidden py-4 w-full">
+                      <style>{`
+                        @keyframes sliderScrollNewsList {
+                          0% { transform: translateX(0); }
+                          100% { transform: translateX(calc(-16.666666%)); }
+                        }
+                        .animate-news-list-slider {
+                          animation: sliderScrollNewsList 15s linear infinite;
+                        }
+                        .animate-news-list-sliding-container:hover .animate-news-list-slider {
+                          animation-play-state: paused;
+                        }
+                      `}</style>
+                      <div className="animate-news-list-sliding-container flex w-max">
+                        <div className="flex w-max animate-news-list-slider">
+                          {[...Array(6)].flatMap(() => featuredProjects.slice(0, 5)).map((p, idx) => {
+                            let statusText = 'Đang mở bán';
+                            if (p.status === 'handed_over') statusText = 'Đã bàn giao';
+                            if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
 
-                          return (
-                            <div
-                              key={p.id}
-                              onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
-                              className="w-[85vw] sm:w-[calc(50vw-20px)] lg:w-[calc(25%-15px)] shrink-0 bg-slate-900 border border-amber-500/20 rounded-lg overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-500 hover:shadow-[0_10px_20px_rgba(0,0,0,0.5)] cursor-pointer no-underline snap-start"
-                            >
-                              <div className="h-[220px] relative overflow-hidden group">
-                                <span className="absolute top-0 left-0 px-3 py-1.5 text-[11px] font-bold text-black bg-[#ff9f43] z-10 rounded-br-lg">
-                                  {statusText}
-                                </span>
-                                <img loading="lazy" decoding="async"
-                                  src={optimizeImageUrl(p.images?.[0], 400) || undefined}
-                                  alt={p.title}
-                                  referrerPolicy="no-referrer"
-                                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 block"
-                                  onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
-                                />
+                            return (
+                              <div
+                                key={`${p.id}-${idx}`}
+                                onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
+                                className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
+                              >
+                                <div className="relative aspect-[16/10] overflow-hidden">
+                                  <img loading="lazy" decoding="async"
+                                    src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                                    alt={p.title}
+                                    referrerPolicy="no-referrer"
+                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+                                    onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
+                                  />
+                                  <div className="absolute top-2 left-2 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded shadow-sm z-10">
+                                    {statusText}
+                                  </div>
+                                </div>
+      
+                                <div className="p-4 flex-1 flex flex-col justify-between text-left">
+                                  <div>
+                                    <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
+                                      {p.title}
+                                    </h4>
+                                    <div className="flex items-center justify-between text-xs mb-3 w-full">
+                                      <span className="text-text-secondary">Giá từ:</span>
+                                      <span className="text-primary font-bold text-[13px]">{p.priceText || "Đang cập nhật"}</span>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-2 text-[11px] text-text-secondary mb-2 w-full">
+                                      <div className="flex items-center gap-1.5 flex-1">
+                                        <Layers className="w-3 h-3 text-text-secondary shrink-0" />
+                                        <span className="truncate" title={p.scale || 'Đang cập nhật'}>{p.scale || 'Đang cập nhật'}</span>
+                                      </div>
+                                      <div className="flex items-center gap-1.5 flex-1">
+                                        <Building2 className="w-3 h-3 text-text-secondary shrink-0" />
+                                        <span className="truncate" title={p.units ? String(p.units) : 'Đang cập nhật'}>{p.units ? `${p.units} căn` : 'Đang cập nhật'}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-start gap-1.5 text-[11px] text-text-secondary mt-auto pt-2 border-t border-border-color/50 w-full">
+                                    <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-[1px]" />
+                                    <span className="text-left line-clamp-2">
+                                      {p.location || p.title}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
-
-                              <div className="p-4 flex-1 flex flex-col items-start bg-slate-900 text-left">
-                                <h3 className="text-[13px] sm:text-[15px] font-bold text-white leading-[1.4] m-0 mb-[9px] line-clamp-2 transition-colors group-hover:text-amber-500 text-left w-full">
-                                  {p.title}
-                               </h3>
-                               <div className="flex items-center justify-between text-xs mb-3 w-full">
-                                 <span className="text-slate-400">Giá từ:</span>
-                                 <span className="text-amber-500 font-extrabold text-[14px] sm:text-base">{p.priceText || "Đang cập nhật"}</span>
-                               </div>
-                               <div className="flex items-center gap-[10px] text-[11px] text-slate-300 mb-2 w-full">
-                                 <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                                   <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                                   <span className="truncate" title={p.scale || 'Đang cập nhật'}>{p.scale || 'Đang cập nhật quy mô'}</span>
-                                 </div>
-                                 <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                                   <Building2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                                   <span className="truncate" title={p.units ? String(p.units) : 'Đang cập nhật'}>{p.units ? `${p.units} căn` : 'Đang cập nhật số lượng'}</span>
-                                 </div>
-                               </div>
-                               <div className="text-xs text-[#999] flex items-start gap-1.5 leading-[1.5] mt-auto pt-1 w-full">
-                                 <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 shrink-0 mt-[2px]" />
-                                 <span className="text-left line-clamp-2">{p.location || 'Đang cập nhật vị trí'}</span>
-                               </div>
-                              </div>
-                            </div>
-                          );
+                            );
                         })}
                       </div>
                     </div>
+                  </div>
                   </section>
                 )}
               </div>
@@ -682,11 +688,11 @@ export default function NewsList({
                 isEditMode 
                   ? `border-2 ${
                       selectedSectionId === section.id 
-                        ? 'border-amber-500 bg-amber-500/[0.01]' 
-                        : 'border-dashed border-slate-800 hover:border-amber-500/30'
+                        ? 'border-primary bg-primary/[0.01]' 
+                        : 'border-dashed border-border-color hover:border-primary/30'
                     }` 
                   : ''
-              } ${!section.visible ? 'opacity-40 bg-slate-950/20' : ''}`}
+              } ${!section.visible ? 'opacity-40 bg-bg-inverse/20' : ''}`}
               onClick={() => {
                 if (isEditMode) {
                   setSelectedSectionId(section.id);

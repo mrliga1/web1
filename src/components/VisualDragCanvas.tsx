@@ -50,28 +50,28 @@ function CountdownTicker({ targetDate, color, backgroundColor }: CountdownTicker
         <div style={blockStyle} className="px-2 py-1 rounded-lg text-xs sm:text-sm font-extrabold shadow-md min-w-[32px]">
           {String(timeLeft.days).padStart(2, '0')}
         </div>
-        <span className="text-[7px] text-slate-400 uppercase mt-0.5 tracking-wider">Ngày</span>
+        <span className="text-[7px] text-zinc-300 uppercase mt-0.5 tracking-wider">Ngày</span>
       </div>
-      <span className="text-slate-500 font-extrabold text-xs translate-y-[-4px]">:</span>
+      <span className="text-zinc-400 font-extrabold text-xs translate-y-[-4px]">:</span>
       <div className="flex flex-col items-center">
         <div style={blockStyle} className="px-2 py-1 rounded-lg text-xs sm:text-sm font-extrabold shadow-md min-w-[32px]">
           {String(timeLeft.hours).padStart(2, '0')}
         </div>
-        <span className="text-[7px] text-slate-400 uppercase mt-0.5 tracking-wider">Giờ</span>
+        <span className="text-[7px] text-zinc-300 uppercase mt-0.5 tracking-wider">Giờ</span>
       </div>
-      <span className="text-slate-500 font-extrabold text-xs translate-y-[-4px]">:</span>
+      <span className="text-zinc-400 font-extrabold text-xs translate-y-[-4px]">:</span>
       <div className="flex flex-col items-center">
         <div style={blockStyle} className="px-2 py-1 rounded-lg text-xs sm:text-sm font-extrabold shadow-md min-w-[32px]">
           {String(timeLeft.minutes).padStart(2, '0')}
         </div>
-        <span className="text-[7px] text-slate-400 uppercase mt-0.5 tracking-wider">Phút</span>
+        <span className="text-[7px] text-zinc-300 uppercase mt-0.5 tracking-wider">Phút</span>
       </div>
-      <span className="text-slate-500 font-extrabold text-xs translate-y-[-4px]">:</span>
+      <span className="text-zinc-400 font-extrabold text-xs translate-y-[-4px]">:</span>
       <div className="flex flex-col items-center">
         <div style={blockStyle} className="px-2 py-1 rounded-lg text-xs sm:text-sm font-extrabold shadow-md min-w-[32px]">
           {String(timeLeft.seconds).padStart(2, '0')}
         </div>
-        <span className="text-[7px] text-slate-400 uppercase mt-0.5 tracking-wider">Giây</span>
+        <span className="text-[7px] text-zinc-300 uppercase mt-0.5 tracking-wider">Giây</span>
       </div>
     </div>
   );
@@ -87,7 +87,7 @@ function AccordionWidget({ items, color, backgroundColor }: AccordionWidgetProps
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   if (!items || items.length === 0) {
-    return <div className="text-[10px] text-slate-500 p-2">Danh sách trống</div>;
+    return <div className="text-[10px] text-zinc-400 p-2">Danh sách trống</div>;
   }
 
   return (
@@ -98,7 +98,7 @@ function AccordionWidget({ items, color, backgroundColor }: AccordionWidgetProps
           <div 
             key={idx} 
             style={{ backgroundColor: backgroundColor || '#1e293b' }}
-            className="rounded-lg border border-slate-800/80 overflow-hidden transition-all duration-200 shadow-sm"
+            className="rounded-lg border border-zinc-800/80 overflow-hidden transition-all duration-200 shadow-sm"
           >
             <button
               type="button"
@@ -107,10 +107,10 @@ function AccordionWidget({ items, color, backgroundColor }: AccordionWidgetProps
               style={{ color: color || '#f8fafc', backgroundColor: 'transparent' }}
             >
               <span className="line-clamp-1">{item.title}</span>
-              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-amber-400' : 'text-slate-400'}`} />
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-yellow-400' : 'text-zinc-300'}`} />
             </button>
             {isOpen && (
-              <div className="px-3 pb-2 pt-0.5 text-[9px] text-slate-300 leading-relaxed font-light border-t border-slate-800/40">
+              <div className="px-3 pb-2 pt-0.5 text-[9px] text-zinc-200 leading-relaxed font-light border-t border-zinc-800/40">
                 {item.content}
               </div>
             )}
@@ -203,7 +203,7 @@ export default function VisualDragCanvas({
         top: 20,
         width: 70,
         content: 'Nhận bảng thẩm định phong thủy và long sinh vượng khí từ Ban Trị sự Greenia Homes',
-        style: { fontFamily: 'font-sans', fontSize: 'xs', color: '#94a3b8', textAlign: 'center' }
+        style: { fontFamily: 'font-sans', fontSize: 'xs', color: '#a1a1aa', textAlign: 'center' }
       },
       {
         id: 'btn_1',
@@ -709,7 +709,7 @@ export default function VisualDragCanvas({
         name: 'Luxury Hero Banner',
         elements: [
           { id: 'h_1', type: 'text', left: 10, top: 12, width: 80, content: 'GREENIA ROYAL MANSIONS\nNƠI HỘI TỤ ĐẾ VƯƠNG KHÍ', style: { fontFamily: 'font-display', fontSize: '3xl', fontWeight: 'extrabold', color: '#fbbf24', textAlign: 'center' } },
-          { id: 'h_2', type: 'text', left: 15, top: 38, width: 70, content: 'Bảo chứng phú quý bởi dòng chảy đồi phù sa tự nhiên mát lạnh.', style: { fontFamily: 'font-sans', fontSize: 'sm', color: '#cbd5e1', textAlign: 'center' } },
+          { id: 'h_2', type: 'text', left: 15, top: 38, width: 70, content: 'Bảo chứng phú quý bởi dòng chảy đồi phù sa tự nhiên mát lạnh.', style: { fontFamily: 'font-sans', fontSize: 'sm', color: '#d4d4d8', textAlign: 'center' } },
           { id: 'h_3', type: 'button', left: 38, top: 62, width: 24, content: 'ĐẶT LỊCH THĂM QUAN', linkUrl: '#lien-he', style: { fontFamily: 'font-display', fontSize: 'xs', fontWeight: 'bold', color: '#020617', backgroundColor: '#fbbf24', borderRadius: '9999px', padding: '12px', textAlign: 'center' } }
         ]
       },
@@ -761,74 +761,74 @@ export default function VisualDragCanvas({
       
       {/* Editor Controls Overlay */}
       {isEditMode && (
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-4 space-y-3 shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 mb-4 space-y-3 shadow-2xl" onClick={e => e.stopPropagation()}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] font-mono font-extrabold bg-amber-500/10 text-amber-400 px-3 py-1.5 rounded-full uppercase mr-2 shrink-0">
+              <span className="text-[10px] font-mono font-extrabold bg-yellow-500/10 text-yellow-400 px-3 py-1.5 rounded-full uppercase mr-2 shrink-0">
                 LadiPage Visual Builder
               </span>
               
-              <button onClick={() => handleAddNewElement('text')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
-                <Type className="w-3.5 h-3.5 text-amber-400" /> Chữ
+              <button onClick={() => handleAddNewElement('text')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
+                <Type className="w-3.5 h-3.5 text-yellow-400" /> Chữ
               </button>
-              <button onClick={() => handleAddNewElement('image')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
+              <button onClick={() => handleAddNewElement('image')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <Image className="w-3.5 h-3.5 text-blue-400" /> Ảnh
               </button>
-              <button onClick={() => handleAddNewElement('button')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
+              <button onClick={() => handleAddNewElement('button')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <Link className="w-3.5 h-3.5 text-yellow-400" /> Nút
               </button>
-              <button onClick={() => handleAddNewElement('icon')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
+              <button onClick={() => handleAddNewElement('icon')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <Sparkles className="w-3.5 h-3.5 text-orange-400" /> Icon
               </button>
-              <button onClick={() => handleAddNewElement('form')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
-                <Phone className="w-3.5 h-3.5 text-amber-500" /> Đăng ký
+              <button onClick={() => handleAddNewElement('form')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
+                <Phone className="w-3.5 h-3.5 text-yellow-500" /> Đăng ký
               </button>
-              <button onClick={() => handleAddNewElement('table')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
+              <button onClick={() => handleAddNewElement('table')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <Table className="w-3.5 h-3.5 text-purple-400" /> Bảng
               </button>
-              <button onClick={() => handleAddNewElement('box')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
+              <button onClick={() => handleAddNewElement('box')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <Square className="w-3.5 h-3.5 text-gray-400" /> Khung
               </button>
-              <button onClick={() => handleAddNewElement('video')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
+              <button onClick={() => handleAddNewElement('video')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <Video className="w-3.5 h-3.5 text-red-400" /> Video
               </button>
-              <button onClick={() => handleAddNewElement('map')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
+              <button onClick={() => handleAddNewElement('map')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <Map className="w-3.5 h-3.5 text-cyan-400" /> Bản đồ
               </button>
-              <button onClick={() => handleAddNewElement('line')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
-                <Sliders className="w-3.5 h-3.5 text-slate-400" /> Kẻ ngang
+              <button onClick={() => handleAddNewElement('line')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
+                <Sliders className="w-3.5 h-3.5 text-zinc-300" /> Kẻ ngang
               </button>
-              <button onClick={() => handleAddNewElement('countdown')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
+              <button onClick={() => handleAddNewElement('countdown')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <Clock className="w-3.5 h-3.5 text-pink-400" /> Đếm ngược
               </button>
-              <button onClick={() => handleAddNewElement('html')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
-                <Maximize2 className="w-3.5 h-3.5 text-amber-400" /> Mã HTML
+              <button onClick={() => handleAddNewElement('html')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
+                <Maximize2 className="w-3.5 h-3.5 text-yellow-400" /> Mã HTML
               </button>
-              <button onClick={() => handleAddNewElement('accordion')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
+              <button onClick={() => handleAddNewElement('accordion')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <List className="w-3.5 h-3.5 text-indigo-400" /> Hỏi-Đáp
               </button>
-              <button onClick={() => handleAddNewElement('list')} className="bg-slate-950 text-slate-350 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-850 cursor-pointer">
-                <CheckCircle className="w-3.5 h-3.5 text-amber-500" /> Danh sách
+              <button onClick={() => handleAddNewElement('list')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
+                <CheckCircle className="w-3.5 h-3.5 text-yellow-500" /> Danh sách
               </button>
             </div>
 
             <div className="flex items-center gap-2">
-              <button onClick={handleUndo} disabled={historyPointer <= 0} className="p-2 rounded bg-slate-950 text-slate-300 disabled:opacity-25 hover:text-white cursor-pointer" title="Undo">
+              <button onClick={handleUndo} disabled={historyPointer <= 0} className="p-2 rounded bg-black text-zinc-200 disabled:opacity-25 hover:text-white cursor-pointer" title="Undo">
                 <RotateCcw className="w-4 h-4" />
               </button>
-              <button onClick={handleRedo} disabled={historyPointer >= history.length - 1} className="p-2 rounded bg-slate-950 text-slate-300 disabled:opacity-25 hover:text-white cursor-pointer" title="Redo">
+              <button onClick={handleRedo} disabled={historyPointer >= history.length - 1} className="p-2 rounded bg-black text-zinc-200 disabled:opacity-25 hover:text-white cursor-pointer" title="Redo">
                 <RotateCcw className="w-4 h-4 scale-x-[-1]" />
               </button>
-              <button onClick={viewSubmissions} className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs cursor-pointer">
+              <button onClick={viewSubmissions} className="bg-yellow-500 hover:bg-amber-600 text-black font-bold px-3 py-1.5 rounded-lg text-xs cursor-pointer">
                 VIP Leads list
               </button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1 border-t border-slate-800 text-xs text-slate-400">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-1 border-t border-zinc-800 text-xs text-zinc-300">
             <div className="flex items-center gap-2">
               <span>Bố cục mẫu:</span>
-              <select onChange={e => { if(e.target.value) loadPresetBocuc(parseInt(e.target.value)) }} className="bg-slate-950 text-slate-200 p-1.5 rounded-lg w-full outline-none">
+              <select onChange={e => { if(e.target.value) loadPresetBocuc(parseInt(e.target.value)) }} className="bg-black text-zinc-100 p-1.5 rounded-lg w-full outline-none">
                 <option value="">-- Chọn bố cục mẫu --</option>
                 <option value="0">Luxury Hero Banner</option>
                 <option value="1">Form & Sơ đồ Bản đồ</option>
@@ -838,7 +838,7 @@ export default function VisualDragCanvas({
 
             <div className="flex items-center gap-2">
               <span>Nền LadiPage:</span>
-              <select value={bgType} onChange={e => handleCanvasOptionChange('bgType', e.target.value)} className="bg-slate-950 text-slate-200 p-1.5 rounded-lg w-full outline-none">
+              <select value={bgType} onChange={e => handleCanvasOptionChange('bgType', e.target.value)} className="bg-black text-zinc-100 p-1.5 rounded-lg w-full outline-none">
                 <option value="color">Màu sắc</option>
                 <option value="gradient">Gradient</option>
                 <option value="image">Hình ảnh</option>
@@ -853,7 +853,7 @@ export default function VisualDragCanvas({
               <select 
                 value={section.extraData?.preventCopy ? "enabled" : "disabled"} 
                 onChange={e => handleCanvasOptionChange('preventCopy', e.target.value === 'enabled')} 
-                className="bg-slate-950 text-slate-200 p-1.5 rounded-lg w-full outline-none text-xs"
+                className="bg-black text-zinc-100 p-1.5 rounded-lg w-full outline-none text-xs"
               >
                 <option value="disabled">Mở sao chép</option>
                 <option value="enabled">Chống chuột phải & Copy</option>
@@ -874,7 +874,7 @@ export default function VisualDragCanvas({
         
         {/* Canvas Area */}
         <div 
-          className={`xl:col-span-${selectedElem ? '8' : '12'} transition-all relative rounded-lg overflow-hidden shadow-2xl border border-slate-850`}
+          className={`xl:col-span-${selectedElem ? '8' : '12'} transition-all relative rounded-lg overflow-hidden shadow-2xl border border-slate-800`}
           style={{
             height: `${canvasHeight}px`,
             backgroundColor: bgType === 'color' ? bgColor : undefined,
@@ -922,11 +922,11 @@ export default function VisualDragCanvas({
               );
             } else if (el.type === 'image') {
               innerContent = (
-                <div style={{ borderRadius: el.style.borderRadius || '12px', overflow: 'hidden' }} className="w-full aspect-[4/3] bg-slate-900">
+                <div style={{ borderRadius: el.style.borderRadius || '12px', overflow: 'hidden' }} className="w-full aspect-[4/3] bg-zinc-900">
                   {el.content ? (
                     <img loading="lazy" decoding="async" src={(el.content) || undefined} alt="Visual" className="w-full h-full object-cover select-none" referrerPolicy="no-referrer" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-slate-500 text-xs">Hình ảnh rỗng</div>
+                    <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">Hình ảnh rỗng</div>
                   )}
                 </div>
               );
@@ -967,21 +967,21 @@ export default function VisualDragCanvas({
                   onClick={e => e.stopPropagation()}
                 >
                   <div className="text-center">
-                    <h5 className="text-[12px] font-bold uppercase text-amber-400">{el.content || 'ĐĂNG KÝ QUY TRÌNH PHONG THỦY'}</h5>
-                    <p className="text-[9px] text-slate-400">Tìm hiểu trong 5 phút</p>
+                    <h5 className="text-[12px] font-bold uppercase text-yellow-400">{el.content || 'ĐĂNG KÝ QUY TRÌNH PHONG THỦY'}</h5>
+                    <p className="text-[9px] text-zinc-300">Tìm hiểu trong 5 phút</p>
                   </div>
                   <div className="space-y-2 text-xs">
                     <div>
-                      <span className="text-[9px] text-slate-400 block mb-0.5">Họ & tên gia chủ</span>
-                      <input type="text" placeholder="Đại phú gia" disabled={isEditMode} value={formName} onChange={e => setFormName(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-lg p-1 px-2.5 text-[10px] text-white outline-none" />
+                      <span className="text-[9px] text-zinc-300 block mb-0.5">Họ & tên gia chủ</span>
+                      <input type="text" placeholder="Đại phú gia" disabled={isEditMode} value={formName} onChange={e => setFormName(e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-1 px-2.5 text-[10px] text-white outline-none" />
                     </div>
                     <div>
-                      <span className="text-[9px] text-slate-400 block mb-0.5">Hotline di động (*)</span>
-                      <input type="text" placeholder="091 • • • • •" disabled={isEditMode} value={formPhone} onChange={e => setFormPhone(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-lg p-1 px-2.5 text-[10px] text-white outline-none" />
+                      <span className="text-[9px] text-zinc-300 block mb-0.5">Hotline di động (*)</span>
+                      <input type="text" placeholder="091 • • • • •" disabled={isEditMode} value={formPhone} onChange={e => setFormPhone(e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-1 px-2.5 text-[10px] text-white outline-none" />
                     </div>
                     <div>
-                      <span className="text-[9px] text-slate-400 block mb-0.5">Khu vực ưu ái</span>
-                      <select disabled={isEditMode} value={formZone} onChange={e => setFormZone(e.target.value)} className="w-full bg-slate-900 border border-slate-800 rounded-lg p-1 px-2 text-[10px] text-white outline-none">
+                      <span className="text-[9px] text-zinc-300 block mb-0.5">Khu vực ưu ái</span>
+                      <select disabled={isEditMode} value={formZone} onChange={e => setFormZone(e.target.value)} className="w-full bg-zinc-900 border border-zinc-800 rounded-lg p-1 px-2 text-[10px] text-white outline-none">
                         <option value="Biệt thự Chateau">Chateau Phú Mỹ Hưng</option>
                         <option value="Đất nền Thảo Điền">Đất nền Thảo Điền</option>
                         <option value="Sky Villa VIP">Sky Golden Villa</option>
@@ -1012,7 +1012,7 @@ export default function VisualDragCanvas({
                       setFormPhone('');
                       onShowNotification('Nhận đăng ký thành công!', 'success');
                     }}
-                    className="w-full font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 py-2 rounded-lg text-[10px] tracking-wider cursor-pointer"
+                    className="w-full font-bold bg-yellow-500 hover:bg-yellow-400 text-black py-2 rounded-lg text-[10px] tracking-wider cursor-pointer"
                   >
                     GỞI GIA THẦN THẨM ĐỊNH
                   </button>
@@ -1020,20 +1020,20 @@ export default function VisualDragCanvas({
               );
             } else if (el.type === 'table' && el.tableData) {
               innerContent = (
-                <div style={{ backgroundColor: el.style.backgroundColor || '#0f172a', borderRadius: el.style.borderRadius || '16px', padding: el.style.padding || '12px' }} className="w-full border border-slate-800 overflow-hidden">
+                <div style={{ backgroundColor: el.style.backgroundColor || '#0f172a', borderRadius: el.style.borderRadius || '16px', padding: el.style.padding || '12px' }} className="w-full border border-zinc-800 overflow-x-auto">
                   <table className="w-full text-[10px]">
                     <thead>
-                      <tr className="border-b border-slate-800">
+                      <tr className="border-b border-zinc-800">
                         {el.tableData.headers.map((h, idx) => (
-                          <th key={idx} className="pb-1 px-1.5 text-amber-400 uppercase tracking-widest text-[8px] font-extrabold">{h}</th>
+                          <th key={idx} className="pb-1 px-1.5 text-yellow-400 uppercase tracking-widest text-[8px] font-extrabold">{h}</th>
                         ))}
                       </tr>
                     </thead>
                     <tbody>
                       {el.tableData.rows.map((row, rIdx) => (
-                        <tr key={rIdx} className="border-b border-slate-900/50">
+                        <tr key={rIdx} className="border-b border-zinc-900/50">
                           {row.map((cell, cIdx) => (
-                            <td key={cIdx} className="py-2 px-1.5 text-slate-300 font-light truncate">{cell}</td>
+                            <td key={cIdx} className="py-2 px-1.5 text-zinc-200 font-light truncate">{cell}</td>
                           ))}
                         </tr>
                       ))}
@@ -1049,15 +1049,15 @@ export default function VisualDragCanvas({
               );
             } else if (el.type === 'map') {
               innerContent = (
-                <div style={{ borderRadius: el.style.borderRadius || '16px' }} className="w-full aspect-video bg-slate-900 p-3.5 flex flex-col justify-between border border-slate-800">
+                <div style={{ borderRadius: el.style.borderRadius || '16px' }} className="w-full aspect-video bg-zinc-900 p-3.5 flex flex-col justify-between border border-zinc-800">
                   <div className="flex justify-between items-start text-[9px]">
                     <div>
-                      <span className="font-bold text-slate-200 block uppercase">SƠ ĐỒ PHÂN LÔ ĐỊA LONG</span>
-                      <span className="text-slate-500 font-mono text-[8px]">Greenia Homes Residence</span>
+                      <span className="font-bold text-zinc-100 block uppercase">SƠ ĐỒ PHÂN LÔ ĐỊA LONG</span>
+                      <span className="text-zinc-400 font-mono text-[8px]">Greenia Homes Residence</span>
                     </div>
                     <span className="bg-red-500/10 border border-red-500/20 text-red-400 px-1.5 py-0.5 rounded text-[8px] select-none uppercase">Đặc Quyền VIP</span>
                   </div>
-                  <div className="flex-1 my-2 bg-slate-950/60 rounded border border-slate-850 relative overflow-hidden flex items-center justify-center">
+                  <div className="flex-1 my-2 bg-black/60 rounded border border-slate-800 relative overflow-hidden flex items-center justify-center">
                     <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-ping absolute" />
                     <div className="w-1.5 h-1.5 bg-red-500 rounded-full absolute" />
                     <span className="text-[8px] text-red-400 bg-red-950/40 p-1 rounded backdrop-blur-xs absolute translate-y-4">Vị trí Chateau Long Mạch</span>
@@ -1088,7 +1088,7 @@ export default function VisualDragCanvas({
                     borderRadius: el.style.borderRadius || '12px',
                     padding: el.style.padding || '10px'
                   }}
-                  className="w-full shadow-lg border border-slate-800"
+                  className="w-full shadow-lg border border-zinc-800"
                 >
                   <CountdownTicker 
                     targetDate={el.extraConfig?.countdownTarget || new Date(Date.now() + 86400000).toISOString()} 
@@ -1105,8 +1105,8 @@ export default function VisualDragCanvas({
                     borderRadius: el.style.borderRadius || '12px',
                     padding: el.style.padding || '0px'
                   }}
-                  className="w-full overflow-hidden text-xs text-slate-300"
-                  dangerouslySetInnerHTML={{ __html: el.extraConfig?.rawHtml || '<p className="p-3 text-center text-slate-500">Mã HTML trống</p>' }}
+                  className="w-full overflow-hidden text-xs text-zinc-200"
+                  dangerouslySetInnerHTML={{ __html: el.extraConfig?.rawHtml || '<p className="p-3 text-center text-zinc-400">Mã HTML trống</p>' }}
                 />
               );
             } else if (el.type === 'accordion') {
@@ -1144,7 +1144,7 @@ export default function VisualDragCanvas({
                 >
                   {(el.extraConfig?.listItems || []).map((itm, iIdx) => (
                     <div key={iIdx} className="flex items-start gap-2">
-                      <CheckCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <CheckCircle className="w-4 h-4 text-yellow-400 shrink-0 mt-0.5" />
                       <span className="leading-tight font-light">{itm}</span>
                     </div>
                   ))}
@@ -1152,7 +1152,7 @@ export default function VisualDragCanvas({
               );
             } else {
               innerContent = (
-                <div style={{ backgroundColor: el.style.backgroundColor || 'rgba(30,31,59,0.4)', borderRadius: el.style.borderRadius || '16px', padding: el.style.padding || '12px' }} className="w-full flex items-center justify-center font-mono text-[9px] text-slate-400 min-h-12 border border-dashed border-slate-800">
+                <div style={{ backgroundColor: el.style.backgroundColor || 'rgba(30,31,59,0.4)', borderRadius: el.style.borderRadius || '16px', padding: el.style.padding || '12px' }} className="w-full flex items-center justify-center font-mono text-[9px] text-zinc-300 min-h-12 border border-dashed border-zinc-800">
                   {el.content || 'Khung kết cấu trống'}
                 </div>
               );
@@ -1170,8 +1170,8 @@ export default function VisualDragCanvas({
                   cursor: isEditMode ? 'move' : 'default'
                 }}
                 className={`transition-shadow ${
-                  isEditMode ? 'hover:ring-2 hover:ring-amber-500/50' : ''
-                } ${isSelected ? 'ring-2 ring-amber-500 p-0.5 shadow-2xl bg-amber-500/[0.02] rounded-lg' : ''}`}
+                  isEditMode ? 'hover:ring-2 hover:ring-yellow-500/50' : ''
+                } ${isSelected ? 'ring-2 ring-yellow-500 p-0.5 shadow-2xl bg-yellow-500/[0.02] rounded-lg' : ''}`}
                 onMouseDown={e => {
                   if (isEditMode) {
                     e.stopPropagation();
@@ -1186,13 +1186,13 @@ export default function VisualDragCanvas({
               >
                 {/* Element Edit Toolbar Overlay (INSIDE THE Outlines for perfect clipped bypass!) */}
                 {isEditMode && isSelected && (
-                  <div className="absolute -top-7 left-0 right-0 h-7 bg-slate-900 border border-slate-800 text-[9px] px-2 flex items-center justify-between z-50 rounded-lg shadow-xl" onClick={e => e.stopPropagation()}>
+                  <div className="absolute -top-7 left-0 right-0 h-7 bg-zinc-900 border border-zinc-800 text-[9px] px-2 flex items-center justify-between z-50 rounded-lg shadow-xl" onClick={e => e.stopPropagation()}>
                     <div className="flex items-center gap-1 cursor-move flex-1 h-full pr-2">
-                      <GripVertical className="w-3.5 h-3.5 text-amber-400" />
-                      <span className="text-slate-350 uppercase font-mono font-bold text-[8px]">{el.type}</span>
+                      <GripVertical className="w-3.5 h-3.5 text-yellow-400" />
+                      <span className="text-slate-400 uppercase font-mono font-bold text-[8px]">{el.type}</span>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button onClick={handleDuplicateElement} title="Nhân bản" className="text-amber-400 hover:text-amber-300 p-1 cursor-pointer">
+                      <button onClick={handleDuplicateElement} title="Nhân bản" className="text-yellow-400 hover:text-amber-300 p-1 cursor-pointer">
                         <Copy className="w-3.5 h-3.5" />
                       </button>
                       <button onClick={e => handleDeleteElement(el.id, e)} title="Xóa" className="text-rose-400 hover:text-rose-300 p-1 cursor-pointer">
@@ -1210,19 +1210,19 @@ export default function VisualDragCanvas({
 
         {/* Dynamic Sidebar Inspector Panel */}
         {isEditMode && selectedElem && (
-          <div className="xl:col-span-4 bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-5 text-xs text-slate-300 shadow-2xl max-h-[600px] overflow-y-auto" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div className="xl:col-span-4 bg-zinc-900 border border-zinc-800 rounded-lg p-5 space-y-5 text-xs text-zinc-200 shadow-2xl max-h-[600px] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
               <span className="font-bold text-white uppercase tracking-wider font-display shrink-0 text-[11px] flex items-center gap-1.5">
-                <Settings className="w-4 h-4 text-amber-400" /> Căn chỉnh phần tử
+                <Settings className="w-4 h-4 text-yellow-400" /> Căn chỉnh phần tử
               </span>
-              <span className="bg-slate-950 text-amber-400 font-mono text-[9px] px-2 py-0.5 rounded font-bold uppercase shrink-0">{selectedElem.type}</span>
+              <span className="bg-black text-yellow-400 font-mono text-[9px] px-2 py-0.5 rounded font-bold uppercase shrink-0">{selectedElem.type}</span>
             </div>
 
             {/* Quick action buttons for selected element (DUPLICATE & DELETE inside sidebar for 100% security against canvas clipping!) */}
             <div className="grid grid-cols-2 gap-2">
               <button 
                 onClick={handleDuplicateElement}
-                className="bg-slate-950 hover:bg-slate-850 text-amber-400 p-2.5 rounded-lg border border-solid border-slate-800 hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5 font-bold uppercase text-[9px]"
+                className="bg-black hover:bg-slate-800 text-yellow-400 p-2.5 rounded-lg border border-solid border-zinc-800 hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5 font-bold uppercase text-[9px]"
               >
                 <Copy className="w-3.5 h-3.5" /> Nhân bản (Clone)
               </button>
@@ -1236,19 +1236,19 @@ export default function VisualDragCanvas({
 
             {/* Z-Index custom Layer positioning */}
             <div className="space-y-2">
-              <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1">
-                <ArrowUp className="w-3 h-3 text-amber-400" /> Thứ tự phẳng (Layer Depth)
+              <label className="text-[10px] text-zinc-300 font-bold uppercase tracking-wider flex items-center gap-1">
+                <ArrowUp className="w-3 h-3 text-yellow-400" /> Thứ tự phẳng (Layer Depth)
               </label>
               <div className="flex gap-2">
                 <button 
                   onClick={() => { const z = selectedElem.style.zIndex ? parseInt(selectedElem.style.zIndex) : 25; updateStyle('zIndex', (z + 5).toString()); onShowNotification('Đã nâng độ sâu lớp hiển thị', 'success'); }}
-                  className="bg-slate-950 hover:bg-slate-850 text-slate-300 p-2 rounded-lg flex-1 cursor-pointer flex items-center justify-center gap-1"
+                  className="bg-black hover:bg-slate-800 text-zinc-200 p-2 rounded-lg flex-1 cursor-pointer flex items-center justify-center gap-1"
                 >
-                  <ArrowUp className="w-3 h-3 text-amber-400" /> Tiến lên trước
+                  <ArrowUp className="w-3 h-3 text-yellow-400" /> Tiến lên trước
                 </button>
                 <button 
                   onClick={() => { const z = selectedElem.style.zIndex ? parseInt(selectedElem.style.zIndex) : 25; updateStyle('zIndex', Math.max(0, z - 5).toString()); onShowNotification('Đã hạ lớp hiển thị xuống', 'success'); }}
-                  className="bg-slate-950 hover:bg-slate-850 text-slate-300 p-2 rounded-lg flex-1 cursor-pointer flex items-center justify-center gap-1"
+                  className="bg-black hover:bg-slate-800 text-zinc-200 p-2 rounded-lg flex-1 cursor-pointer flex items-center justify-center gap-1"
                 >
                   <ArrowDown className="w-3 h-3 text-red-400" /> Rút ra sau
                 </button>
@@ -1257,33 +1257,33 @@ export default function VisualDragCanvas({
 
             {/* Sizing Width slider */}
             <div className="space-y-1.5">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Chiều rộng tỉ lệ (%): {selectedElem.width}%</span>
-              <input type="range" min="10" max="100" value={selectedElem.width} onChange={e => updateWidth(parseInt(e.target.value))} className="w-full h-1 bg-slate-950 rounded accent-emerald-500" />
+              <span className="text-[10px] text-zinc-300 font-bold uppercase tracking-wider block">Chiều rộng tỉ lệ (%): {selectedElem.width}%</span>
+              <input type="range" min="10" max="100" value={selectedElem.width} onChange={e => updateWidth(parseInt(e.target.value))} className="w-full h-1 bg-black rounded accent-emerald-500" />
             </div>
 
             {/* Content updater fields based on node type */}
             {selectedElem.type === 'text' && (
               <div className="space-y-1.5">
-                <span className="text-[10px] text-slate-400 block font-bold">NỘI DUNG CHỮ</span>
-                <textarea rows={3} value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-slate-200 outline-none p-2 rounded-lg text-xs focus:border-amber-500 resize-none" />
+                <span className="text-[10px] text-zinc-300 block font-bold">NỘI DUNG CHỮ</span>
+                <textarea rows={3} value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg text-xs focus:border-yellow-500 resize-none" />
               </div>
             )}
 
             {selectedElem.type === 'button' && (
               <div className="space-y-1.5">
-                <span className="text-[10px] text-slate-400 block font-bold">NHÃN NÚT</span>
-                <input type="text" value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-slate-200 outline-none p-2 rounded-lg" />
-                <span className="text-[10px] text-slate-400 block font-bold">LIÊN KẾT ĐIỀU HƯỚNG</span>
-                <input type="text" value={selectedElem.linkUrl || ''} onChange={e => updateLinkUrl(e.target.value)} placeholder="#lien-he" className="w-full bg-slate-950 border border-slate-800 text-slate-200 outline-none p-2 rounded-lg font-mono" />
+                <span className="text-[10px] text-zinc-300 block font-bold">NHÃN NÚT</span>
+                <input type="text" value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg" />
+                <span className="text-[10px] text-zinc-300 block font-bold">LIÊN KẾT ĐIỀU HƯỚNG</span>
+                <input type="text" value={selectedElem.linkUrl || ''} onChange={e => updateLinkUrl(e.target.value)} placeholder="#lien-he" className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg font-mono" />
               </div>
             )}
 
             {selectedElem.type === 'image' && (
               <div className="space-y-1.5">
-                <span className="text-[10px] text-slate-400 block font-bold">LIÊN KẾT ẢNH (URL)</span>
+                <span className="text-[10px] text-zinc-300 block font-bold">LIÊN KẾT ẢNH (URL)</span>
                 <div className="flex gap-1.5">
-                  <input type="text" value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-slate-200 outline-none p-2 rounded-lg" />
-                  <label className="bg-amber-500 hover:bg-amber-600 text-slate-950 p-2 rounded-lg cursor-pointer flex items-center shrink-0">
+                  <input type="text" value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg" />
+                  <label className="bg-yellow-500 hover:bg-amber-600 text-black p-2 rounded-lg cursor-pointer flex items-center shrink-0">
                     <Upload className="w-4 h-4" />
                     <input type="file" accept="image/*" onChange={handleLocalImageUpload} className="hidden" />
                   </label>
@@ -1293,8 +1293,8 @@ export default function VisualDragCanvas({
 
             {selectedElem.type === 'icon' && (
               <div className="space-y-1.5">
-                <span className="text-[10px] text-slate-400 block font-bold">CHỌN BIỂU TƯỢNG</span>
-                <select value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-slate-950 border border-slate-850 p-2 rounded-lg text-slate-200 outline-none">
+                <span className="text-[10px] text-zinc-300 block font-bold">CHỌN BIỂU TƯỢNG</span>
+                <select value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-black border border-slate-800 p-2 rounded-lg text-zinc-100 outline-none">
                   {['home', 'phone', 'mail', 'star', 'award', 'heart', 'map-pin', 'calendar', 'dollar', 'users', 'clock', 'shield'].map(nm => (
                     <option key={nm} value={nm}>{nm.toUpperCase()}</option>
                   ))}
@@ -1304,38 +1304,38 @@ export default function VisualDragCanvas({
 
             {selectedElem.type === 'form' && (
               <div className="space-y-1.5">
-                <span className="text-[10px] text-slate-400 block font-bold">TIÊU ĐỀ KHỐI ĐĂNG KÝ VIP</span>
-                <input type="text" value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-slate-200 outline-none p-2 rounded-lg" />
+                <span className="text-[10px] text-zinc-300 block font-bold">TIÊU ĐỀ KHỐI ĐĂNG KÝ VIP</span>
+                <input type="text" value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg" />
               </div>
             )}
 
             {selectedElem.type === 'video' && (
               <div className="space-y-1.5">
-                <span className="text-[10px] text-slate-400 block font-bold">LIÊN KẾT EMBED YOUTUBE/STREAM VIDEO</span>
-                <input type="text" value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-slate-200 outline-none p-2 rounded-lg font-mono text-xs" />
+                <span className="text-[10px] text-zinc-300 block font-bold">LIÊN KẾT EMBED YOUTUBE/STREAM VIDEO</span>
+                <input type="text" value={selectedElem.content} onChange={e => updateContent(e.target.value)} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg font-mono text-xs" />
               </div>
             )}
 
             {selectedElem.type === 'line' && (
               <div className="space-y-3.5">
                 <div className="space-y-1">
-                  <span className="text-[10px] text-slate-400 block font-bold">MÀU SẮC ĐƯỜNG KẺ</span>
+                  <span className="text-[10px] text-zinc-300 block font-bold">MÀU SẮC ĐƯỜNG KẺ</span>
                   <div className="flex gap-2 items-center">
                     <input type="color" value={selectedElem.extraConfig?.lineColor || selectedElem.style.borderColor || '#475569'} onChange={e => { updateExtraConfig('lineColor', e.target.value); updateStyle('borderColor', e.target.value); }} className="w-8 h-8 rounded border border-slate-700 bg-transparent cursor-pointer" />
-                    <span className="font-mono text-slate-300 text-xs">{selectedElem.extraConfig?.lineColor || '#475569'}</span>
+                    <span className="font-mono text-zinc-200 text-xs">{selectedElem.extraConfig?.lineColor || '#475569'}</span>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] text-slate-400 block font-bold">HOA VĂN ĐƯỜNG NÉT</span>
-                  <select value={selectedElem.extraConfig?.lineStyle || 'solid'} onChange={e => updateExtraConfig('lineStyle', e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-slate-200 outline-none p-2 rounded-lg">
+                  <span className="text-[10px] text-zinc-300 block font-bold">HOA VĂN ĐƯỜNG NÉT</span>
+                  <select value={selectedElem.extraConfig?.lineStyle || 'solid'} onChange={e => updateExtraConfig('lineStyle', e.target.value)} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg">
                     <option value="solid">Nét thẳng liền mạch (Solid)</option>
                     <option value="dashed">Nét đứt quãng rộng (Dashed)</option>
                     <option value="dotted">Nhóm các dấu chấm tròn (Dotted)</option>
                   </select>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] text-slate-400 block font-bold">ĐỘ DÀY ĐƯỜNG KẺ</span>
-                  <select value={selectedElem.extraConfig?.lineHeight || '2px'} onChange={e => updateExtraConfig('lineHeight', e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-slate-200 outline-none p-2 rounded-lg">
+                  <span className="text-[10px] text-zinc-300 block font-bold">ĐỘ DÀY ĐƯỜNG KẺ</span>
+                  <select value={selectedElem.extraConfig?.lineHeight || '2px'} onChange={e => updateExtraConfig('lineHeight', e.target.value)} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg">
                     <option value="1px">Siêu thanh mảnh (1px)</option>
                     <option value="2px">Vừa phải vừa chuẩn (2px)</option>
                     <option value="4px">Đầu nét tô đậm (4px)</option>
@@ -1348,8 +1348,8 @@ export default function VisualDragCanvas({
             {selectedElem.type === 'countdown' && (
               <div className="space-y-3">
                 <div className="space-y-1">
-                  <span className="text-[10px] text-slate-400 block font-bold">THỜI GIAN ĐÍCH HẾT HẠN</span>
-                  <input type="datetime-local" value={selectedElem.extraConfig?.countdownTarget || ''} onChange={e => updateExtraConfig('countdownTarget', e.target.value)} className="w-full bg-slate-950 border border-slate-800 text-slate-200 outline-none p-2 rounded-lg font-mono" />
+                  <span className="text-[10px] text-zinc-300 block font-bold">THỜI GIAN ĐÍCH HẾT HẠN</span>
+                  <input type="datetime-local" value={selectedElem.extraConfig?.countdownTarget || ''} onChange={e => updateExtraConfig('countdownTarget', e.target.value)} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg font-mono" />
                 </div>
                 <div className="p-2.5 bg-yellow-500/10 rounded-lg border border-yellow-500/15 text-[10px] text-yellow-500 leading-normal">
                   Chế độ đếm ngược thời gian thực (Giờ/Phút/Giây) giúp kích hoạt tính khẩn cấp hành động của người truy cập để tăng 300% tỉ lệ đặt cọc!
@@ -1359,28 +1359,28 @@ export default function VisualDragCanvas({
 
             {selectedElem.type === 'html' && (
               <div className="space-y-1.5">
-                <span className="text-[10px] text-slate-400 block font-bold">MÃ NHÚNG HTML / IFRAME KHÁC</span>
-                <textarea rows={6} value={selectedElem.extraConfig?.rawHtml || ''} onChange={e => updateExtraConfig('rawHtml', e.target.value)} placeholder="<div>Thêm mã tùy chọn ở đây</div>" className="w-full bg-slate-950 border border-slate-850 text-amber-400 outline-none p-2.5 rounded-lg font-mono text-[10px] resize-y" />
+                <span className="text-[10px] text-zinc-300 block font-bold">MÃ NHÚNG HTML / IFRAME KHÁC</span>
+                <textarea rows={6} value={selectedElem.extraConfig?.rawHtml || ''} onChange={e => updateExtraConfig('rawHtml', e.target.value)} placeholder="<div>Thêm mã tùy chọn ở đây</div>" className="w-full bg-black border border-slate-800 text-yellow-400 outline-none p-2.5 rounded-lg font-mono text-[10px] resize-y" />
               </div>
             )}
 
             {selectedElem.type === 'accordion' && (
               <div className="space-y-3.5">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">CÂU HỎI THƯỜNG GẶP (FAQ)</span>
-                  <button onClick={addAccordionItem} className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-2 py-0.5 rounded text-[9px] font-bold cursor-pointer transition-colors block shrink-0">
+                  <span className="text-[10px] text-zinc-300 block font-bold uppercase">CÂU HỎI THƯỜNG GẶP (FAQ)</span>
+                  <button onClick={addAccordionItem} className="bg-yellow-500 hover:bg-amber-600 text-black px-2 py-0.5 rounded text-[9px] font-bold cursor-pointer transition-colors block shrink-0">
                     + Thêm hàng FAQ
                   </button>
                 </div>
                 <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
                   {(selectedElem.extraConfig?.accordionItems || []).map((itm, index) => (
-                    <div key={index} className="p-2 bg-slate-950 rounded-lg border border-slate-850 space-y-1.5 relative">
+                    <div key={index} className="p-2 bg-black rounded-lg border border-slate-800 space-y-1.5 relative">
                       <div className="flex justify-between items-center">
-                        <span className="text-[8px] text-slate-500 font-mono">CÂU #{index + 1}</span>
+                        <span className="text-[8px] text-zinc-400 font-mono">CÂU #{index + 1}</span>
                         <button onClick={() => deleteAccordionItem(index)} className="text-rose-400 hover:text-rose-300 text-[8px] font-bold shrink-0 cursor-pointer">Xóa</button>
                       </div>
-                      <input type="text" value={itm.title} onChange={e => editAccordionItem(index, 'title', e.target.value)} placeholder="Tiêu đề câu hỏi..." className="w-full bg-slate-900 border border-slate-800 text-white outline-none p-1 rounded-lg text-[10px]" />
-                      <textarea rows={2} value={itm.content} onChange={e => editAccordionItem(index, 'content', e.target.value)} placeholder="Nội dung diễn giải chi tiết..." className="w-full bg-slate-900 border border-slate-800 text-slate-300 outline-none p-1 rounded-lg text-[9px] resize-none" />
+                      <input type="text" value={itm.title} onChange={e => editAccordionItem(index, 'title', e.target.value)} placeholder="Tiêu đề câu hỏi..." className="w-full bg-zinc-900 border border-zinc-800 text-white outline-none p-1 rounded-lg text-[10px]" />
+                      <textarea rows={2} value={itm.content} onChange={e => editAccordionItem(index, 'content', e.target.value)} placeholder="Nội dung diễn giải chi tiết..." className="w-full bg-zinc-900 border border-zinc-800 text-zinc-200 outline-none p-1 rounded-lg text-[9px] resize-none" />
                     </div>
                   ))}
                 </div>
@@ -1390,15 +1390,15 @@ export default function VisualDragCanvas({
             {selectedElem.type === 'list' && (
               <div className="space-y-3.5">
                 <div className="flex justify-between items-center">
-                  <span className="text-[10px] text-slate-400 block font-bold uppercase">Ý CHÍNH TRONG DANH SÁCH</span>
-                  <button onClick={addListItem} className="bg-amber-500 hover:bg-amber-600 text-slate-950 px-2 py-0.5 rounded text-[9px] font-bold cursor-pointer transition-colors block shrink-0">
+                  <span className="text-[10px] text-zinc-300 block font-bold uppercase">Ý CHÍNH TRONG DANH SÁCH</span>
+                  <button onClick={addListItem} className="bg-yellow-500 hover:bg-amber-600 text-black px-2 py-0.5 rounded text-[9px] font-bold cursor-pointer transition-colors block shrink-0">
                     + Thêm Dòng mới
                   </button>
                 </div>
                 <div className="space-y-1.5 max-h-60 overflow-y-auto pr-1">
                   {(selectedElem.extraConfig?.listItems || []).map((itm, index) => (
-                    <div key={index} className="flex gap-1.5 items-center bg-slate-950 rounded-lg p-1.5 border border-slate-850">
-                      <input type="text" value={itm} onChange={e => editListItem(index, e.target.value)} className="w-full bg-transparent outline-none text-slate-200 text-[10px]" />
+                    <div key={index} className="flex gap-1.5 items-center bg-black rounded-lg p-1.5 border border-slate-800">
+                      <input type="text" value={itm} onChange={e => editListItem(index, e.target.value)} className="w-full bg-transparent outline-none text-zinc-100 text-[10px]" />
                       <button onClick={() => deleteListItem(index)} className="text-rose-400 hover:text-rose-300 text-[9px] font-bold pr-1 shrink-0 cursor-pointer">Xóa</button>
                     </div>
                   ))}
@@ -1407,15 +1407,15 @@ export default function VisualDragCanvas({
             )}
 
             {/* Extra formatting controls */}
-            <div className="space-y-3.5 pt-3.5 border-t border-slate-800">
-              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block flex items-center gap-1"><Palette className="w-3.5 h-3.5 text-amber-400" /> KIỂU DÁNG CHỮ THỂ & MÀU SẮC</span>
+            <div className="space-y-3.5 pt-3.5 border-t border-zinc-800">
+              <span className="text-[10px] text-zinc-300 font-bold uppercase tracking-wider block flex items-center gap-1"><Palette className="w-3.5 h-3.5 text-yellow-400" /> KIỂU DÁNG CHỮ THỂ & MÀU SẮC</span>
               
               <div className="grid grid-cols-2 gap-2 text-[11px]">
                 {selectedElem.type === 'text' && (
                   <>
                     <div className="space-y-1">
                       <span>Kiểu chữ</span>
-                      <select value={selectedElem.style.fontFamily || 'font-sans'} onChange={e => updateStyle('fontFamily', e.target.value)} className="w-full bg-slate-950 border border-slate-850 p-1 rounded">
+                      <select value={selectedElem.style.fontFamily || 'font-sans'} onChange={e => updateStyle('fontFamily', e.target.value)} className="w-full bg-black border border-slate-800 p-1 rounded">
                         <option value="font-sans">Sans Mượt</option>
                         <option value="font-serif">Serif Trọng</option>
                         <option value="font-mono">Mono Bảng</option>
@@ -1423,7 +1423,7 @@ export default function VisualDragCanvas({
                     </div>
                     <div className="space-y-1">
                       <span>Độ đậm</span>
-                      <select value={selectedElem.style.fontWeight || 'normal'} onChange={e => updateStyle('fontWeight', e.target.value)} className="w-full bg-slate-950 border border-slate-850 p-1 rounded">
+                      <select value={selectedElem.style.fontWeight || 'normal'} onChange={e => updateStyle('fontWeight', e.target.value)} className="w-full bg-black border border-slate-800 p-1 rounded">
                         <option value="normal">Mỏng thường</option>
                         <option value="bold">Xây đậm</option>
                         <option value="extrabold">Cực đậm</option>
@@ -1431,7 +1431,7 @@ export default function VisualDragCanvas({
                     </div>
                     <div className="space-y-1">
                       <span>Cỡ chữ</span>
-                      <select value={selectedElem.style.fontSize || 'base'} onChange={e => updateStyle('fontSize', e.target.value)} className="w-full bg-slate-950 border border-slate-850 p-1 rounded">
+                      <select value={selectedElem.style.fontSize || 'base'} onChange={e => updateStyle('fontSize', e.target.value)} className="w-full bg-black border border-slate-800 p-1 rounded">
                         <option value="xs">Nhỏ xíu</option>
                         <option value="sm">Vừa vặn</option>
                         <option value="base">Bình thường</option>
@@ -1442,7 +1442,7 @@ export default function VisualDragCanvas({
                     </div>
                     <div className="space-y-1">
                       <span>Căn hàng</span>
-                      <select value={selectedElem.style.textAlign || 'left'} onChange={e => updateStyle('textAlign', e.target.value)} className="w-full bg-slate-950 border border-slate-850 p-1 rounded">
+                      <select value={selectedElem.style.textAlign || 'left'} onChange={e => updateStyle('textAlign', e.target.value)} className="w-full bg-black border border-slate-800 p-1 rounded">
                         <option value="left">Trái</option>
                         <option value="center">Giữa</option>
                         <option value="right">Phải</option>
@@ -1455,7 +1455,7 @@ export default function VisualDragCanvas({
                   <span>Sắc màu (Màu)</span>
                   <div className="flex gap-1">
                     <input type="color" value={selectedElem.style.color || '#ffffff'} onChange={e => updateStyle('color', e.target.value)} className="w-5 h-5 border-none cursor-pointer shrink-0 bg-transparent" />
-                    <input type="text" value={selectedElem.style.color || '#ffffff'} onChange={e => updateStyle('color', e.target.value)} className="bg-slate-950 p-0.5 rounded text-[10px] w-full outline-none" />
+                    <input type="text" value={selectedElem.style.color || '#ffffff'} onChange={e => updateStyle('color', e.target.value)} className="bg-black p-0.5 rounded text-[10px] w-full outline-none" />
                   </div>
                 </div>
 
@@ -1463,13 +1463,13 @@ export default function VisualDragCanvas({
                   <span>Màu nền</span>
                   <div className="flex gap-1">
                     <input type="color" value={selectedElem.style.backgroundColor && selectedElem.style.backgroundColor !== 'transparent' ? selectedElem.style.backgroundColor : '#10b981'} onChange={e => updateStyle('backgroundColor', e.target.value)} className="w-5 h-5 border-none cursor-pointer shrink-0 bg-transparent" />
-                    <button onClick={() => updateStyle('backgroundColor', 'transparent')} className="p-0.5 bg-slate-950 text-[8px] rounded shrink-0">Trong</button>
+                    <button onClick={() => updateStyle('backgroundColor', 'transparent')} className="p-0.5 bg-black text-[8px] rounded shrink-0">Trong</button>
                   </div>
                 </div>
 
                 <div className="space-y-1">
                   <span>Bo góc</span>
-                  <select value={selectedElem.style.borderRadius || '0px'} onChange={e => updateStyle('borderRadius', e.target.value)} className="w-full bg-slate-950 border border-slate-850 p-1 rounded">
+                  <select value={selectedElem.style.borderRadius || '0px'} onChange={e => updateStyle('borderRadius', e.target.value)} className="w-full bg-black border border-slate-800 p-1 rounded">
                     <option value="0px">Sắc cạnh</option>
                     <option value="8px">Bo 8px</option>
                     <option value="16px">Bo 16px</option>
@@ -1480,7 +1480,7 @@ export default function VisualDragCanvas({
 
                 <div className="space-y-1">
                   <span>Dệm lề px</span>
-                  <select value={selectedElem.style.padding || '0px'} onChange={e => updateStyle('padding', e.target.value)} className="w-full bg-slate-950 border border-slate-850 p-1 rounded">
+                  <select value={selectedElem.style.padding || '0px'} onChange={e => updateStyle('padding', e.target.value)} className="w-full bg-black border border-slate-800 p-1 rounded">
                     <option value="0px">Sát nôi (0px)</option>
                     <option value="4px">Mỏng (4px)</option>
                     <option value="10px">Vừa (10px)</option>
@@ -1490,7 +1490,7 @@ export default function VisualDragCanvas({
               </div>
             </div>
 
-            <button onClick={() => setSelectedElemId(null)} className="w-full bg-amber-500 hover:bg-amber-650 text-slate-950 font-bold py-2 rounded-lg text-center uppercase cursor-pointer">
+            <button onClick={() => setSelectedElemId(null)} className="w-full bg-yellow-500 hover:bg-amber-650 text-black font-bold py-2 rounded-lg text-center uppercase cursor-pointer">
               Áp dụng & Đóng
             </button>
           </div>
@@ -1500,21 +1500,21 @@ export default function VisualDragCanvas({
       {/* Guest registration dialog alert popup */}
       {showFormSuccess && formSuccessDetail && (
         <div className="fixed inset-0 bg-black/85 z-[150] flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setShowFormSuccess(false)}>
-          <div className="bg-slate-900 border border-amber-500/30 p-8 rounded-lg max-w-sm w-full text-center space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
-            <div className="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto ring-8 ring-amber-500/5">
+          <div className="bg-zinc-900 border border-yellow-500/30 p-8 rounded-lg max-w-sm w-full text-center space-y-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="w-14 h-14 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto ring-8 ring-yellow-500/5">
               <CheckCircle className="w-8 h-8" />
             </div>
             <div>
               <h4 className="text-lg font-bold text-white uppercase tracking-wider font-display">Giao dịch Gửi Thành Công!</h4>
-              <p className="text-xs text-slate-400 font-light mt-1 text-center">Ban Trị sự đặc trách sẽ liên hệ gia chủ sớm nhất.</p>
+              <p className="text-xs text-zinc-300 font-light mt-1 text-center">Ban Trị sự đặc trách sẽ liên hệ gia chủ sớm nhất.</p>
             </div>
-            <div className="bg-slate-950 p-3.5 rounded-lg border border-slate-850 text-left text-[11px] space-y-1.5 font-sans">
-              <p className="text-slate-400">Gia chủ: <b className="text-slate-200">{formSuccessDetail.name}</b></p>
-              <p className="text-slate-400">Hotline: <b className="text-slate-200">{formSuccessDetail.phone}</b></p>
-              <p className="text-slate-400">Mong muốn: <b className="text-slate-200">{formSuccessDetail.zone}</b></p>
-              <p className="text-slate-500 font-mono text-[9px]">Gửi: {formSuccessDetail.time}</p>
+            <div className="bg-black p-3.5 rounded-lg border border-slate-800 text-left text-[11px] space-y-1.5 font-sans">
+              <p className="text-zinc-300">Gia chủ: <b className="text-zinc-100">{formSuccessDetail.name}</b></p>
+              <p className="text-zinc-300">Hotline: <b className="text-zinc-100">{formSuccessDetail.phone}</b></p>
+              <p className="text-zinc-300">Mong muốn: <b className="text-zinc-100">{formSuccessDetail.zone}</b></p>
+              <p className="text-zinc-400 font-mono text-[9px]">Gửi: {formSuccessDetail.time}</p>
             </div>
-            <button onClick={() => setShowFormSuccess(false)} className="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-2.5 rounded-lg text-xs cursor-pointer">
+            <button onClick={() => setShowFormSuccess(false)} className="w-full bg-yellow-500 hover:bg-amber-600 text-black font-bold py-2.5 rounded-lg text-xs cursor-pointer">
               Đồng ý & Đóng
             </button>
           </div>
@@ -1524,27 +1524,27 @@ export default function VisualDragCanvas({
       {/* Admin Leads Management Submissions Overlay Drawer */}
       {showLeadsList && (
         <div className="fixed inset-0 bg-black/85 z-[150] flex items-center justify-center p-4 backdrop-blur-sm shadow-2xl" onClick={() => setShowLeadsList(false)}>
-          <div className="bg-slate-900 border border-slate-800 p-6 sm:p-8 rounded-lg max-w-2xl w-full text-left space-y-5" onClick={e => e.stopPropagation()}>
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+          <div className="bg-zinc-900 border border-zinc-800 p-6 sm:p-8 rounded-lg max-w-2xl w-full text-left space-y-5" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center border-b border-zinc-800 pb-3">
               <span className="font-bold text-white uppercase text-xs tracking-wider font-display flex items-center gap-1.5">
-                <Users className="w-5 h-5 text-amber-400" /> Danh sách khách hàng đăng ký (VIP Leads)
+                <Users className="w-5 h-5 text-yellow-400" /> Danh sách khách hàng đăng ký (VIP Leads)
               </span>
-              <button onClick={() => setShowLeadsList(false)} className="text-slate-500 hover:text-white text-lg select-none cursor-pointer">✕</button>
+              <button onClick={() => setShowLeadsList(false)} className="text-zinc-400 hover:text-white text-lg select-none cursor-pointer">✕</button>
             </div>
 
             <div className="max-h-80 overflow-y-auto space-y-2.5 pr-2">
               {loadedLeads.length === 0 ? (
-                <div className="text-center py-12 text-slate-500 text-xs font-light">Chưa có lượt đăng ký VIP nào từ hệ thống Form.</div>
+                <div className="text-center py-12 text-zinc-400 text-xs font-light">Chưa có lượt đăng ký VIP nào từ hệ thống Form.</div>
               ) : (
                 loadedLeads.map((lead: any) => (
-                  <div key={lead.id} className="bg-slate-950 border border-slate-850 p-3 rounded-lg flex items-center justify-between gap-4 text-[11px]">
+                  <div key={lead.id} className="bg-black border border-slate-800 p-3 rounded-lg flex items-center justify-between gap-4 text-[11px]">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <span className="font-bold text-white text-xs">{lead.name}</span>
-                        <span className="bg-amber-500/10 text-amber-400 text-[8px] font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">{lead.zone}</span>
+                        <span className="bg-yellow-500/10 text-yellow-400 text-[8px] font-bold px-1.5 py-0.5 rounded tracking-wide uppercase">{lead.zone}</span>
                       </div>
-                      <p className="text-slate-400 font-mono font-bold text-[10px]">Hotline: {lead.phone}</p>
-                      <p className="text-[9px] text-slate-500 font-light">Khối: {lead.sectionName} | Đăng ký lúc: {lead.time}</p>
+                      <p className="text-zinc-300 font-mono font-bold text-[10px]">Hotline: {lead.phone}</p>
+                      <p className="text-[9px] text-zinc-400 font-light">Khối: {lead.sectionName} | Đăng ký lúc: {lead.time}</p>
                     </div>
                     <button
                       onClick={() => {
@@ -1562,7 +1562,7 @@ export default function VisualDragCanvas({
               )}
             </div>
 
-            <div className="flex justify-between items-center pt-3 border-t border-slate-800">
+            <div className="flex justify-between items-center pt-3 border-t border-zinc-800">
               <button
                 onClick={() => {
                   localStorage.removeItem('ladipage_submitted_leads');
@@ -1573,7 +1573,7 @@ export default function VisualDragCanvas({
               >
                 Xóa tất cả
               </button>
-              <button onClick={() => setShowLeadsList(false)} className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs cursor-pointer">
+              <button onClick={() => setShowLeadsList(false)} className="bg-yellow-500 hover:bg-amber-600 text-black font-bold px-4 py-2 rounded-lg text-xs cursor-pointer">
                 Hoàn thành
               </button>
             </div>

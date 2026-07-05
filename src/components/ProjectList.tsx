@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { generateSlug } from '../lib/utils';
+import { generateSlug, optimizeImageUrl } from '../lib/utils';
 import { SEO } from './SEO';
 import { collection, getDocs, db } from '../firebase';
 import { Product, Project, RouteState } from '../types';
@@ -74,13 +74,7 @@ export default function ProjectList({
     scrollToGrid();
   }, [keyword, currentStatus]);
 
-  useEffect(() => {
-    if (keyword) {
-      document.title = `Dự kiến tìm kiếm: "${keyword}" | Greenia Homes`;
-    } else {
-      document.title = "Dự Án Quy Hoạch Nổi Bật | Greenia Homes";
-    }
-  }, [keyword]);
+
 
   const filteredProjects = projects.filter(p => {
     let matchStatus = true;
@@ -148,8 +142,6 @@ export default function ProjectList({
   };
 
   return (    <>
-      <SEO title="Dự Án Nổi Bật" />
-
     <div className="relative min-h-screen">
       <div className="space-y-4 pb-0 font-sans" id="projects-view-root">
         {sections.map((section, idx) => {
@@ -182,7 +174,7 @@ export default function ProjectList({
                     isEditMode={isEditMode} 
                     sections={sections} 
                     onUpdateSections={onUpdateSections}
-                    className="text-3xl font-display font-medium text-white tracking-wide uppercase mb-3"
+                    className="text-3xl font-display font-medium text-text-primary tracking-wide uppercase mb-3"
                     tag="h1"
                   />
                   <EditableText 
@@ -193,7 +185,7 @@ export default function ProjectList({
                     sections={sections} 
                     onUpdateSections={onUpdateSections}
                     isArea={true}
-                    className="text-slate-400 text-[15px] font-light block max-w-2xl mx-auto"
+                    className="text-text-secondary text-[15px] font-light block max-w-2xl mx-auto"
                     tag="p"
                   />
                 </div>
@@ -204,7 +196,7 @@ export default function ProjectList({
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-6" id="projects-grid-section">
                 
                 {/* Navbar/Filter Bar */}
-                <div className={`block sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10 md:top-10'} z-[100] bg-slate-950/95 backdrop-blur-md pb-[2px] pt-[5px] border-b border-amber-500/10 shadow-[0_10px_20px_rgba(0,0,0,0.5)] mb-[24px] transition-all duration-300 mx-[-1rem] sm:mx-0 px-4 sm:px-0`}>
+                <div className={`block sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10 md:top-10'} z-[100] bg-white/70 backdrop-blur-md pb-[2px] pt-[5px] border-b border-primary/10 shadow-sm mb-[24px] transition-colors duration-300 mx-[-1rem] sm:mx-0 px-4 sm:px-0`}>
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative">
                     {!isSearchOpen && (
                       <div className="flex w-full md:w-auto items-center pr-1 md:pr-0">
@@ -216,7 +208,7 @@ export default function ProjectList({
                               const parent = e.currentTarget.parentElement;
                               if (parent) parent.scrollTo({ left: e.currentTarget.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 + e.currentTarget.clientWidth / 2, behavior: 'smooth' });
                             }}
-                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === '' ? 'bg-amber-500/10 text-amber-500 border-amber-500' : 'bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500'}`}
+                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === '' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                           >
                             Tất cả dự án
                           </button>
@@ -227,7 +219,7 @@ export default function ProjectList({
                               const parent = e.currentTarget.parentElement;
                               if (parent) parent.scrollTo({ left: e.currentTarget.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 + e.currentTarget.clientWidth / 2, behavior: 'smooth' });
                             }}
-                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'opening' ? 'bg-amber-500/10 text-amber-500 border-amber-500' : 'bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500'}`}
+                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'opening' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                           >
                             Đang mở bán
                           </button>
@@ -238,7 +230,7 @@ export default function ProjectList({
                               const parent = e.currentTarget.parentElement;
                               if (parent) parent.scrollTo({ left: e.currentTarget.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 + e.currentTarget.clientWidth / 2, behavior: 'smooth' });
                             }}
-                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'coming_soon' ? 'bg-amber-500/10 text-amber-500 border-amber-500' : 'bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500'}`}
+                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'coming_soon' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                           >
                             Sắp ra mắt
                           </button>
@@ -249,14 +241,14 @@ export default function ProjectList({
                               const parent = e.currentTarget.parentElement;
                               if (parent) parent.scrollTo({ left: e.currentTarget.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 + e.currentTarget.clientWidth / 2, behavior: 'smooth' });
                             }}
-                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'handed_over' ? 'bg-amber-500/10 text-amber-500 border-amber-500' : 'bg-transparent border-white/10 text-white hover:bg-amber-500/10 hover:text-amber-500 hover:border-amber-500'}`}
+                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'handed_over' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                           >
                             Đã bàn giao
                           </button>
                         </div>
                         <button
                           onClick={() => setIsSearchOpen(true)}
-                          className="md:hidden ml-2 px-[8px] py-[6px] border border-amber-500/30 text-amber-500 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer bg-slate-900 hover:bg-amber-500/10 flex items-center justify-center h-full"
+                          className="md:hidden ml-2 px-[8px] py-[6px] border border-primary/30 text-primary shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer bg-bg-surface hover:bg-[#064E3B]/10 flex items-center justify-center h-full"
                         >
                           <Search className="w-3.5 h-3.5" />
                         </button>
@@ -276,10 +268,10 @@ export default function ProjectList({
                           value={searchInput}
                           onChange={e => setSearchInput(e.target.value)}
                           placeholder="Tìm tên dự án, vị trí..." 
-                          className="w-full bg-slate-900 border border-amber-500/30 pl-3 pr-8 py-[4px] rounded-lg text-white outline-none text-[11px] transition-colors focus:border-amber-500 h-[26px]"
+                          className="w-full bg-bg-surface border border-primary/30 pl-3 pr-8 py-[4px] rounded-lg text-text-primary outline-none text-[11px] transition-colors focus:border-primary h-[26px]"
                           autoFocus={isSearchOpen}
                         />
-                        <button type="submit" className={`absolute ${isSearchOpen ? 'right-[34px]' : 'right-2'} md:right-2 top-1/2 -translate-y-1/2 text-amber-500 p-1 hover:text-amber-400 bg-transparent border-none cursor-pointer flex items-center justify-center`}>
+                        <button type="submit" className={`absolute ${isSearchOpen ? 'right-[34px]' : 'right-2'} md:right-2 top-1/2 -translate-y-1/2 text-primary p-1 hover:text-primary bg-transparent border-none cursor-pointer flex items-center justify-center`}>
                           <Search className="w-3.5 h-3.5" />
                         </button>
                         {isSearchOpen && (
@@ -288,7 +280,7 @@ export default function ProjectList({
                             onClick={() => {
                               setIsSearchOpen(false);
                             }}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 p-1 hover:text-white bg-transparent border-none cursor-pointer md:hidden flex items-center justify-center"
+                            className="absolute right-0 top-1/2 -translate-y-1/2 text-text-secondary p-1 hover:text-text-primary bg-transparent border-none cursor-pointer md:hidden flex items-center justify-center"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -300,14 +292,14 @@ export default function ProjectList({
 
                 {/* Status bar */}
                 {keyword && (
-                  <div className="py-4 mb-4 text-white text-sm flex items-center border-b border-dashed border-amber-500/30">
-                    <span>Tìm thấy <strong className="mx-1 text-amber-500">{filteredProjects.length}</strong> dự án cho: <strong>"{keyword}"</strong></span>
+                  <div className="py-4 mb-4 text-text-primary text-sm flex items-center border-b border-dashed border-primary/30">
+                    <span>Tìm thấy <strong className="mx-1 text-primary">{filteredProjects.length}</strong> dự án cho: <strong>"{keyword}"</strong></span>
                     <button 
                       onClick={() => {
                         setKeyword('');
                         setSearchInput('');
                       }} 
-                      className="ml-3 text-rose-500 text-xs underline cursor-pointer bg-transparent border-none"
+                      className="ml-3 text-error text-xs underline cursor-pointer bg-transparent border-none"
                     >
                       Xóa tìm kiếm
                     </button>
@@ -316,12 +308,12 @@ export default function ProjectList({
 
                 {loading ? (
                   <div className="py-20 text-center relative min-h-[300px]">
-                    <div className="absolute top-12 left-1/2 -translate-x-1/2 text-amber-500 text-3xl">
+                    <div className="absolute top-12 left-1/2 -translate-x-1/2 text-primary text-3xl">
                       <i className="fas fa-circle-notch fa-spin"></i>
                     </div>
                   </div>
                 ) : filteredProjects.length === 0 ? (
-                  <div className="text-center py-10 text-slate-500 text-sm col-span-full">Không tìm thấy dự án phù hợp.</div>
+                  <div className="text-center py-10 text-white/70 text-sm col-span-full">Không tìm thấy dự án phù hợp.</div>
                 ) : (
                   <div className="space-y-10">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -334,42 +326,47 @@ export default function ProjectList({
                           <div
                             key={p.id}
                             onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
-                            className="bg-slate-900 border border-amber-500/20 rounded-lg overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-500 hover:shadow-[0_10px_20px_rgba(0,0,0,0.5)] cursor-pointer no-underline"
+                            className="bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
                           >
-                            <div className="h-[220px] relative overflow-hidden group">
-                              <span className="absolute top-0 left-0 px-3 py-1.5 text-[11px] font-bold text-black bg-[#ff9f43] z-10 rounded-br-lg">
-                                {statusText}
-                              </span>
+                            <div className="relative aspect-[16/10] overflow-hidden">
                               <img loading="lazy" decoding="async"
-                                src={(p.imageUrl) || undefined}
+                                src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                                 alt={p.title}
                                 referrerPolicy="no-referrer"
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 block"
+                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
                                 onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
                               />
+                              <div className="absolute top-2 left-2 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded shadow-sm z-10">
+                                {statusText}
+                              </div>
                             </div>
   
-                            <div className="p-4 flex-1 flex flex-col">
-                              <h3 className="text-[13px] sm:text-[15px] font-bold text-white leading-[1.4] m-0 mb-[9px] line-clamp-2 transition-colors group-hover:text-amber-500">
-                                {p.title}
-                              </h3>
-                              <div className="flex items-center justify-between text-xs mb-3">
-                                <span className="text-slate-400">Giá từ:</span>
-                                <span className="text-amber-500 font-extrabold text-[14px] sm:text-base">{p.priceText || "Đang cập nhật"}</span>
-                              </div>
-                              <div className="flex items-center gap-[10px] text-[11px] text-slate-300 mb-2">
-                                <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                                  <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                                  <span className="truncate" title={p.scale || 'Đang cập nhật'}>{p.scale || 'Đang cập nhật quy mô'}</span>
+                            <div className="p-4 flex-1 flex flex-col justify-between">
+                              <div>
+                                <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary">
+                                  {p.title}
+                                </h4>
+                                <div className="flex items-center justify-between text-xs mb-3">
+                                  <span className="text-text-secondary">Giá từ:</span>
+                                  <span className="text-primary font-bold text-[13px]">{p.priceText || "Đang cập nhật"}</span>
                                 </div>
-                                <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                                  <Building2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                                  <span className="truncate" title={p.units ? String(p.units) : 'Đang cập nhật'}>{p.units ? `${p.units} căn` : 'Đang cập nhật số lượng'}</span>
+                                
+                                <div className="flex items-center gap-2 text-[11px] text-text-secondary mb-2">
+                                  <div className="flex items-center gap-1.5 flex-1">
+                                    <Layers className="w-3 h-3 text-text-secondary shrink-0" />
+                                    <span className="truncate" title={p.scale || 'Đang cập nhật'}>{p.scale || 'Đang cập nhật'}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1.5 flex-1">
+                                    <Building2 className="w-3 h-3 text-text-secondary shrink-0" />
+                                    <span className="truncate" title={p.units ? String(p.units) : 'Đang cập nhật'}>{p.units ? `${p.units} căn` : 'Đang cập nhật'}</span>
+                                  </div>
                                 </div>
                               </div>
-                              <div className="text-xs text-[#999] flex items-start gap-1.5 leading-[1.5] mt-auto pt-1">
-                                <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 shrink-0 mt-[2px]" />
-                                <span className="line-clamp-2">{p.location || 'Đang cập nhật vị trí'}</span>
+                              <div className="flex items-start gap-1.5 text-[11px] text-text-secondary mt-auto pt-2 border-t border-border-color/50">
+                                <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-[1px]" />
+                                <span className="line-clamp-2">
+                                  {p.location || p.title}
+                                </span>
                               </div>
                             </div>
                           </div>
@@ -378,14 +375,14 @@ export default function ProjectList({
                     </div>
                     
                     {filteredProjects.length > limitCount && (
-                      <div className="text-center mt-10 border-t border-dashed border-slate-800 pt-6">
+                      <div className="text-center mt-10 border-t border-dashed border-border-color pt-6">
                         <button
                           type="button"
                           onClick={() => {
                             setLimitCount(prev => prev + 12);
                             onShowNotification('Đã tải thêm dự án.', 'success');
                           }}
-                          className="bg-transparent border border-amber-500 text-amber-500 px-7 py-2.5 font-sans font-bold cursor-pointer transition-all hover:bg-amber-500/15 text-[13px] rounded"
+                          className="text-primary px-7 py-2.5 font-sans font-bold cursor-pointer transition-all hover:text-primary/80 text-[13px]"
                         >
                           Xem thêm <i className="fas fa-chevron-down ml-1"></i>
                         </button>
@@ -399,8 +396,8 @@ export default function ProjectList({
             cardContent = (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-6">
                 <div className="space-y-1">
-                  <h2 className="text-lg font-display font-bold text-white flex items-center gap-2">
-                    <Compass className="w-5 h-5 text-amber-400 shrink-0" />
+                  <h2 className="text-lg font-display font-bold text-text-primary flex items-center gap-2">
+                    <Compass className="w-5 h-5 text-primary shrink-0" />
                     <EditableText 
                       sectionId={section.id} 
                       field="title" 
@@ -408,7 +405,7 @@ export default function ProjectList({
                       isEditMode={isEditMode} 
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
-                      className="text-white text-lg font-bold"
+                      className="text-text-primary text-lg font-bold"
                       tag="span"
                     />
                   </h2>
@@ -419,7 +416,7 @@ export default function ProjectList({
                     isEditMode={isEditMode} 
                     sections={sections} 
                     onUpdateSections={onUpdateSections}
-                    className="text-slate-400 text-xs font-light block max-w-xl"
+                    className="text-text-secondary text-xs font-light block max-w-xl"
                     tag="p"
                   />
                 </div>
@@ -456,11 +453,11 @@ export default function ProjectList({
                 isEditMode 
                   ? `border-2 ${
                       selectedSectionId === section.id 
-                        ? 'border-amber-500 bg-amber-500/[0.01]' 
-                        : 'border-dashed border-slate-800 hover:border-amber-500/30'
+                        ? 'border-primary bg-primary/[0.01]' 
+                        : 'border-dashed border-border-color hover:border-primary/30'
                     }` 
                   : ''
-              } ${!section.visible ? 'opacity-40 bg-slate-950/20' : ''}`}
+              } ${!section.visible ? 'opacity-40 bg-bg-inverse/20' : ''}`}
               onClick={() => {
                 if (isEditMode) {
                   setSelectedSectionId(section.id);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SEO } from './SEO';
-import { collection as collectionLite, getDocs } from 'firebase/firestore/lite';
+import { collection as collectionLite, getDocs } from '../firebase';
 import { dbLite, addDoc, collection, db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { Product, Project, News, RouteState } from '../types';
@@ -232,12 +232,6 @@ export default function Home({
 
   return (
     <div className="relative min-h-screen overflow-x-hidden w-full">
-      <SEO 
-        title="Trang Chủ | Greenia Homes - Bất động sản cao cấp"
-        description="Greenia Homes cung cấp dịch vụ tìm kiếm, tư vấn và cung cấp thông tin bất động sản bao gồm chuyển nhượng, cho thuê và dự án."
-        url={typeof window !== 'undefined' ? window.location.href : 'https://greeniahomes.vn'}
-        structuredData={schemaOrgJSONLD}
-      />
       
       <div className="space-y-4 pb-0 font-sans" id="home-view-root">
         {sections.map((section, index) => {
@@ -357,11 +351,11 @@ export default function Home({
                 isEditMode 
                   ? `border-2 ${
                       selectedSectionId === section.id 
-                        ? 'border-amber-500 bg-amber-500/[0.01]' 
-                        : 'border-dashed border-slate-800 hover:border-amber-500/30'
+                        ? 'border-primary bg-primary/[0.01]' 
+                        : 'border-dashed border-border-color hover:border-primary/30'
                     }` 
                   : ''
-              } ${!section.visible ? 'opacity-40 bg-slate-950/20' : ''}`}
+              } ${!section.visible ? 'opacity-40 bg-bg-inverse/20' : ''}`}
               onClick={() => {
                 if (isEditMode) {
                   setSelectedSectionId(section.id);

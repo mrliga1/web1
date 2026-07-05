@@ -1,11 +1,9 @@
 /**
  * Thư viện chia sẻ cho các API routes.
- * Chứa hàm khởi tạo Firebase Admin, đọc biến môi trường, v.v.
+ * Chứa hàm đọc biến môi trường, giải mã token, v.v.
  */
 
-import admin from "firebase-admin";
 import fs from "fs";
-import path from "path";
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -54,27 +52,3 @@ export function getDecodedGithubToken(): string {
   }
   return githubToken;
 }
-
-/* Khởi tạo Firebase Admin nếu chưa được khởi tạo */
-export function initFirebaseAdmin() {
-  if (admin.apps?.length > 0) return;
-  const saBase64 = getEnv("FIREBASE_SERVICE_ACCOUNT_BASE64");
-  if (saBase64) {
-    try {
-      const sa = JSON.parse(
-        Buffer.from(saBase64, "base64").toString("utf8")
-      );
-      admin.initializeApp({
-        credential: admin.credential.cert(sa),
-      });
-      console.log("[Firebase Admin] Initialized successfully.");
-    } catch (e: any) {
-      console.error("[Firebase Admin] Initialize failed:", e.message);
-    }
-  }
-}
-
-/* Đảm bảo Firebase Admin được khởi tạo khi module được import */
-initFirebaseAdmin();
-
-export { admin };

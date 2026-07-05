@@ -20,7 +20,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const scrollDirection = useScrollDirection();
-  const theme = 'dark';
+  const theme = 'light';
 
   const handleSignOut = async () => {
     try {
@@ -47,8 +47,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
   return (
     <>
       <div className="h-10 md:h-10 w-full shrink-0" />
-      <nav className={`fixed top-0 w-full z-[110] transition-transform duration-300 border-b ${scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'} ${theme === 'dark' ? 'bg-slate-950/80 border-slate-900' : 'bg-white border-slate-200'}`} id="main-nav">
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:bg-transparent ${theme === 'dark' ? 'bg-slate-950/80' : 'bg-white'}`}>
+      <nav className={`fixed top-0 w-full z-[110] transition-transform duration-300 border-b ${scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'} ${theme === 'dark' ? 'bg-[#0B1F16]/70 backdrop-blur-lg border-border-inverse shadow-lg shadow-black/50' : 'bg-white/70 backdrop-blur-lg border-border-color shadow-sm'}`} id="main-nav">
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:bg-transparent`}>
         <div className="flex items-center justify-between h-10 md:h-10 relative">
           
           {/* Placeholder for flex balance on mobile */}
@@ -72,17 +72,17 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 height={32}
               />
             ) : !isSettingsLoaded ? (
-              <div className="w-[120px] h-8 bg-slate-200/20 rounded-md animate-pulse"></div>
+              <div className="w-[120px] h-8 bg-zinc-100/20 rounded-md animate-pulse"></div>
             ) : (
               <>
                 <div className="bg-[#059669] text-white p-1.5 rounded-lg shadow-md group-hover:scale-105 transition-all duration-300">
                   <Building2 className="w-4 h-4" />
                 </div>
                 <div className="text-left font-display">
-                  <span className={`text-[13px] font-bold tracking-tight block transition-colors leading-none ${theme === 'dark' ? 'text-white group-hover:text-amber-400' : 'text-[#059669] group-hover:text-[#047857]'}`}>
-                    Greenia <span className={theme === 'dark' ? 'text-amber-500' : 'text-[#047857]'}>Homes</span>
+                  <span className={`text-[13px] font-bold tracking-tight block transition-colors leading-none ${theme === 'dark' ? 'text-white group-hover:text-accent' : 'text-[#059669] group-hover:text-[#047857]'}`}>
+                    Greenia <span className={theme === 'dark' ? 'text-accent' : 'text-[#047857]'}>Homes</span>
                   </span>
-                  <span className={`text-[7px] uppercase font-bold tracking-widest block mt-0.5 font-mono ${theme === 'dark' ? 'text-slate-400' : 'text-slate-505'}`}>
+                  <span className={`text-[7px] uppercase font-bold tracking-widest block mt-0.5 font-mono ${theme === 'dark' ? 'text-white/70' : 'text-white/70'}`}>
                     Luxury Real Estate
                   </span>
                 </div>
@@ -106,24 +106,15 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                   className={`relative px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold transition-all cursor-pointer ${
                     active 
                       ? theme === 'dark'
-                        ? 'text-amber-400 font-bold' 
-                        : 'text-slate-900 font-bold'
+                        ? 'text-accent font-bold' 
+                        : 'text-primary font-bold'
                       : theme === 'dark'
-                        ? 'text-slate-300 hover:text-white hover:bg-slate-900/60'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/60'
+                        ? 'text-zinc-200 hover:text-white hover:bg-bg-inverse/60'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-base/60'
                   }`}
                 >
                   <span className="relative z-10">{item.label}</span>
-                  {active && (
-                    <>
-                      <motion.div 
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className={`absolute inset-0 rounded-full ${theme === 'dark' ? 'bg-amber-500/10 border border-amber-500/10' : 'bg-[#eef3f6]'}`}
-                        transition={{ duration: 0.15 }}
-                      />
-                    </>
-                  )}
+                  {/* Remove pill background per user request */}
                 </button>
               );
             })}
@@ -136,7 +127,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
 
               <button
                 onClick={() => onNavigate({ screen: 'favorites' })}
-                className={`p-1.5 rounded-full transition-all cursor-pointer border ${theme === 'dark' ? 'border-amber-500/20 text-amber-500 hover:bg-amber-500/20' : 'border-amber-500/50 text-amber-600 hover:bg-amber-100'}`}
+                className={`p-1.5 rounded-full transition-all cursor-pointer border ${theme === 'dark' ? 'border-yellow-500/20 text-accent hover:bg-accent/20' : 'border-accent/50 text-accent hover:bg-accent/10'}`}
                 title="Danh sách Yêu thích"
                 aria-label="Danh sách Yêu thích"
               >
@@ -148,7 +139,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
               {/* 0932 966 700 Hotline Trigger with Icon */}
               <a 
                 href="tel:0932966700" 
-                className="flex items-center gap-1 bg-[#047857] hover:bg-[#065f46] text-white font-extrabold px-3.5 py-1.5 rounded-full text-[11px] transition-colors cursor-pointer shadow-lg shadow-emerald-500/10 hover:scale-[1.01]"
+                className="flex items-center gap-1 bg-primary hover:bg-primary-light text-text-inverse font-extrabold px-3.5 py-1.5 rounded-full text-[11px] transition-colors cursor-pointer shadow-lg shadow-primary/10 hover:scale-[1.01]"
               >
                 <Phone className="w-3 h-3 fill-white shrink-0" />
                 <span>0932 966 700</span>
@@ -167,8 +158,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                     aria-label="Tài khoản người dùng"
                     className={`flex items-center justify-center border p-0.5 rounded-full transition-all cursor-pointer select-none ${
                       theme === 'dark'
-                        ? 'bg-slate-900 border-slate-800 hover:border-amber-500/50'
-                        : 'bg-slate-100 border-slate-200 hover:border-slate-300'
+                        ? 'bg-bg-inverse border-border-inverse hover:border-yellow-500/50'
+                        : 'bg-slate-100 border-zinc-100 hover:border-border-color'
                     }`}
                   >
                     <div className="shrink-0">
@@ -179,8 +170,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                           className="w-6 h-6 rounded-full object-cover" 
                         />
                       ) : (
-                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-slate-800' : 'bg-slate-200'}`}>
-                          <UserIcon className="w-3.5 h-3.5 text-amber-500" />
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center ${theme === 'dark' ? 'bg-bg-inverse-alt' : 'bg-zinc-100'}`}>
+                          <UserIcon className="w-3.5 h-3.5 text-accent" />
                         </div>
                       )}
                     </div>
@@ -193,8 +184,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                           id="dropdown-user"
                           className={`w-36 border rounded-lg shadow-2xl py-0.5 overflow-hidden text-left ${
                             theme === 'dark'
-                              ? 'bg-slate-950 border-slate-800'
-                              : 'bg-white border-slate-200'
+                              ? 'bg-bg-inverse border-border-inverse'
+                              : 'bg-bg-surface border-zinc-100'
                           }`}
                         >
                           <button
@@ -204,8 +195,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                             }}
                           className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${
                             theme === 'dark'
-                              ? 'text-slate-300 hover:bg-slate-900 hover:text-white'
-                              : 'text-slate-700 hover:bg-slate-50 hover:text-slate-950'
+                              ? 'text-zinc-200 hover:bg-bg-inverse hover:text-white'
+                              : 'text-text-secondary hover:bg-bg-surface hover:text-black'
                           }`}
                         >
                           <ShieldCheck className="w-3 h-3 text-[#047857]" />
@@ -216,8 +207,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                           onClick={handleSignOut}
                           className={`w-full flex items-center gap-2 px-3 py-1.5 text-xs transition-colors ${
                             theme === 'dark'
-                              ? 'text-rose-455 hover:bg-rose-500/10'
-                              : 'text-rose-600 hover:bg-rose-50'
+                              ? 'text-error hover:bg-error/10'
+                              : 'text-error hover:bg-rose-50'
                           }`}
                         >
                           <LogOut className="w-3 h-3" />
@@ -233,8 +224,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                   onClick={() => setAuthModalOpen(true)}
                   className={`border font-semibold py-1.5 px-3 rounded-full text-[11px] transition-transform hover:scale-[1.01] cursor-pointer ${
                     theme === 'dark'
-                      ? 'bg-slate-900 border-slate-850 text-slate-300 hover:text-white hover:border-slate-705'
-                      : 'bg-slate-100 border-slate-200 text-slate-755 hover:text-slate-900'
+                      ? 'bg-bg-inverse border-slate-850 text-zinc-200 hover:text-white hover:border-slate-705'
+                      : 'bg-slate-100 border-zinc-100 text-slate-755 hover:text-zinc-900'
                   }`}
                 >
                   Đăng nhập / Đăng ký
@@ -249,7 +240,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
 
               <button
                 onClick={() => onNavigate({ screen: 'favorites' })}
-                className="sm:hidden flex items-center justify-center border border-amber-500/20 text-amber-500 hover:bg-amber-500/20 p-2 rounded-lg"
+                className="sm:hidden flex items-center justify-center border border-yellow-500/20 text-accent hover:bg-accent/20 p-2 rounded-lg"
                 title="Yêu thích"
                 aria-label="Yêu thích"
               >
@@ -279,7 +270,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden bg-slate-950/95 border-b border-slate-900 text-left"
+            className="lg:hidden bg-bg-inverse/95 border-b border-zinc-900 text-left"
           >
             <div className="px-4 pt-2 pb-6 space-y-1">
               {menuItems.map((item) => {
@@ -293,8 +284,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
                       active 
-                        ? 'text-amber-450 bg-amber-500/10' 
-                        : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                        ? 'text-accent bg-accent/10' 
+                        : 'text-zinc-200 hover:bg-bg-inverse hover:text-white'
                     }`}
                   >
                     <span>{item.label}</span>
@@ -302,28 +293,28 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 );
               })}
 
-              <div className="pt-4 border-t border-slate-900 space-y-3">
+              <div className="pt-4 border-t border-zinc-900 space-y-3">
                 <a 
                   href="tel:0932966700"
-                  className="flex items-center justify-center gap-2 w-full bg-amber-500 text-slate-950 font-bold py-3 rounded-lg text-xs"
+                  className="flex items-center justify-center gap-2 w-full bg-accent text-black font-bold py-3 rounded-lg text-xs"
                 >
-                  <Phone className="w-4 h-4 fill-slate-950" />
+                  <Phone className="w-4 h-4 fill-black" />
                   <span>HOTLINE: 0932 966 700</span>
                 </a>
 
                 {currentUser ? (
-                  <div className="p-3 bg-slate-900 rounded-lg space-y-2">
-                    <p className="text-[10px] text-slate-400 truncate">Email: {currentUser.email}</p>
+                  <div className="p-3 bg-bg-inverse rounded-lg space-y-2">
+                    <p className="text-[10px] text-white/70 truncate">Email: {currentUser.email}</p>
                     <div className="flex gap-2">
                       <button 
                         onClick={() => { onNavigate({ screen: 'admin' }); setMobileMenuOpen(false); }}
-                        className="flex-1 bg-slate-950 text-amber-450 text-xs py-2 rounded font-bold border border-slate-850"
+                        className="flex-1 bg-bg-inverse text-accent text-xs py-2 rounded font-bold border border-slate-850"
                       >
                         Quản lý
                       </button>
                       <button 
                         onClick={handleSignOut}
-                        className="flex-grow bg-rose-500/15 text-rose-455 text-xs py-2 rounded font-bold"
+                        className="flex-grow bg-error/15 text-error text-xs py-2 rounded font-bold"
                       >
                         Thoát
                       </button>
@@ -335,7 +326,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                       setAuthModalOpen(true);
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full bg-slate-900 hover:bg-slate-850 text-slate-300 py-2.5 rounded-lg text-xs font-bold border border-slate-850 cursor-pointer"
+                    className="w-full bg-bg-inverse hover:bg-slate-850 text-zinc-200 py-2.5 rounded-lg text-xs font-bold border border-slate-850 cursor-pointer"
                   >
                     Đăng nhập / Đăng ký
                   </button>

@@ -1,0 +1,94 @@
+{
+  "sections": [
+    {
+      "id": "hero",
+      "name": "Banner Hero & Tư vấn",
+      "title": "Phân Phối Bất Động Sản\n[gradient]Xanh, Sang & Đẳng Cấp[/gradient]",
+      "visible": true,
+      "imageUrl": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600",
+      "subtitle": "",
+      "extraData": {
+        "buttonText": "Xem Ngay Sản Phẩm",
+        "hotlineText": "Hotline 24/7: 0932 966 700"
+      },
+      "paddingTop": 12,
+      "description": "Greenia Homes là điểm tựa an tâm cho giới tinh hoa đang tìm kiếm biệt thự sinh thái biệt lập, căn hộ Duplex sân vườn bách thảo trên cao hay quỹ căn thương mại đắc địa. Chúng tôi minh bạch pháp lý sổ hồng và tư vấn phong thủy chuyên sâu trọn bộ.",
+      "paddingBottom": 24
+    },
+    {
+      "id": "corporate_intro",
+      "name": "Giới thiệu Công Ty",
+      "title": "Kiến Tạo Chuẩn Sống Đẳng Cấp",
+      "visible": true,
+      "subtitle": "Giới thiệu công ty",
+      "extraData": {
+        "visionDesc": "Trở thành hệ sinh thái bán và cho thuê bất động sản cao cấp hàng đầu Việt Nam, giúp tối hóa giá trị lợi nhuận cho khách hàng, gắn kết con người với không gian sống sinh thái bền vững.",
+        "processDesc": "Giao dịch minh bạch qua 4 bước khép kín: Thẩm định giá chính thực, Thẩm định tính pháp lý sổ hồng, Trao đổi phân tích sâu cùng chuyên gia nhãn quan phong thủy, và Hoàn công bàn giao dồi dào tài lộc.",
+        "visionTitle": "Tầm Nhìn Sứ Mệnh",
+        "processTitle": "Quy Trình Nghiệp Vụ",
+        "strategyDesc": "Tập trung nguồn lực vào các phân khu bất động sản cao cấp, biệt thự ven sông và shophouse khối đế thuộc đặc khu kinh tế phát triển. Ứng dụng công nghệ quản trị dữ liệu thông minh giúp liên kết nhanh khách hàng.",
+        "strategyTitle": "Chiến Lược Phát Triển"
+      },
+      "paddingTop": 80,
+      "description": "Greenia Homes là thương hiệu bất động sản uy tín hàng đầu, quy tụ đội ngũ môi giới tinh nhuệ giàu kinh nghiệm pháp lý và định giá.",
+      "paddingBottom": 80
+    },
+    {
+      "id": "reasons",
+      "name": "Lý do chọn Greenia Homes",
+      "title": "Tại Sao Giới Siêu Giàu Lựa Chọn Greenia Homes?",
+      "visible": true,
+      "subtitle": "Độ tin cậy hàng đầu",
+      "extraData": {
+        "stat1Val": "12,500+",
+        "stat2Val": "98.8%",
+        "stat3Val": "0% lo ngại",
+        "item1Desc": "Mọi giao dịch mua bán, thông tin sang xe đều được bảo mật nhiều tầng tuyệt đối.",
+        "item2Desc": "Chúng tôi chỉ đề cử các biệt thự sinh thái có mật độ xanh trên 45% chuẩn an lành.",
+        "item3Desc": "Đứng ra hỗ trợ khách từ A-Z về công chứng, thuế trước bạ, chuyển nhượng.",
+        "stat1Desc": "Niềm hạnh phúc của hàng ngàn tổ ấm tinh hoa Việt Nam.",
+        "stat2Desc": "Tuyệt đối cam kết sổ hồng hoàn công minh bạch và sẳn hồ sơ.",
+        "stat3Desc": "Đội tuyển đại sư tư vấn địa thế hướng phong, bài bài bài trí rước sinh khí dồi dào tài lộc của gia chủ sâu sắc tinh tường.",
+        "item1Title": "Bảo mật thông tin tối thượng",
+        "item2Title": "Tập trung rạch ròi mảng xanh",
+        "item3Title": "Thủ tục pháp lý mượt mà",
+        "stat1Label": "Khách Hàng Hài Lòng",
+        "stat2Label": "Bàn giao chuẩn chỉ pháp lý",
+        "stat3Label": "Phong thủy độc bách cát tường"
+      },
+      "paddingTop": 80,
+      "description": "Chúng tôi không chỉ bán nhà, chúng tôi trao gửi sự an tâm tuyệt đối và bồi đắp giá trị sống trường tồn theo thời gian cho quý chủ gia đình thượng lưu.",
+      "paddingBottom": 80
+    },
+    {
+      "id": "featured_listings",
+      "name": "Sản phẩm Nổi bật",
+      "title": "Cơ Hội Sở Hữu & Đầu Tư Cao Cấp",
+      "visible": true,
+      "subtitle": "Mặt bằng nổi bật",
+      "paddingTop": 80,
+      "description": "Danh sách biệt thự độc lập, chung cư thượng hạng đang mở giao dịch ngay.",
+      "paddingBottom": 80
+    },
+    {
+      "id": "projects",
+      "name": "Khu Đại Đô Thị Nổi Bật",
+      "title": "Khu Đại Đô Thị Nổi Bật",
+      "visible": true,
+      "subtitle": "Quy hoạch đô thị bứt phá",
+      "paddingTop": 80,
+      "description": "Tuyển tập những dự án xanh đại ngàn đang mở đại hội đặt căn từ chủ chủ đầu tư lớn.",
+      "paddingBottom": 80
+    },
+    {
+      "id": "news",
+      "name": "Kinh Nghiệm & Phân Tích Địa Ốc",
+      "title": "Kinh Nghiệm & Phân Tích Địa Ốc",
+      "visible": true,
+      "subtitle": "Góc nhìn chuyên gia",
+      "paddingTop": 80,
+      "description": "Tin nhanh vi mô và phong thủy phong phú cung cấp từ đội ngũ biên soạn Greenia.",
+      "paddingBottom": 80
+    }
+  ]
+}

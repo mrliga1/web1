@@ -53,17 +53,17 @@ export default function FavoritesPage({ onNavigate }: { onNavigate: (route: Rout
         <title>Tin đã lưu | Greenia Homes</title>
       </Helmet>
 
-      <div className="flex items-center gap-3 mb-8 pb-[5px] h-[35px] border-b border-slate-800">
-        <Heart className="w-6 h-6 text-amber-500 fill-current" />
-        <h1 className="text-xl sm:text-2xl font-display font-medium text-white tracking-tight leading-normal m-0 p-0">
+      <div className="flex items-center gap-3 mb-8 pb-[5px] h-[35px] border-b border-border-color">
+        <Heart className="w-6 h-6 text-primary fill-current" />
+        <h1 className="text-xl sm:text-2xl font-display font-medium text-text-primary tracking-tight leading-normal m-0 p-0">
           Danh sách tin đã lưu
         </h1>
       </div>
 
       {loading ? (
         <div className="py-20 text-center flex flex-col items-center justify-center space-y-4">
-          <Compass className="w-8 h-8 text-amber-500 animate-spin" />
-          <p className="text-slate-400 text-sm font-mono">Đang tải danh sách...</p>
+          <Compass className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-text-secondary text-sm font-mono">Đang tải danh sách...</p>
         </div>
       ) : favorites.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -77,14 +77,14 @@ export default function FavoritesPage({ onNavigate }: { onNavigate: (route: Rout
         </div>
       ) : (
         <div className="py-20 text-center">
-          <div className="w-16 h-16 rounded-full bg-slate-900 flex items-center justify-center mx-auto mb-4 border border-slate-800">
-            <Heart className="w-6 h-6 text-slate-500" />
+          <div className="w-16 h-16 rounded-full bg-bg-surface flex items-center justify-center mx-auto mb-4 border border-border-color">
+            <Heart className="w-6 h-6 text-white/70" />
           </div>
-          <h3 className="text-lg font-medium text-slate-300 mb-2">Chưa có tin đăng nào được lưu</h3>
-          <p className="text-slate-500 text-sm max-w-md mx-auto mb-6">Bạn có thể lưu các tin đăng bất động sản yêu thích để xem lại sau bằng cách nhấn vào biểu tượng trái tim.</p>
+          <h3 className="text-lg font-medium text-text-secondary mb-2">Chưa có tin đăng nào được lưu</h3>
+          <p className="text-white/70 text-sm max-w-md mx-auto mb-6">Bạn có thể lưu các tin đăng bất động sản yêu thích để xem lại sau bằng cách nhấn vào biểu tượng trái tim.</p>
           <button
             onClick={() => onNavigate({ screen: 'san-pham' })}
-            className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-lg transition-colors cursor-pointer"
+            className="px-6 py-2.5 bg-primary hover:bg-amber-600 text-black font-bold rounded-lg transition-colors cursor-pointer"
           >
             Khám phá nhà đất
           </button>

@@ -3,6 +3,7 @@ import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
 import { doc, getDoc, collection, getDocs, addDoc, db } from "../firebase";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import { Product, Project, RouteState } from "../types";
+import { useScrollDirection } from "../hooks/useScrollDirection";
 import {
   MapPin,
   Phone,
@@ -46,7 +47,7 @@ const MapViewer = React.memo(
     ) {
       return (
         <div
-          className="w-full h-[300px] rounded-lg overflow-hidden border border-slate-800 shadow-inner bg-slate-950 [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
+          className="w-full h-[300px] rounded-lg overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
           dangerouslySetInnerHTML={{
             __html: mapHtml.includes("iframe")
               ? mapHtml
@@ -58,7 +59,7 @@ const MapViewer = React.memo(
 
     const query = encodeURIComponent(address || "Hồ Chí Minh, Việt Nam");
     return (
-      <div className="w-full h-[300px] rounded-lg overflow-hidden border border-slate-800 shadow-inner bg-slate-950">
+      <div className="w-full h-[300px] rounded-lg overflow-hidden border border-border-color shadow-inner bg-bg-surface">
         <iframe
           width="100%"
           height="100%"
@@ -119,6 +120,7 @@ export default function ProductDetail({
   const [activeTab, setActiveTab] = useState<"desc" | "map">("desc");
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
+  const scrollDirection = useScrollDirection();
 
   // Auto-scroll main image slider
   useEffect(() => {
@@ -321,23 +323,19 @@ export default function ProductDetail({
     }
   };
 
-  const fallbackTitle = `${parseSlugTitleFromPath(typeof window !== "undefined" ? window.location.pathname : "", "/product/") || "Đang tải..."} | Greenia Homes`;
   const pageTitle = product
     ? resolveItemTitle(product, "Greenia Homes")
-    : fallbackTitle;
+    : "Đang tải... | Greenia Homes";
 
   if (loading) {
     return (
       <>
-        <Helmet>
-          <title>{pageTitle}</title>
-        </Helmet>
         <div
           className="py-44 text-center space-y-4 max-w-sm mx-auto"
           id="product-detail-loader"
         >
-          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-slate-400 text-xs font-light font-mono">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-text-secondary text-xs font-light font-mono">
             Đang tải chi tiết...
           </p>
         </div>
@@ -410,6 +408,14 @@ export default function ProductDetail({
       ? rawBaseRating
       : computedTotalStars / computedTotalCount;
 
+  const socialDescription = [
+    product.district ? `📍 ${product.district}` : null,
+    product.priceText ? `💰 ${product.priceText}` : null,
+    product.area ? `📐 ${product.area} m²` : null,
+    product.bedrooms ? `🛏️ ${product.bedrooms} PN` : null,
+    product.toilets ? `🛁 ${product.toilets} WC` : null
+  ].filter(Boolean).join(" | ") + (product.description ? ` - ${(product.description || "").replace(/<[^>]*>?/gm, "").substring(0, 100)}...` : "");
+
   const schemaOrgJSONLD = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -447,7 +453,7 @@ export default function ProductDetail({
       id={`product-detail-viewport-${product.id}`}
     >
       <Helmet>
-        <title>{resolveItemTitle(product, "Greenia Homes")}</title>
+        <title>{pageTitle}</title>
         <meta
           name="description"
           content={(product.description || "")
@@ -462,12 +468,20 @@ export default function ProductDetail({
         <meta property="og:title" content={product.title} />
         <meta
           property="og:description"
-          content={(product.description || "")
-            .replace(/<[^>]*>?/gm, "")
-            .substring(0, 160)}
+          content={socialDescription}
         />
-        <meta property="og:image" content={productImages[0]} />
+        <meta property="og:image" content={productImages[0]?.startsWith('http') ? productImages[0] : `https://greeniahomes.vn${productImages[0]?.startsWith('/') ? productImages[0] : `/${productImages[0]}`}`} />
+        
         <meta name="twitter:card" content="summary_large_image" />
+        <meta property="twitter:title" content={product.title} />
+        <meta property="twitter:description" content={socialDescription} />
+        <meta property="twitter:image" content={productImages[0]?.startsWith('http') ? productImages[0] : `https://greeniahomes.vn${productImages[0]?.startsWith('/') ? productImages[0] : `/${productImages[0]}`}`} />
+
+        {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
+        <meta name="geo.region" content="VN-SG" />
+        <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
+        <meta name="geo.position" content="10.823099;106.629664" />
+        <meta name="ICBM" content="10.823099, 106.629664" />
         <script type="application/ld+json">
           {JSON.stringify(schemaOrgJSONLD)}
         </script>
@@ -475,13 +489,13 @@ export default function ProductDetail({
 
       {/* 9.2.1. Breadcrumb Navigation */}
       <nav
-        className="flex items-center justify-between text-xs text-slate-400 border-b border-slate-900 pb-[5px] mb-[15px]"
+        className="flex items-center justify-between text-xs text-text-secondary border-b border-border-color pb-[5px] mb-[15px]"
         id="detail-breadcrumb"
       >
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => onNavigate({ screen: "home" })}
-            className="hover:text-amber-500 cursor-pointer"
+            className="hover:text-primary cursor-pointer"
           >
             Trang chủ
           </button>
@@ -493,23 +507,26 @@ export default function ProductDetail({
                   product.type === "rent" ? "latest-rents" : "latest-sales",
               })
             }
-            className="hover:text-amber-500 cursor-pointer"
+            className="hover:text-primary cursor-pointer"
           >
             {product.type === "rent" ? "Cho thuê" : "Chuyển nhượng"}
           </button>
           <span>/</span>
-          <span className="text-amber-500 max-w-[120px] sm:max-w-none truncate">
+          <button
+            onClick={() => onNavigate({ screen: "category-product", categoryName: product.category })}
+            className="text-primary max-w-[120px] sm:max-w-none truncate hover:underline cursor-pointer"
+          >
             {product.category}
-          </span>
+          </button>
           <span>/</span>
-          <span className="text-slate-200 font-semibold max-w-[150px] sm:max-w-none truncate">
+          <span className="text-text-primary font-semibold max-w-[150px] sm:max-w-none truncate">
             {product.title}
           </span>
         </div>
 
         <button
           onClick={() => onNavigate({ screen: "san-pham" })}
-          className="inline-flex items-center gap-1 hover:text-amber-500 font-semibold cursor-pointer"
+          className="inline-flex items-center gap-1 hover:text-primary font-semibold cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Trở lại danh sách</span>
@@ -524,7 +541,7 @@ export default function ProductDetail({
         <div className="lg:col-span-6 space-y-8" id="detail-pane-left">
           {/* Cover Multi-image Slider */}
           <div className="space-y-4 !mb-[10px]">
-            <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-slate-900 bg-slate-950 shadow-xl">
+            <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-border-color bg-bg-surface shadow-xl">
               <img
                 loading="eager"
                 decoding="async"
@@ -542,7 +559,7 @@ export default function ProductDetail({
                 <span
                   className={`text-[10px] font-semibold px-[10px] py-[5px] rounded-br-[5px] uppercase tracking-wider inline-block ${
                     product.type === "rent"
-                      ? "bg-emerald-700 text-white"
+                      ? "bg-primary text-white"
                       : "bg-rose-700 text-white"
                   }`}
                 >
@@ -571,10 +588,10 @@ export default function ProductDetail({
                       parent.scrollTo({ left: scrollLeft, behavior: "smooth" });
                     }
                   }}
-                  className={`w-16 h-12 lg:w-20 lg:h-16 shrink-0 rounded-lg overflow-hidden border transition-all cursor-pointer bg-slate-950 ${
+                  className={`w-16 h-12 lg:w-20 lg:h-16 shrink-0 rounded-lg overflow-hidden border transition-all cursor-pointer bg-bg-surface ${
                     selectedImage === imgUrl
-                      ? "border-amber-500 ring-1 ring-amber-500/30"
-                      : "border-slate-850 hover:border-slate-700"
+                      ? "border-primary ring-1 ring-yellow-500/30"
+                      : "border-border-color hover:border-border-inverse"
                   }`}
                 >
                   <img
@@ -591,34 +608,34 @@ export default function ProductDetail({
           </div>
 
           {/* Main info & Product details combined */}
-          <div className="bg-slate-900 pt-[10px] pb-4 px-[10px] sm:px-[15px] !mb-[5px] rounded-lg border border-slate-900 text-left">
-            <div className="space-y-3 pb-1 border-b border-slate-850/60">
-              <h1 className="text-xl sm:text-2.5xl font-display font-medium text-white tracking-tight leading-normal">
+          <div className="bg-bg-surface pt-[10px] pb-4 px-[10px] sm:px-[15px] !mb-[5px] rounded-lg border border-border-color text-left">
+            <div className="space-y-3 pb-1 border-b border-border-color/60">
+              <h2 className="text-[18px] sm:text-[20px] font-playfair font-bold text-text-primary flex items-center gap-2">
                 {product.title}
-              </h1>
+              </h2>
 
               <div className="flex items-center justify-between pb-0">
-                <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <MapPin className="w-4.5 h-4.5 text-amber-500 shrink-0" />
+                <p className="text-xs text-text-secondary flex items-center gap-1.5">
+                  <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
                   <span>{product.district || "Thảo Điền, Quận 2"}</span>
                 </p>
                 <div className="relative">
                   <button
                     onClick={() => setShowShareMenu(!showShareMenu)}
-                    className="flex items-center justify-center p-2 rounded-full text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-700 transition-colors active:scale-95"
+                    className="flex items-center justify-center p-2 rounded-full text-text-secondary hover:text-text-primary bg-bg-base/50 hover:bg-slate-700 transition-colors active:scale-95"
                     title="Chia sẻ sản phẩm"
                   >
                     <Share2 className="w-4 h-4" />
                   </button>
                   {showShareMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-xl py-2 z-50 animate-in fade-in zoom-in duration-200">
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-bg-base border border-border-inverse rounded-lg shadow-xl py-2 z-50 animate-in fade-in zoom-in duration-200">
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(window.location.href);
                           alert("Đã copy link!");
                           setShowShareMenu(false);
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-white flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                        className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-slate-700 hover:text-text-primary flex items-center gap-2 border-none bg-transparent cursor-pointer"
                       >
                         <LinkIcon className="w-4 h-4" /> Sao chép link
                       </button>
@@ -626,19 +643,19 @@ export default function ProductDetail({
                         href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-white flex items-center gap-2 no-underline"
+                        className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-slate-700 hover:text-text-primary flex items-center gap-2 no-underline"
                         onClick={() => setShowShareMenu(false)}
                       >
-                        <Facebook className="w-4 h-4 text-blue-500" /> Facebook
+                        <Facebook className="w-4 h-4 text-info" /> Facebook
                       </a>
                       <a
                         href={`https://zalo.me/share?url=${encodeURIComponent(window.location.href)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full px-4 py-2 text-left text-sm text-slate-300 hover:bg-slate-700 hover:text-white flex items-center gap-2 no-underline"
+                        className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-slate-700 hover:text-text-primary flex items-center gap-2 no-underline"
                         onClick={() => setShowShareMenu(false)}
                       >
-                        <MessageCircle className="w-4 h-4 text-blue-400" /> Zalo
+                        <MessageCircle className="w-4 h-4 text-info" /> Zalo
                       </a>
                     </div>
                   )}
@@ -646,33 +663,33 @@ export default function ProductDetail({
               </div>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 !mt-[10px] pb-0 border-b border-slate-850/60">
+            <div className="grid grid-cols-3 gap-4 !mt-[10px] pb-0 border-b border-border-color/60">
               <div className="space-y-0.5 h-12">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-[9px] font-bold text-text-secondary uppercase tracking-wider">
                   {product.type === "rent" ? "Giá thuê" : "Giá bán"}
                 </span>
-                <p className="font-display font-extrabold text-base text-amber-500 truncate">
+                <p className="font-display font-extrabold text-base text-primary truncate">
                   {product.priceText}
                 </p>
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-[9px] font-bold text-text-secondary uppercase tracking-wider">
                   Diện tích
                 </span>
-                <p className="font-display font-semibold text-[13px] md:text-sm text-slate-200">
+                <p className="font-display font-semibold text-[13px] md:text-sm text-text-primary">
                   {product.area || 120} m²
                 </p>
               </div>
 
               <div className="space-y-0.5">
-                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+                <span className="text-[9px] font-bold text-text-secondary uppercase tracking-wider">
                   Liên hệ
                 </span>
-                <p className="font-display font-semibold text-[13px] md:text-sm text-slate-200">
+                <p className="font-display font-semibold text-[13px] md:text-sm text-text-primary">
                   <a
                     href="tel:0932966700"
-                    className="hover:text-amber-500 transition-colors"
+                    className="hover:text-primary transition-colors"
                   >
                     0932 966 700
                   </a>
@@ -681,96 +698,96 @@ export default function ProductDetail({
             </div>
 
             <div className="mt-4 space-y-4">
-              <h2 className="font-display font-bold text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-sm text-slate-300 !pb-0 !mb-[5px] border-b border-slate-850">
+              <h2 className="font-display font-bold text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-sm text-text-secondary !pb-0 !mb-[5px] border-b border-border-color">
                 Đặc điểm sản phẩm
               </h2>
 
               <div className="grid grid-cols-2 gap-y-3 gap-x-3 sm:gap-x-4 text-[13px] !pt-[5px]">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-slate-800/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-slate-400 w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Tag className="w-3 h-3 text-amber-500" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                    <Tag className="w-3 h-3 text-primary" />
                     <span className="text-[11px] sm:text-[13px]">
                       {product.type === "rent" ? "Giá thuê" : "Giá bán"}
                     </span>
                   </div>
-                  <span className="text-slate-200 font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
                     {product.priceText || "Đang cập nhật"}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-slate-800/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-slate-400 w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Layers className="w-4 h-4 text-amber-500" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                    <Layers className="w-4 h-4 text-primary" />
                     <span className="text-[11px] sm:text-[13px]">
                       Diện tích
                     </span>
                   </div>
-                  <span className="text-slate-200 font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
                     {product.area ? `${product.area} m²` : "Đang cập nhật"}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-slate-800/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-slate-400 w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Bookmark className="w-4 h-4 text-amber-500" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                    <Bookmark className="w-4 h-4 text-primary" />
                     <span className="text-[11px] sm:text-[13px]">
                       Phòng ngủ
                     </span>
                   </div>
-                  <span className="text-slate-200 font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
                     {product.bedrooms
                       ? `${product.bedrooms} PN`
                       : "Đang cập nhật"}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-slate-800/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-slate-400 w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Bath className="w-4 h-4 text-amber-500" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                    <Bath className="w-4 h-4 text-primary" />
                     <span className="text-[11px] sm:text-[13px]">
                       Phòng vệ sinh
                     </span>
                   </div>
-                  <span className="text-slate-200 font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
                     {product.toilets
                       ? `${product.toilets} WC`
                       : "Đang cập nhật"}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-slate-800/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-slate-400 w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Building2 className="w-4 h-4 text-amber-500" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                    <Building2 className="w-4 h-4 text-primary" />
                     <span className="text-[11px] sm:text-[13px]">Số tầng</span>
                   </div>
-                  <span className="text-slate-200 font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
                     {product.floors || "Đang cập nhật"}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-slate-800/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-slate-400 w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Compass className="w-4 h-4 text-amber-500" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                    <Compass className="w-4 h-4 text-primary" />
                     <span className="text-[11px] sm:text-[13px]">
                       Hướng nhà
                     </span>
                   </div>
-                  <span className="text-slate-200 font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
                     {product.direction || "Đang cập nhật"}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-slate-800/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-slate-400 w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <MapPin className="w-4 h-4 text-amber-500" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                    <MapPin className="w-4 h-4 text-primary" />
                     <span className="text-[11px] sm:text-[13px]">Mặt tiền</span>
                   </div>
-                  <span className="text-slate-200 font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
                     {(product as any).frontage
                       ? `${(product as any).frontage}m`
                       : "Đang cập nhật"}
                   </span>
                 </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-slate-800/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-slate-400 w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <CheckCircle2 className="w-4 h-4 text-amber-500" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
                     <span className="text-[11px] sm:text-[13px]">Pháp lý</span>
                   </div>
-                  <span className="text-slate-200 font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
                     {product.legalStatus || "Đang cập nhật"}
                   </span>
                 </div>
@@ -780,18 +797,18 @@ export default function ProductDetail({
 
           {/* 2 Tabs: details/description, map representation */}
           <div className="space-y-4 text-left">
-            <div className="flex border-b border-slate-900 pb-px gap-1 !mb-[10px] !pb-0 h-[35px] !pt-[5px]">
+            <div className="flex border-b border-border-color pb-px gap-1 !mb-[10px] !pb-0 h-[35px] !pt-[5px]">
               <button
                 onClick={() => setActiveTab("desc")}
                 className={`text-sm font-semibold tracking-wider relative cursor-pointer !py-0 !px-[5px] text-center h-[30px] ${
                   activeTab === "desc"
-                    ? "text-amber-500 font-bold"
-                    : "text-slate-500 hover:text-white"
+                    ? "text-primary font-bold"
+                    : "text-text-secondary hover:text-text-primary"
                 }`}
               >
                 Thông tin chi tiết
                 {activeTab === "desc" && (
-                  <div className="absolute bottom-0 inset-x-0 mx-auto bg-amber-500 w-full text-center !h-[1px]" />
+                  <div className="absolute bottom-0 inset-x-0 mx-auto bg-primary w-full text-center !h-[1px]" />
                 )}
               </button>
 
@@ -799,35 +816,35 @@ export default function ProductDetail({
                 onClick={() => setActiveTab("map")}
                 className={`text-sm font-semibold tracking-wider relative cursor-pointer text-center !px-[5px] !py-0 h-[30px] ${
                   activeTab === "map"
-                    ? "text-amber-500 font-bold"
-                    : "text-slate-500 hover:text-white"
+                    ? "text-primary font-bold"
+                    : "text-text-secondary hover:text-text-primary"
                 }`}
               >
                 Vị trí
                 {activeTab === "map" && (
-                  <div className="absolute bottom-0 inset-x-0 mx-auto bg-amber-500 w-full text-center !h-[1px]" />
+                  <div className="absolute bottom-0 inset-x-0 mx-auto bg-primary w-full text-center !h-[1px]" />
                 )}
               </button>
             </div>
 
             <div
-              className={`bg-slate-900 border border-slate-900 rounded-lg min-h-[160px] ${activeTab === "map" ? "p-[1px]" : "!pt-[15px] !pb-[10px] !px-[5px]"}`}
+              className={`bg-bg-surface border border-border-color rounded-lg min-h-[160px] ${activeTab === "map" ? "p-[1px]" : "!pt-[15px] !pb-[10px] !px-[5px]"}`}
             >
               <div style={{ display: activeTab === "desc" ? "block" : "none" }}>
                 {product.description ? (
                   <div
-                    className="prose prose-invert max-w-none text-slate-300 text-[13px] md:text-[15px] leading-relaxed whitespace-pre-wrap"
+                    className="prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-x-auto leading-relaxed whitespace-pre-wrap"
                     dangerouslySetInnerHTML={{ __html: product.description }}
                   />
                 ) : (
-                  <p className="text-slate-500 text-xs italic">
+                  <p className="text-text-secondary text-xs italic">
                     Không có tài liệu thuyết minh đi kèm.
                   </p>
                 )}
 
                 {relatedCategoryProducts.length > 0 && (
                   <div className="flex items-center !pb-0 !mt-[10px] !pt-[15px] !pl-[10px]">
-                    <span className="text-white text-[13px] mr-1.5 font-medium">
+                    <span className="text-text-primary text-[13px] mr-1.5 font-medium">
                       Xem thêm:
                     </span>
                     <button
@@ -840,7 +857,7 @@ export default function ProductDetail({
                       }
                       className="bg-transparent border-none p-0 cursor-pointer inline-flex items-center group"
                     >
-                      <span className="text-[13px] text-amber-500 group-hover:text-amber-400 group-hover:underline">
+                      <span className="text-[13px] text-primary group-hover:text-primary group-hover:underline">
                         {product.category} ({relatedCategoryProducts.length})
                       </span>
                     </button>
@@ -875,11 +892,10 @@ export default function ProductDetail({
             COLUMN 2 (Middle/Right): Sticky Consultation Box + Sidebar
             ========================================================= */}
         <div
-          className="lg:col-span-3 space-y-6 lg:sticky lg:top-[10px] self-start"
+          className={`lg:col-span-3 space-y-6 lg:sticky self-start transition-all duration-300 ${scrollDirection === 'down' ? 'lg:top-[10px]' : 'lg:top-[50px]'}`}
           id="detail-pane-right"
         >
-          {/* Beautiful Unified Consultation card based on the screenshot mockup */}
-          <div className="bg-slate-900 border border-amber-500/40 p-6 rounded-lg space-y-3 relative text-left h-[432px]">
+          <div className="bg-bg-surface border border-primary/40 p-4 sm:p-6 rounded-lg space-y-3 relative text-left h-auto min-h-[300px]">
             {/* Inner Heading */}
             <div className="text-center">
               <div className="flex flex-col items-center justify-center mb-3 gap-2">
@@ -891,7 +907,7 @@ export default function ProductDetail({
                     "/cv-image.svg"
                   }
                   alt="Chuyên viên tư vấn"
-                  className="h-16 w-16 rounded-full object-cover border-2 border-amber-500/50"
+                  className="h-16 w-16 rounded-full object-cover border-2 border-primary/50"
                   referrerPolicy="no-referrer"
                   onError={(e) => { e.currentTarget.onerror = null;
                     const target = e.target as HTMLImageElement;
@@ -899,7 +915,7 @@ export default function ProductDetail({
                       "/cv-image.svg";
                   }}
                 />
-                <h3 className="text-amber-500 font-display font-bold text-[15px] tracking-wide m-0 p-0">
+                <h3 className="text-primary font-display font-bold text-[15px] tracking-wide m-0 p-0">
                   Tư vấn mua nhà chuyên sâu
                 </h3>
               </div>
@@ -908,29 +924,29 @@ export default function ProductDetail({
             {/* Premium bullet points with green checkmarks from the mockup */}
             <div className="space-y-3 pt-2">
               <div className="flex items-start gap-2.5">
-                <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3 h-3 text-slate-950" />
+                <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
+                  <CheckCircle2 className="w-3 h-3 text-black" />
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-text-secondary leading-relaxed">
                   Phân tích quỹ căn, chính sách, tiện ích giúp Khách hàng lựa
                   chọn căn tốt nhất.
                 </p>
               </div>
 
               <div className="flex items-start gap-2.5">
-                <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3 h-3 text-slate-950" />
+                <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
+                  <CheckCircle2 className="w-3 h-3 text-black" />
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-text-secondary leading-relaxed">
                   Giải đáp mọi thắc mắc của khách hàng.
                 </p>
               </div>
 
               <div className="flex items-start gap-2.5">
-                <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3 h-3 text-slate-950" />
+                <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
+                  <CheckCircle2 className="w-3 h-3 text-black" />
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs text-text-secondary leading-relaxed">
                   Tuyệt đối bảo mật thông tin cá nhân.
                 </p>
               </div>
@@ -940,7 +956,7 @@ export default function ProductDetail({
             <div className="pt-4 flex flex-col gap-2">
               <a
                 href="tel:0932966700"
-                className="flex-1 bg-gradient-to-br from-[#0f9b0f] to-[#00b894] hover:brightness-110 shadow-[0_4px_15px_rgba(15,155,15,0.4)] py-2 px-2 rounded-full text-white font-bold transition-all flex items-center justify-center gap-1.5 border border-white/10 uppercase tracking-wide"
+                className="flex-1 bg-gradient-to-br from-[#0f9b0f] to-[#00b894] hover:brightness-110 shadow-[0_4px_15px_rgba(15,155,15,0.4)] py-2 px-2 rounded-full text-white font-bold transition-all flex items-center justify-center gap-1.5 border border-border-inverse uppercase tracking-wide"
               >
                 <Phone className="w-3.5 h-3.5 drop-shadow-md fill-white" />
                 <span className="text-[10px]">0932 966 700</span>
@@ -949,7 +965,7 @@ export default function ProductDetail({
                 href="https://zalo.me/0932966700"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 bg-gradient-to-br from-[#0068ff] to-[#00a8ff] hover:brightness-110 shadow-[0_4px_15px_rgba(0,104,255,0.4)] py-2 px-2 rounded-full text-white font-bold transition-all flex items-center justify-center gap-1.5 border border-white/10 uppercase tracking-wide"
+                className="flex-1 bg-gradient-to-br from-[#0068ff] to-[#00a8ff] hover:brightness-110 shadow-[0_4px_15px_rgba(0,104,255,0.4)] py-2 px-2 rounded-full text-white font-bold transition-all flex items-center justify-center gap-1.5 border border-border-inverse uppercase tracking-wide"
               >
                 <img
                   loading="lazy"
@@ -968,12 +984,12 @@ export default function ProductDetail({
             COLUMN 3 (Right): Covers 3 grid column widths (lg:col-span-3 - STICKY)
             ========================================================= */}
         <div
-          className="lg:col-span-3 space-y-6 lg:sticky lg:top-[10px] self-start"
+          className={`lg:col-span-3 space-y-6 lg:sticky self-start transition-all duration-300 ${scrollDirection === 'down' ? 'lg:top-[10px]' : 'lg:top-[50px]'}`}
           id="detail-pane-far-right"
         >
           {/* Categories with real-time uploading counts */}
-          <div className="bg-slate-900 border border-slate-850 py-2.5 px-[15px] rounded-lg space-y-4 shadow-xl text-left">
-            <h4 className="text-white text-sm font-bold tracking-wider pt-0 pb-[2px] mb-[5px] border-b border-slate-850">
+          <div className="bg-bg-surface border border-border-color py-2.5 px-[15px] rounded-lg space-y-4 shadow-xl text-left">
+            <h4 className="text-text-primary text-sm font-bold tracking-wider pt-0 pb-[2px] mb-[5px] border-b border-border-color">
               Danh Mục Sản Phẩm
             </h4>
 
@@ -987,13 +1003,13 @@ export default function ProductDetail({
                       categoryName: catName,
                     })
                   }
-                  className="flex justify-between items-center text-xs text-slate-300 hover:text-amber-500 cursor-pointer pt-2 pb-0 transition-colors border-b border-slate-950/40 last:border-0"
+                  className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer pt-2 pb-0 transition-colors border-b border-black/40 last:border-0"
                 >
                   <span className="truncate flex items-center gap-1">
-                    <Tag className="w-3 h-3 text-amber-500 shrink-0" />
+                    <Tag className="w-3 h-3 text-primary shrink-0" />
                     {catName}
                   </span>
-                  <span className="bg-slate-950 px-2 py-0.5 rounded-full text-[9px] font-mono text-slate-500">
+                  <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary">
                     ({cnt})
                   </span>
                 </div>
@@ -1002,8 +1018,8 @@ export default function ProductDetail({
           </div>
 
           {/* Quick Price Range Filters widget */}
-          <div className="bg-slate-900 border border-slate-850 py-2.5 px-[15px] rounded-lg space-y-3 shadow-xl text-left">
-            <h4 className="text-white text-sm font-bold tracking-wider pb-0 mb-[5px] border-b border-slate-850">
+          <div className="bg-bg-surface border border-border-color py-2.5 px-[15px] rounded-lg space-y-3 shadow-xl text-left">
+            <h4 className="text-text-primary text-sm font-bold tracking-wider pb-0 mb-[5px] border-b border-border-color">
               Khoảng giá
             </h4>
 
@@ -1012,7 +1028,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", priceRange: "under3" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Dưới 3 Tỷ
               </button>
@@ -1020,7 +1036,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", priceRange: "3to5" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Từ 3 Tỷ đến 5 Tỷ
               </button>
@@ -1028,7 +1044,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", priceRange: "5to10" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Từ 5 Tỷ đến 10 Tỷ
               </button>
@@ -1036,7 +1052,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", priceRange: "10to20" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Từ 10 Tỷ đến 20 Tỷ
               </button>
@@ -1044,7 +1060,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", priceRange: "20to50" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Từ 20 Tỷ đến 50 Tỷ
               </button>
@@ -1052,7 +1068,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", priceRange: "over50" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Trên 50 Tỷ
               </button>
@@ -1060,8 +1076,8 @@ export default function ProductDetail({
           </div>
 
           {/* Sizing options counts widget */}
-          <div className="bg-slate-900 border border-slate-850 py-2.5 px-[15px] rounded-lg space-y-3 shadow-xl text-left mb-5">
-            <h4 className="text-white text-sm font-bold tracking-wider pb-0 mb-[5px] border-b border-slate-850">
+          <div className="bg-bg-surface border border-border-color py-2.5 px-[15px] rounded-lg space-y-3 shadow-xl text-left mb-5">
+            <h4 className="text-text-primary text-sm font-bold tracking-wider pb-0 mb-[5px] border-b border-border-color">
               Diện tích
             </h4>
 
@@ -1070,7 +1086,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", areaRange: "under100" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Dưới 100 m²
               </button>
@@ -1078,7 +1094,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", areaRange: "100to300" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Từ 100 m² đến 300 m²
               </button>
@@ -1086,7 +1102,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", areaRange: "300to500" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Từ 300 m² đến 500 m²
               </button>
@@ -1094,7 +1110,7 @@ export default function ProductDetail({
                 onClick={() =>
                   onNavigate({ screen: "san-pham", areaRange: "over500" })
                 }
-                className="block w-full text-left text-slate-400 hover:text-amber-500 py-1 cursor-pointer bg-transparent border-none"
+                className="block w-full text-left text-text-secondary hover:text-primary py-1 cursor-pointer bg-transparent border-none"
               >
                 • Trên 500 m²
               </button>
@@ -1102,8 +1118,8 @@ export default function ProductDetail({
           </div>
 
           {/* Area options widget */}
-          <div className="bg-slate-900 border border-slate-850 py-2.5 px-[15px] rounded-lg space-y-3 shadow-xl text-left">
-            <h4 className="text-white text-sm font-bold tracking-wider pb-0 mb-[5px] border-b border-slate-850">
+          <div className="bg-bg-surface border border-border-color py-2.5 px-[15px] rounded-lg space-y-3 shadow-xl text-left">
+            <h4 className="text-text-primary text-sm font-bold tracking-wider pb-0 mb-[5px] border-b border-border-color">
               Khu vực
             </h4>
 
@@ -1115,16 +1131,16 @@ export default function ProductDetail({
                     onClick={() =>
                       onNavigate({ screen: "san-pham", location: distName })
                     }
-                    className="flex justify-between items-center text-xs text-slate-300 hover:text-amber-500 cursor-pointer py-1 transition-colors border-b border-slate-950/40 last:border-0"
+                    className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-1 transition-colors border-b border-black/40 last:border-0"
                   >
                     <span className="truncate pr-2">• {distName}</span>
-                    <span className="text-[10px] text-slate-600 bg-slate-950 px-1.5 py-0.5 rounded">
+                    <span className="text-[10px] text-text-secondary bg-bg-surface px-1.5 py-0.5 rounded">
                       {cnt}
                     </span>
                   </div>
                 ))
               ) : (
-                <div className="text-slate-500 text-xs italic py-2">
+                <div className="text-text-secondary text-xs italic py-2">
                   Chưa có dữ liệu khu vực
                 </div>
               )}
@@ -1145,7 +1161,7 @@ export default function ProductDetail({
       {/* 1. Bất động sản dành cho bạn (Recently Viewed Grid: displays 5 columns with AJAX load more (+5)) */}
       {recentlyViewed.length > 0 && (
         <section className="space-y-6 text-left" id="detail-history-recent">
-          <h2 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">
+          <h2 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">
             Bất Động Sản Dành Cho Bạn
           </h2>
 
@@ -1163,10 +1179,10 @@ export default function ProductDetail({
             </div>
 
             {recentlyViewed.length > recentGridLimit && (
-              <div className="flex w-full justify-center border-t border-slate-800/50 pt-8 mt-4">
+              <div className="flex w-full justify-center border-t border-border-color/50 pt-8 mt-4">
                 <button
                   onClick={() => setRecentGridLimit((prev) => prev + 5)}
-                  className="bg-transparent border border-amber-500 text-amber-500 hover:bg-amber-500/10 text-xs font-semibold px-6 py-3 rounded-md cursor-pointer transition-colors"
+                  className="bg-transparent border border-primary text-primary hover:bg-[#064E3B]/10 text-xs font-semibold px-6 py-3 rounded-md cursor-pointer transition-colors"
                 >
                   Xem thêm bất động sản khác <span>&rsaquo;</span>
                 </button>
@@ -1178,7 +1194,7 @@ export default function ProductDetail({
 
       {/* 2. Newest Sales Slider (horizontal) */}
       <section className="space-y-6 text-left" id="detail-bottom-sales">
-        <h2 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">
+        <h2 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">
           Tin Bán mới nhất
         </h2>
 
@@ -1188,16 +1204,14 @@ export default function ProductDetail({
               <ProductCard
                 item={item}
                 onNavigate={onNavigate}
-                badgeText="Bán"
-                badgeColor="bg-rose-700 text-white"
               />
             </div>
           ))}
         </div>
-        <div className="flex w-full justify-center border-t border-slate-800/50 pt-8 mt-4">
+        <div className="flex w-full justify-center border-t border-border-color/50 pt-8 mt-4">
           <button
             onClick={() => onNavigate({ screen: "latest-sales" })}
-            className="bg-transparent border border-amber-500 text-amber-500 hover:bg-amber-500/10 text-xs font-semibold px-6 py-3 rounded-md cursor-pointer transition-colors text-[10px] !py-[5px] !px-[15px]"
+            className="bg-transparent border border-primary text-primary hover:bg-[#064E3B]/10 text-xs font-semibold px-6 py-3 rounded-md cursor-pointer transition-colors text-[10px] !py-[5px] !px-[15px]"
           >
             Xem tất cả BĐS Bán
           </button>
@@ -1206,7 +1220,7 @@ export default function ProductDetail({
 
       {/* 3. Newest Rents Slider (horizontal) */}
       <section className="space-y-6 text-left" id="detail-bottom-rents">
-        <h2 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">
+        <h2 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">
           Tin Cho thuê mới nhất
         </h2>
 
@@ -1216,16 +1230,14 @@ export default function ProductDetail({
               <ProductCard
                 item={item}
                 onNavigate={onNavigate}
-                badgeText="Cho thuê"
-                badgeColor="bg-emerald-700 text-white"
               />
             </div>
           ))}
         </div>
-        <div className="flex w-full justify-center border-t border-slate-800/50 pt-8 mt-4">
+        <div className="flex w-full justify-center border-t border-border-color/50 pt-8 mt-4">
           <button
             onClick={() => onNavigate({ screen: "latest-rents" })}
-            className="bg-transparent border border-amber-500 text-amber-500 hover:bg-amber-500/10 text-xs font-semibold px-6 py-3 rounded-md cursor-pointer transition-colors text-[10px] !pt-[5px] !pb-[6px] !px-[15px]"
+            className="bg-transparent border border-primary text-primary hover:bg-[#064E3B]/10 text-xs font-semibold px-6 py-3 rounded-md cursor-pointer transition-colors text-[10px] !pt-[5px] !pb-[6px] !px-[15px]"
           >
             Xem tất cả BĐS Cho thuê
           </button>
@@ -1234,101 +1246,93 @@ export default function ProductDetail({
 
       {/* 4. Featured Projects Slider (horizontal) */}
       <section className="space-y-6 text-left pb-0" id="detail-bottom-projects">
-        <div className="flex items-end justify-between pb-2 border-b border-white/10 mb-4">
-          <h2 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3 m-0">
+        <div className="flex items-end justify-between pb-2 border-b border-border-inverse mb-4">
+          <h2 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3 m-0">
             Dự án nổi bật
           </h2>
           <button
             type="button"
             onClick={() => onNavigate({ screen: "du-an" })}
-            className="flex items-center gap-1.5 text-[9px] uppercase font-mono tracking-widest text-amber-400 font-bold hover:underline bg-transparent border-none cursor-pointer p-0"
+            className="flex items-center gap-1.5 text-[9px] uppercase font-mono tracking-widest text-primary font-bold hover:underline bg-transparent border-none cursor-pointer p-0"
           >
             <span>Xem thêm →</span>
           </button>
         </div>
 
-        <div className="relative overflow-x-auto pb-4 scrollbar-thin scroll-smooth snap-x snap-mandatory">
-          <div className="flex gap-5 box-border w-max lg:w-full">
-            {projects.slice(0, 4).map((p) => {
-              let statusText = "Đang mở bán";
-              if (p.status === "handed_over") statusText = "Đã bàn giao";
-              if (p.status === "coming_soon") statusText = "Sắp ra mắt";
+        <div className="relative overflow-hidden py-4 w-full">
+          <style>{`
+            @keyframes sliderScrollProductDetail {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(calc(-16.666666%)); }
+            }
+            .animate-product-detail-slider {
+              animation: sliderScrollProductDetail 15s linear infinite;
+            }
+            .animate-product-detail-sliding-container:hover .animate-product-detail-slider {
+              animation-play-state: paused;
+            }
+          `}</style>
+          <div className="animate-product-detail-sliding-container flex w-max">
+            <div className="flex w-max animate-product-detail-slider">
+              {[...Array(6)].flatMap(() => projects.slice(0, 5)).map((p, idx) => {
+                let statusText = "Đang mở bán";
+                if (p.status === "handed_over") statusText = "Đã bàn giao";
+                if (p.status === "coming_soon") statusText = "Sắp ra mắt";
 
-              return (
-                <div
-                  key={p.id}
-                  onClick={() =>
-                    onNavigate({
-                      screen: "project-detail",
-                      projectId: p.id,
-                      slug: generateSlug(p.title),
-                    })
-                  }
-                  className="w-[85vw] sm:w-[calc(50vw-20px)] lg:w-[calc(25%-15px)] shrink-0 bg-slate-900 border border-amber-500/20 rounded-lg overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-500 hover:shadow-[0_10px_20px_rgba(0,0,0,0.5)] cursor-pointer no-underline snap-start"
-                >
-                  <div className="h-[220px] relative overflow-hidden group">
-                    <span className="absolute top-0 left-0 px-3 py-1.5 text-[11px] font-bold text-black bg-[#ff9f43] z-10 rounded-br-lg">
-                      {statusText}
-                    </span>
-                    <img
-                      loading="lazy"
-                      decoding="async"
-                      src={optimizeImageUrl(p.images?.[0], 400) || undefined}
-                      alt={p.title}
-                      referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 block"
-                      onError={(e) => { e.currentTarget.onerror = null;
-                        (e.target as HTMLImageElement).src =
-                          "https://via.placeholder.com/600x400?text=Greenia+Homes";
-                      }}
-                    />
-                  </div>
-
-                  <div className="p-4 flex-1 flex flex-col items-start bg-slate-900 text-left">
-                    <h3 className="text-[13px] sm:text-[15px] font-bold text-white leading-[1.4] m-0 mb-[9px] line-clamp-2 transition-colors group-hover:text-amber-500 text-left w-full">
-                      {p.title}
-                    </h3>
-                    <div className="flex items-center justify-between text-xs mb-3 w-full">
-                      <span className="text-slate-400">Giá từ:</span>
-                      <span className="text-amber-500 font-extrabold text-[14px] sm:text-base">
-                        {p.priceText || "Đang cập nhật"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-[10px] text-[11px] text-slate-300 mb-2 w-full">
-                      <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                        <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                        <span
-                          className="truncate"
-                          title={p.scale || "Đang cập nhật"}
-                        >
-                          {p.scale || "Đang cập nhật quy mô"}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                        <Building2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                        <span
-                          className="truncate"
-                          title={p.units ? String(p.units) : "Đang cập nhật"}
-                        >
-                          {p.units
-                            ? `${p.units} căn`
-                            : "Đang cập nhật số lượng"}
-                        </span>
+                return (
+                  <div
+                    key={`${p.id}-${idx}`}
+                    onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
+                    className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
+                  >
+                    <div className="relative aspect-[16/10] overflow-hidden">
+                      <img loading="lazy" decoding="async"
+                        src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                        alt={p.title}
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+                        onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
+                      />
+                      <div className="absolute top-2 left-2 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded shadow-sm z-10">
+                        {statusText}
                       </div>
                     </div>
-                    <div className="text-xs text-[#999] flex items-start gap-1.5 leading-[1.5] mt-auto pt-1 w-full">
-                      <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 shrink-0 mt-[2px]" />
-                      <span className="text-left line-clamp-2">
-                        {p.location || "Đang cập nhật vị trí"}
-                      </span>
+
+                    <div className="p-4 flex-1 flex flex-col justify-between text-left">
+                      <div>
+                        <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
+                          {p.title}
+                        </h4>
+                        <div className="flex items-center justify-between text-xs mb-3 w-full">
+                          <span className="text-text-secondary">Giá từ:</span>
+                          <span className="text-primary font-bold text-[13px]">{p.priceText || "Đang cập nhật"}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-[11px] text-text-secondary mb-2 w-full">
+                          <div className="flex items-center gap-1.5 flex-1">
+                            <Layers className="w-3 h-3 text-text-secondary shrink-0" />
+                            <span className="truncate" title={p.scale || 'Đang cập nhật'}>{p.scale || 'Đang cập nhật'}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-1">
+                            <Building2 className="w-3 h-3 text-text-secondary shrink-0" />
+                            <span className="truncate" title={p.units ? String(p.units) : 'Đang cập nhật'}>{p.units ? `${p.units} căn` : 'Đang cập nhật'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-1.5 text-[11px] text-text-secondary mt-auto pt-2 border-t border-border-color/50 w-full">
+                        <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-[1px]" />
+                        <span className="text-left line-clamp-2">
+                          {p.location || p.title}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
               );
             })}
           </div>
         </div>
-      </section>
+      </div>
+    </section>
     </div>
   );
 }

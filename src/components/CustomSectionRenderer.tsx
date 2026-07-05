@@ -41,7 +41,7 @@ export default function CustomSectionRenderer({
   if (section.id.startsWith('custom_banner_promo')) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id={section.id}>
-        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-950 border border-slate-850 p-8 sm:p-12 md:p-16 flex flex-col md:flex-row gap-8 md:gap-12 items-center text-left">
+        <div className="relative overflow-hidden rounded-lg bg-gradient-to-br from-emerald-950/40 via-zinc-900 to-black border border-border-color p-8 sm:p-12 md:p-16 flex flex-col md:flex-row gap-8 md:gap-12 items-center text-left">
           
           <div className="flex-1 space-y-5">
             <EditableText 
@@ -51,7 +51,7 @@ export default function CustomSectionRenderer({
               isEditMode={isEditMode} 
               sections={sections} 
               onUpdateSections={onUpdateSections}
-              className="text-[10px] font-bold uppercase tracking-widest text-amber-400 font-mono"
+              className="text-[10px] font-bold uppercase tracking-widest text-primary font-mono"
             />
             
             <EditableText 
@@ -62,7 +62,7 @@ export default function CustomSectionRenderer({
               sections={sections} 
               onUpdateSections={onUpdateSections}
               tag="h2"
-              className="text-2xl sm:text-3.5xl font-display font-medium text-white tracking-tight leading-snug"
+              className="text-2xl sm:text-3.5xl font-display font-medium text-text-primary tracking-tight leading-snug"
             />
             
             <EditableText 
@@ -73,7 +73,7 @@ export default function CustomSectionRenderer({
               sections={sections} 
               onUpdateSections={onUpdateSections}
               isArea={true}
-              className="text-slate-400 text-xs font-light leading-relaxed max-w-xl"
+              className="text-text-secondary text-xs font-light leading-relaxed max-w-xl"
             />
 
             <div className="pt-2">
@@ -82,7 +82,7 @@ export default function CustomSectionRenderer({
                   const url = section.extraData?.linkUrl || '#lien-he';
                   window.location.hash = url.replace('#', '');
                 }}
-                className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-lg cursor-pointer shadow-lg transition-transform duration-150"
+                className="bg-primary hover:bg-amber-600 active:scale-95 text-black font-extrabold text-xs uppercase tracking-wider px-6 py-3.5 rounded-lg cursor-pointer shadow-lg transition-transform duration-150"
               >
                 <EditableText 
                   sectionId={section.id} 
@@ -98,7 +98,7 @@ export default function CustomSectionRenderer({
             </div>
           </div>
 
-          <div className="w-full md:w-2/5 aspect-[4/3] rounded-lg overflow-hidden bg-slate-950 border border-slate-800">
+          <div className="w-full md:w-2/5 aspect-[4/3] rounded-lg overflow-hidden bg-bg-surface border border-border-color">
             <EditableImage 
               sectionId={section.id} 
               field="imageUrl" 
@@ -117,7 +117,7 @@ export default function CustomSectionRenderer({
   if (section.id.startsWith('custom_cta_call')) {
     return (
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8" id={section.id}>
-        <div className="bg-slate-900 border border-slate-850 p-8 sm:p-10 rounded-lg space-y-6 text-center">
+        <div className="bg-bg-surface border border-border-color p-8 sm:p-10 rounded-lg space-y-6 text-center">
           <div className="max-w-xl mx-auto space-y-2">
             <EditableText 
               sectionId={section.id} 
@@ -126,7 +126,7 @@ export default function CustomSectionRenderer({
               isEditMode={isEditMode} 
               sections={sections} 
               onUpdateSections={onUpdateSections}
-              className="text-[10px] font-bold uppercase tracking-widest text-amber-400 font-mono"
+              className="text-[10px] font-bold uppercase tracking-widest text-primary font-mono"
             />
             
             <EditableText 
@@ -137,7 +137,7 @@ export default function CustomSectionRenderer({
               sections={sections} 
               onUpdateSections={onUpdateSections}
               tag="h2"
-              className="text-xl sm:text-2.5xl font-display font-medium text-white tracking-tight"
+              className="text-xl sm:text-2.5xl font-display font-medium text-text-primary tracking-tight"
             />
 
             <EditableText 
@@ -148,20 +148,20 @@ export default function CustomSectionRenderer({
               sections={sections} 
               onUpdateSections={onUpdateSections}
               isArea={true}
-              className="text-slate-400 text-xs font-light leading-relaxed max-w-md mx-auto"
+              className="text-text-secondary text-xs font-light leading-relaxed max-w-md mx-auto"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto text-left pt-2">
             <a 
               href={`tel:${(section.extraData?.hotline || '').replace(/[^0-9+]/g, '')}`}
-              className="flex items-center gap-3 p-4 rounded-lg bg-slate-950 border border-slate-850 hover:border-amber-500/30 transition-all cursor-pointer group"
+              className="flex items-center gap-3 p-4 rounded-lg bg-bg-surface border border-border-color hover:border-primary/30 transition-all cursor-pointer group"
             >
-              <div className="bg-amber-500/10 text-amber-400 p-3 rounded-lg group-hover:bg-amber-500 group-hover:text-slate-950 transition-colors">
+              <div className="bg-[#064E3B]/10 text-primary p-3 rounded-lg group-hover:bg-primary group-hover:text-black transition-colors">
                 <Phone className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[9px] text-slate-500 uppercase tracking-widest font-mono block">Liên Hệ</span>
+                <span className="text-[9px] text-white/70 uppercase tracking-widest font-mono block">Liên Hệ</span>
                 <EditableText 
                   sectionId={section.id} 
                   field="extraData"
@@ -171,20 +171,20 @@ export default function CustomSectionRenderer({
                   sections={sections} 
                   onUpdateSections={onUpdateSections}
                   tag="span"
-                  className="text-xs font-bold text-white font-mono"
+                  className="text-xs font-bold text-text-primary font-mono"
                 />
               </div>
             </a>
 
             <a 
               href={`mailto:${section.extraData?.email || 'contact@greeniahomes.vn'}`}
-              className="flex items-center gap-3 p-4 rounded-lg bg-slate-950 border border-slate-850 hover:border-amber-500/30 transition-all cursor-pointer group"
+              className="flex items-center gap-3 p-4 rounded-lg bg-bg-surface border border-border-color hover:border-primary/30 transition-all cursor-pointer group"
             >
-              <div className="bg-blue-500/10 text-blue-400 p-3 rounded-lg group-hover:bg-blue-500 group-hover:text-white transition-colors">
+              <div className="bg-blue-500/10 text-info p-3 rounded-lg group-hover:bg-blue-500 group-hover:text-text-primary transition-colors">
                 <Mail className="w-5 h-5" />
               </div>
               <div>
-                <span className="text-[9px] text-slate-500 uppercase tracking-widest font-mono block">Hòm Thư</span>
+                <span className="text-[9px] text-white/70 uppercase tracking-widest font-mono block">Hòm Thư</span>
                 <EditableText 
                   sectionId={section.id} 
                   field="extraData"
@@ -194,7 +194,7 @@ export default function CustomSectionRenderer({
                   sections={sections} 
                   onUpdateSections={onUpdateSections}
                   tag="span"
-                  className="text-xs font-bold text-slate-350 font-mono"
+                  className="text-xs font-bold text-white/70 font-mono"
                 />
               </div>
             </a>
@@ -209,7 +209,7 @@ export default function CustomSectionRenderer({
             sections={sections} 
             onUpdateSections={onUpdateSections}
             tag="p"
-            className="text-[10px] text-slate-500 pt-2 font-mono"
+            className="text-[10px] text-white/70 pt-2 font-mono"
           />
         </div>
       </div>
@@ -226,7 +226,7 @@ export default function CustomSectionRenderer({
           isEditMode={isEditMode} 
           sections={sections} 
           onUpdateSections={onUpdateSections}
-          className="text-[9px] font-bold uppercase tracking-widest text-amber-400 font-mono"
+          className="text-[9px] font-bold uppercase tracking-widest text-primary font-mono"
         />
         
         <EditableText 
@@ -237,10 +237,10 @@ export default function CustomSectionRenderer({
           sections={sections} 
           onUpdateSections={onUpdateSections}
           tag="h2"
-          className="text-xl sm:text-2xl font-display font-medium text-white tracking-tight"
+          className="text-xl sm:text-2xl font-display font-medium text-text-primary tracking-tight"
         />
 
-        <div className="bg-slate-900/40 p-6 sm:p-8 rounded-lg border border-slate-900">
+        <div className="bg-bg-surface/40 p-6 sm:p-8 rounded-lg border border-border-color">
           <EditableText 
             sectionId={section.id} 
             field="description" 
@@ -249,7 +249,7 @@ export default function CustomSectionRenderer({
             sections={sections} 
             onUpdateSections={onUpdateSections}
             isArea={true}
-            className="text-slate-300 text-xs font-light leading-relaxed text-center"
+            className="text-text-secondary text-xs font-light leading-relaxed text-center"
           />
         </div>
       </div>
@@ -267,7 +267,7 @@ export default function CustomSectionRenderer({
             isEditMode={isEditMode} 
             sections={sections} 
             onUpdateSections={onUpdateSections}
-            className="text-[10px] font-bold uppercase tracking-widest text-amber-400 font-mono"
+            className="text-[10px] font-bold uppercase tracking-widest text-primary font-mono"
           />
           
           <EditableText 
@@ -278,7 +278,7 @@ export default function CustomSectionRenderer({
             sections={sections} 
             onUpdateSections={onUpdateSections}
             tag="h2"
-            className="text-xl sm:text-2.5xl font-display font-medium text-white tracking-tight"
+            className="text-xl sm:text-2.5xl font-display font-medium text-text-primary tracking-tight"
           />
 
           <EditableText 
@@ -289,14 +289,14 @@ export default function CustomSectionRenderer({
             sections={sections} 
             onUpdateSections={onUpdateSections}
             isArea={true}
-            className="text-slate-400 text-xs font-light max-w-md mx-auto"
+            className="text-text-secondary text-xs font-light max-w-md mx-auto"
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 text-left">
           
-          <div className="bg-slate-900 border border-slate-900 rounded-lg p-6.5 relative space-y-4 shadow-xl">
-            <div className="flex gap-1 text-yellow-500">
+          <div className="bg-bg-surface border border-border-color rounded-lg p-6.5 relative space-y-4 shadow-xl">
+            <div className="flex gap-1 text-primary">
               {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-yellow-500" />)}
             </div>
             
@@ -312,7 +312,7 @@ export default function CustomSectionRenderer({
               className="text-slate-205 text-xs font-light italic leading-relaxed"
             />
 
-            <div className="border-t border-slate-850/80 pt-3 flex items-center justify-between text-xs">
+            <div className="border-t border-border-color/80 pt-3 flex items-center justify-between text-xs">
               <EditableText 
                 sectionId={section.id} 
                 field="extraData"
@@ -322,17 +322,17 @@ export default function CustomSectionRenderer({
                 sections={sections} 
                 onUpdateSections={onUpdateSections}
                 tag="h4"
-                className="font-bold text-white font-display"
+                className="font-bold text-text-primary font-display"
               />
-              <span className="text-[10px] font-mono font-bold text-amber-450 flex items-center gap-1">
+              <span className="text-[10px] font-mono font-bold text-accent flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                 Vérified
               </span>
             </div>
           </div>
 
-          <div className="bg-slate-900 border border-slate-900 rounded-lg p-6.5 relative space-y-4 shadow-xl">
-            <div className="flex gap-1 text-yellow-500">
+          <div className="bg-bg-surface border border-border-color rounded-lg p-6.5 relative space-y-4 shadow-xl">
+            <div className="flex gap-1 text-primary">
               {[...Array(5)].map((_, i) => <Star key={i} className="w-4 h-4 fill-yellow-500" />)}
             </div>
             
@@ -348,7 +348,7 @@ export default function CustomSectionRenderer({
               className="text-slate-205 text-xs font-light italic leading-relaxed"
             />
 
-            <div className="border-t border-slate-850/80 pt-3 flex items-center justify-between text-xs">
+            <div className="border-t border-border-color/80 pt-3 flex items-center justify-between text-xs">
               <EditableText 
                 sectionId={section.id} 
                 field="extraData"
@@ -358,9 +358,9 @@ export default function CustomSectionRenderer({
                 sections={sections} 
                 onUpdateSections={onUpdateSections}
                 tag="h4"
-                className="font-bold text-white font-display"
+                className="font-bold text-text-primary font-display"
               />
-              <span className="text-[10px] font-mono font-bold text-amber-450 flex items-center gap-1">
+              <span className="text-[10px] font-mono font-bold text-accent flex items-center gap-1">
                 <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                 Vérified
               </span>
@@ -383,7 +383,7 @@ export default function CustomSectionRenderer({
             isEditMode={isEditMode} 
             sections={sections} 
             onUpdateSections={onUpdateSections}
-            className="text-[9px] font-bold uppercase tracking-widest text-amber-400 font-mono"
+            className="text-[9px] font-bold uppercase tracking-widest text-primary font-mono"
           />
           <EditableText 
             sectionId={section.id} 
@@ -393,16 +393,16 @@ export default function CustomSectionRenderer({
             sections={sections} 
             onUpdateSections={onUpdateSections}
             tag="h2"
-            className="text-sm font-semibold text-slate-300 font-display uppercase tracking-wider"
+            className="text-sm font-semibold text-text-secondary font-display uppercase tracking-wider"
           />
         </div>
 
         <div className="flex flex-wrap items-center justify-center gap-8 md:gap-14 pt-4 opacity-40 hover:opacity-100 transition-opacity">
-          <span className="text-white text-xs font-bold font-mono uppercase tracking-widest bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-lg">VINGROUP</span>
-          <span className="text-amber-500 text-xs font-bold font-mono uppercase tracking-widest bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-lg">PHÚ MỸ HƯNG GP</span>
-          <span className="text-blue-400 text-xs font-bold font-mono uppercase tracking-widest bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-lg">TECHCOMBANK</span>
-          <span className="text-slate-300 text-xs font-bold font-mono uppercase tracking-widest bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-lg">ELIE SAAB</span>
-          <span className="text-teal-400 text-xs font-bold font-mono uppercase tracking-widest bg-slate-900 border border-slate-800 px-4 py-2.5 rounded-lg">MASTERISE HOMES</span>
+          <span className="text-text-primary text-xs font-bold font-mono uppercase tracking-widest bg-bg-surface border border-border-color px-4 py-2.5 rounded-lg">VINGROUP</span>
+          <span className="text-primary text-xs font-bold font-mono uppercase tracking-widest bg-bg-surface border border-border-color px-4 py-2.5 rounded-lg">PHÚ MỸ HƯNG GP</span>
+          <span className="text-info text-xs font-bold font-mono uppercase tracking-widest bg-bg-surface border border-border-color px-4 py-2.5 rounded-lg">TECHCOMBANK</span>
+          <span className="text-text-secondary text-xs font-bold font-mono uppercase tracking-widest bg-bg-surface border border-border-color px-4 py-2.5 rounded-lg">ELIE SAAB</span>
+          <span className="text-teal-400 text-xs font-bold font-mono uppercase tracking-widest bg-bg-surface border border-border-color px-4 py-2.5 rounded-lg">MASTERISE HOMES</span>
         </div>
       </div>
     );

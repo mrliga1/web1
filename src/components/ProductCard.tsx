@@ -14,7 +14,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ item, onNavigate, badgeText, badgeColor, priority = false }: ProductCardProps) {
   const displayBadgeText = badgeText || (item.type === 'rent' ? 'Cho thuê' : 'Bán');
-  const displayBadgeColor = badgeColor || (item.type === 'rent' ? 'bg-emerald-700 text-white' : 'bg-rose-700 text-white');
+  const displayBadgeColor = badgeColor || (item.type === 'rent' ? 'bg-primary text-white' : 'bg-rose-700 text-white');
   let safeImageUrl = item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : '/no-image.svg');
   if (safeImageUrl.includes('images.unsplash.com')) {
     if (!safeImageUrl.includes('?')) {
@@ -51,9 +51,9 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
   return (
     <div
       onClick={() => onNavigate({ screen: 'product-detail', productId: item.id, slug: generateSlug(item.title) })}
-      className="w-full shrink-0 bg-[#0e121b] hover:bg-[#0e121b] border border-[#232d45] hover:border-amber-500/50 rounded overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer flex flex-row sm:flex-col shadow-sm"
+      className="w-full shrink-0 bg-bg-surface hover:bg-bg-base border border-border-color hover:border-primary/30 rounded-lg overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-row sm:flex-col"
     >
-      <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] overflow-hidden bg-slate-950 flex items-center justify-center">
+      <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] overflow-hidden bg-bg-base flex items-center justify-center">
         <img 
           src={safeImageUrl || undefined}
           srcSet={generateSrcSet(item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : null))}
@@ -77,25 +77,25 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
         <button
           onClick={toggleFavorite}
           aria-label={isFavorite ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
-          className={`absolute top-0 right-0 sm:top-2 sm:right-2 z-20 w-8 h-8 sm:w-8 sm:h-8 flex items-center justify-center rounded-full backdrop-blur-md border border-white/20 transition-colors ${isFavorite ? 'bg-amber-500/80 text-white' : 'bg-black/40 text-slate-300 hover:text-white hover:bg-black/60'}`}
+          className={`absolute top-0 right-0 sm:top-2 sm:right-2 z-20 w-8 h-8 sm:w-8 sm:h-8 flex items-center justify-center rounded-full backdrop-blur-md border transition-colors shadow-sm ${isFavorite ? 'bg-primary text-text-inverse border-primary' : 'bg-white/90 text-text-secondary border-transparent hover:text-rose-600 hover:bg-white'}`}
         >
           <Heart className={`w-4 h-4 ${isFavorite ? 'fill-current' : ''}`} />
         </button>
       </div>
       <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-        <h3 className="font-semibold text-[13px] sm:text-[14px] text-white group-hover:text-amber-500 line-clamp-2 leading-[1.4] transition-colors pt-[2px] sm:pt-0 mb-[2px] sm:mb-[10px] sm:min-h-[40px]">
+        <h3 className="font-semibold text-[13px] sm:text-[14px] text-text-primary group-hover:text-primary line-clamp-2 leading-[1.4] transition-colors pt-[2px] sm:pt-0 mb-[2px] sm:mb-[10px] sm:min-h-[40px] font-playfair tracking-wide">
           {item.title}
         </h3>
-        <div className="flex items-center gap-[5px] text-[12px] text-[#999] mb-[4px] sm:mb-[2px]">
-          <MapPin className="w-3 h-3 text-amber-500 shrink-0" />
+        <div className="flex items-center gap-[5px] text-[12px] text-text-secondary mb-[4px] sm:mb-[2px]">
+          <MapPin className="w-3 h-3 text-primary shrink-0" />
           <span className="truncate text-[10px]">{item.district}</span>
         </div>
         
-        <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-[#232d45] mt-auto">
+        <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-border-color mt-auto">
           <div className="flex items-center justify-between mb-[3px] sm:mb-[5px]">
-            <span className="font-bold text-[14px] text-amber-500 truncate">{item.priceText || 'Đang cập nhật'}</span>
+            <span className="font-bold text-[14px] text-primary truncate">{item.priceText || 'Đang cập nhật'}</span>
           </div>
-          <div className="flex flex-wrap items-center gap-[8px] sm:gap-[10px] text-[10px] sm:text-[11px] text-[#999]">
+          <div className="flex flex-wrap items-center gap-[8px] sm:gap-[10px] text-[10px] sm:text-[11px] text-text-secondary">
             <div className="flex items-center gap-[5px]">
               <Layers className="w-3 h-3 shrink-0" />
               <span>{item.area ? `${item.area} m²` : '--'}</span>

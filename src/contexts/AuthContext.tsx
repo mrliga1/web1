@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db, handleFirestoreError, OperationType } from '../firebase';
-import { onAuthStateChanged, User, signOut as firebaseSignOut } from 'firebase/auth';
-import { doc, setDoc, getDoc } from 'firebase/firestore/lite';
+import { supabase } from '../supabase';
+import { User } from '@supabase/supabase-js';
 
 export type UserRole = 'admin' | 'editor' | 'member' | 'user';
 
@@ -34,29 +33,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchProfile = async (user: User) => {
     try {
-      const docRef = doc(db, 'users', user.uid);
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const data = docSnap.data() as UserProfile;
-        if (user.email?.toLowerCase() === 'nguyenthanhthuan091095@gmail.com' && data.role !== 'admin') {
-          data.role = 'admin';
-          await setDoc(docRef, data, { merge: true });
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('uid', user.id)
+        .single();
+
+      if (data) {
+        let profile = data as UserProfile;
+        if (user.email?.toLowerCase() === 'nguyenthanhthuan091095@gmail.com' && profile.role !== 'admin') {
+          profile.role = 'admin';
+          await supabase.from('users').update({ role: 'admin' }).eq('uid', user.id);
         }
-        setUserProfile(data);
-      } else {
+        setUserProfile(profile);
+      } else if (error && error.code === 'PGRST116') {
+        // Record not found
         let role: UserRole = 'user';
         const email = user.email || '';
         if (email.toLowerCase() === 'nguyenthanhthuan091095@gmail.com') {
           role = 'admin';
         }
         const newProfile: UserProfile = {
-          uid: user.uid,
+          uid: user.id,
           email: email,
           role,
-          username: user.displayName || email.split('@')[0],
+          username: user.user_metadata?.full_name || email.split('@')[0],
         };
-        await setDoc(docRef, newProfile);
+        await supabase.from('users').insert([newProfile]);
         setUserProfile(newProfile);
+      } else {
+        console.error("Error fetching profile from Supabase", error);
       }
     } catch (err) {
       console.error("Error fetching user profile", err);
@@ -64,7 +70,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, async (user) => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user || null;
+      setCurrentUser(user);
+      if (user) {
+        fetchProfile(user);
+      } else {
+        setLoading(false);
+      }
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const user = session?.user || null;
       setCurrentUser(user);
       if (user) {
         await fetchProfile(user);
@@ -73,11 +92,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       setLoading(false);
     });
-    return () => unsub();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const logout = async () => {
-    await firebaseSignOut(auth);
+    await supabase.auth.signOut();
   };
 
   const reloadProfile = async () => {

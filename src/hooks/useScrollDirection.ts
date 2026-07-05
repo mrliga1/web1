@@ -10,7 +10,7 @@ export function useScrollDirection() {
     const updateScrollDirection = () => {
       const scrollY = window.pageYOffset;
       const direction = scrollY > lastScrollY ? 'down' : 'up';
-      if (direction !== scrollDirection && (scrollY - lastScrollY > 10 || scrollY - lastScrollY < -5)) {
+      if (direction !== scrollDirection && (scrollY - lastScrollY > 10 || scrollY - lastScrollY < -20)) {
         setScrollDirection(direction);
       }
       lastScrollY = scrollY > 0 ? scrollY : 0;

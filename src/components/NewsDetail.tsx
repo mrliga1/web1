@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { optimizeImageUrl, generateSlug, generateSrcSet } from '../lib/utils';
-import { doc, getDoc, collection, getDocs, addDoc, db } from '../firebase';
+import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
-import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2 } from 'lucide-react';
+import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { parseSlugTitleFromPath, resolveItemTitle } from '../lib/documentHead';
 import AdBanner from './AdBanner';
 import ProductCard from './ProductCard';
 import StarRatingInteractive from './StarRatingInteractive';
+import { useScrollDirection } from '../hooks/useScrollDirection';
 
 interface NewsDetailProps {
   newsId: string;
@@ -30,6 +31,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
   const [products, setProducts] = useState<Product[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(!article);
+  const scrollDirection = useScrollDirection();
 
   // Categories count map
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
@@ -42,6 +44,8 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [seeMoreClicks, setSeeMoreClicks] = useState(0);
+  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [agreePrivacy, setAgreePrivacy] = useState(true);
 
   useEffect(() => {
     async function loadArticleData() {
@@ -71,7 +75,13 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         }
 
         if (fetchedArticle) {
-          setArticle(fetchedArticle);
+          if (!sessionStorage.getItem(`viewed_news_${fetchedArticle.id}`)) {
+            const newCount = (fetchedArticle.viewsCount || 0) + 1;
+            fetchedArticle.viewsCount = newCount;
+            updateDoc(doc(db, 'news', fetchedArticle.id), { viewsCount: newCount }).catch(console.error);
+            sessionStorage.setItem(`viewed_news_${fetchedArticle.id}`, 'true');
+          }
+          setArticle({...fetchedArticle});
         } else {
           setLoading(false);
           onShowNotification("Bài viết không tồn tại xu hướng hoặc đã xóa.", "error");
@@ -202,20 +212,17 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
     }
   };
 
-  const fallbackTitle = `${parseSlugTitleFromPath(typeof window !== 'undefined' ? window.location.pathname : '', '/news/') || 'Đang tải...'} | Greenia Homes`;
   const pageTitle = article
     ? resolveItemTitle(article, 'Greenia Homes')
-    : fallbackTitle;
+    : "Đang tải... | Greenia Homes";
+
 
   if (loading) {
     return (
       <>
-        <Helmet>
-          <title>{pageTitle}</title>
-        </Helmet>
         <div className="py-32 text-center space-y-4 max-w-sm mx-auto" id="news-detail-loading">
-        <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto" />
-        <p className="text-slate-400 text-xs font-light">Đang mở bài phân tích tư liệu...</p>
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+        <p className="text-text-secondary text-xs font-light">Đang mở bài phân tích tư liệu...</p>
       </div>
       </>
     );
@@ -282,15 +289,25 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-12 animate-in fade-in" id="news-detail-root-container">
       <Helmet>
-        <title>{resolveItemTitle(article, 'Greenia Homes')}</title>
+        <title>{pageTitle}</title>
         <meta name="description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
         {article.seoKeywords && <meta name="keywords" content={article.seoKeywords} />}
         <meta property="og:type" content="article" />
         <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
         <meta property="og:title" content={article.seoTitle || article.title} />
         <meta property="og:description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
-        <meta property="og:image" content={articleImage} />
+        <meta property="og:image" content={articleImage?.startsWith('http') ? articleImage : `https://greeniahomes.vn${articleImage?.startsWith('/') ? articleImage : `/${articleImage}`}`} />
+        
         <meta name="twitter:card" content="summary_large_image" />
+        <meta property="twitter:title" content={article.seoTitle || article.title} />
+        <meta property="twitter:description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
+        <meta property="twitter:image" content={articleImage?.startsWith('http') ? articleImage : `https://greeniahomes.vn${articleImage?.startsWith('/') ? articleImage : `/${articleImage}`}`} />
+
+        {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
+        <meta name="geo.region" content="VN-SG" />
+        <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
+        <meta name="geo.position" content="10.823099;106.629664" />
+        <meta name="ICBM" content="10.823099, 106.629664" />
         <script type="application/ld+json">
           {JSON.stringify(schemaOrgJSONLD)}
         </script>
@@ -298,35 +315,35 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
       
       <div className="mb-[35px]">
         {/* Breadcrumb row */}
-        <div className="flex items-center text-xs text-slate-450 border-b border-slate-900 pb-[5px]" id="news-detail-breadcrumb">
-          <div className="flex items-center gap-2 text-slate-500 font-mono">
-            <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-amber-400 truncate max-w-[100px] cursor-pointer">Tin tức</button>
+        <div className="flex items-center text-xs text-text-secondary border-b border-border-color pb-[5px]" id="news-detail-breadcrumb">
+          <div className="flex items-center gap-2 text-text-secondary font-mono">
+            <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary truncate max-w-[100px] cursor-pointer">Tin tức</button>
             <span>/</span>
-            <span className="hover:text-amber-400 truncate max-w-[150px] cursor-pointer" onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })}>{article.category}</span>
+            <span className="hover:text-primary truncate max-w-[150px] cursor-pointer" onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })}>{article.category}</span>
             <span>/</span>
-            <span className="text-amber-400 font-bold truncate max-w-[200px]" title={article.title}>{article.title}</span>
+            <span className="text-primary font-bold truncate max-w-[200px]" title={article.title}>{article.title}</span>
           </div>
         </div>
 
         {/* Header Info Banner: Title, published date, author */}
         <div className="text-left max-w-4xl" id="news-detail-briefing">
 
-          <h1 className="mt-[15px] mb-[10px] text-2xl sm:text-3.5xl font-display font-medium text-white tracking-tight leading-snug">
+          <h1 className="mt-[15px] mb-[10px] text-2xl sm:text-3.5xl font-display font-medium text-text-primary tracking-tight leading-snug">
             {article.title}
           </h1>
 
-        <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 font-mono">
+        <div className="flex flex-wrap items-center gap-4 text-xs text-text-secondary font-mono">
           <span className="flex items-center gap-1">
-            <User className="w-4 h-4 text-amber-500" />
+            <User className="w-4 h-4 text-primary" />
             <span>{article.author || "Thuận Nguyễn"}</span>
           </span>
           <span className="flex items-center gap-1">
-            <Calendar className="w-4 h-4 text-slate-500" />
+            <Calendar className="w-4 h-4 text-primary" />
             <span>{new Date(article.createdAt).toLocaleDateString('vi-VN')}</span>
           </span>
           <span className="flex items-center gap-1">
-            <Eye className="w-4 h-4 text-slate-500" />
-            <span>{(article.viewsCount || 0) + (article.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 51) + 150} lượt xem</span>
+            <Eye className="w-4 h-4 text-primary" />
+            <span>{(article.viewsCount || 0)} lượt xem</span>
           </span>
         </div>
       </div>
@@ -339,14 +356,14 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         <div className="lg:col-span-8 space-y-10">
           
           {/* Main big cover photo */}
-          <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-slate-900 bg-slate-950">
+          <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-border-color bg-bg-surface">
             <img loading="eager" decoding="async" src={article.imageUrl ? optimizeImageUrl(article.imageUrl, 800) : undefined} srcSet={article.imageUrl ? generateSrcSet(article.imageUrl) : undefined} sizes="(max-width: 1024px) 100vw, 800px" alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
               // @ts-ignore
               fetchpriority="high" />
           </div>
 
           {/* HTML rendered prose */}
-          <article className="prose prose-invert max-w-none text-slate-300 text-sm leading-relaxed space-y-5" id="article-prose-body">
+          <article className="prose prose-invert max-w-none text-text-secondary text-sm leading-relaxed space-y-5" id="article-prose-body">
             <div dangerouslySetInnerHTML={{ __html: article.content || `<p>${article.description}</p>` }} />
           </article>
 
@@ -360,13 +377,13 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
           />
 
           {/* Related related articles widget ("Xem thêm" as title links directly inside Column 1) */}
-          <div className="bg-slate-900/40 border border-slate-900 p-6 rounded-lg space-y-4 overflow-hidden" id="article-related-links">
-            <div className="border-b border-slate-900 pb-2 flex items-center justify-between">
-              <h4 className="text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <Bookmark className="w-4 h-4 text-amber-400" />
+          <div className="bg-bg-surface/40 border border-border-color p-6 rounded-lg space-y-4 overflow-hidden" id="article-related-links">
+            <div className="border-b border-border-color pb-2 flex items-center justify-between">
+              <h4 className="text-text-primary text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                <Bookmark className="w-4 h-4 text-primary" />
                 <span>Tin Cùng Danh Mục</span>
               </h4>
-              <button onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })} className="text-[10px] uppercase font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 transition-colors">
+              <button onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })} className="text-[10px] uppercase font-bold text-primary hover:text-amber-300 flex items-center gap-1 transition-colors">
                 Xem thêm <ArrowRight className="w-3 h-3" />
               </button>
             </div>
@@ -380,12 +397,12 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                   <div
                     key={`${n.id}-${index}`}
                     onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
-                    className="w-[280px] shrink-0 bg-slate-900/30 border border-slate-850 hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
+                    className="w-[280px] shrink-0 bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
                   >
                     <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
-                      <h4 className="text-sm lg:text-xs font-semibold text-white line-clamp-2">{n.title}</h4>
-                      <span className="text-[10px] lg:text-[9px] text-slate-500 font-mono block mt-1">
+                      <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
+                      <span className="text-[10px] lg:text-[9px] text-white/70 font-mono block mt-1">
                         {new Date(n.createdAt).toLocaleDateString('vi-VN')}
                       </span>
                     </div>
@@ -402,12 +419,12 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                   <div
                     key={`${n.id}-dup-${index}`}
                     onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
-                    className="w-[280px] shrink-0 bg-slate-900/30 border border-slate-850 hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
+                    className="w-[280px] shrink-0 bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
                   >
                     <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
-                      <h4 className="text-sm lg:text-xs font-semibold text-white line-clamp-2">{n.title}</h4>
-                      <span className="text-[10px] lg:text-[9px] text-slate-500 font-mono block mt-1">
+                      <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
+                      <span className="text-[10px] lg:text-[9px] text-white/70 font-mono block mt-1">
                         {new Date(n.createdAt).toLocaleDateString('vi-VN')}
                       </span>
                     </div>
@@ -426,8 +443,8 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         <div className="lg:col-span-4 space-y-8 h-full" id="news-detail-sidebar">
           
           {/* Newest News titles */}
-          <div className="bg-slate-900 border border-slate-850 p-[10px] rounded-lg space-y-4 shadow-xl">
-            <h4 className="text-white text-[14px] font-bold tracking-wider pb-[5px] mb-[10px] border-b border-slate-800">
+          <div className="bg-bg-surface border border-border-color p-[10px] rounded-lg space-y-4 shadow-xl">
+            <h4 className="text-text-primary text-[14px] font-bold tracking-wider pb-[5px] mb-[10px] border-b border-border-color">
               Tin Nổi Bật
             </h4>
 
@@ -436,14 +453,14 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                 <div
                   key={n.id}
                   onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
-                  className="flex gap-2.5 text-left group cursor-pointer border-b border-slate-950 pb-2 last:border-0 items-start"
+                  className="flex gap-2.5 text-left group cursor-pointer border-b border-black pb-2 last:border-0 items-start"
                 >
                   <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-[45px] h-[45px] object-cover rounded shrink-0" referrerPolicy="no-referrer" />
                   <div className="flex-1 space-y-0.5 mt-[-1px]">
-                    <h5 className="text-[11px] font-semibold text-slate-300 group-hover:text-amber-400 leading-[14px] line-clamp-2">
+                    <h5 className="text-[11px] font-semibold text-text-secondary group-hover:text-primary leading-[14px] line-clamp-2">
                       {n.title}
                     </h5>
-                    <span className="text-[9px] text-slate-500 font-mono block">
+                    <span className="text-[9px] text-white/70 font-mono block">
                       {new Date(n.createdAt).toLocaleDateString('vi-VN')}
                     </span>
                   </div>
@@ -453,26 +470,26 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
           </div>
           
           {/* Product Categories (with counts) */}
-          <div className="bg-slate-900 border border-slate-850 p-[10px] mb-[20px] rounded-lg space-y-4">
-            <h4 className="text-white text-[14px] font-bold tracking-wider pb-[5px] border-b border-slate-800">
+          <div className="bg-bg-surface border border-border-color p-[10px] mb-[20px] rounded-lg space-y-4">
+            <h4 className="text-text-primary text-[14px] font-bold tracking-wider pb-[5px] border-b border-border-color">
               Danh Mục Sản Phẩm
             </h4>
 
             <div className="space-y-2">
               {Object.keys(categoryCounts).length === 0 ? (
-                <div className="text-slate-500 text-xs py-2 text-left">Đang đối chiếu dữ liệu danh mục...</div>
+                <div className="text-white/70 text-xs py-2 text-left">Đang đối chiếu dữ liệu danh mục...</div>
               ) : (
                 Object.entries(categoryCounts).map(([catName, cnt]) => (
                   <div
                     key={catName}
                     onClick={() => onNavigate({ screen: 'category-product', categoryName: catName })}
-                    className="flex justify-between items-center text-xs text-slate-300 hover:text-amber-400 cursor-pointer py-0 transition-colors border-b border-slate-950/40 last:border-0"
+                    className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-0 transition-colors border-b border-black/40 last:border-0"
                   >
                     <span className="truncate flex items-center gap-1.5">
-                      <Tag className="w-3.5 h-3.5 text-amber-500" />
+                      <Tag className="w-3.5 h-3.5 text-primary" />
                       {catName}
                     </span>
-                    <span className="bg-slate-950 px-2 py-0.5 rounded-full text-[9px] font-mono text-slate-400 font-bold">
+                    <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary font-bold">
                       ({cnt})
                     </span>
                   </div>
@@ -482,10 +499,10 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
           </div>
 
           {/* Featured Products (with price, location) */}
-          <div className="bg-slate-900/40 border border-slate-900 p-[10px] mb-[20px] rounded-lg space-y-4">
-            <div className="border-b border-slate-900 pb-[5px] mb-[10px] flex items-center justify-between">
-              <h4 className="text-white text-[14px] font-semibold tracking-wider flex items-center gap-1.5">
-                <Building className="w-4 h-4 text-amber-400" />
+          <div className="bg-bg-surface/40 border border-border-color p-[10px] mb-[20px] rounded-lg space-y-4">
+            <div className="border-b border-border-color pb-[5px] mb-[10px] flex items-center justify-between">
+              <h4 className="text-text-primary text-[14px] font-semibold tracking-wider flex items-center gap-1.5">
+                <Building className="w-4 h-4 text-primary" />
                 <span>Bất Động Sản Nổi Bật</span>
               </h4>
             </div>
@@ -497,15 +514,15 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                   onClick={() => onNavigate({ screen: 'product-detail', productId: p.id, slug: generateSlug(p.title) })}
                   className="flex gap-3 pb-[5px] border-b border-white/5 transition-colors cursor-pointer group last:border-0"
                 >
-                  <div className="w-[100px] h-[85px] shrink-0 rounded overflow-hidden border border-[#232d45] relative">
-                    <span className={`absolute top-0 left-0 px-[5px] py-[3px] text-[10px] font-semibold text-white z-10 rounded-br-[5px] ${p.type === 'rent' ? 'bg-emerald-700' : 'bg-rose-700'}`}>
-                      {p.type === 'rent' ? 'Cho thuê' : 'Đang bán'}
+                  <div className="w-[100px] h-[85px] shrink-0 rounded overflow-hidden border border-border-color relative">
+                    <span className={`absolute top-0 left-0 px-[5px] py-[3px] text-[10px] font-semibold text-white z-10 rounded-br-[5px] ${p.type === 'rent' ? 'bg-primary' : 'bg-rose-700'}`}>
+                      {p.type === 'rent' ? 'Cho thuê' : 'Bán'}
                     </span>
                     <img loading="lazy" decoding="async" src={optimizeImageUrl(p.imageUrl || (p.imageUrls && p.imageUrls[0]), 400) || undefined} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center min-w-0">
-                    <h4 className="text-[13px] font-semibold text-white leading-[1.4] m-0 mb-1.5 line-clamp-2 group-hover:text-amber-500 text-left">
+                    <h4 className="text-[13px] font-semibold text-text-primary leading-[1.4] m-0 mb-1.5 line-clamp-2 group-hover:text-primary text-left">
                       {p.title}
                     </h4>
                     <div className="text-[11px] text-[#999] flex flex-wrap items-center gap-x-3 gap-y-1 mb-1.5">
@@ -526,10 +543,10 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                       )}
                     </div>
                     <div className="flex justify-between items-center w-full mb-1.5">
-                      <span className="text-amber-500 font-bold text-[12px]">{p.priceText}</span>
+                      <span className="text-primary font-bold text-[12px]">{p.priceText}</span>
                     </div>
                     <div className="text-[11px] text-[#999] flex items-center gap-1 min-w-0">
-                      <MapPin className="w-3 h-3 text-amber-500 shrink-0" />
+                      <MapPin className="w-3 h-3 text-primary shrink-0" />
                       <span className="truncate">{p.district || p.location}</span>
                     </div>
                   </div>
@@ -539,73 +556,149 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
           </div>
 
           {/* Yêu cầu tư vấn Form widget */}
-          <div className="bg-slate-900 border border-slate-850 px-[15px] pt-[15px] pb-[15px] rounded-lg space-y-4 shadow-xl sticky top-[15px]">
-            <h4 className="text-white text-[14px] font-bold tracking-wider pb-[5px] mb-[15px] border-b border-slate-800">
-              Liên Hệ Chuyên Viên Tư Vấn
-            </h4>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Bạn quan tâm đến các dự án bất động sản được nhắc đến trong bài viết? Đăng ký đặt lịch hẹn tham quan thực tế cùng đại sư Greenia.
-            </p>
+          <div className={`bg-bg-surface border border-border-color px-[16px] py-[8px] rounded-xl space-y-2 shadow-xl sticky ${scrollDirection === 'down' ? 'top-[15px]' : 'top-[55px]'} transition-colors duration-300 text-left`}>
+            <div className="text-center space-y-1 pb-[2px]">
+              <h3 className="text-text-primary font-display font-bold text-base tracking-wide mt-[2px]">
+                Tư vấn mua nhà chuyên sâu
+              </h3>
+              <p className="text-[11px] text-text-secondary pb-[2px]">
+                Chuyên viên Greenia Homes hỗ trợ 24/7
+              </p>
+              <hr className="border-border-color/50 w-[70%] mx-auto mt-1" />
+            </div>
+
+            <div className="space-y-1 mb-[2px]">
+              <div className="flex items-start gap-2 pt-[2px] mb-[2px]">
+                <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-[11px] text-text-secondary leading-tight">
+                  <span className="font-semibold text-text-primary">Phân tích</span> quỹ căn, chính sách, tiện ích giúp Khách hàng lựa chọn căn <span className="font-semibold text-primary">tốt nhất.</span>
+                </p>
+              </div>
+              <div className="flex items-start gap-2 mb-[2px]">
+                <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-[11px] text-text-secondary leading-tight">
+                  <span className="font-semibold text-text-primary">Giải đáp mọi thắc mắc</span> của khách hàng nhanh chóng.
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <p className="text-[11px] text-text-secondary leading-tight">
+                  <span className="font-semibold text-text-primary">Tuyệt đối bảo mật</span> thông tin cá nhân.
+                </p>
+              </div>
+            </div>
 
             {formSubmitted ? (
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-4 text-center space-y-2 animate-in zoom-in">
-                <CheckCircle2 className="w-7 h-7 text-amber-500 mx-auto" />
-                <h5 className="font-semibold text-white text-xs">Phê duyệt lịch hẹn!</h5>
-                <p className="text-[10px] text-slate-300">Nhân sự chăm sóc khách hàng Greenia Homes sẽ gọi ngay đến quý khách hàng.</p>
+              <div className="bg-accent/10 text-emerald-400 border border-primary/20 rounded-xl p-5 text-center space-y-3 animate-in zoom-in-95">
+                <div className="w-12 h-12 rounded-full border-2 border-primary/30 flex items-center justify-center mx-auto bg-accent/10 text-emerald-400">
+                  <CheckCircle2 className="w-6 h-6" />
+                </div>
+                <div>
+                  <h5 className="font-medium text-[15px] text-text-primary">Đăng ký thành công!</h5>
+                  <p className="text-[11px] text-emerald-200/70 mt-1.5 leading-relaxed">
+                    Chuyên viên của chúng tôi sẽ gọi lại cho bạn theo số {clientPhone} trong ít phút nữa.
+                  </p>
+                </div>
               </div>
             ) : (
-              <form onSubmit={handleSidebarConsultSubmit} className="space-y-4 h-[265px]">
-                <div className="space-y-1">
+              <form onSubmit={handleSidebarConsultSubmit} className="space-y-2 pt-[5px] mt-1">
+                <div className="space-y-1 text-left">
                   <input
                     type="text"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
-                    placeholder="Họ &amp; tên"
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs pt-[10px] pb-[10px] px-3 rounded-lg outline-none focus:border-amber-500"
+                    placeholder="Họ tên *"
+                    className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                     required
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 text-left">
                   <input
                     type="tel"
                     value={clientPhone}
                     onChange={(e) => setClientPhone(e.target.value)}
-                    placeholder="SĐT"
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs py-2.5 px-3 rounded-lg outline-none focus:border-amber-500"
+                    placeholder="Số điện thoại *"
+                    className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                     required
                   />
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1 text-left">
                   <input
                     type="email"
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
-                    placeholder="Email"
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-xs py-2.5 px-3 rounded-lg outline-none focus:border-amber-500"
-                    required
+                    placeholder="Email (Tùy chọn)"
+                    className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
                   />
                 </div>
 
-                <div className="space-y-1">
-                  <input
-                    type="text"
+                <div className="space-y-1 text-left">
+                  <textarea
                     value={clientDemand}
                     onChange={(e) => setClientDemand(e.target.value)}
-                    placeholder="Nhu cầu"
-                    className="w-full bg-slate-950 border border-slate-800 text-slate-200 text-[11px] leading-[12px] py-2.5 px-3 rounded-lg outline-none focus:border-amber-500"
-                    required
+                    placeholder="Nhu cầu của bạn (Tùy chọn)"
+                    rows={3}
+                    className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none"
                   />
+                </div>
+
+                <div className="space-y-1.5 pt-1">
+                  <label className="flex items-start gap-2.5 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
+                    />
+                    <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
+                      Tôi đã đọc và đồng ý với <button type="button" onClick={() => onNavigate({ screen: "terms-of-use" })} className="underline text-primary hover:text-primary">Điều khoản & Điều kiện</button> của Greenia Market.
+                    </span>
+                  </label>
+                  <label className="flex items-start gap-2.5 cursor-pointer group">
+                    <input
+                      type="checkbox"
+                      checked={agreePrivacy}
+                      onChange={(e) => setAgreePrivacy(e.target.checked)}
+                      className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
+                    />
+                    <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
+                      Tôi đã đọc và đồng ý với <button type="button" onClick={() => onNavigate({ screen: "privacy-policy" })} className="underline text-primary hover:text-primary">Chính sách bảo mật dữ liệu cá nhân</button> của Greenia Market.
+                    </span>
+                  </label>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full bg-amber-500 text-slate-950 font-bold py-3 rounded-lg text-xs uppercase tracking-wider cursor-pointer"
+                  disabled={isSubmitting || !agreeTerms || !agreePrivacy}
+                  className="w-full py-2.5 rounded-[10px] font-bold bg-primary text-white hover:bg-accent transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-[13px] mt-2 shadow-lg shadow-emerald-500/30 text-center"
                 >
-                  {isSubmitting ? 'ĐANG GỬI...' : 'ĐĂNG KÝ TƯ VẤN'}
+                  {isSubmitting ? 'Đang gửi thông tin...' : 'Nhận tư vấn ngay'}
                 </button>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  <a
+                    href="tel:0932966700"
+                    className="flex flex-col items-center justify-center gap-0.5 bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 rounded-lg py-1 transition-colors cursor-pointer text-center"
+                  >
+                    <Phone className="w-3 h-3" />
+                    <span className="text-[10px] font-medium">
+                      Gọi trực tiếp
+                    </span>
+                  </a>
+                  <a 
+                    href="https://zalo.me/0932966700"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center justify-center gap-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500/20 rounded-lg py-1 transition-colors cursor-pointer text-center"
+                  >
+                    <img loading="lazy" decoding="async" src="/zalo-icon.svg" alt="Zalo" className="w-3.5 h-3.5" />
+                    <span className="text-[10px] font-medium">
+                      Chat qua Zalo
+                    </span>
+                  </a>
+                </div>
               </form>
             )}
           </div>
@@ -617,10 +710,10 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
       </div>
 
       {/* Under columns: Same category articles in 5 columns with see more */}
-      <section className="space-y-6 pt-8 border-t border-slate-900" id="same-category-slide-section">
+      <section className="space-y-6 pt-8 border-t border-border-color" id="same-category-slide-section">
         <div className="text-left">
-          <h2 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">Có thể Bạn Quan Tâm</h2>
-          <p className="text-slate-500 text-xs font-light mt-1 pl-3">Tuyển chọn các bài tin tức kiến giải tương tự, giúp quý khách thấu đáo các chuẩn đầu tư.</p>
+          <h2 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">Có thể Bạn Quan Tâm</h2>
+          <p className="text-white/70 text-xs font-light mt-1 pl-3">Tuyển chọn các bài tin tức kiến giải tương tự, giúp quý khách thấu đáo các chuẩn đầu tư.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
@@ -633,12 +726,12 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
               <div
                 key={n.id}
                 onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
-                className="w-full bg-slate-900/30 border border-slate-850 hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
+                className="w-full bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
               >
                 <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                 <div className="text-left space-y-1">
-                  <h4 className="text-sm lg:text-xs font-semibold text-white line-clamp-2">{n.title}</h4>
-                  <span className="text-[10px] lg:text-[9px] text-slate-500 font-mono block mt-1">
+                  <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
+                  <span className="text-[10px] lg:text-[9px] text-white/70 font-mono block mt-1">
                     {new Date(n.createdAt).toLocaleDateString('vi-VN')}
                   </span>
                 </div>
@@ -657,7 +750,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                 onNavigate({ screen: 'tin-tuc' });
               }
             }}
-            className="inline-flex items-center gap-2 bg-slate-900 border border-slate-800 hover:border-amber-500/50 text-xs font-semibold text-amber-400 px-6 py-2.5 rounded-full cursor-pointer transition-all"
+            className="inline-flex items-center gap-2 bg-bg-surface border border-border-color hover:border-primary/50 text-xs font-semibold text-primary px-6 py-2.5 rounded-full cursor-pointer transition-all"
           >
             <span>{seeMoreClicks === 0 ? 'Xem thêm bài viết' : 'Về trang chủ chuyên mục tin'}</span>
             <ArrowRight className="w-3.5 h-3.5" />
@@ -667,19 +760,19 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
 
       {/* Latest Sales */}
       {latestSales.length > 0 && (
-        <section className="space-y-6 pt-8 border-t border-slate-900 text-left">
-          <h2 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">Tin Bán mới nhất</h2>
+        <section className="space-y-6 pt-8 border-t border-border-color text-left">
+          <h2 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">Tin Bán mới nhất</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-5">
             {latestSales.map((item) => (
               <div key={item.id} className="w-full">
-                <ProductCard item={item} onNavigate={onNavigate} badgeText="Bán" badgeColor="bg-rose-700 text-white" />
+                <ProductCard item={item} onNavigate={onNavigate} />
               </div>
             ))}
           </div>
           
-          <div className="flex w-full justify-center border-t border-slate-800/50 pt-8 mt-4">
-            <button onClick={() => onNavigate({ screen: 'latest-sales' })} className="bg-transparent border border-amber-500 text-amber-500 hover:bg-amber-500/10 text-[10px] font-semibold px-[10px] pb-[5px] pt-[9px] rounded-lg cursor-pointer transition-colors">
+          <div className="flex w-full justify-center border-t border-border-color/50 pt-8 mt-4">
+            <button onClick={() => onNavigate({ screen: 'latest-sales' })} className="bg-transparent border border-primary text-primary hover:bg-[#064E3B]/10 text-[10px] font-semibold px-[10px] pb-[5px] pt-[9px] rounded-lg cursor-pointer transition-colors">
               Xem tất cả BĐS Bán
             </button>
           </div>
@@ -688,19 +781,19 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
 
       {/* Latest Rents */}
       {latestRents.length > 0 && (
-        <section className="space-y-6 pt-8 border-t border-slate-900 text-left">
-          <h2 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">Tin Cho thuê mới nhất</h2>
+        <section className="space-y-6 pt-8 border-t border-border-color text-left">
+          <h2 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">Tin Cho thuê mới nhất</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-5">
             {latestRents.map((item) => (
               <div key={item.id} className="w-full">
-                <ProductCard item={item} onNavigate={onNavigate} badgeText="Cho thuê" badgeColor="bg-emerald-700 text-white" />
+                <ProductCard item={item} onNavigate={onNavigate} />
               </div>
             ))}
           </div>
           
-          <div className="flex w-full justify-center border-t border-slate-800/50 pt-8 mt-4">
-            <button onClick={() => onNavigate({ screen: 'latest-rents' })} className="bg-transparent border border-amber-500 text-amber-500 hover:bg-amber-500/10 text-[10px] font-sans font-semibold px-[10px] py-[5px] rounded-lg cursor-pointer transition-colors">
+          <div className="flex w-full justify-center border-t border-border-color/50 pt-8 mt-4">
+            <button onClick={() => onNavigate({ screen: 'latest-rents' })} className="bg-transparent border border-primary text-primary hover:bg-[#064E3B]/10 text-[10px] font-sans font-semibold px-[10px] py-[5px] rounded-lg cursor-pointer transition-colors">
               Xem tất cả BĐS Cho thuê
             </button>
           </div>
@@ -709,73 +802,92 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
 
       {/* Featured Projects */}
       {featuredProjectsList.length > 0 && (
-        <section className="space-y-6 pt-8 border-t border-slate-900 text-left pb-0">
+        <section className="space-y-6 pt-8 border-t border-border-color text-left pb-0">
           <div className="flex items-end justify-between pb-2">
-            <h2 className="text-[15px] font-display font-medium text-white border-l-4 border-amber-500 pl-3">Dự án nổi bật</h2>
+            <h2 className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3">Dự án nổi bật</h2>
             <button
               type="button"
               onClick={() => onNavigate({ screen: 'du-an' })}
-              className="flex items-center gap-1.5 text-[9px] uppercase font-mono tracking-widest text-amber-400 font-bold hover:underline bg-transparent border-none cursor-pointer"
+              className="flex items-center gap-1.5 text-[9px] uppercase font-mono tracking-widest text-primary font-bold hover:underline bg-transparent border-none cursor-pointer"
             >
               <span>Xem thêm →</span>
             </button>
           </div>
 
-          <div className="relative overflow-x-auto pb-4 scrollbar-thin scroll-smooth snap-x snap-mandatory">
-            <div className="flex gap-5 box-border w-max lg:w-full">
-              {featuredProjectsList.slice(0, 4).map((p) => {
-                let statusText = 'Đang mở bán';
-                if (p.status === 'handed_over') statusText = 'Đã bàn giao';
-                if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
+          <div className="relative overflow-hidden py-4 w-full">
+            <style>{`
+              @keyframes sliderScrollNewsDetail {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(calc(-16.666666%)); }
+              }
+              .animate-news-detail-slider {
+                animation: sliderScrollNewsDetail 15s linear infinite;
+              }
+              .animate-news-detail-sliding-container:hover .animate-news-detail-slider {
+                animation-play-state: paused;
+              }
+            `}</style>
+            <div className="animate-news-detail-sliding-container flex w-max">
+              <div className="flex w-max animate-news-detail-slider">
+                {[...Array(6)].flatMap(() => featuredProjectsList.slice(0, 5)).map((p, idx) => {
+                  let statusText = 'Đang mở bán';
+                  if (p.status === 'handed_over') statusText = 'Đã bàn giao';
+                  if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
 
-                return (
-                  <div
-                    key={p.id}
-                    onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
-                    className="w-[85vw] sm:w-[calc(50vw-20px)] lg:w-[calc(25%-15px)] shrink-0 bg-slate-900 border border-amber-500/20 rounded-lg overflow-hidden flex flex-col h-full transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-500 hover:shadow-[0_10px_20px_rgba(0,0,0,0.5)] cursor-pointer no-underline snap-start"
-                  >
-                    <div className="h-[220px] relative overflow-hidden group">
-                      <span className="absolute top-0 left-0 px-3 py-1.5 text-[11px] font-bold text-black bg-[#ff9f43] z-10 rounded-br-lg">
-                        {statusText}
-                      </span>
-                      <img loading="lazy" decoding="async"
-                        src={optimizeImageUrl(p.images?.[0], 400) || undefined}
-                        alt={p.title}
-                        referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110 block"
-                        onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
-                      />
-                    </div>
-
-                    <div className="p-4 flex-1 flex flex-col items-start bg-slate-900 text-left">
-                      <h3 className="text-[13px] sm:text-[15px] font-bold text-white leading-[1.4] m-0 mb-[9px] line-clamp-2 transition-colors group-hover:text-amber-500 text-left w-full">
-                        {p.title}
-                      </h3>
-                      <div className="flex items-center justify-between text-xs mb-3 w-full">
-                        <span className="text-slate-400">Giá từ:</span>
-                        <span className="text-amber-500 font-extrabold text-[14px] sm:text-base">{p.priceText || "Đang cập nhật"}</span>
-                      </div>
-                      <div className="flex items-center gap-[10px] text-[11px] text-slate-300 mb-2 w-full">
-                        <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                          <Layers className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                          <span className="truncate" title={p.scale || 'Đang cập nhật'}>{p.scale || 'Đang cập nhật quy mô'}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5 flex-1 w-1/2">
-                          <Building2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
-                          <span className="truncate" title={p.units ? String(p.units) : 'Đang cập nhật'}>{p.units ? `${p.units} căn` : 'Đang cập nhật số lượng'}</span>
+                  return (
+                    <div
+                      key={`${p.id}-${idx}`}
+                      onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
+                      className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
+                    >
+                      <div className="relative aspect-[16/10] overflow-hidden">
+                        <img loading="lazy" decoding="async"
+                          src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                          alt={p.title}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+                          onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
+                        />
+                        <div className="absolute top-2 left-2 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded shadow-sm z-10">
+                          {statusText}
                         </div>
                       </div>
-                      <div className="text-xs text-[#999] flex items-start gap-1.5 leading-[1.5] mt-auto pt-1 w-full">
-                        <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-amber-500 shrink-0 mt-[2px]" />
-                        <span className="text-left line-clamp-2">{p.location || 'Đang cập nhật vị trí'}</span>
+
+                      <div className="p-4 flex-1 flex flex-col justify-between text-left">
+                        <div>
+                          <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
+                            {p.title}
+                          </h4>
+                          <div className="flex items-center justify-between text-xs mb-3 w-full">
+                            <span className="text-text-secondary">Giá từ:</span>
+                            <span className="text-primary font-bold text-[13px]">{p.priceText || "Đang cập nhật"}</span>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-[11px] text-text-secondary mb-2 w-full">
+                            <div className="flex items-center gap-1.5 flex-1">
+                              <Layers className="w-3 h-3 text-text-secondary shrink-0" />
+                              <span className="truncate" title={p.scale || 'Đang cập nhật'}>{p.scale || 'Đang cập nhật'}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-1">
+                              <Building2 className="w-3 h-3 text-text-secondary shrink-0" />
+                              <span className="truncate" title={p.units ? String(p.units) : 'Đang cập nhật'}>{p.units ? `${p.units} căn` : 'Đang cập nhật'}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-1.5 text-[11px] text-text-secondary mt-auto pt-2 border-t border-border-color/50 w-full">
+                          <MapPin className="w-3.5 h-3.5 text-primary shrink-0 mt-[1px]" />
+                          <span className="text-left line-clamp-2">
+                            {p.location || p.title}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
                 );
               })}
             </div>
           </div>
-        </section>
+        </div>
+      </section>
       )}
 
     </div>

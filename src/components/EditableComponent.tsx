@@ -82,7 +82,7 @@ export function EditableText({
           <span key={lidx}>
             {parts.map((part, i) => 
               part === 'Greenia Homes' 
-                ? <strong key={i} className="text-white font-bold">{part}</strong> 
+                ? <strong key={i} className="text-accent font-bold drop-shadow-sm">{part}</strong> 
                 : part
             )}
           </span>
@@ -113,7 +113,7 @@ export function EditableText({
             });
             onUpdateSections(updated);
           }}
-          className={`w-full bg-slate-950/95 text-slate-100 border border-amber-500 rounded p-2 text-xs outline-none focus:ring-1 focus:ring-amber-500 font-light resize-none ${className}`}
+          className={`w-full bg-bg-inverse/95 text-slate-100 border border-primary rounded p-2 text-xs outline-none focus:ring-1 focus:ring-yellow-500 font-light resize-none ${className}`}
           autoFocus
           rows={4}
         />
@@ -137,7 +137,7 @@ export function EditableText({
           });
           onUpdateSections(updated);
         }}
-        className={`w-full bg-slate-950/95 text-slate-100 border border-amber-500 rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-amber-500 ${className}`}
+        className={`w-full bg-bg-inverse/95 text-slate-100 border border-primary rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-yellow-500 ${className}`}
         autoFocus
       />
     );
@@ -149,7 +149,7 @@ export function EditableText({
         e.stopPropagation();
         setEditing(true);
       }} 
-      className={`group/edit relative cursor-pointer border border-dashed border-amber-500/15 hover:border-amber-500/80 p-0.5 rounded transition-all ${className}`}
+      className={`group/edit relative cursor-pointer border border-dashed border-primary/15 hover:border-primary/80 p-0.5 rounded transition-all ${className}`}
       title="Nhấp vào để biên tập trực tiếp nội dung"
     >
       <Tag className="inline-block w-full">
@@ -157,7 +157,7 @@ export function EditableText({
           <React.Fragment key={lidx}>{line}{lidx < val.split('\n').length - 1 ? <br /> : null}</React.Fragment>
         )) : <span className="opacity-45 italic text-[11px]">(Click để ghi nhận cấu tự)</span>}
       </Tag>
-      <div className="absolute top-1 right-1 opacity-0 group-hover/edit:opacity-100 bg-amber-500 text-slate-950 p-1 rounded text-[8px] font-extrabold pointer-events-none flex items-center gap-1 shadow-md z-30 transition-opacity">
+      <div className="absolute top-1 right-1 opacity-0 group-hover/edit:opacity-100 bg-primary text-black p-1 rounded text-[8px] font-extrabold pointer-events-none flex items-center gap-1 shadow-md z-30 transition-opacity">
         <Sparkles className="w-2.5 h-2.5 shrink-0" />
         Sửa
       </div>
@@ -264,13 +264,13 @@ export function EditableImage({
       {url ? (
         <img loading="lazy" decoding="async" src={(url) || undefined} alt="Bố cục" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
       ) : (
-        <div className="w-full h-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 text-xs">
+        <div className="w-full h-full bg-bg-surface border border-border-color flex items-center justify-center text-white/70 text-xs">
           (Trắng)
         </div>
       )}
       {isEditMode && (
-        <div className="absolute inset-0 bg-slate-950/80 opacity-0 group-hover/img:opacity-100 flex flex-col items-center justify-center transition-all p-3 z-30 space-y-2">
-          <p className="text-white text-[10px] font-bold">Cập Nhật Ảnh Sắp Đặt</p>
+        <div className="absolute inset-0 bg-bg-inverse/80 opacity-0 group-hover/img:opacity-100 flex flex-col items-center justify-center transition-all p-3 z-30 space-y-2">
+          <p className="text-text-primary text-[10px] font-bold">Cập Nhật Ảnh Sắp Đặt</p>
           
           <div className="flex gap-1.5 justify-center">
             <button 
@@ -279,33 +279,33 @@ export function EditableImage({
                 e.stopPropagation();
                 setShowInput(!showInput);
               }}
-              className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold px-2 py-1.5 rounded text-[9px] shadow cursor-pointer transition-all border-none"
+              className="bg-primary hover:bg-amber-600 active:scale-95 text-black font-bold px-2 py-1.5 rounded text-[9px] shadow cursor-pointer transition-all border-none"
             >
               Nhập URL
             </button>
-            <label className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-white font-bold px-2 py-1.5 rounded text-[9px] shadow cursor-pointer block text-center transition-all">
+            <label className="bg-blue-500 hover:bg-blue-600 active:scale-95 text-text-primary font-bold px-2 py-1.5 rounded text-[9px] shadow cursor-pointer block text-center transition-all">
               Tải Mới
               <input type="file" accept="image/*" onChange={handleBase64Upload} className="hidden" />
             </label>
           </div>
 
           {uploading && (
-            <p className="text-[9px] text-amber-400 animate-pulse">Đang nạp ảnh...</p>
+            <p className="text-[9px] text-primary animate-pulse">Đang nạp ảnh...</p>
           )}
 
           {showInput && (
-            <div className="w-full max-w-xs bg-slate-900 border border-slate-800 p-1.5 rounded-lg flex items-center gap-1 shadow-xl mt-1" onClick={e => e.stopPropagation()}>
+            <div className="w-full max-w-xs bg-bg-surface border border-border-color p-1.5 rounded-lg flex items-center gap-1 shadow-xl mt-1" onClick={e => e.stopPropagation()}>
               <input 
                 type="text" 
                 value={url} 
                 onChange={(e) => setUrl(e.target.value)} 
                 placeholder="Link ảnh..." 
-                className="bg-slate-950 text-slate-200 text-[10px] p-1 rounded flex-1 outline-none border border-slate-800 focus:border-amber-500 text-left"
+                className="bg-bg-surface text-text-primary text-[10px] p-1 rounded flex-1 outline-none border border-border-color focus:border-primary text-left"
               />
               <button 
                 type="button"
                 onClick={handleUrlSubmit}
-                className="bg-amber-500 text-slate-950 px-2 py-1.5 rounded text-[10px] font-mono font-bold"
+                className="bg-primary text-black px-2 py-1.5 rounded text-[10px] font-mono font-bold"
               >
                 OK
               </button>

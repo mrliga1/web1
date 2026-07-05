@@ -325,9 +325,9 @@ function App() {
   const theme = "dark";
 
   // Global SEO tags managed by Firestore general configurations
-  const [globalMetaTitle, setGlobalMetaTitle] = useState(
-    "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu",
-  );
+  const [globalMetaTitle, setGlobalMetaTitle] = useState(() => {
+    return localStorage.getItem("greenia_meta_title") || "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu";
+  });
   const [globalMetaDesc, setGlobalMetaDesc] = useState(
     "Chào mừng đến với Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
   );
@@ -365,6 +365,23 @@ function App() {
   const [quoteMessage, setQuoteMessage] = useState("");
   const [quoteSubmitting, setQuoteSubmitting] = useState(false);
   const [quoteSuccess, setQuoteSuccess] = useState(false);
+  
+  const hasSubmittedQuote = React.useRef(false);
+  const quoteTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  // Automatically show popup after 1 minute if not already submitted
+  useEffect(() => {
+    if (!showQuotePopup && !hasSubmittedQuote.current) {
+      quoteTimerRef.current = setTimeout(() => {
+        if (!hasSubmittedQuote.current) {
+          setShowQuotePopup(true);
+        }
+      }, 60000);
+    }
+    return () => {
+      if (quoteTimerRef.current) clearTimeout(quoteTimerRef.current);
+    };
+  }, [showQuotePopup]);
 
   // Cache sections to localStorage for instant FCP on next reload
   useEffect(() => {
@@ -423,6 +440,7 @@ function App() {
       });
 
       setQuoteSuccess(true);
+      hasSubmittedQuote.current = true;
       triggerNotification("Đăng ký thành công! Chúng tôi sẽ liên hệ trong ít phút tới.", "success");
       setQuoteName("");
       setQuotePhone("");
@@ -654,7 +672,10 @@ function App() {
         setIsSettingsLoaded(true);
 
           // Live update reactive global SEO states
-          if (data.metaTitle) setGlobalMetaTitle(data.metaTitle);
+          if (data.metaTitle) {
+            setGlobalMetaTitle(data.metaTitle);
+            localStorage.setItem("greenia_meta_title", data.metaTitle);
+          }
           if (data.metaDescription) setGlobalMetaDesc(data.metaDescription);
           if (data.metaKeywords) setGlobalMetaKeywords(data.metaKeywords);
 
@@ -822,12 +843,12 @@ function App() {
       return null; // Detail pages handle their own SEO via Helmet
     }
 
-    let suffix = "";
-    if (route.screen === "san-pham") suffix = " | Giỏ hàng Bất Động Sản";
-    else if (route.screen === "du-an") suffix = " | Dự Án Quy Hoạch Nổi Bật";
-    else if (route.screen === "tin-tuc") suffix = " | Cẩm Nang Phong Thủy & Tin Tức";
-    else if (route.screen === "lien-he") suffix = " | Liên Hệ Chuyên Gia Môi Giới";
-    else if (route.screen === "admin") suffix = " | Hệ Thống Tổng Đài Admin";
+    let prefix = "";
+    if (route.screen === "san-pham") prefix = "Sản phẩm | ";
+    else if (route.screen === "du-an") prefix = "Dự Án Nổi Bật | ";
+    else if (route.screen === "tin-tuc") prefix = "Tin Tức Bất Động Sản | ";
+    else if (route.screen === "lien-he") prefix = "Liên Hệ | ";
+    else if (route.screen === "admin") prefix = "Hệ Thống Quản Trị | ";
 
     if (route.screen === "category-news" && route.categoryName) {
       return {
@@ -862,11 +883,18 @@ function App() {
     }
 
     return {
-      title: globalMetaTitle + (suffix ? suffix : ""),
+      title: prefix ? (prefix + globalMetaTitle) : globalMetaTitle,
       desc: globalMetaDesc,
       keywords: globalMetaKeywords,
     };
   }, [route, globalMetaTitle, globalMetaDesc, globalMetaKeywords]);
+
+  // Force document.title sync to bypass react-helmet-async unmount race conditions
+  useEffect(() => {
+    if (currentSeo?.title) {
+      document.title = currentSeo.title;
+    }
+  }, [currentSeo]);
 
   // Custom Toast State
   const [notification, setNotification] = useState<{
@@ -904,11 +932,11 @@ function App() {
       targetPath = `/tin-tuc/${newRoute.slug || newRoute.newsId}`;
     else if (newRoute.screen === "admin") targetPath = "/admin";
     else if (newRoute.screen === "category-product" && newRoute.categoryName)
-      targetPath = `/category-product/${encodeURIComponent(newRoute.categoryName)}`;
+      targetPath = `/category-product/${generateSlug(newRoute.categoryName)}`;
     else if (newRoute.screen === "category-product")
       targetPath = "/category-product";
     else if (newRoute.screen === "category-news" && newRoute.categoryName)
-      targetPath = `/category-news/${encodeURIComponent(newRoute.categoryName)}`;
+      targetPath = `/category-news/${generateSlug(newRoute.categoryName)}`;
     else if (newRoute.screen === "category-news") targetPath = "/category-news";
     else if (newRoute.screen === "latest-sales") targetPath = "/latest-sales";
     else if (newRoute.screen === "latest-rents") targetPath = "/latest-rents";
@@ -1197,7 +1225,7 @@ function App() {
   if (route.screen === "admin") {
     return (
       <div
-        className="min-h-screen w-full bg-slate-950 text-slate-105 font-sans"
+        className="min-h-screen w-full bg-bg-surface text-slate-900 font-sans"
         id="app-root"
       >
         {/* Toast Notification popups in Admin */}
@@ -1210,8 +1238,8 @@ function App() {
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
               className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-lg border shadow-2xl backdrop-blur-md max-w-md w-[calc(100%-2rem)] ${
                 notification.type === "success"
-                  ? "bg-slate-900 border-amber-500/30 text-amber-400"
-                  : "bg-slate-900 border-rose-500/30 text-rose-400"
+                  ? "bg-bg-surface border-emerald-500/30 text-primary"
+                  : "bg-bg-surface border-rose-500/30 text-error"
               }`}
             >
               {notification.type === "success" ? (
@@ -1219,7 +1247,7 @@ function App() {
               ) : (
                 <AlertCircle className="w-5 h-5 shrink-0" />
               )}
-              <p className="text-xs sm:text-sm font-light text-slate-100 leading-relaxed font-display text-left">
+              <p className="text-xs sm:text-sm font-light text-text-secondary leading-relaxed font-display text-left">
                 {notification.message}
               </p>
             </motion.div>
@@ -1237,30 +1265,36 @@ function App() {
 
   return (
     <div
-      className="flex flex-col min-h-screen bg-slate-950 text-slate-100 selection:bg-amber-500 selection:text-slate-950 font-sans"
+      className="flex flex-col min-h-screen bg-bg-surface text-slate-900 selection:bg-primary selection:text-white font-sans"
       id="app-root"
     >
       <Helmet>
-        {currentSeo && (
-          <>
-            <title>{currentSeo.title}</title>
-            <meta name="description" content={currentSeo.desc} />
-            <meta name="keywords" content={currentSeo.keywords} />
-            <meta property="og:title" content={currentSeo.title} />
-            <meta property="og:description" content={currentSeo.desc} />
-          </>
-        )}
-        {logoUrl ? (
-          <>
-            <link rel="icon" href={logoUrl} />
-            <link rel="apple-touch-icon" href={logoUrl} />
-          </>
-        ) : (
-          <>
-            <link rel="icon" type="image/webp" href="/favicon.webp" />
-            <link rel="apple-touch-icon" href="/favicon.webp" />
-          </>
-        )}
+        {currentSeo && <title>{currentSeo.title}</title>}
+        {currentSeo && <meta name="description" content={currentSeo.desc} />}
+        {currentSeo && <meta name="keywords" content={currentSeo.keywords} />}
+        
+        {currentSeo && <meta property="og:type" content="website" />}
+        {currentSeo && <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : "https://greeniahomes.vn"} />}
+        {currentSeo && <meta property="og:title" content={currentSeo.title} />}
+        {currentSeo && <meta property="og:description" content={currentSeo.desc} />}
+        {currentSeo && <meta property="og:image" content={logoUrl || "https://greeniahomes.vn/og-image.jpg"} />}
+
+        {currentSeo && <meta property="twitter:card" content="summary_large_image" />}
+        {currentSeo && <meta property="twitter:url" content={typeof window !== 'undefined' ? window.location.href : "https://greeniahomes.vn"} />}
+        {currentSeo && <meta property="twitter:title" content={currentSeo.title} />}
+        {currentSeo && <meta property="twitter:description" content={currentSeo.desc} />}
+        {currentSeo && <meta property="twitter:image" content={logoUrl || "https://greeniahomes.vn/og-image.jpg"} />}
+
+        {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
+        <meta name="geo.region" content="VN-SG" />
+        <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
+        <meta name="geo.position" content="10.823099;106.629664" />
+        <meta name="ICBM" content="10.823099, 106.629664" />
+
+        {logoUrl && <link rel="icon" href={logoUrl} />}
+        {logoUrl && <link rel="apple-touch-icon" href={logoUrl} />}
+        {!logoUrl && <link rel="icon" type="image/webp" href="/favicon.webp" />}
+        {!logoUrl && <link rel="apple-touch-icon" href="/favicon.webp" />}
       </Helmet>
       {/* Toast Notification popups */}
       <AnimatePresence>
@@ -1272,8 +1306,8 @@ function App() {
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-lg border shadow-2xl backdrop-blur-md max-w-md w-[calc(100%-2rem)] ${
               notification.type === "success"
-                ? "bg-slate-900 border-amber-500/30 text-amber-400"
-                : "bg-slate-900 border-rose-500/30 text-rose-400"
+                ? "bg-bg-surface border-emerald-500/30 text-primary"
+                : "bg-bg-surface border-rose-500/30 text-error"
             }`}
           >
             {notification.type === "success" ? (
@@ -1281,7 +1315,7 @@ function App() {
             ) : (
               <AlertCircle className="w-5 h-5 shrink-0" />
             )}
-            <p className="text-xs sm:text-sm font-light text-slate-100 leading-relaxed font-display text-left">
+            <p className="text-xs sm:text-sm font-light text-text-secondary leading-relaxed font-display text-left">
               {notification.message}
             </p>
           </motion.div>
@@ -1299,9 +1333,9 @@ function App() {
 
       <div className="flex-1 flex flex-col lg:flex-row" id="app-workspace-flow">
         {/* Global Live Web Preview Render Screen */}
-        <main className="flex-1 relative min-h-screen" id="main-viewport">
+        <main className="flex-1 relative min-h-screen bg-bg-surface" id="main-viewport">
           {seeding && (
-            <div className="bg-amber-500/10 border-b border-amber-500/20 text-center py-2 text-[10px] text-amber-400 font-mono flex items-center justify-center gap-2 animate-pulse">
+            <div className="bg-[#064E3B]/10 border-b border-emerald-500/20 text-center py-2 text-[10px] text-primary font-mono flex items-center justify-center gap-2 animate-pulse">
               <Compass className="w-4 h-4 animate-spin" />
               <span>
                 Đang kết nối kho dữ liệu quy hoạch Phú Mỹ Hưng, vui lòng chờ
@@ -1311,7 +1345,7 @@ function App() {
           )}
 
           <React.Suspense
-            fallback={<div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div></div>}
+            fallback={<div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div></div>}
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
@@ -1488,51 +1522,51 @@ function App() {
         </main>
       </div>
 
-      <React.Suspense fallback={<div className="flex justify-center items-center h-screen bg-slate-950"><div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div></div>}>
+      <React.Suspense fallback={<div className="flex justify-center items-center h-screen bg-bg-inverse"><div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div></div>}>
         <CookieConsent />
       </React.Suspense>
 
       {/* Footer block */}
       <footer
-        className="bg-slate-950 border-t-2 border-amber-500 pt-12 pb-8 relative overflow-hidden"
+        className="bg-bg-inverse border-t border-border-color pt-12 pb-8 relative overflow-hidden"
         id="footer"
       >
         {/* Decorative Grid/Glow */}
-        <div className="absolute inset-0 bg-[radial-gradient(rgba(197,160,89,0.1)_1px,transparent_1px)] bg-[size:40px_40px] opacity-30 pointer-events-none"></div>
-        <div className="absolute bottom-0 left-0 w-full h-[300px] bg-gradient-to-t from-[#0b1120] to-transparent pointer-events-none"></div>
+        <div className="absolute inset-0 bg-[radial-gradient(rgba(16,185,129,0.1)_1px,transparent_1px)] bg-[size:40px_40px] opacity-50 pointer-events-none"></div>
+        <div className="absolute bottom-0 left-0 w-full h-[300px] bg-gradient-to-t from-primary/10 to-transparent pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 text-left">
             {/* Column 1: Info */}
             <div className="space-y-6 lg:col-span-1">
-              <span className="font-display font-bold text-2xl text-amber-500 uppercase tracking-wide">
+              <span className="font-display font-bold text-2xl text-accent uppercase tracking-wide">
                 Greenia Homes
               </span>
-              <ul className="space-y-4 text-[13px] text-slate-300">
+              <ul className="space-y-4 text-[13px] text-white/70">
                 <li className="flex items-start gap-3">
-                  <MapPin className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Trụ sở:</strong> 67 Võ Văn Kiệt, P. An Lạc, Quận
+                  <MapPin className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                  <span className="text-text-inverse">
+                    <strong className="text-text-inverse">Trụ sở:</strong> 67 Võ Văn Kiệt, P. An Lạc, Quận
                     Bình Tân, TP.HCM.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Building2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Văn phòng:</strong> 520 Võ Văn Kiệt, Quận Bình Tân,
+                  <Building2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                  <span className="text-text-inverse">
+                    <strong className="text-text-inverse">Văn phòng:</strong> 520 Võ Văn Kiệt, Quận Bình Tân,
                     TP.HCM.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Phone className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Hotline:</strong> 0932 966 700
+                  <Phone className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                  <span className="text-text-inverse">
+                    <strong className="text-text-inverse">Hotline:</strong> 0932 966 700
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <Mail className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Email:</strong> cskh@greeniahomes.vn
+                  <Mail className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                  <span className="text-text-inverse">
+                    <strong className="text-text-inverse">Email:</strong> cskh@greeniahomes.vn
                   </span>
                 </li>
               </ul>
@@ -1540,16 +1574,16 @@ function App() {
 
             {/* Column 2: Về Chúng Tôi */}
             <div className="space-y-6">
-              <h3 className="font-display font-bold text-white text-sm uppercase tracking-wider relative pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-amber-500">
+              <h3 className="font-display font-bold text-text-inverse text-sm uppercase tracking-wider relative pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-accent">
                 Về Chúng Tôi
               </h3>
-              <ul className="space-y-3 text-[13px] text-slate-400">
+              <ul className="space-y-3 text-[13px] text-white/70">
                 <li>
                   <button
                     onClick={() => handleNavigate({ screen: "home" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Giới Thiệu
@@ -1558,9 +1592,9 @@ function App() {
                 <li>
                   <button
                     onClick={() => handleNavigate({ screen: "du-an" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Dự Án
@@ -1569,9 +1603,9 @@ function App() {
                 <li>
                   <button
                     onClick={() => handleNavigate({ screen: "latest-sales" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Chuyển Nhượng
@@ -1580,9 +1614,9 @@ function App() {
                 <li>
                   <button
                     onClick={() => handleNavigate({ screen: "tin-tuc" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Tin Tức & Sự Kiện
@@ -1591,20 +1625,20 @@ function App() {
                 <li>
                   <button
                     onClick={() => handleNavigate({ screen: "lien-he" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Liên Hệ
                   </button>
                 </li>
-                <li className="border-t border-white/5 pt-3">
+                <li className="border-t border-border-inverse pt-3">
                   <button
                     onClick={() => handleNavigate({ screen: "privacy-policy" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Chính sách bảo mật
@@ -1613,9 +1647,9 @@ function App() {
                 <li>
                   <button
                     onClick={() => handleNavigate({ screen: "terms-of-use" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Điều khoản sử dụng
@@ -1626,16 +1660,16 @@ function App() {
 
             {/* Column 3: Sản Phẩm */}
             <div className="space-y-6">
-              <h3 className="font-display font-bold text-white text-sm uppercase tracking-wider relative pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-amber-500">
+              <h3 className="font-display font-bold text-text-inverse text-sm uppercase tracking-wider relative pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-accent">
                 Sản Phẩm
               </h3>
-              <ul className="space-y-3 text-[13px] text-slate-400">
+              <ul className="space-y-3 text-[13px] text-white/70">
                 <li>
                   <button
                     onClick={() => handleNavigate({ screen: "san-pham" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Tất Cả Sản Phẩm
@@ -1644,9 +1678,9 @@ function App() {
                 <li>
                   <button
                     onClick={() => handleNavigate({ screen: "latest-sales" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Chuyển Nhượng
@@ -1655,9 +1689,9 @@ function App() {
                 <li>
                   <button
                     onClick={() => handleNavigate({ screen: "latest-rents" })}
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Cho thuê
@@ -1671,9 +1705,9 @@ function App() {
                         categoryName: "Căn Hộ",
                       })
                     }
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Căn Hộ
@@ -1687,9 +1721,9 @@ function App() {
                         categoryName: "Nhà Phố - Biệt Thự",
                       })
                     }
-                    className="hover:text-amber-400 hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
                   >
-                    <span className="text-amber-500 text-lg leading-none">
+                    <span className="text-accent text-lg leading-none">
                       ›
                     </span>{" "}
                     Nhà Phố - Biệt Thự
@@ -1699,11 +1733,11 @@ function App() {
             </div>
 
             {/* Column 4: Social Placeholder */}
-            <div className="space-y-6 lg:col-span-1 border-l border-white/5 pl-0 lg:pl-10">
-              <h3 className="font-display font-bold text-white text-sm uppercase tracking-wider relative pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-amber-500">
+            <div className="space-y-6 lg:col-span-1 border-l border-border-inverse pl-0 lg:pl-10">
+              <h3 className="font-display font-bold text-text-inverse text-sm uppercase tracking-wider relative pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-accent">
                 Kết Nối
               </h3>
-              <p className="text-[13px] text-slate-400 leading-relaxed">
+              <p className="text-[13px] text-white/70 leading-relaxed">
                 Theo dõi Greenia Homes trên các nền tảng mạng xã hội để cập nhật
                 thông tin dự án mới nhất.
               </p>
@@ -1713,7 +1747,7 @@ function App() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Facebook Greenia Homes"
-                  className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-amber-500 hover:text-slate-950 hover:-translate-y-1 transition-all"
+                  className="w-10 h-10 rounded-full border border-border-inverse flex items-center justify-center text-white/50 hover:bg-primary hover:text-text-inverse hover:border-primary hover:-translate-y-1 transition-all"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 320 512">
                     <path d="M279.14 288l14.22-92.66h-88.91v-60.13c0-25.35 12.42-50.06 52.24-50.06h40.42V6.26S260.43 0 225.36 0c-73.22 0-121.08 44.38-121.08 124.72v70.62H22.89V288h81.39v224h100.17V288z" />
@@ -1724,7 +1758,7 @@ function App() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="YouTube Greenia Homes"
-                  className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-amber-500 hover:text-slate-950 hover:-translate-y-1 transition-all"
+                  className="w-10 h-10 rounded-full border border-border-inverse flex items-center justify-center text-white/50 hover:bg-primary hover:text-text-inverse hover:border-primary hover:-translate-y-1 transition-all"
                 >
                   <svg className="w-5 h-5 fill-current" viewBox="0 0 576 512">
                     <path d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z" />
@@ -1735,7 +1769,7 @@ function App() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="TikTok Greenia Homes"
-                  className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-amber-500 hover:text-slate-950 hover:-translate-y-1 transition-all"
+                  className="w-10 h-10 rounded-full border border-border-inverse flex items-center justify-center text-white/50 hover:bg-primary hover:text-text-inverse hover:border-primary hover:-translate-y-1 transition-all"
                 >
                   <svg className="w-4 h-4 fill-current" viewBox="0 0 448 512">
                     <path d="M448,209.91a210.06,210.06,0,0,1-122.77-39.25V349.38A162.55,162.55,0,1,1,185,188.31V278.2a74.62,74.62,0,1,0,52.23,71.18V0l88,0a121.18,121.18,0,0,0,1.86,22.17h0A122.18,122.18,0,0,0,381,102.39a121.43,121.43,0,0,0,67,20.14Z" />
@@ -1746,7 +1780,7 @@ function App() {
                   target="_blank"
                   rel="noreferrer"
                   aria-label="Zalo Greenia Homes"
-                  className="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-white hover:bg-amber-500 hover:text-slate-950 hover:-translate-y-1 transition-all"
+                  className="w-10 h-10 rounded-full border border-border-inverse flex items-center justify-center text-white/50 hover:bg-primary hover:text-text-inverse hover:border-primary hover:-translate-y-1 transition-all"
                 >
                   <MessageSquare className="w-4 h-4" />
                 </a>
@@ -1754,8 +1788,8 @@ function App() {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-white/10">
-            <p className="text-[11px] text-slate-500 italic leading-relaxed text-justify mb-8">
+          <div className="pt-8 border-t border-border-inverse">
+            <p className="text-[11px] text-white/50 italic leading-relaxed text-justify mb-8">
               * Thông tin, hình ảnh, các tiện ích trên website chỉ mang tính
               chất tham khảo và có thể được điều chỉnh theo quy định của Chủ đầu
               tư hoặc cơ quan nhà nước có thẩm quyền tại từng thời điểm. Các cam
@@ -1764,14 +1798,14 @@ function App() {
               việc sử dụng thông tin trên trang web này mà chưa qua xác nhận
               trực tiếp từ chuyên viên tư vấn.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-white/50 bg-black/20 px-6 py-4 rounded-xl">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-white/50 bg-[#0B1F16]/30 px-6 py-4 rounded-xl">
               <p>
-                © {new Date().getFullYear()} <strong>Greenia Homes</strong>. All
+                © {new Date().getFullYear()} <strong className="text-text-inverse">Greenia Homes</strong>. All
                 Rights Reserved.
               </p>
               <button
                 onClick={scrollToTop}
-                className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
+                className="flex items-center gap-1 hover:text-accent transition-colors cursor-pointer font-medium"
               >
                 <span>Về đầu trang</span>
                 <ArrowUp className="w-3.5 h-3.5" />
@@ -1782,19 +1816,19 @@ function App() {
       </footer>
 
       {/* Floating Action Buttons */}
-      <div className="fixed z-50 pointer-events-none
-        bottom-0 left-0 right-0 w-full bg-slate-900 border-t border-slate-800 p-1 flex flex-row items-center justify-around gap-1
+      <div className="fixed z-[120] pointer-events-none
+        bottom-0 left-0 right-0 w-full bg-bg-surface border-t border-border-color p-1 flex flex-row items-center justify-around gap-1
         md:bottom-6 md:left-6 md:right-auto md:w-auto md:bg-transparent md:border-none md:p-0 md:flex-col md:items-start md:gap-3">
         
         {/* Gọi ngay */}
         <a
           href="tel:0932966700"
-          className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-slate-900 border-none md:border md:border-emerald-900/50 md:hover:border-emerald-500 md:hover:bg-emerald-600 text-white p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(16,185,129,0.5)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
+          className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-bg-surface border-none md:border md:border-primary/20 md:hover:border-primary md:hover:bg-primary text-text-primary p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
         >
-          <div className="bg-emerald-500/20 md:bg-emerald-500/20 md:group-hover:bg-white text-[14px] text-emerald-500 md:text-emerald-400 md:group-hover:text-emerald-600 w-[40px] h-[40px] flex items-center justify-center rounded-full animate-pulse md:group-hover:animate-none shrink-0 transition-colors duration-300">
+          <div className="bg-primary md:group-hover:bg-bg-surface text-[14px] text-white md:group-hover:text-primary w-[40px] h-[40px] flex items-center justify-center rounded-full animate-bounce shrink-0 transition-colors duration-300 shadow-md shadow-primary/50">
             <Phone className="w-[15px] h-[15px] md:w-5 md:h-5" />
           </div>
-          <span className="text-[10px] md:text-[14px] font-medium md:font-bold capitalize md:normal-case tracking-wide text-slate-300 md:text-emerald-50 md:group-hover:text-white transition-all duration-300 whitespace-nowrap overflow-hidden md:max-w-0 md:opacity-0 md:group-hover:max-w-[200px] md:group-hover:opacity-100">
+          <span className="text-[10px] md:text-[14px] font-medium md:font-bold capitalize md:normal-case tracking-wide text-text-primary md:text-text-primary md:group-hover:text-text-inverse transition-all duration-300 whitespace-nowrap overflow-hidden md:max-w-0 md:opacity-0 md:group-hover:max-w-[200px] md:group-hover:opacity-100">
             <span className="md:hidden">Gọi ngay</span>
             <span className="hidden md:inline">0932 966 700</span>
           </span>
@@ -1811,9 +1845,9 @@ function App() {
               window.location.href = "https://zalo.me/0932966700";
             }
           }}
-          className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-slate-900 border-none md:border md:border-blue-900/50 md:hover:border-blue-400 md:hover:bg-blue-600 text-white p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(37,99,235,0.5)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
+          className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-bg-surface border-none md:border md:border-blue-500/20 md:hover:border-blue-500 md:hover:bg-blue-500 text-text-primary p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(37,99,235,0.3)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
         >
-          <div className="bg-transparent w-[40px] h-[40px] rounded-full shrink-0 flex items-center justify-center transition-colors duration-300">
+          <div className="bg-white w-[40px] h-[40px] rounded-full shrink-0 flex items-center justify-center transition-colors duration-300 shadow-md shadow-blue-500/50 animate-pulse">
             <img 
               loading="lazy" 
               decoding="async" 
@@ -1822,7 +1856,7 @@ function App() {
               className="w-[35px] h-[35px] object-contain drop-shadow-sm md:group-hover:drop-shadow-none" 
             />
           </div>
-          <span className="text-[10px] md:text-[14px] font-medium md:font-bold capitalize md:normal-case tracking-wide text-slate-300 md:text-blue-50 md:group-hover:text-white transition-all duration-300 whitespace-nowrap overflow-hidden md:max-w-0 md:opacity-0 md:group-hover:max-w-[200px] md:group-hover:opacity-100">
+          <span className="text-[10px] md:text-[14px] font-medium md:font-bold capitalize md:normal-case tracking-wide text-text-primary md:text-text-primary md:group-hover:text-text-inverse transition-all duration-300 whitespace-nowrap overflow-hidden md:max-w-0 md:opacity-0 md:group-hover:max-w-[200px] md:group-hover:opacity-100">
             Zalo
           </span>
         </a>
@@ -1830,12 +1864,12 @@ function App() {
         {/* Đăng ký tư vấn */}
         <button
           onClick={() => setShowQuotePopup(true)}
-          className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-slate-900 border-none md:border md:border-amber-900/50 md:hover:border-amber-400 md:hover:bg-amber-500 text-white p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(245,158,11,0.5)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
+          className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-bg-surface border-none md:border md:border-accent/20 md:hover:border-accent md:hover:bg-accent text-text-primary p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
         >
-          <div className="bg-amber-500/20 md:bg-amber-500/20 md:group-hover:bg-slate-900 text-amber-500 md:text-amber-400 md:group-hover:text-amber-400 p-0 w-[40px] h-[40px] rounded-full shrink-0 flex items-center justify-center transition-colors duration-300">
+          <div className="bg-accent md:group-hover:bg-bg-surface text-white md:group-hover:text-accent p-0 w-[40px] h-[40px] rounded-full shrink-0 flex items-center justify-center transition-colors duration-300 shadow-md shadow-accent/50 animate-bounce">
             <Mail className="w-[15px] h-[15px] md:w-5 md:h-5" />
           </div>
-          <span className="text-[10px] md:text-[14px] font-medium md:font-bold capitalize md:normal-case tracking-wide text-slate-300 md:text-amber-50 md:group-hover:text-slate-900 transition-all duration-300 whitespace-nowrap overflow-hidden md:max-w-0 md:opacity-0 md:group-hover:max-w-[200px] md:group-hover:opacity-100">
+          <span className="text-[10px] md:text-[14px] font-medium md:font-bold capitalize md:normal-case tracking-wide text-text-primary md:text-text-primary md:group-hover:text-text-inverse transition-all duration-300 whitespace-nowrap overflow-hidden md:max-w-0 md:opacity-0 md:group-hover:max-w-[200px] md:group-hover:opacity-100">
             Đăng ký
           </span>
         </button>
@@ -1847,22 +1881,22 @@ function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F16]/40 backdrop-blur-sm"
           >
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-[374px] h-[460px] bg-slate-900 border-0 rounded-[10px] shadow-2xl overflow-hidden"
+              className="relative w-full max-w-[374px] h-auto min-h-[460px] bg-bg-surface border border-border-color rounded-[10px] shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center justify-between pt-3 px-3 pb-[1px] md:pt-4 md:px-4 md:pb-[1px] border-b border-slate-800">
-                <h3 className="text-base md:text-lg font-bold text-white font-display">
-                  Tư vấn mua hồ sơ chuyên sâu
+              <div className="flex items-center justify-between pt-3 px-3 pb-[1px] md:pt-4 md:px-4 md:pb-[1px] border-b border-slate-100">
+                <h3 className="text-base md:text-lg font-bold text-slate-900 font-display">
+                  Tư vấn mua nhà chuyên sâu
                 </h3>
                 <button
                   onClick={closeQuotePopup}
                   aria-label="Đóng popup"
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition"
+                  className="w-8 h-8 flex items-center justify-center rounded-full text-white/70 hover:text-text-secondary hover:bg-slate-100 transition"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1870,29 +1904,29 @@ function App() {
 
               <div className="p-3 md:p-4 pb-4 md:pb-5">
                 <ul className="space-y-2 mb-4">
-                  <li className="flex items-start gap-2 text-[13px] text-slate-400">
-                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                  <li className="flex items-start gap-2 text-[13px] text-text-secondary">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                     <span>
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-slate-900">
                         Phân tích
                       </span>{" "}
                       quỹ căn, chính sách, tiện ích giúp Khách hàng lựa chọn căn
                       tốt nhất.
                     </span>
                   </li>
-                  <li className="flex items-center gap-2 text-[13px] text-slate-400">
-                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                  <li className="flex items-center gap-2 text-[13px] text-text-secondary">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
                     <span>
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-slate-900">
                         Giải đáp mọi thắc mắc
                       </span>{" "}
                       của khách hàng.
                     </span>
                   </li>
-                  <li className="flex items-center gap-2 text-[13px] text-slate-400">
-                    <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" />
+                  <li className="flex items-center gap-2 text-[13px] text-text-secondary">
+                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
                     <span>
-                      <span className="font-semibold text-white">
+                      <span className="font-semibold text-slate-900">
                         Tuyệt đối bảo mật
                       </span>{" "}
                       thông tin cá nhân.
@@ -1900,16 +1934,16 @@ function App() {
                   </li>
                 </ul>
 
-                <h4 className="font-semibold text-white text-sm mb-3">
+                <h4 className="font-semibold text-slate-900 text-sm mb-3">
                   Thông tin liên hệ
                 </h4>
 
                 {quoteSuccess ? (
                   <div className="flex flex-col items-center justify-center py-6">
-                    <div className="w-12 h-12 bg-amber-500/20 rounded-full flex items-center justify-center mb-3">
-                      <CheckCircle2 className="w-6 h-6 text-amber-500" />
+                    <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-3">
+                      <CheckCircle2 className="w-6 h-6 text-primary" />
                     </div>
-                    <p className="text-amber-500 text-sm text-center font-medium">
+                    <p className="text-primary text-sm text-center font-medium">
                       Cảm ơn bạn! Chúng tôi đã nhận được thông tin.
                     </p>
                   </div>
@@ -1921,7 +1955,7 @@ function App() {
                         required
                         value={quoteName}
                         onChange={(e) => setQuoteName(e.target.value)}
-                        className="w-full bg-[#081026] border border-slate-700 rounded-[10px] focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-xs px-3 py-2 text-white placeholder-slate-500"
+                        className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400"
                         placeholder="Họ tên *"
                       />
                     </div>
@@ -1931,7 +1965,7 @@ function App() {
                         required
                         value={quotePhone}
                         onChange={(e) => setQuotePhone(e.target.value)}
-                        className="w-full bg-[#081026] border border-slate-700 rounded-[10px] focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-xs px-3 py-2 text-white placeholder-slate-500"
+                        className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400"
                         placeholder="Số điện thoại *"
                       />
                     </div>
@@ -1940,16 +1974,16 @@ function App() {
                         type="email"
                         value={quoteEmail}
                         onChange={(e) => setQuoteEmail(e.target.value)}
-                        className="w-full bg-[#081026] border border-slate-700 rounded-[10px] focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-xs px-3 py-2 text-white placeholder-slate-500"
+                        className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400"
                         placeholder="Email (Tùy chọn)"
                       />
                     </div>
                     <div>
-                      <input
-                        type="text"
+                      <textarea
+                        rows={3}
                         value={quoteMessage}
                         onChange={(e) => setQuoteMessage(e.target.value)}
-                        className="w-full bg-[#081026] border border-slate-700 rounded-[10px] focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 transition-all text-xs px-3 py-2 text-white placeholder-slate-500"
+                        className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400 resize-none"
                         placeholder="Nhu cầu của bạn (Tùy chọn)"
                       />
                     </div>
@@ -1957,7 +1991,7 @@ function App() {
                     <button
                       type="submit"
                       disabled={quoteSubmitting}
-                      className="w-full py-2.5 rounded-[10px] font-bold bg-amber-500 text-slate-950 hover:bg-amber-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs mt-2"
+                      className="w-full py-2.5 rounded-[10px] font-bold bg-primary text-white hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs mt-2 shadow-lg shadow-emerald-500/30"
                     >
                       {quoteSubmitting ? "Đang gửi..." : "Nhận tư vấn ngay"}
                     </button>

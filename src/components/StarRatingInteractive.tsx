@@ -48,9 +48,9 @@ export default function StarRatingInteractive({
   };
 
   return (
-    <div className="flex flex-col items-start pt-[10px] pb-[5px] border-t border-slate-800/60 border-b">
+    <div className="flex flex-col items-start pt-[10px] pb-[5px] border-t border-border-color/60 border-b">
       <div className="flex flex-wrap items-center gap-3">
-        <div className="text-xs text-slate-400 font-medium whitespace-nowrap hidden sm:block">
+        <div className="text-xs text-text-secondary font-medium whitespace-nowrap hidden sm:block">
           Đánh giá bài viết
         </div>
         <div className="flex items-center gap-0.5">
@@ -60,8 +60,8 @@ export default function StarRatingInteractive({
               size={16}
               className={`cursor-pointer transition-colors ${
                 (hoverRating || currentAvg) >= star 
-                  ? "text-amber-500 fill-amber-500" 
-                  : "text-slate-800 fill-slate-800 hover:text-amber-500 hover:fill-amber-500"
+                  ? "text-primary fill-yellow-500" 
+                  : "text-zinc-800 fill-zinc-800 hover:text-primary hover:fill-yellow-500"
               } ${hasRated ? 'opacity-50 cursor-not-allowed' : ''}`}
               onMouseEnter={() => !hasRated && setHoverRating(star)}
               onMouseLeave={() => !hasRated && setHoverRating(0)}
@@ -69,14 +69,14 @@ export default function StarRatingInteractive({
             />
           ))}
         </div>
-        <div className="text-[11px] text-slate-300 font-medium flex items-center space-x-1 border-l border-slate-700/50 pl-3">
-          <span className="text-white bg-amber-500/10 text-amber-500 pr-1.5 rounded font-bold text-[10px] mr-1 py-[1px] pl-[6px]">{currentAvg.toFixed(1)}</span>
-          <span className="text-slate-500">/ 5</span>
-          <span className="text-slate-500 ml-1">({totalCount} đánh giá)</span>
+        <div className="text-[11px] text-text-secondary font-medium flex items-center space-x-1 border-l border-border-inverse/50 pl-3">
+          <span className="text-text-primary bg-[#064E3B]/10 text-primary pr-1.5 rounded font-bold text-[10px] mr-1 py-[1px] pl-[6px]">{currentAvg.toFixed(1)}</span>
+          <span className="text-white/70">/ 5</span>
+          <span className="text-white/70 ml-1">({totalCount} đánh giá)</span>
         </div>
       </div>
       {hasRated && (
-        <span className="text-[10px] text-amber-500/80 mt-2 sm:ml-28">
+        <span className="text-[10px] text-primary/80 mt-2 sm:ml-28">
           Cảm ơn bạn đã gửi đánh giá!
         </span>
       )}

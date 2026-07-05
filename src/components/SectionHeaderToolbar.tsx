@@ -112,7 +112,7 @@ export default function SectionHeaderToolbar({
           style: {
             fontFamily: 'font-sans',
             fontSize: 'xs',
-            color: '#cbd5e1',
+            color: '#d4d4d8',
             textAlign: 'center',
             padding: '6px'
           }
@@ -185,12 +185,12 @@ export default function SectionHeaderToolbar({
 
   return (
     <div 
-      className="absolute -top-4 left-3 z-[60] bg-slate-900 border border-amber-500/40 hover:border-amber-500 rounded-lg px-2.5 py-1.5 flex items-center gap-2.5 shadow-2xl transition-all" 
+      className="absolute -top-4 left-3 z-[60] bg-bg-surface border border-primary/40 hover:border-primary rounded-lg px-2.5 py-1.5 flex items-center gap-2.5 shadow-2xl transition-all" 
       onClick={e => e.stopPropagation()}
     >
-      <div className="flex items-center gap-1.5 border-r border-slate-800 pr-2">
-        <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping shrink-0" />
-        <span className="font-mono text-[9px] text-amber-400 uppercase font-bold tracking-wider">
+      <div className="flex items-center gap-1.5 border-r border-border-color pr-2">
+        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping shrink-0" />
+        <span className="font-mono text-[9px] text-primary uppercase font-bold tracking-wider">
           {section.name || section.id}
         </span>
       </div>
@@ -199,7 +199,7 @@ export default function SectionHeaderToolbar({
         <button
           disabled={index === 0}
           onClick={() => handleMove('up')}
-          className="p-1 text-slate-450 hover:text-white hover:bg-slate-800 rounded disabled:opacity-20 cursor-pointer transition-colors border-none bg-transparent"
+          className="p-1 text-white/70 hover:text-text-primary hover:bg-bg-base rounded disabled:opacity-20 cursor-pointer transition-colors border-none bg-transparent"
           title="Di chuyển lên"
         >
           <ChevronUp className="w-3.5 h-3.5" />
@@ -207,7 +207,7 @@ export default function SectionHeaderToolbar({
         <button
           disabled={index === sections.length - 1}
           onClick={() => handleMove('down')}
-          className="p-1 text-slate-450 hover:text-white hover:bg-slate-800 rounded disabled:opacity-20 cursor-pointer transition-colors border-none bg-transparent"
+          className="p-1 text-white/70 hover:text-text-primary hover:bg-bg-base rounded disabled:opacity-20 cursor-pointer transition-colors border-none bg-transparent"
           title="Di chuyển xuống"
         >
           <ChevronDown className="w-3.5 h-3.5" />
@@ -215,7 +215,7 @@ export default function SectionHeaderToolbar({
         <button
           onClick={handleToggleVisibility}
           className={`p-1 rounded cursor-pointer transition-all border-none bg-transparent ${
-            section.visible ? 'text-amber-400 hover:bg-amber-500/10' : 'text-slate-505 hover:text-white hover:bg-slate-800'
+            section.visible ? 'text-primary hover:bg-[#064E3B]/10' : 'text-slate-505 hover:text-text-primary hover:bg-bg-base'
           }`}
           title={section.visible ? "Ẩn khối" : "Hiện khối"}
         >
@@ -225,7 +225,7 @@ export default function SectionHeaderToolbar({
         {!isFreeCanvas && (
           <button
             onClick={handleConvertToFreeCanvas}
-            className="flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 hover:bg-amber-500 text-amber-400 hover:text-slate-950 text-[9px] font-bold tracking-wide transition-all cursor-pointer border border-solid border-amber-500/20"
+            className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#064E3B]/10 hover:bg-primary text-primary hover:text-black text-[9px] font-bold tracking-wide transition-all cursor-pointer border border-solid border-primary/20"
             title="Biến đổi khối này thành Kéo thả tự do để tùy biến chữ, ảnh, nút bấm không giới hạn"
           >
             <Sparkles className="w-3 h-3 shrink-0" />
@@ -235,7 +235,7 @@ export default function SectionHeaderToolbar({
 
         <button
           onClick={handleDelete}
-          className="p-1 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 rounded cursor-pointer transition-colors border-none bg-transparent"
+          className="p-1 text-error hover:text-rose-400 hover:bg-error/10 rounded cursor-pointer transition-colors border-none bg-transparent"
           title="Xóa khối hoàn toàn"
         >
           <Trash2 className="w-3.5 h-3.5" />

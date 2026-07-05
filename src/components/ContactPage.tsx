@@ -174,7 +174,7 @@ export default function ContactPage({
                     isEditMode={isEditMode} 
                     sections={sections} 
                     onUpdateSections={onUpdateSections}
-                    className="text-[10px] font-extrabold uppercase font-mono tracking-widest text-amber-400 block"
+                    className="text-[10px] font-extrabold uppercase font-mono tracking-widest text-primary block"
                     tag="span"
                   />
                   <EditableText 
@@ -184,7 +184,7 @@ export default function ContactPage({
                     isEditMode={isEditMode} 
                     sections={sections} 
                     onUpdateSections={onUpdateSections}
-                    className="text-3xl sm:text-4.5xl font-display font-medium text-white tracking-tight leading-none"
+                    className="text-3xl sm:text-4.5xl font-display font-medium text-text-primary tracking-tight leading-none"
                     tag="h1"
                   />
                   <EditableText 
@@ -195,7 +195,7 @@ export default function ContactPage({
                     sections={sections} 
                     onUpdateSections={onUpdateSections}
                     isArea={true}
-                    className="text-slate-400 text-xs font-light block max-w-xl mx-auto"
+                    className="text-text-secondary text-xs font-light block max-w-xl mx-auto"
                     tag="p"
                   />
                 </div>
@@ -206,42 +206,42 @@ export default function ContactPage({
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
                   {/* Left layout details */}
-                  <div className="lg:col-span-5 bg-slate-900 border border-slate-900 rounded-lg p-8 space-y-6 flex flex-col justify-between text-left">
+                  <div className="lg:col-span-5 bg-bg-surface border border-border-color rounded-lg p-8 space-y-6 flex flex-col justify-between text-left">
                     <div>
-                      <h3 className="font-display font-bold text-lg text-white mb-2 uppercase">Trụ Sở Hành Chính</h3>
-                      <p className="text-xs text-slate-400 font-light leading-relaxed mb-6">
+                      <h3 className="font-display font-bold text-lg text-text-primary mb-2 uppercase">Trụ Sở Hành Chính</h3>
+                      <p className="text-xs text-text-secondary font-light leading-relaxed mb-6">
                         Thuộc khuôn viên biệt thự xa hoa Thảo Điền và hội sở Phú Mỹ Hưng, chuyên viên phong thủy túc trực hỗ trợ bạn tìm kiếm lâu đài hạnh vận cát tường.
                       </p>
 
                       <div className="space-y-4 text-xs font-light">
                         <div className="flex items-start gap-3">
-                          <MapPin className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                          <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                           <div>
-                            <p className="font-semibold text-slate-200">Địa chỉ chính:</p>
-                            <p className="text-slate-400 mt-0.5">Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng, Quận 7, TP. HCM.</p>
+                            <p className="font-semibold text-text-primary">Địa chỉ chính:</p>
+                            <p className="text-text-secondary mt-0.5">Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng, Quận 7, TP. HCM.</p>
                           </div>
                         </div>
 
                         <div className="flex items-start gap-3">
-                          <Phone className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                          <Phone className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                           <div>
-                            <p className="font-semibold text-slate-200">Tổng đài hỗ trợ:</p>
-                            <p className="text-slate-400 font-mono mt-0.5">0932 966 700 (Zalo/Viber 24/7)</p>
+                            <p className="font-semibold text-text-primary">Tổng đài hỗ trợ:</p>
+                            <p className="text-text-secondary font-mono mt-0.5">0932 966 700 (Zalo/Viber 24/7)</p>
                           </div>
                         </div>
 
                         <div className="flex items-start gap-3">
-                          <Mail className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                          <Mail className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                           <div>
-                            <p className="font-semibold text-slate-200">Thư tương tác thư ký:</p>
-                            <p className="text-amber-400 mt-0.5">sales@greeniahomes.vn</p>
+                            <p className="font-semibold text-text-primary">Thư tương tác thư ký:</p>
+                            <p className="text-primary mt-0.5">sales@greeniahomes.vn</p>
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    <div className="bg-slate-950 p-4 rounded-lg border border-slate-850 flex flex-col items-start gap-4">
-                      <p className="text-[12px] font-bold uppercase tracking-wider text-slate-400">Kết nối với chúng tôi</p>
+                    <div className="bg-bg-surface p-4 rounded-lg border border-border-color flex flex-col items-start gap-4">
+                      <p className="text-[12px] font-bold uppercase tracking-wider text-text-secondary">Kết nối với chúng tôi</p>
                       <div className="flex gap-6 items-center">
                         <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Zalo" className="hover:scale-110 transition-transform" title="Zalo">
                           <img loading="lazy" decoding="async" src="/zalo-icon.svg" alt="Zalo" className="w-6 h-6 object-contain" />
@@ -257,21 +257,21 @@ export default function ContactPage({
                   </div>
 
                   {/* Right layout consult questionnaire form */}
-                  <div className="lg:col-span-7 bg-slate-900 border border-slate-900 rounded-lg p-8 space-y-6 text-left">
-                    <h3 className="font-display font-bold text-lg text-white uppercase border-b border-slate-850 pb-2">
+                  <div className="lg:col-span-7 bg-bg-surface border border-border-color rounded-lg p-8 space-y-6 text-left">
+                    <h3 className="font-display font-bold text-lg text-text-primary uppercase border-b border-border-color pb-2">
                       Gởi yêu cầu ký gửi, tham quan
                     </h3>
 
                     {contactSuccess ? (
-                      <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-8 text-center space-y-4">
-                        <CheckCircle2 className="w-12 h-12 text-amber-400 mx-auto" />
+                      <div className="bg-[#064E3B]/10 border border-primary/20 rounded-lg p-8 text-center space-y-4">
+                        <CheckCircle2 className="w-12 h-12 text-primary mx-auto" />
                         <h4 className="text-base font-bold text-slate-105">Cảm ơn quý khách đã tin cậy!</h4>
-                        <p className="text-xs text-slate-400 leading-relaxed max-w-sm mx-auto">
+                        <p className="text-xs text-text-secondary leading-relaxed max-w-sm mx-auto">
                           Hệ thống đã mã hóa thông tin và chuyển tới ban trị sự. Chuyên gia tương ứng sẽ điện đàm thẩm định và tư vấn ngay lập tức.
                         </p>
                         <button 
                           onClick={() => setContactSuccess(false)}
-                          className="bg-slate-950 hover:bg-slate-850 text-xs px-4 py-2 rounded-lg text-slate-350 font-semibold cursor-pointer"
+                          className="bg-bg-surface hover:bg-slate-850 text-xs px-4 py-2 rounded-lg text-white/70 font-semibold cursor-pointer"
                         >
                           Gởi thêm yêu cầu khác
                         </button>
@@ -280,47 +280,59 @@ export default function ContactPage({
                       <form onSubmit={handleContactSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Danh tánh quý khách *</label>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Danh tánh quý khách *</label>
                             <input
                               type="text"
                               value={contactName}
                               onChange={(e) => setContactName(e.target.value)}
                               placeholder="Ông / Bà..."
-                              className="w-full bg-slate-950 border border-slate-850 rounded-lg px-4 py-3 text-xs text-slate-200 outline-none focus:border-amber-500"
+                              className="w-full bg-bg-surface border border-border-color rounded-lg px-4 py-3 text-xs text-text-primary outline-none focus:border-primary"
                               required
                               disabled={contactSubmitting}
                             />
                           </div>
 
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Số điện thoại *</label>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Số điện thoại *</label>
                             <input
                               type="tel"
                               value={contactPhone}
                               onChange={(e) => setContactPhone(e.target.value)}
                               placeholder="Nhập số di động..."
-                              className="w-full bg-slate-950 border border-slate-850 rounded-lg px-4 py-3 text-xs text-slate-200 outline-none focus:border-amber-500"
+                              className="w-full bg-bg-surface border border-border-color rounded-lg px-4 py-3 text-xs text-text-primary outline-none focus:border-primary"
                               required
                               disabled={contactSubmitting}
                             />
                           </div>
                           
                           <div className="space-y-1 sm:col-span-2">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Email</label>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Email</label>
                             <input
                               type="email"
                               value={contactEmail}
                               onChange={(e) => setContactEmail(e.target.value)}
                               placeholder="Nhập địa chỉ email..."
-                              className="w-full bg-slate-950 border border-slate-850 rounded-lg px-4 py-3 text-xs text-slate-200 outline-none focus:border-amber-500"
+                              className="w-full bg-bg-surface border border-border-color rounded-lg px-4 py-3 text-xs text-text-primary outline-none focus:border-primary"
                               disabled={contactSubmitting}
                             />
                           </div>
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Hình ảnh đính kèm (nếu có)</label>
-                          <div className="bg-slate-950 border border-slate-850 border-dashed rounded-lg p-4 flex flex-col items-center gap-2">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Thông tin ký gửi hoặc hướng nhà đất cần hỗ trợ</label>
+                          <textarea
+                            value={contactMessage}
+                            onChange={(e) => setContactMessage(e.target.value)}
+                            placeholder="Chi tiết sản phẩm biệt thự, diện tích, giá ước tính, hoặc yêu cầu riêng..."
+                            rows={4}
+                            className="w-full bg-bg-surface border border-border-color rounded-lg px-4 py-3 text-xs text-text-primary outline-none focus:border-primary"
+                            disabled={contactSubmitting}
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Hình ảnh đính kèm (nếu có)</label>
+                          <div className="flex flex-col gap-2">
                             <input 
                               type="file" 
                               multiple 
@@ -332,23 +344,21 @@ export default function ContactPage({
                             />
                             <label 
                               htmlFor="contact-image-upload"
-                              className={`cursor-pointer flex flex-col items-center gap-2 ${isUploadingImages ? 'opacity-50' : 'hover:text-amber-400'}`}
+                              className={`cursor-pointer inline-flex items-center justify-center gap-2 px-4 py-2 border border-border-color rounded-lg text-xs font-medium text-text-secondary bg-bg-surface transition-colors w-max ${isUploadingImages ? 'opacity-50' : 'hover:bg-slate-50 hover:text-primary hover:border-primary'}`}
                             >
-                              <UploadCloud className="w-6 h-6 text-slate-500" />
-                              <span className="text-[10px] text-slate-400">
-                                {isUploadingImages ? 'Đang tải ảnh...' : 'Nhấn để chọn ảnh từ thiết bị'}
-                              </span>
+                              <UploadCloud className="w-4 h-4" />
+                              <span>{isUploadingImages ? 'Đang tải...' : 'Tải lên hình ảnh'}</span>
                             </label>
                             
                             {contactImages.length > 0 && (
-                              <div className="flex flex-wrap gap-2 mt-2 w-full justify-center">
+                              <div className="flex flex-wrap gap-2 mt-1">
                                 {contactImages.map((url, idx) => (
-                                  <div key={idx} className="relative w-16 h-16 rounded overflow-hidden border border-slate-800">
+                                  <div key={idx} className="relative w-14 h-14 rounded overflow-hidden border border-border-color shrink-0">
                                     <img loading="lazy" decoding="async" src={(url) || undefined} alt={`upload-${idx}`} className="w-full h-full object-cover" />
                                     <button
                                       type="button"
                                       onClick={() => handleRemoveImage(idx)}
-                                      className="absolute top-0.5 right-0.5 bg-slate-900/80 rounded p-0.5 text-white hover:text-red-400"
+                                      className="absolute top-0 right-0 bg-black/50 text-white p-0.5 hover:bg-red-500 rounded-bl-sm"
                                     >
                                       <X className="w-3 h-3" />
                                     </button>
@@ -359,22 +369,10 @@ export default function ContactPage({
                           </div>
                         </div>
 
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Thông tin ký gửi hoặc hướng nhà đất cần hỗ trợ</label>
-                          <textarea
-                            value={contactMessage}
-                            onChange={(e) => setContactMessage(e.target.value)}
-                            placeholder="Chi tiết sản phẩm biệt thự, diện tích, giá ước tính, hoặc yêu cầu riêng..."
-                            rows={4}
-                            className="w-full bg-slate-950 border border-slate-850 rounded-lg px-4 py-3 text-xs text-slate-200 outline-none focus:border-amber-500"
-                            disabled={contactSubmitting}
-                          />
-                        </div>
-
                         <button
                           type="submit"
                           disabled={contactSubmitting}
-                          className="w-full bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider cursor-pointer font-display shadow-lg flex items-center justify-center gap-1.5"
+                          className="w-full bg-primary hover:bg-amber-600 active:scale-95 text-black font-bold py-3.5 rounded-lg text-xs uppercase tracking-wider cursor-pointer font-display shadow-lg flex items-center justify-center gap-1.5"
                         >
                           {contactSubmitting ? 'ĐANG PHÁT ĐI BẢO MẬT...' : (
                             <>
@@ -403,11 +401,11 @@ export default function ContactPage({
                 isEditMode 
                   ? `border-2 ${
                       selectedSectionId === section.id 
-                        ? 'border-amber-500 bg-amber-500/[0.01]' 
-                        : 'border-dashed border-slate-800 hover:border-amber-500/30'
+                        ? 'border-primary bg-primary/[0.01]' 
+                        : 'border-dashed border-border-color hover:border-primary/30'
                     }` 
                   : ''
-              } ${!section.visible ? 'opacity-40 bg-slate-950/20' : ''}`}
+              } ${!section.visible ? 'opacity-40 bg-bg-inverse/20' : ''}`}
               onClick={() => {
                 if (isEditMode) {
                   setSelectedSectionId(section.id);

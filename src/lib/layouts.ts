@@ -437,7 +437,7 @@ export const GENERIC_CUSTOM_SECTIONS: (Omit<VisualSection, "id"> & {
           style: {
             fontFamily: "font-sans",
             fontSize: "xs",
-            color: "#94a3b8",
+            color: "#a1a1aa",
             textAlign: "center",
             padding: "4px",
           },

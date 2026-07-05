@@ -22,7 +22,9 @@ const nextConfig = {
   },
 
   /* Chuyển hướng các dependencies cần thiết sang client-only */
-  serverExternalPackages: ['firebase-admin', 'nodemailer'],
+  experimental: {
+    serverComponentsExternalPackages: ['nodemailer'],
+  },
 };
 
 export default nextConfig;

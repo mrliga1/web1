@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Heart } from 'lucide-react';
 import { dbLite } from '../firebase';
-import { doc as docLite, getDoc as getDocLite } from 'firebase/firestore/lite';
+import { doc as docLite, getDoc as getDocLite } from '../firebase';
 
 interface AdBannerProps {
   slot?: string;
@@ -51,10 +51,10 @@ export default function AdBanner({ slot = "default-ad-slot", className = "", con
     return (
       <div className={containerClassName}>
         <div 
-          className={`relative overflow-hidden w-full bg-slate-950/40 border border-slate-900 rounded-lg p-4 flex flex-col justify-center items-center gap-2 shadow-sm ${className}`}
+          className={`relative overflow-hidden w-full bg-[#0B1F16]/40 border border-border-color rounded-lg p-4 flex flex-col justify-center items-center gap-2 shadow-sm ${className}`}
           id={`ad-banner-${slot}`}
         >
-          <div className="absolute top-0 right-0 bg-amber-500/10 border-b border-l border-amber-500/25 text-[8px] text-amber-400 font-mono px-2 py-0.5 rounded-bl font-semibold uppercase tracking-widest">
+          <div className="absolute top-0 right-0 bg-[#064E3B]/10 border-b border-l border-primary/25 text-[8px] text-primary font-mono px-2 py-0.5 rounded-bl font-semibold uppercase tracking-widest">
             Google AdSense Live
           </div>
           <div 

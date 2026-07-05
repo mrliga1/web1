@@ -1,99 +1,163 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getStorage, ref, uploadString, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { 
-  getFirestore as getFirestoreLite, 
-  collection, 
-  getDocs, 
-  addDoc, 
-  doc, 
-  updateDoc, 
-  deleteDoc, 
-  query, 
-  orderBy, 
-  getDoc, 
-  setDoc,
-  increment
-} from 'firebase/firestore/lite';
+import { supabase } from './supabase';
 
-import firebaseConfig from '../firebase-applet-config.json';
+export const db = {};
 
-export const app = initializeApp(firebaseConfig);
-
-// Initialize Firebase Authentication
-export const auth = getAuth(app);
-
-// Initialize Firebase Storage
-export const storage = getStorage(app);
-
-// Initialize Lite Firestore as default for everything
-export const db = getFirestoreLite(app, firebaseConfig.firestoreDatabaseId);
-
-// Initialize Realtime Firestore ONLY for Admin Panel subscriptions
-
-
-export const dbLite = db; // Keep for backward compatibility during transition
-
-export enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write',
+export const collection = (dbInstance: any, path: string) => {
+  return { path };
 }
 
-interface FirestoreErrorInfo {
-  error: string;
-  operationType: OperationType;
-  path: string | null;
-  authInfo: {
-    userId?: string | null;
-    email?: string | null;
-    emailVerified?: boolean | null;
-    isAnonymous?: boolean | null;
-    tenantId?: string | null;
-    providerInfo?: {
-      providerId?: string | null;
-      email?: string | null;
-    }[];
-  }
+export const doc = (dbInstance: any, path: string, id?: string) => {
+  if (id) return { path, id };
+  const parts = path.split('/');
+  return { path: parts.slice(0, -1).join('/'), id: parts[parts.length - 1] };
 }
 
-export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified,
-      isAnonymous: auth.currentUser?.isAnonymous,
-      tenantId: auth.currentUser?.tenantId,
-      providerInfo: auth.currentUser?.providerData?.map(provider => ({
-        providerId: provider.providerId,
-        email: provider.email,
-      })) || []
-    },
-    operationType,
-    path
+export const getDocs = async (collectionRef: { path: string }) => {
+  const { data, error } = await supabase.from(collectionRef.path).select('*');
+  if (error) throw error;
+  const docs = (data || []).map((row: any) => ({
+    id: row.id,
+    data: () => row.data,
+    exists: () => true
+  }));
+  return {
+    docs,
+    empty: docs.length === 0,
+    size: docs.length,
+    forEach: (callback: any) => docs.forEach(callback)
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
-  throw new Error(JSON.stringify(errInfo));
 }
 
-// Export standard Firestore functions
-export {
-  collection,
-  getDocs,
-  addDoc,
-  doc,
-  updateDoc,
-  deleteDoc,
-  query,
-  orderBy,
-  getDoc,
-  setDoc,
-  increment
+export const getDoc = async (docRef: { path: string, id: string }) => {
+  const { data, error } = await supabase.from(docRef.path).select('*').eq('id', docRef.id).single();
+  if (error && error.code === 'PGRST116') {
+    return {
+      id: docRef.id,
+      exists: () => false,
+      data: () => undefined
+    };
+  }
+  if (error) throw error;
+  return {
+    id: data.id,
+    exists: () => true,
+    data: () => data.data
+  };
+}
+
+export const addDoc = async (collectionRef: { path: string }, data: any) => {
+  const { data: result, error } = await supabase.from(collectionRef.path).insert({ data }).select().single();
+  if (error) throw error;
+  return { id: result.id };
+}
+
+export const setDoc = async (docRef: { path: string, id: string }, data: any, options?: { merge?: boolean }) => {
+  if (options?.merge) {
+    const existing = await getDoc(docRef);
+    if (existing.exists()) {
+      data = { ...existing.data(), ...data };
+    }
+  }
+  const { error } = await supabase.from(docRef.path).upsert({ id: docRef.id, data });
+  if (error) throw error;
+}
+
+export const updateDoc = async (docRef: { path: string, id: string }, data: any) => {
+  const existing = await getDoc(docRef);
+  if (!existing.exists()) throw new Error("Document not found");
+  const merged = { ...existing.data(), ...data };
+  const { error } = await supabase.from(docRef.path).update({ data: merged }).eq('id', docRef.id);
+  if (error) throw error;
+}
+
+export const deleteDoc = async (docRef: { path: string, id: string }) => {
+  const { error } = await supabase.from(docRef.path).delete().eq('id', docRef.id);
+  if (error) throw error;
+}
+
+export const increment = (value: number) => value;
+
+export const dbLite = db;
+
+/* Stub auth object - tương thích API cũ */
+export const auth = {
+  currentUser: null as any,
+  onAuthStateChanged: (_callback: any) => () => {},
 };
 
-// Helper functions removed as we reverted to api/upload
+/* Stub app object */
+export const app = {};
+
+/* Stub onAuthStateChanged */
+export const onAuthStateChanged = (_auth: any, callback: (user: any) => void) => {
+  // Trả về hàm unsubscribe
+  return () => {};
+};
+
+/* Stub getFirestore */
+export const getFirestoreRealtime = (_app: any, _dbId?: string) => ({});
+export const getFirestore = getFirestoreRealtime;
+
+/* === Firebase Auth Compatibility Layer (sử dụng Supabase Auth) === */
+
+/* Đăng ký bằng email/password */
+export const createUserWithEmailAndPassword = async (_auth: any, email: string, password: string) => {
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) {
+    const err: any = new Error(error.message);
+    if (error.message.includes('already registered')) err.code = 'auth/email-already-in-use';
+    throw err;
+  }
+  return {
+    user: {
+      uid: data.user?.id,
+      email: data.user?.email,
+      displayName: data.user?.user_metadata?.full_name || null,
+      providerData: [],
+    }
+  };
+};
+
+/* Đăng nhập bằng email/password */
+export const signInWithEmailAndPassword = async (_auth: any, email: string, password: string) => {
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) {
+    const err: any = new Error(error.message);
+    if (error.message.includes('Invalid login')) err.code = 'auth/wrong-password';
+    throw err;
+  }
+  return {
+    user: {
+      uid: data.user?.id,
+      email: data.user?.email,
+      displayName: data.user?.user_metadata?.full_name || null,
+      providerData: [],
+    }
+  };
+};
+
+/* Gửi email reset mật khẩu */
+export const sendPasswordResetEmail = async (_auth: any, email: string) => {
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  if (error) throw new Error(error.message);
+};
+
+/* Đăng nhập bằng Google (Supabase OAuth) */
+export const signInWithPopup = async (_auth: any, _provider: any) => {
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin }
+  });
+  if (error) throw new Error(error.message);
+  return { user: null }; // User sẽ được lấy từ session sau redirect
+};
+
+/* GoogleAuthProvider stub */
+export class GoogleAuthProvider {
+  static PROVIDER_ID = 'google.com';
+}
+
+/* Kiểm tra email đã đăng ký chưa - stub */
+export const fetchSignInMethodsForEmail = async (_auth: any, _email: string) => {
+  return []; // Supabase không hỗ trợ API này trực tiếp
+};

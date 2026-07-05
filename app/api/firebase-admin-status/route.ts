@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-import { admin } from '../lib/firebase-admin';
 
+/* API kiểm tra trạng thái Supabase (thay thế firebase-admin-status) */
 export async function GET() {
-  const isConfigured = admin.apps && admin.apps.length > 0;
+  const isConfigured = !!(
+    process.env.NEXT_PUBLIC_SUPABASE_URL && 
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
   return NextResponse.json({ configured: isConfigured });
 }

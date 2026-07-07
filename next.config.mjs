@@ -25,6 +25,23 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['nodemailer'],
   },
+
+  /* Tự động chuyển hướng từ www sang non-www */
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'www.greeniahomes.vn',
+          },
+        ],
+        destination: 'https://greeniahomes.vn/:path*',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

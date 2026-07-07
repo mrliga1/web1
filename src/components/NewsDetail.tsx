@@ -297,6 +297,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         <meta property="og:title" content={article.seoTitle || article.title} />
         <meta property="og:description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
         <meta property="og:image" content={articleImage?.startsWith('http') ? articleImage : `https://greeniahomes.vn${articleImage?.startsWith('/') ? articleImage : `/${articleImage}`}`} />
+        <link rel="preload" as="image" href={article.imageUrl ? optimizeImageUrl(article.imageUrl, 800) : undefined} />
         
         <meta name="twitter:card" content="summary_large_image" />
         <meta property="twitter:title" content={article.seoTitle || article.title} />
@@ -357,7 +358,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
           
           {/* Main big cover photo */}
           <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-border-color bg-bg-surface">
-            <img loading="eager" decoding="async" src={article.imageUrl ? optimizeImageUrl(article.imageUrl, 800) : undefined} srcSet={article.imageUrl ? generateSrcSet(article.imageUrl) : undefined} sizes="(max-width: 1024px) 100vw, 800px" alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
+            <img loading="eager" decoding="async" src={article.imageUrl ? optimizeImageUrl(article.imageUrl, 800) : undefined} alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
               // @ts-ignore
               fetchpriority="high" />
           </div>
@@ -402,7 +403,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                     <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
                       <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
-                      <span className="text-[10px] lg:text-[9px] text-white/70 font-mono block mt-1">
+                      <span className="text-[10px] lg:text-[9px] text-text-secondary font-mono block mt-1">
                         {new Date(n.createdAt).toLocaleDateString('vi-VN')}
                       </span>
                     </div>
@@ -424,7 +425,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                     <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
                       <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
-                      <span className="text-[10px] lg:text-[9px] text-white/70 font-mono block mt-1">
+                      <span className="text-[10px] lg:text-[9px] text-text-secondary font-mono block mt-1">
                         {new Date(n.createdAt).toLocaleDateString('vi-VN')}
                       </span>
                     </div>
@@ -460,7 +461,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                     <h5 className="text-[11px] font-semibold text-text-secondary group-hover:text-primary leading-[14px] line-clamp-2">
                       {n.title}
                     </h5>
-                    <span className="text-[9px] text-white/70 font-mono block">
+                    <span className="text-[9px] text-text-secondary font-mono block">
                       {new Date(n.createdAt).toLocaleDateString('vi-VN')}
                     </span>
                   </div>

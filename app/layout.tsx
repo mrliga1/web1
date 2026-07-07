@@ -59,14 +59,9 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..800;1,400..800&display=swap"
         />
-        {/* Preload hero image */}
-        <link
-          rel="preload"
-          as="image"
-          imageSrcSet="https://wsrv.nl/?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1600585154340-be6161a56a0c&q=65&a=attention&w=400 400w, https://wsrv.nl/?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1600585154340-be6161a56a0c&q=65&a=attention&w=800 800w, https://wsrv.nl/?url=https%3A%2F%2Fimages.unsplash.com%2Fphoto-1600585154340-be6161a56a0c&q=65&a=attention&w=1200 1200w"
-          imageSizes="100vw"
-          fetchPriority="high"
-        />
+        {/* PWA Tags */}
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#05080f" />
       </head>
       <body
         style={{

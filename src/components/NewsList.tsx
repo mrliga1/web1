@@ -351,6 +351,8 @@ export default function NewsList({
                           fetchpriority="high"
                           src={(displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600") || undefined}
                           alt={displayArticle?.title}
+                          width="600"
+                          height="400"
                           referrerPolicy="no-referrer"
                           onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -406,7 +408,7 @@ export default function NewsList({
                             className="cursor-pointer group flex items-center gap-2.5 mb-4"
                           >
                             <div className="w-[70px] h-[50px] shrink-0 rounded overflow-hidden border border-border-inverse">
-                              <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 800) || undefined} alt={`Ảnh thu nhỏ bài viết: ${article.title}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 800) || undefined} alt={`Ảnh thu nhỏ bài viết: ${article.title}`} width="70" height="50" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
                               <h4 className="text-[12px] text-text-primary hover:text-primary transition-colors font-semibold line-clamp-2 m-0 mb-1 leading-snug">
@@ -443,7 +445,7 @@ export default function NewsList({
                           className="flex gap-3 pb-[15px] border-b border-dashed border-border-color transition-colors cursor-pointer group hover:border-b-yellow-500 items-center"
                         >
                           <div className="w-[90px] h-[65px] rounded overflow-hidden shrink-0 border border-border-color relative">
-                            <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 400) || undefined} alt={article.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                            <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 400) || undefined} alt={article.title} width="90" height="65" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                           </div>
 
                           <div className="flex-1 flex flex-col justify-center">
@@ -497,7 +499,7 @@ export default function NewsList({
                                       {p.type === 'rent' ? 'Cho thuê' : 'Bán'}
                                     </span>
                                   )}
-                                  <img loading="lazy" decoding="async" src={optimizeImageUrl(p.imageUrl || p.imageUrls?.[0], 400) || undefined} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                                  <img loading="lazy" decoding="async" src={optimizeImageUrl(p.imageUrl || p.imageUrls?.[0], 400) || undefined} alt={p.title} width="100" height="85" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                                 </div>
 
                                 <div className="flex-1 flex flex-col justify-center min-w-0">
@@ -624,6 +626,8 @@ export default function NewsList({
                                   <img loading="lazy" decoding="async"
                                     src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                                     alt={p.title}
+                                    width="800"
+                                    height="500"
                                     referrerPolicy="no-referrer"
                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
                                     onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}

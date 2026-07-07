@@ -1,0 +1,23 @@
+{
+  "name": "Greenia Homes",
+  "short_name": "Greenia",
+  "description": "Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#05080f",
+  "theme_color": "#05080f",
+  "icons": [
+    {
+      "src": "/favicon.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/favicon.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "maskable any"
+    }
+  ]
+}

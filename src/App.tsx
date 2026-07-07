@@ -1861,6 +1861,7 @@ function App() {
         {/* Gọi ngay */}
         <a
           href="tel:0932966700"
+          aria-label="Gọi ngay hotline 0932 966 700"
           className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-bg-surface border-none md:border md:border-primary/20 md:hover:border-primary md:hover:bg-primary text-text-primary p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
         >
           <div className="bg-primary md:group-hover:bg-bg-surface text-[14px] text-white md:group-hover:text-primary w-[40px] h-[40px] flex items-center justify-center rounded-full animate-bounce shrink-0 transition-colors duration-300 shadow-md shadow-primary/50">
@@ -1877,6 +1878,7 @@ function App() {
           href="https://zalo.me/0932966700"
           target="_blank"
           rel="noreferrer"
+          aria-label="Nhắn tin qua Zalo"
           onClick={(e) => {
             if (typeof window !== 'undefined' && window.innerWidth < 768) {
               e.preventDefault();
@@ -1902,6 +1904,7 @@ function App() {
         {/* Đăng ký tư vấn */}
         <button
           onClick={() => setShowQuotePopup(true)}
+          aria-label="Đăng ký tư vấn"
           className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-bg-surface border-none md:border md:border-accent/20 md:hover:border-accent md:hover:bg-accent text-text-primary p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
         >
           <div className="bg-accent md:group-hover:bg-bg-surface text-white md:group-hover:text-accent p-0 w-[40px] h-[40px] rounded-full shrink-0 flex items-center justify-center transition-colors duration-300 shadow-md shadow-accent/50 animate-bounce">

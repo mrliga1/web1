@@ -944,6 +944,8 @@ export default function ProductList({
                                 <img loading="lazy" decoding="async"
                                   src={optimizeImageUrl(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                                   alt={proj.title}
+                                  width="800"
+                                  height="500"
                                   referrerPolicy="no-referrer"
                                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
                                   onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}

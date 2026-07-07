@@ -813,6 +813,7 @@ function App() {
       },
       (error) => {
         handleFirestoreError(error, OperationType.GET, "settings/general");
+        setIsSettingsLoaded(true);
       },
     );
   }, []);
@@ -1362,8 +1363,15 @@ function App() {
             </div>
           )}
 
+          {layoutLoading && sections.length === 0 && (
+            <div className="flex flex-col justify-center items-center py-40 gap-4">
+              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-sm text-text-secondary animate-pulse">Đang tải nội dung...</p>
+            </div>
+          )}
+
           <React.Suspense
-            fallback={<div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div></div>}
+            fallback={<div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>}
           >
             <AnimatePresence mode="wait" initial={false}>
               <motion.div

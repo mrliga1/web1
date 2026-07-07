@@ -935,7 +935,7 @@ export default function ProjectDetail({
 
             <div
               id="overview"
-              ref={(el) => (sectionRefs.current[0] = el)}
+              ref={(el) => { sectionRefs.current[0] = el; }}
               className="space-y-8 animate-in slide-in-from-bottom-4 duration-500 pt-8 mt-[-32px]"
             >
               <h1 className="flex items-center gap-3 text-[25px] md:text-[26px] w-full max-w-[785px] font-bold font-serif my-[20px] drop-shadow-sm">
@@ -1132,7 +1132,7 @@ export default function ProjectDetail({
             {hasSubdivisionContent && (
               <div
                 id="subdivision"
-                ref={(el) => (sectionRefs.current[7] = el)}
+                ref={(el) => { sectionRefs.current[7] = el; }}
                 className="space-y-8 pt-[20px] mt-[-32px]"
               >
                 <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif mb-0 drop-shadow-sm">
@@ -1183,7 +1183,7 @@ export default function ProjectDetail({
                           >
                             <div className="relative w-full aspect-[16/9] overflow-hidden bg-bg-surface">
                               {card.status && (
-                                <div className="absolute top-3 left-3 z-10 bg-[#0f9b0f] text-white text-[11px] font-bold px-2.5 py-1 rounded shadow-sm tracking-wide pl-[10px] -ml-[12px] -mt-[13px]">
+                                <div className="absolute top-0 left-0 z-10 bg-[#0f9b0f] text-white text-[11px] font-bold px-2.5 py-1 rounded-none rounded-br-lg shadow-sm tracking-wide">
                                   {card.status}
                                 </div>
                               )}
@@ -1249,7 +1249,7 @@ export default function ProjectDetail({
                                     onNavigate({
                                       screen: "project-detail",
                                       projectId: card.linkedProjectId,
-                                      slug: generateSlug(card.title || "du-an"),
+                                      slug: generateSlug(card.name || "du-an"),
                                     });
                                   } else {
                                     window.scrollTo({
@@ -1275,7 +1275,7 @@ export default function ProjectDetail({
 
             <div
               id="location"
-              ref={(el) => (sectionRefs.current[1] = el)}
+              ref={(el) => { sectionRefs.current[1] = el; }}
               className="space-y-8 pt-8 mt-[-32px]"
             >
               <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
@@ -1336,7 +1336,7 @@ export default function ProjectDetail({
 
             <div
               id="amenity"
-              ref={(el) => (sectionRefs.current[2] = el)}
+              ref={(el) => { sectionRefs.current[2] = el; }}
               className="space-y-8 pt-8 mt-[-32px]"
             >
               <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
@@ -1465,7 +1465,7 @@ export default function ProjectDetail({
 
             <div
               id="floor-plan"
-              ref={(el) => (sectionRefs.current[3] = el)}
+              ref={(el) => { sectionRefs.current[3] = el; }}
               className="space-y-8 pt-8 mt-[-32px]"
             >
               <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
@@ -1716,7 +1716,7 @@ export default function ProjectDetail({
 
             <div
               id="price"
-              ref={(el) => (sectionRefs.current[4] = el)}
+              ref={(el) => { sectionRefs.current[4] = el; }}
               className="space-y-8 pt-8 mt-[-32px]"
             >
               <div className="flex justify-between items-end mb-4">
@@ -1814,7 +1814,7 @@ export default function ProjectDetail({
 
             <div
               id="qa"
-              ref={(el) => (sectionRefs.current[8] = el)}
+              ref={(el) => { sectionRefs.current[8] = el; }}
               className="space-y-8 pt-12 mt-[-32px] border-t border-border-color/50"
             >
               <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
@@ -1902,7 +1902,7 @@ export default function ProjectDetail({
 
             <div
               id="news"
-              ref={(el) => (sectionRefs.current[5] = el)}
+              ref={(el) => { sectionRefs.current[5] = el; }}
               className="space-y-8 pt-12 mt-[-32px] border-t border-border-color/50"
             >
               <div className="flex justify-between items-end mb-4">
@@ -1996,7 +1996,7 @@ export default function ProjectDetail({
             {/* Hidden div to trigger contact section in IntersectionObserver, actual view is sidebar */}
             <div
               id="contact"
-              ref={(el) => (sectionRefs.current[6] = el)}
+              ref={(el) => { sectionRefs.current[6] = el; }}
               className="absolute h-0 w-full"
             ></div>
 
@@ -2262,8 +2262,8 @@ export default function ProjectDetail({
                               "/no-image.svg";
                           }}
                         />
-                        <div className="absolute top-2 left-2 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded shadow-sm z-10">
-                          {proj.status === 'handed_over' ? 'Đã bàn giao' : proj.status === 'coming_soon' ? 'Sắp ra mắt' : 'Đang mở bán'}
+                        <div className="absolute top-0 left-0 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
+                          {proj.status === 'handed-over' ? 'Đã bàn giao' : proj.status === 'coming_soon' ? 'Sắp ra mắt' : 'Đang mở bán'}
                         </div>
                       </div>
                       <div className="p-4 flex-1 flex flex-col justify-between">

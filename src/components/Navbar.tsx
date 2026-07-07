@@ -20,7 +20,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const scrollDirection = useScrollDirection();
-  const theme = 'light';
+  const theme: string = 'light';
 
   const handleSignOut = async () => {
     try {
@@ -163,9 +163,15 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                     }`}
                   >
                     <div className="shrink-0">
-                      {currentUser.photoURL ? (
+                      {userProfile?.avatarUrl ? (
                         <img loading="lazy" decoding="async" 
-                          src={(currentUser.photoURL) || undefined} 
+                          src={(userProfile.avatarUrl) || undefined} 
+                          alt="Avatar" 
+                          className="w-6 h-6 rounded-full object-cover" 
+                        />
+                      ) : currentUser?.user_metadata?.avatar_url ? (
+                        <img loading="lazy" decoding="async" 
+                          src={(currentUser.user_metadata.avatar_url) || undefined} 
                           alt="Avatar" 
                           className="w-6 h-6 rounded-full object-cover" 
                         />
@@ -270,9 +276,9 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.2 }}
-            className="lg:hidden bg-bg-inverse/95 border-b border-zinc-900 text-left"
+            className={`lg:hidden border-b text-left ${theme === 'dark' ? 'bg-[#0B1F16]/95 border-zinc-900' : 'bg-white border-border-color shadow-md'}`}
           >
-            <div className="px-4 pt-2 pb-6 space-y-1">
+            <div className="px-4 pt-2 pb-6 space-y-1 bg-white">
               {menuItems.map((item) => {
                 const active = currentRoute.screen === item.screen;
                 return (
@@ -284,8 +290,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
                       active 
-                        ? 'text-accent bg-accent/10' 
-                        : 'text-zinc-200 hover:bg-bg-inverse hover:text-white'
+                        ? (theme === 'dark' ? 'text-accent bg-accent/10' : 'text-primary bg-primary/10')
+                        : (theme === 'dark' ? 'text-zinc-200 hover:bg-bg-inverse hover:text-white' : 'text-text-secondary hover:bg-slate-50 hover:text-text-primary')
                     }`}
                   >
                     <span>{item.label}</span>

@@ -236,12 +236,12 @@ export default function ProjectList({
                           </button>
                           <button 
                             onClick={(e) => { 
-                              if (currentStatus === 'handed_over') scrollToGrid();
+                              if (currentStatus === 'handed-over') scrollToGrid();
                               setCurrentStatus('handed_over'); 
                               const parent = e.currentTarget.parentElement;
                               if (parent) parent.scrollTo({ left: e.currentTarget.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 + e.currentTarget.clientWidth / 2, behavior: 'smooth' });
                             }}
-                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'handed_over' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
+                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'handed-over' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                           >
                             Đã bàn giao
                           </button>
@@ -319,7 +319,7 @@ export default function ProjectList({
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                       {filteredProjects.slice(0, limitCount).map((p) => {
                         let statusText = 'Đang mở bán';
-                        if (p.status === 'handed_over') statusText = 'Đã bàn giao';
+                        if (p.status === 'handed-over') statusText = 'Đã bàn giao';
                         if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
                         
                         return (
@@ -336,7 +336,7 @@ export default function ProjectList({
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
                                 onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
                               />
-                              <div className="absolute top-2 left-2 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded shadow-sm z-10">
+                              <div className="absolute top-0 left-0 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
                                 {statusText}
                               </div>
                             </div>

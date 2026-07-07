@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
-import { doc, getDoc, collection, getDocs, addDoc, db } from "../firebase";
+import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from "../firebase";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import { Product, Project, RouteState } from "../types";
 import { useScrollDirection } from "../hooks/useScrollDirection";
@@ -45,14 +45,14 @@ const MapViewer = React.memo(
       mapHtml &&
       (mapHtml.startsWith("<iframe") || mapHtml.includes("google.com/maps"))
     ) {
+      const cleanHtml = mapHtml.includes("iframe")
+        ? mapHtml.replace(/loading=["']lazy["']/g, "")
+        : `<iframe src="${mapHtml}" width="100%" height="100%" style="border:0;" allowfullscreen referrerPolicy="no-referrer-when-downgrade"></iframe>`;
+        
       return (
         <div
           className="w-full h-[300px] rounded-lg overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
-          dangerouslySetInnerHTML={{
-            __html: mapHtml.includes("iframe")
-              ? mapHtml
-              : `<iframe src="${mapHtml}" width="100%" height="100%" style="border:0;" allowfullscreen loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>`,
-          }}
+          dangerouslySetInnerHTML={{ __html: cleanHtml }}
         />
       );
     }
@@ -64,7 +64,6 @@ const MapViewer = React.memo(
           width="100%"
           height="100%"
           style={{ border: 0 }}
-          loading="lazy"
           allowFullScreen
           referrerPolicy="no-referrer-when-downgrade"
           src={`https://maps.google.com/maps?q=${query}&t=&z=13&ie=UTF8&iwloc=&output=embed`}
@@ -202,6 +201,13 @@ export default function ProductDetail({
           setProduct(activeProd);
           if (!selectedImage)
             setSelectedImage(activeProd.imageUrl || sampleThumbs[0]);
+
+          // Tăng lượt xem thực tế
+          const newViews = (activeProd.viewsCount || 0) + 1;
+          activeProd.viewsCount = newViews;
+          if (finalProductId) {
+            updateDoc(doc(db, "products", finalProductId), { viewsCount: newViews }).catch(console.error);
+          }
         } else {
           setLoading(false);
           onShowNotification(
@@ -673,14 +679,25 @@ export default function ProductDetail({
                 </p>
               </div>
 
-              <div className="space-y-0.5">
-                <span className="text-[9px] font-bold text-text-secondary uppercase tracking-wider">
-                  Diện tích
-                </span>
-                <p className="font-display font-semibold text-[13px] md:text-sm text-text-primary">
-                  {product.area || 120} m²
-                </p>
-              </div>
+              {product.area ? (
+                <div className="space-y-0.5">
+                  <span className="text-[9px] font-bold text-text-secondary uppercase tracking-wider">
+                    Diện tích
+                  </span>
+                  <p className="font-display font-semibold text-[13px] md:text-sm text-text-primary">
+                    {product.area} m²
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-0.5">
+                  <span className="text-[9px] font-bold text-text-secondary uppercase tracking-wider">
+                    Diện tích
+                  </span>
+                  <p className="font-display font-semibold text-[13px] md:text-sm text-text-primary">
+                    -
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-0.5">
                 <span className="text-[9px] font-bold text-text-secondary uppercase tracking-wider">
@@ -703,94 +720,104 @@ export default function ProductDetail({
               </h2>
 
               <div className="grid grid-cols-2 gap-y-3 gap-x-3 sm:gap-x-4 text-[13px] !pt-[5px]">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Tag className="w-3 h-3 text-primary" />
-                    <span className="text-[11px] sm:text-[13px]">
-                      {product.type === "rent" ? "Giá thuê" : "Giá bán"}
+                {product.priceText && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                    <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                      <Tag className="w-3 h-3 text-primary" />
+                      <span className="text-[11px] sm:text-[13px]">
+                        {product.type === "rent" ? "Giá thuê" : "Giá bán"}
+                      </span>
+                    </div>
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                      {product.priceText}
                     </span>
                   </div>
-                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
-                    {product.priceText || "Đang cập nhật"}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Layers className="w-4 h-4 text-primary" />
-                    <span className="text-[11px] sm:text-[13px]">
-                      Diện tích
+                )}
+                {product.area && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                    <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                      <Layers className="w-4 h-4 text-primary" />
+                      <span className="text-[11px] sm:text-[13px]">
+                        Diện tích
+                      </span>
+                    </div>
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                      {product.area} m²
                     </span>
                   </div>
-                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
-                    {product.area ? `${product.area} m²` : "Đang cập nhật"}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Bookmark className="w-4 h-4 text-primary" />
-                    <span className="text-[11px] sm:text-[13px]">
-                      Phòng ngủ
+                )}
+                {product.bedrooms && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                    <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                      <Bookmark className="w-4 h-4 text-primary" />
+                      <span className="text-[11px] sm:text-[13px]">
+                        Phòng ngủ
+                      </span>
+                    </div>
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                      {product.bedrooms} PN
                     </span>
                   </div>
-                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
-                    {product.bedrooms
-                      ? `${product.bedrooms} PN`
-                      : "Đang cập nhật"}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Bath className="w-4 h-4 text-primary" />
-                    <span className="text-[11px] sm:text-[13px]">
-                      Phòng vệ sinh
+                )}
+                {product.toilets && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                    <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                      <Bath className="w-4 h-4 text-primary" />
+                      <span className="text-[11px] sm:text-[13px]">
+                        Phòng vệ sinh
+                      </span>
+                    </div>
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                      {product.toilets} WC
                     </span>
                   </div>
-                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
-                    {product.toilets
-                      ? `${product.toilets} WC`
-                      : "Đang cập nhật"}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Building2 className="w-4 h-4 text-primary" />
-                    <span className="text-[11px] sm:text-[13px]">Số tầng</span>
-                  </div>
-                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
-                    {product.floors || "Đang cập nhật"}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <Compass className="w-4 h-4 text-primary" />
-                    <span className="text-[11px] sm:text-[13px]">
-                      Hướng nhà
+                )}
+                {product.floors && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                    <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                      <Building2 className="w-4 h-4 text-primary" />
+                      <span className="text-[11px] sm:text-[13px]">Số tầng</span>
+                    </div>
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                      {product.floors}
                     </span>
                   </div>
-                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
-                    {product.direction || "Đang cập nhật"}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <MapPin className="w-4 h-4 text-primary" />
-                    <span className="text-[11px] sm:text-[13px]">Mặt tiền</span>
+                )}
+                {product.direction && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                    <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                      <Compass className="w-4 h-4 text-primary" />
+                      <span className="text-[11px] sm:text-[13px]">
+                        Hướng nhà
+                      </span>
+                    </div>
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                      {product.direction}
+                    </span>
                   </div>
-                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
-                    {(product as any).frontage
-                      ? `${(product as any).frontage}m`
-                      : "Đang cập nhật"}
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
-                  <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
-                    <span className="text-[11px] sm:text-[13px]">Pháp lý</span>
+                )}
+                {(product as any).frontage && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                    <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                      <MapPin className="w-4 h-4 text-primary" />
+                      <span className="text-[11px] sm:text-[13px]">Mặt tiền</span>
+                    </div>
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                      {(product as any).frontage}m
+                    </span>
                   </div>
-                  <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
-                    {product.legalStatus || "Đang cập nhật"}
-                  </span>
-                </div>
+                )}
+                {product.legalStatus && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                    <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                      <span className="text-[11px] sm:text-[13px]">Pháp lý</span>
+                    </div>
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
+                      {product.legalStatus}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -865,14 +892,15 @@ export default function ProductDetail({
                 )}
               </div>
 
-              {activeTab === "map" && (
-                <div className="w-full">
-                  <MapViewer
-                    mapHtml={product.mapHtml}
-                    address={`${product.title}, ${product.district}`}
-                  />
-                </div>
-              )}
+              <div
+                className="w-full"
+                style={{ display: activeTab === "map" ? "block" : "none" }}
+              >
+                <MapViewer
+                  mapHtml={product.mapHtml}
+                  address={`${product.title}, ${product.district}`}
+                />
+              </div>
 
               <div className="px-[10px] !mt-0 !h-[35px]">
                 <StarRatingInteractive
@@ -924,9 +952,7 @@ export default function ProductDetail({
             {/* Premium bullet points with green checkmarks from the mockup */}
             <div className="space-y-3 pt-2">
               <div className="flex items-start gap-2.5">
-                <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3 h-3 text-black" />
-                </div>
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <p className="text-xs text-text-secondary leading-relaxed">
                   Phân tích quỹ căn, chính sách, tiện ích giúp Khách hàng lựa
                   chọn căn tốt nhất.
@@ -934,18 +960,14 @@ export default function ProductDetail({
               </div>
 
               <div className="flex items-start gap-2.5">
-                <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3 h-3 text-black" />
-                </div>
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <p className="text-xs text-text-secondary leading-relaxed">
                   Giải đáp mọi thắc mắc của khách hàng.
                 </p>
               </div>
 
               <div className="flex items-start gap-2.5">
-                <div className="w-4 h-4 rounded-full bg-primary flex items-center justify-center shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3 h-3 text-black" />
-                </div>
+                <CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                 <p className="text-xs text-text-secondary leading-relaxed">
                   Tuyệt đối bảo mật thông tin cá nhân.
                 </p>
@@ -1276,7 +1298,7 @@ export default function ProductDetail({
             <div className="flex w-max animate-product-detail-slider">
               {[...Array(6)].flatMap(() => projects.slice(0, 5)).map((p, idx) => {
                 let statusText = "Đang mở bán";
-                if (p.status === "handed_over") statusText = "Đã bàn giao";
+                if (p.status === "handed-over") statusText = "Đã bàn giao";
                 if (p.status === "coming_soon") statusText = "Sắp ra mắt";
 
                 return (
@@ -1293,7 +1315,7 @@ export default function ProductDetail({
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
                         onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
                       />
-                      <div className="absolute top-2 left-2 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded shadow-sm z-10">
+                      <div className="absolute top-0 left-0 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
                         {statusText}
                       </div>
                     </div>

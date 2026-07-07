@@ -17,7 +17,7 @@ export const getDocs = async (collectionRef: { path: string }) => {
   if (error) throw error;
   const docs = (data || []).map((row: any) => ({
     id: row.id,
-    data: () => row.data,
+    data: () => collectionRef.path === 'users' ? row : row.data,
     exists: () => true
   }));
   return {
@@ -41,12 +41,13 @@ export const getDoc = async (docRef: { path: string, id: string }) => {
   return {
     id: data.id,
     exists: () => true,
-    data: () => data.data
+    data: () => docRef.path === 'users' ? data : data.data
   };
 }
 
 export const addDoc = async (collectionRef: { path: string }, data: any) => {
-  const { data: result, error } = await supabase.from(collectionRef.path).insert({ data }).select().single();
+  const payload = collectionRef.path === 'users' ? data : { data };
+  const { data: result, error } = await supabase.from(collectionRef.path).insert(payload).select().single();
   if (error) throw error;
   return { id: result.id };
 }
@@ -58,7 +59,8 @@ export const setDoc = async (docRef: { path: string, id: string }, data: any, op
       data = { ...existing.data(), ...data };
     }
   }
-  const { error } = await supabase.from(docRef.path).upsert({ id: docRef.id, data });
+  const payload = docRef.path === 'users' ? { id: docRef.id, ...data } : { id: docRef.id, data };
+  const { error } = await supabase.from(docRef.path).upsert(payload);
   if (error) throw error;
 }
 
@@ -66,7 +68,8 @@ export const updateDoc = async (docRef: { path: string, id: string }, data: any)
   const existing = await getDoc(docRef);
   if (!existing.exists()) throw new Error("Document not found");
   const merged = { ...existing.data(), ...data };
-  const { error } = await supabase.from(docRef.path).update({ data: merged }).eq('id', docRef.id);
+  const payload = docRef.path === 'users' ? merged : { data: merged };
+  const { error } = await supabase.from(docRef.path).update(payload).eq('id', docRef.id);
   if (error) throw error;
 }
 

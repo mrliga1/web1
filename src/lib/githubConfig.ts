@@ -84,20 +84,20 @@ export function resolveGithubUploadSettings(
 } | { error: string } {
   const owner =
     firestoreConfig?.owner?.trim() ||
-    import.meta.env.VITE_GITHUB_OWNER?.trim() ||
+    process.env.NEXT_PUBLIC_GITHUB_OWNER?.trim() ||
     GITHUB_DEFAULTS.owner;
   const repo =
     firestoreConfig?.repo?.trim() ||
-    import.meta.env.VITE_GITHUB_REPO?.trim() ||
+    process.env.NEXT_PUBLIC_GITHUB_REPO?.trim() ||
     GITHUB_DEFAULTS.repo;
   const branch =
     firestoreConfig?.branch?.trim() ||
-    import.meta.env.VITE_GITHUB_BRANCH?.trim() ||
+    process.env.NEXT_PUBLIC_GITHUB_BRANCH?.trim() ||
     GITHUB_DEFAULTS.branch;
 
   const rawToken =
     firestoreConfig?.tokenEncoded ||
-    import.meta.env.VITE_GITHUB_TOKEN;
+    process.env.NEXT_PUBLIC_GITHUB_TOKEN;
 
   const tokenResult = resolveGithubToken(rawToken);
   if ("error" in tokenResult) {

@@ -322,6 +322,7 @@ function App() {
   const [seeding, setSeeding] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
+  const [isCookieConsentEnabled, setIsCookieConsentEnabled] = useState(false);
   const { currentUser, userProfile } = useAuth();
   const theme = "dark";
 
@@ -368,16 +369,19 @@ function App() {
   const [quoteSuccess, setQuoteSuccess] = useState(false);
   
   const hasSubmittedQuote = React.useRef(false);
+  const hasShownQuote = React.useRef(false);
   const quoteTimerRef = React.useRef<NodeJS.Timeout | null>(null);
 
-  // Automatically show popup after 1 minute if not already submitted
+  // Automatically show popup with dynamic intervals
   useEffect(() => {
     if (!showQuotePopup && !hasSubmittedQuote.current) {
+      const delay = hasShownQuote.current ? 120000 : 90000;
       quoteTimerRef.current = setTimeout(() => {
         if (!hasSubmittedQuote.current) {
           setShowQuotePopup(true);
+          hasShownQuote.current = true;
         }
-      }, 60000);
+      }, delay);
     }
     return () => {
       if (quoteTimerRef.current) clearTimeout(quoteTimerRef.current);
@@ -679,6 +683,7 @@ function App() {
           }
           if (data.metaDescription) setGlobalMetaDesc(data.metaDescription);
           if (data.metaKeywords) setGlobalMetaKeywords(data.metaKeywords);
+          if (data.cookieConsentEnabled) setIsCookieConsentEnabled(true);
 
           // Dynamically insert/update tracking codes
           const analyticsId = (data.googleAnalyticsId || "").trim();
@@ -1522,7 +1527,7 @@ function App() {
                   />
                 )}
 
-                {route.screen === "admin" && (
+                {false && (
                   <AdminPanel
                     onShowNotification={triggerNotification}
                     onNavigate={handleNavigate}
@@ -1536,7 +1541,7 @@ function App() {
       </div>
 
       <React.Suspense fallback={<div className="flex justify-center items-center h-screen bg-bg-inverse"><div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin"></div></div>}>
-        <CookieConsent />
+        {isCookieConsentEnabled && <CookieConsent />}
       </React.Suspense>
 
       {/* Footer block */}
@@ -1657,7 +1662,7 @@ function App() {
                     Chính sách bảo mật
                   </button>
                 </li>
-                <li>
+                <li className="md:hidden">
                   <button
                     onClick={() => handleNavigate({ screen: "terms-of-use" })}
                     className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
@@ -1668,6 +1673,7 @@ function App() {
                     Điều khoản sử dụng
                   </button>
                 </li>
+
               </ul>
             </div>
 
@@ -1740,6 +1746,17 @@ function App() {
                       ›
                     </span>{" "}
                     Nhà Phố - Biệt Thự
+                  </button>
+                </li>
+                <li className="border-t border-border-inverse pt-3 hidden md:block">
+                  <button
+                    onClick={() => handleNavigate({ screen: "terms-of-use" })}
+                    className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"
+                  >
+                    <span className="text-accent text-lg leading-none">
+                      ›
+                    </span>{" "}
+                    Điều khoản sử dụng
                   </button>
                 </li>
               </ul>
@@ -1909,7 +1926,7 @@ function App() {
                 <button
                   onClick={closeQuotePopup}
                   aria-label="Đóng popup"
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-white/70 hover:text-text-secondary hover:bg-slate-100 transition"
+                  className="w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
                 >
                   <X className="w-5 h-5" />
                 </button>

@@ -20,11 +20,13 @@ export interface Product {
   interior?: string;     // Nội thất
   mapHtml?: string;      // Sơ đồ bản đồ iframe
   category: string;      // Danh mục sản phẩm (e.g. "Biệt thự", "Nhà phố", "Căn hộ", "Đất nền")
+  price?: string;        // Fallback for price property
+  location?: string;     // Fallback for location property
   viewsCount: number;    // Lượt xem thực tế
   createdAt: string;     // ISO date
   createdBy: string;     // email / username
   createdByRole: 'admin' | 'editor' | 'member';
-  approvalStatus: 'approved' | 'pending';
+  approvalStatus: 'approved' | 'pending' | 'rejected';
   metaTitle?: string;
   metaDesc?: string;
   metaKeywords?: string;
@@ -60,8 +62,9 @@ export interface Project {
   units?: string | number; // Số lượng căn
   imageUrl: string;
   imageUrls?: string[];
+  images?: string[];     // Fallback for images property
   avatarUrl?: string;    // Agent/Author avatar
-  status: 'opening' | 'handed-over'; // 'opening' = Đang mở bán, 'handed-over' = Đã bàn giao
+  status: 'opening' | 'handed-over' | 'handed_over' | 'coming_soon'; // Mở rộng thêm các trạng thái bị sai chính tả
   description: string;   // Tab 1: Trang chủ dự án
   locationShortDesc?: string; // Đoạn mô tả ngắn Vị trí
   locationTab?: string;   // Tab 2: Vị trí dư án
@@ -113,6 +116,7 @@ export interface News {
   content: string;       // Toàn bộ nội dung bài viết dạng HTML
   category: string;      // Danh mục bài viết (như 'Tin thị trường', 'Lưu ý khi mua nhà',...)
   imageUrl: string;
+  thumbnail?: string;    // Thumbnail image
   imageUrls?: string[];  // Custom photo album arrays
   avatarUrl?: string;    // Custom editor profile photograph
   viewsCount: number;

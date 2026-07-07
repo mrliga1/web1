@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { doc, updateDoc } from '../firebase';
-import { db } from '../firebase';
+import { supabase } from '../supabase';
 import { User, Phone, Save, Shield, ShieldCheck } from 'lucide-react';
 
 export default function UserProfileTab({ onShowNotification }: { onShowNotification: (m: string, t: 'success' | 'error') => void }) {
@@ -17,13 +16,17 @@ export default function UserProfileTab({ onShowNotification }: { onShowNotificat
     e.preventDefault();
     setSaving(true);
     try {
-      await updateDoc(doc(db, 'users', userProfile.uid), {
-        username,
-        phone
-      });
+      const { error } = await supabase
+        .from('users')
+        .update({ username, phone })
+        .eq('uid', userProfile.uid);
+        
+      if (error) throw error;
+      
       await reloadProfile();
       onShowNotification('Cập nhật hồ sơ thành công!', 'success');
-    } catch {
+    } catch (err) {
+      console.error("Lỗi cập nhật hồ sơ:", err);
       onShowNotification('Lỗi khi cập nhật hồ sơ', 'error');
     } finally {
       setSaving(false);
@@ -69,9 +72,9 @@ export default function UserProfileTab({ onShowNotification }: { onShowNotificat
                   type="email"
                   value={userProfile.email}
                   readOnly
-                  className="w-full bg-bg-inverse/50 border border-border-color rounded-lg py-3 px-4 text-white/70 text-sm outline-none cursor-not-allowed font-mono"
+                  className="w-full bg-bg-surface border border-border-color rounded-lg py-3 px-4 text-text-secondary text-sm outline-none cursor-not-allowed font-mono opacity-80"
                 />
-                <p className="text-[10px] text-white/70">Email dùng để đăng nhập và không thể thay đổi.</p>
+                <p className="text-[10px] text-text-secondary">Email dùng để đăng nhập và không thể thay đổi.</p>
               </div>
 
               <div className="space-y-2">
@@ -80,14 +83,14 @@ export default function UserProfileTab({ onShowNotification }: { onShowNotificat
                   type="text"
                   value={userProfile.uid}
                   readOnly
-                  className="w-full bg-bg-inverse/50 border border-border-color rounded-lg py-3 px-4 text-text-secondary text-xs outline-none cursor-not-allowed font-mono"
+                  className="w-full bg-bg-surface border border-border-color rounded-lg py-3 px-4 text-text-secondary text-xs outline-none cursor-not-allowed font-mono opacity-80"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-text-secondary">Tên hiển thị</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                   <input
                     type="text"
                     required
@@ -102,7 +105,7 @@ export default function UserProfileTab({ onShowNotification }: { onShowNotificat
               <div className="space-y-2">
                 <label className="text-xs font-bold uppercase tracking-wider text-text-secondary">Số điện thoại liên lạc</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/70" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                   <input
                     type="tel"
                     required
@@ -120,7 +123,7 @@ export default function UserProfileTab({ onShowNotification }: { onShowNotificat
               <button
                 type="submit"
                 disabled={saving}
-                className="flex items-center gap-2 bg-primary hover:bg-accent text-black font-bold py-2.5 px-6 rounded-lg transition-all disabled:opacity-50"
+                className="flex items-center gap-2 bg-primary hover:bg-accent text-white font-bold py-2.5 px-6 rounded-lg transition-all disabled:opacity-50"
               >
                 {saving ? (
                   <>Đang lưu...</>

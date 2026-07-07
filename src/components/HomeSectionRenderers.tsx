@@ -64,10 +64,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
   onShowNotification
 }) => {
   return (
-    <motion.section 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 1.2 }}
+    <section 
       className="relative min-h-[640px] flex items-center justify-center p-6 md:p-12 lg:p-20 overflow-hidden bg-bg-inverse rounded-lg" 
       id="home-hero-banner"
     >
@@ -345,7 +342,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
         </motion.div>
         </div>
       </div>
-    </motion.section>
+    </section>
   );
 };
 

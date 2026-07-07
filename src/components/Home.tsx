@@ -44,6 +44,13 @@ export default function Home({
 
   // See More Click Counter for Product Listings Grid
   const [productClickCount, setProductClickCount] = useState(0);
+  const [isDeferred, setIsDeferred] = useState(false);
+
+  useEffect(() => {
+    // Delay rendering below-the-fold sections to improve Mobile FCP and LCP
+    const timer = setTimeout(() => setIsDeferred(true), 150);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Consultation Form State
   const [clientName, setClientName] = useState('');
@@ -236,6 +243,12 @@ export default function Home({
       <div className="space-y-4 pb-0 font-sans" id="home-view-root">
         {sections.map((section, index) => {
           if (!section.visible && !isEditMode) return null;
+
+          if (!isDeferred && section.id !== 'hero') {
+            return (
+              <div key={section.id} className="min-h-[400px]"></div>
+            );
+          }
 
           let cardContent = null;
           

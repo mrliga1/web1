@@ -18,8 +18,22 @@ export function generateSlug(text: string): string {
 export function optimizeImageUrl(url: string | undefined | null, width?: number): string {
   if (!url) return '';
   let finalUrl = url;
-  if (url.includes('raw.githubusercontent.com')) {
-    const match = url.match(/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+)/);
+  
+  // Extract original URL if it's already wrapped in wsrv.nl
+  if (finalUrl.includes('wsrv.nl')) {
+    try {
+      const urlObj = new URL(finalUrl);
+      const innerUrl = urlObj.searchParams.get('url');
+      if (innerUrl) {
+        finalUrl = innerUrl;
+      }
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+  
+  if (finalUrl.includes('raw.githubusercontent.com')) {
+    const match = finalUrl.match(/raw\.githubusercontent\.com\/([^\/]+)\/([^\/]+)\/([^\/]+)\/(.+)/);
     if (match) {
       const [, owner, repo, branch, path] = match;
       finalUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/${path}`;
@@ -43,7 +57,7 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
   }
   
   // Use wsrv.nl image proxy and force WebP for other external images
-  if (finalUrl.startsWith('http') && !finalUrl.includes('wsrv.nl') && !finalUrl.endsWith('.svg')) {
+  if (finalUrl.startsWith('http') && !finalUrl.endsWith('.svg')) {
      let optimized = `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&output=webp&q=75`;
      if (width) {
        optimized += `&w=${width}`;

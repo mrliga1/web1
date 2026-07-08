@@ -68,21 +68,13 @@ const NewsList = dynamic(() => import("./components/NewsList"));
 const NewsDetail = dynamic(() => import("./components/NewsDetail"));
 const ProjectDetail = dynamic(() => import("./components/ProjectDetail"));
 const ProductDetail = dynamic(() => import("./components/ProductDetail"));
-const FavoritesList = dynamic(() => import("./components/FavoritesList"));
-const CategoryProduct = dynamic(() => import("./components/CategoryProduct"));
-const CategoryNews = dynamic(() => import("./components/CategoryNews"));
-const AdminDashboard = dynamic(() => import("./components/admin/AdminDashboard"));
-const TermsOfUse = dynamic(() => import("./components/TermsOfUse"));
-const PrivacyPolicy = dynamic(() => import("./components/PrivacyPolicy"));
-const AppletBuilder = dynamic(() => import("./components/applet/AppletBuilder"));
-const AppletViewer = dynamic(() => import("./components/applet/AppletViewer"));
-const ContactSection = dynamic(() => import("./components/ContactSection"));
-const CookieConsent = dynamic(() => import("./components/CookieConsent"));
-const FavoritesPage = dynamic(() => import("./components/FavoritesPage"));
 const AdminPanel = dynamic(() => import("./components/AdminPanel"), { ssr: false });
 const ContactPage = dynamic(() => import("./components/ContactPage"));
 const LatestPropertiesPage = dynamic(() => import("./components/LatestPropertiesPage"));
-
+const TermsOfUse = dynamic(() => import("./components/TermsOfUse"));
+const PrivacyPolicy = dynamic(() => import("./components/PrivacyPolicy"));
+const CookieConsent = dynamic(() => import("./components/CookieConsent"));
+const FavoritesPage = dynamic(() => import("./components/FavoritesPage"));
 // Converts UI sections (which can have nested arrays like tableData.rows) into Firestore-compatible format
 function serializeSectionsForFirestore(sects: any[]): any[] {
   if (!Array.isArray(sects)) return [];

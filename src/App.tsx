@@ -8,7 +8,7 @@ import {
   getDoc,
   setDoc,
 } from "./firebase";
-import { AnimatePresence, motion } from "motion/react";
+// motion/react đã bị loại bỏ để giảm 35KB JS block main thread
 
 import {
   Building2,
@@ -56,8 +56,8 @@ import {
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import AuthModal from "./components/AuthModal";
-
 // Children Components
+import dynamic from "next/dynamic";
 import Navbar from "./components/Navbar";
 import Home from "./components/Home";
 
@@ -68,7 +68,7 @@ const NewsList = React.lazy(() => import("./components/NewsList"));
 const NewsDetail = React.lazy(() => import("./components/NewsDetail"));
 const ProjectDetail = React.lazy(() => import("./components/ProjectDetail"));
 const ProductDetail = React.lazy(() => import("./components/ProductDetail"));
-const AdminPanel = React.lazy(() => import("./components/AdminPanel"));
+const AdminPanel = dynamic(() => import("./components/AdminPanel"), { ssr: false });
 const ContactPage = React.lazy(() => import("./components/ContactPage"));
 const LatestPropertiesPage = React.lazy(
   () => import("./components/LatestPropertiesPage"),
@@ -328,7 +328,10 @@ function App() {
 
   // Global SEO tags managed by Firestore general configurations
   const [globalMetaTitle, setGlobalMetaTitle] = useState(() => {
-    return localStorage.getItem("greenia_meta_title") || "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu";
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("greenia_meta_title") || "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu";
+    }
+    return "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu";
   });
   const [globalMetaDesc, setGlobalMetaDesc] = useState(
     "Chào mừng đến với Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
@@ -343,15 +346,17 @@ function App() {
     const initRoute = getInitialRoute();
     const editableScreens = ["home", "san-pham", "du-an", "tin-tuc", "lien-he"];
     if (editableScreens.includes(initRoute.screen)) {
-      try {
-        const cached = localStorage.getItem(`greenia_layout_${initRoute.screen}`);
-        if (cached) {
-          const parsed = JSON.parse(cached);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            return sanitizeHomeSections(parsed);
+      if (typeof window !== "undefined") {
+        try {
+          const cached = localStorage.getItem(`greenia_layout_${initRoute.screen}`);
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              return sanitizeHomeSections(parsed);
+            }
           }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
       return sanitizeHomeSections(getPageDefaultSections(initRoute.screen));
     }
     return [];
@@ -1248,30 +1253,27 @@ function App() {
         id="app-root"
       >
         {/* Toast Notification popups in Admin */}
-        <AnimatePresence>
-          {notification && (
-            <motion.div
-              id="toast-notification"
-              initial={{ opacity: 0, y: -50, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-lg border shadow-2xl backdrop-blur-md max-w-md w-[calc(100%-2rem)] ${
-                notification.type === "success"
-                  ? "bg-bg-surface border-emerald-500/30 text-primary"
-                  : "bg-bg-surface border-rose-500/30 text-error"
-              }`}
-            >
-              {notification.type === "success" ? (
-                <CheckCircle2 className="w-5 h-5 shrink-0" />
-              ) : (
-                <AlertCircle className="w-5 h-5 shrink-0" />
-              )}
-              <p className="text-xs sm:text-sm font-light text-text-secondary leading-relaxed font-display text-left">
-                {notification.message}
-              </p>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Toast Notification popups in Admin */}
+        {notification && (
+          <div
+            id="toast-notification"
+            style={{ animation: 'slideDown 0.3s ease-out' }}
+            className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-lg border shadow-2xl backdrop-blur-md max-w-md w-[calc(100%-2rem)] ${
+              notification.type === "success"
+                ? "bg-bg-surface border-emerald-500/30 text-primary"
+                : "bg-bg-surface border-rose-500/30 text-error"
+            }`}
+          >
+            {notification.type === "success" ? (
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+            ) : (
+              <AlertCircle className="w-5 h-5 shrink-0" />
+            )}
+            <p className="text-xs sm:text-sm font-light text-text-secondary leading-relaxed font-display text-left">
+              {notification.message}
+            </p>
+          </div>
+        )}
 
         <AdminPanel
           onShowNotification={triggerNotification}
@@ -1316,30 +1318,27 @@ function App() {
         {!logoUrl && <link rel="apple-touch-icon" href="/favicon.webp" />}
       </Helmet>
       {/* Toast Notification popups */}
-      <AnimatePresence>
-        {notification && (
-          <motion.div
-            id="toast-notification"
-            initial={{ opacity: 0, y: -50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-lg border shadow-2xl backdrop-blur-md max-w-md w-[calc(100%-2rem)] ${
-              notification.type === "success"
-                ? "bg-bg-surface border-emerald-500/30 text-primary"
-                : "bg-bg-surface border-rose-500/30 text-error"
-            }`}
-          >
-            {notification.type === "success" ? (
-              <CheckCircle2 className="w-5 h-5 shrink-0" />
-            ) : (
-              <AlertCircle className="w-5 h-5 shrink-0" />
-            )}
-            <p className="text-xs sm:text-sm font-light text-text-secondary leading-relaxed font-display text-left">
-              {notification.message}
-            </p>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Toast Notification popups */}
+      {notification && (
+        <div
+          id="toast-notification"
+          style={{ animation: 'slideDown 0.3s ease-out' }}
+          className={`fixed top-6 left-1/2 -translate-x-1/2 z-[100] flex items-center gap-3 px-6 py-4 rounded-lg border shadow-2xl backdrop-blur-md max-w-md w-[calc(100%-2rem)] ${
+            notification.type === "success"
+              ? "bg-bg-surface border-emerald-500/30 text-primary"
+              : "bg-bg-surface border-rose-500/30 text-error"
+          }`}
+        >
+          {notification.type === "success" ? (
+            <CheckCircle2 className="w-5 h-5 shrink-0" />
+          ) : (
+            <AlertCircle className="w-5 h-5 shrink-0" />
+          )}
+          <p className="text-xs sm:text-sm font-light text-text-secondary leading-relaxed font-display text-left">
+            {notification.message}
+          </p>
+        </div>
+      )}
 
       {/* Header Sticky Navigation */}
       <Navbar
@@ -1373,23 +1372,19 @@ function App() {
           <React.Suspense
             fallback={<div className="flex justify-center items-center py-20"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>}
           >
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={
-                  route.screen +
-                  (route.productId || "") +
-                  (route.projectId || "") +
-                  (route.newsId || "") +
-                  (route.categoryName || "") +
-                  (route.location || "") +
-                  (route.priceRange || "") +
-                  (route.areaRange || "")
-                }
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-              >
+            <div
+              key={
+                route.screen +
+                (route.productId || "") +
+                (route.projectId || "") +
+                (route.newsId || "") +
+                (route.categoryName || "") +
+                (route.location || "") +
+                (route.priceRange || "") +
+                (route.areaRange || "")
+              }
+              style={{ animation: 'fadeIn 0.2s ease-out' }}
+            >
                 {route.screen === "home" && (
                   <Home
                     onNavigate={handleNavigate}
@@ -1542,8 +1537,7 @@ function App() {
                     logoUrl={logoUrl}
                   />
                 )}
-              </motion.div>
-            </AnimatePresence>
+              </div>
           </React.Suspense>
         </main>
       </div>
@@ -1916,133 +1910,128 @@ function App() {
         </button>
       </div>
 
-      <AnimatePresence>
-        {showQuotePopup && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F16]/40 backdrop-blur-sm"
+      {/* Quote Popup */}
+      {showQuotePopup && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F16]/40 backdrop-blur-sm"
+          style={{ animation: 'fadeIn 0.2s ease-out' }}
+        >
+          <div
+            className="relative w-full max-w-[374px] h-auto min-h-[460px] bg-bg-surface border border-border-color rounded-[10px] shadow-2xl overflow-hidden"
+            style={{ animation: 'scaleIn 0.2s ease-out' }}
           >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative w-full max-w-[374px] h-auto min-h-[460px] bg-bg-surface border border-border-color rounded-[10px] shadow-2xl overflow-hidden"
-            >
-              <div className="flex items-center justify-between pt-3 px-3 pb-[1px] md:pt-4 md:px-4 md:pb-[1px] border-b border-slate-100">
-                <h3 className="text-base md:text-lg font-bold text-slate-900 font-display">
-                  Tư vấn mua nhà chuyên sâu
-                </h3>
-                <button
-                  onClick={closeQuotePopup}
-                  aria-label="Đóng popup"
-                  className="w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
+            <div className="flex items-center justify-between pt-3 px-3 pb-[1px] md:pt-4 md:px-4 md:pb-[1px] border-b border-slate-100">
+              <h3 className="text-base md:text-lg font-bold text-slate-900 font-display">
+                Tư vấn mua nhà chuyên sâu
+              </h3>
+              <button
+                onClick={closeQuotePopup}
+                aria-label="Đóng popup"
+                className="w-8 h-8 flex items-center justify-center rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-              <div className="p-3 md:p-4 pb-4 md:pb-5">
-                <ul className="space-y-2 mb-4">
-                  <li className="flex items-start gap-2 text-[13px] text-text-secondary">
-                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                    <span>
-                      <span className="font-semibold text-slate-900">
-                        Phân tích
-                      </span>{" "}
-                      quỹ căn, chính sách, tiện ích giúp Khách hàng lựa chọn căn
-                      tốt nhất.
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-2 text-[13px] text-text-secondary">
-                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                    <span>
-                      <span className="font-semibold text-slate-900">
-                        Giải đáp mọi thắc mắc
-                      </span>{" "}
-                      của khách hàng.
-                    </span>
-                  </li>
-                  <li className="flex items-center gap-2 text-[13px] text-text-secondary">
-                    <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
-                    <span>
-                      <span className="font-semibold text-slate-900">
-                        Tuyệt đối bảo mật
-                      </span>{" "}
-                      thông tin cá nhân.
-                    </span>
-                  </li>
-                </ul>
+            <div className="p-3 md:p-4 pb-4 md:pb-5">
+              <ul className="space-y-2 mb-4">
+                <li className="flex items-start gap-2 text-[13px] text-text-secondary">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>
+                    <span className="font-semibold text-slate-900">
+                      Phân tích
+                    </span>{" "}
+                    quỹ căn, chính sách, tiện ích giúp Khách hàng lựa chọn căn
+                    tốt nhất.
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-[13px] text-text-secondary">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  <span>
+                    <span className="font-semibold text-slate-900">
+                      Giải đáp mọi thắc mắc
+                    </span>{" "}
+                    của khách hàng.
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-[13px] text-text-secondary">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  <span>
+                    <span className="font-semibold text-slate-900">
+                      Tuyệt đối bảo mật
+                    </span>{" "}
+                    thông tin cá nhân.
+                  </span>
+                </li>
+              </ul>
 
-                <h4 className="font-semibold text-slate-900 text-sm mb-3">
-                  Thông tin liên hệ
-                </h4>
+              <h4 className="font-semibold text-slate-900 text-sm mb-3">
+                Thông tin liên hệ
+              </h4>
 
-                {quoteSuccess ? (
-                  <div className="flex flex-col items-center justify-center py-6">
-                    <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-3">
-                      <CheckCircle2 className="w-6 h-6 text-primary" />
-                    </div>
-                    <p className="text-primary text-sm text-center font-medium">
-                      Cảm ơn bạn! Chúng tôi đã nhận được thông tin.
-                    </p>
+              {quoteSuccess ? (
+                <div className="flex flex-col items-center justify-center py-6">
+                  <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center mb-3">
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
                   </div>
-                ) : (
-                  <form onSubmit={handleQuoteSubmit} className="space-y-3">
-                    <div>
-                      <input
-                        type="text"
-                        required
-                        value={quoteName}
-                        onChange={(e) => setQuoteName(e.target.value)}
-                        className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400"
-                        placeholder="Họ tên *"
-                      />
-                    </div>
-                    <div>
-                      <input
-                        type="tel"
-                        required
-                        value={quotePhone}
-                        onChange={(e) => setQuotePhone(e.target.value)}
-                        className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400"
-                        placeholder="Số điện thoại *"
-                      />
-                    </div>
-                    <div>
-                      <input
-                        type="email"
-                        value={quoteEmail}
-                        onChange={(e) => setQuoteEmail(e.target.value)}
-                        className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400"
-                        placeholder="Email (Tùy chọn)"
-                      />
-                    </div>
-                    <div>
-                      <textarea
-                        rows={3}
-                        value={quoteMessage}
-                        onChange={(e) => setQuoteMessage(e.target.value)}
-                        className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400 resize-none"
-                        placeholder="Nhu cầu của bạn (Tùy chọn)"
-                      />
-                    </div>
+                  <p className="text-primary text-sm text-center font-medium">
+                    Cảm ơn bạn! Chúng tôi đã nhận được thông tin.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleQuoteSubmit} className="space-y-3">
+                  <div>
+                    <input
+                      type="text"
+                      required
+                      value={quoteName}
+                      onChange={(e) => setQuoteName(e.target.value)}
+                      className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400"
+                      placeholder="Họ tên *"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="tel"
+                      required
+                      value={quotePhone}
+                      onChange={(e) => setQuotePhone(e.target.value)}
+                      className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400"
+                      placeholder="Số điện thoại *"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="email"
+                      value={quoteEmail}
+                      onChange={(e) => setQuoteEmail(e.target.value)}
+                      className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400"
+                      placeholder="Email (Tùy chọn)"
+                    />
+                  </div>
+                  <div>
+                    <textarea
+                      rows={3}
+                      value={quoteMessage}
+                      onChange={(e) => setQuoteMessage(e.target.value)}
+                      className="w-full bg-bg-surface border border-border-color rounded-[10px] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all text-xs px-3 py-2 text-slate-900 placeholder-slate-400 resize-none"
+                      placeholder="Nhu cầu của bạn (Tùy chọn)"
+                    />
+                  </div>
 
-                    <button
-                      type="submit"
-                      disabled={quoteSubmitting}
-                      className="w-full py-2.5 rounded-[10px] font-bold bg-primary text-white hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs mt-2 shadow-lg shadow-emerald-500/30"
-                    >
-                      {quoteSubmitting ? "Đang gửi..." : "Nhận tư vấn ngay"}
-                    </button>
-                  </form>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  <button
+                    type="submit"
+                    disabled={quoteSubmitting}
+                    className="w-full py-2.5 rounded-[10px] font-bold bg-primary text-white hover:bg-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs mt-2 shadow-lg shadow-emerald-500/30"
+                  >
+                    {quoteSubmitting ? "Đang gửi..." : "Nhận tư vấn ngay"}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

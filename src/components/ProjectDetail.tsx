@@ -3,6 +3,7 @@ import { generateSlug } from "../lib/utils";
 import { doc, getDoc, getDocs, collection, addDoc, db } from "../firebase";
 import { Project, RouteState } from "../types";
 import {
+  X,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
@@ -204,6 +205,9 @@ export default function ProjectDetail({
   const [agreePrivacy, setAgreePrivacy] = useState(true);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
   const thumbnailContainerRef = useRef<HTMLDivElement>(null);
   // Auto-scroll track and thumbnails
   useEffect(() => {
@@ -697,12 +701,12 @@ export default function ProjectDetail({
 
       {/* Top Banner (Photo Gallery/Slider) */}
       <div
-        className="relative w-full h-[50vh] sm:h-[60vh] md:h-[75vh] lg:h-[85vh] bg-bg-surface border-t border-border-color overflow-hidden group"
+        className="relative w-full h-[50vh] sm:h-[60vh] md:h-[75vh] lg:h-[85vh] bg-slate-900 border-t border-border-color overflow-hidden group"
         onMouseEnter={() => setIsGalleryAutoplayPaused(true)}
       >
         {/* Background blur for active image */}
         <div
-          className="absolute inset-0 bg-cover bg-center blur-2xl opacity-40 transition-all duration-700"
+          className="absolute inset-0 bg-cover bg-center blur-2xl opacity-70 transition-all duration-700"
           style={{
             backgroundImage: `url(${galleryImages[currentImageIndex]})`,
           }}
@@ -727,10 +731,10 @@ export default function ProjectDetail({
               translation = "translate-x-0 opacity-100 scale-100 z-30";
             else if (isPrev)
               translation =
-                "-translate-x-[75vw] sm:-translate-x-[65vw] lg:-translate-x-[55vw] opacity-40 scale-90 z-20";
+                "-translate-x-[75vw] sm:-translate-x-[65vw] lg:-translate-x-[55vw] opacity-60 hover:opacity-80 scale-90 z-20";
             else if (isNext)
               translation =
-                "translate-x-[75vw] sm:translate-x-[65vw] lg:translate-x-[55vw] opacity-40 scale-90 z-20";
+                "translate-x-[75vw] sm:translate-x-[65vw] lg:translate-x-[55vw] opacity-60 hover:opacity-80 scale-90 z-20";
 
             return (
               <div
@@ -753,15 +757,15 @@ export default function ProjectDetail({
                   sizes="(max-width: 1024px) 100vw, 1200px"
                   alt={`${project.title} - Image ${idx + 1}`}
                   referrerPolicy="no-referrer"
-                  className={`w-full max-h-[85vh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-700 ${isCenter ? "ring-1 ring-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]" : "cursor-pointer hover:opacity-100"}`}
+                  className={`w-full max-h-[85vh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-700 ${isCenter ? "ring-1 ring-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)]" : "cursor-pointer"}`}
                 />
               </div>
             );
           })}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent pointer-events-none z-20" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-transparent pointer-events-none z-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none z-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent pointer-events-none z-20" />
 
         {/* Navigation Breadcrumb inside banner */}
         <div className="absolute top-4 sm:top-6 lg:top-8 left-0 right-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 z-40 pointer-events-none">
@@ -819,7 +823,12 @@ export default function ProjectDetail({
             ))}
           </div>
 
-          <button className="hidden sm:flex items-center gap-2 bg-bg-surface/80 hover:bg-bg-base backdrop-blur-sm border border-border-inverse/50 text-text-primary px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-semibold tracking-wider transition-colors pointer-events-auto mr-4 sm:mr-6 lg:mr-8 mb-2">
+          <button 
+            onClick={() => {
+              setLightboxIndex(currentImageIndex);
+              setIsLightboxOpen(true);
+            }}
+            className="hidden sm:flex items-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-white px-3 sm:px-4 py-2 rounded-lg text-[11px] sm:text-xs font-medium tracking-wider transition-colors pointer-events-auto mr-4 sm:mr-6 lg:mr-8 mb-2">
             <ImageIcon className="w-4 h-4" />
             <span>Tất cả ảnh</span>
           </button>
@@ -827,7 +836,7 @@ export default function ProjectDetail({
 
         {/* Slider Controls (Mobile/Desktop) */}
         <button
-          className="absolute z-40 left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#0B1F16]/30 hover:bg-bg-inverse/50 text-text-primary rounded-full flex items-center justify-center backdrop-blur-sm border border-border-inverse opacity-0 group-hover:opacity-100 transition-all pointer-events-auto"
+          className="absolute z-40 left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 opacity-0 group-hover:opacity-100 transition-all pointer-events-auto"
           onClick={() =>
             setCurrentImageIndex((prev) =>
               prev === 0 ? galleryImages.length - 1 : prev - 1,
@@ -837,7 +846,7 @@ export default function ProjectDetail({
           <ChevronLeft className="w-6 h-6" />
         </button>
         <button
-          className="absolute z-40 right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#0B1F16]/30 hover:bg-bg-inverse/50 text-text-primary rounded-full flex items-center justify-center backdrop-blur-sm border border-border-inverse opacity-0 group-hover:opacity-100 transition-all pointer-events-auto"
+          className="absolute z-40 right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 opacity-0 group-hover:opacity-100 transition-all pointer-events-auto"
           onClick={() =>
             setCurrentImageIndex((prev) =>
               prev === galleryImages.length - 1 ? 0 : prev + 1,
@@ -938,7 +947,7 @@ export default function ProjectDetail({
               ref={(el) => { sectionRefs.current[0] = el; }}
               className="space-y-8 animate-in slide-in-from-bottom-4 duration-500 pt-8 mt-[-32px]"
             >
-              <h1 className="flex items-center gap-3 text-[25px] md:text-[26px] w-full max-w-[785px] font-bold font-serif my-[20px] drop-shadow-sm">
+              <h1 className="flex items-center gap-3 text-[25px] md:text-[26px] w-full max-w-[785px] font-bold  my-[20px] drop-shadow-sm">
                 <FileText className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
                 <span className="text-[20px] md:text-[26px] text-primary">
                   Tổng quan dự án {project.title}
@@ -1135,7 +1144,7 @@ export default function ProjectDetail({
                 ref={(el) => { sectionRefs.current[7] = el; }}
                 className="space-y-8 pt-[20px] mt-[-32px]"
               >
-                <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif mb-0 drop-shadow-sm">
+                <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  mb-0 drop-shadow-sm">
                   <Building2 className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
                   <span className="text-[20px] md:text-[26px] text-primary">
                     Khu của {project.title}
@@ -1278,7 +1287,7 @@ export default function ProjectDetail({
               ref={(el) => { sectionRefs.current[1] = el; }}
               className="space-y-8 pt-8 mt-[-32px]"
             >
-              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
+              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                 <MapPin className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
                 <span className="text-[20px] md:text-[26px] text-primary">
                   Vị trí {project.title}
@@ -1339,7 +1348,7 @@ export default function ProjectDetail({
               ref={(el) => { sectionRefs.current[2] = el; }}
               className="space-y-8 pt-8 mt-[-32px]"
             >
-              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
+              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                 <Sparkles className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
                 <span className="text-[20px] md:text-[26px] text-primary">
                   Tiện ích {project.title}
@@ -1468,7 +1477,7 @@ export default function ProjectDetail({
               ref={(el) => { sectionRefs.current[3] = el; }}
               className="space-y-8 pt-8 mt-[-32px]"
             >
-              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
+              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                 <LayoutGrid className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
                 <span className="text-[20px] md:text-[26px] text-primary">
                   Mặt bằng {project.title}
@@ -1720,7 +1729,7 @@ export default function ProjectDetail({
               className="space-y-8 pt-8 mt-[-32px]"
             >
               <div className="flex justify-between items-end mb-4">
-                <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
+                <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                   <Banknote className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
                   <span className="text-[20px] md:text-[26px] text-primary">
                     Giá bán {project.title}
@@ -1792,7 +1801,7 @@ export default function ProjectDetail({
               {/* Related Products */}
               {relatedProducts.length > 0 && (
                 <div className="pt-8">
-                  <h3 className="text-xl font-bold font-serif text-text-primary mb-6">
+                  <h3 className="text-xl font-bold  text-text-primary mb-6">
                     Sản phẩm thuộc dự án
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1817,7 +1826,7 @@ export default function ProjectDetail({
               ref={(el) => { sectionRefs.current[8] = el; }}
               className="space-y-8 pt-12 mt-[-32px] border-t border-border-color/50"
             >
-              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
+              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                 <HelpCircle className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
                 <span className="text-[20px] md:text-[26px] text-primary">
                   Hỏi đáp {project.title}
@@ -1906,7 +1915,7 @@ export default function ProjectDetail({
               className="space-y-8 pt-12 mt-[-32px] border-t border-border-color/50"
             >
               <div className="flex justify-between items-end mb-4">
-                <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
+                <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                   <Newspaper className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
                   <span className="text-[20px] md:text-[26px] text-primary">
                     Tin tức dự án
@@ -2209,7 +2218,7 @@ export default function ProjectDetail({
         {relatedProjects.length > 0 && (
           <div className="space-y-8 pt-12 mt-8 border-t border-border-color/50">
             <div className="flex justify-between items-end mb-4">
-              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold font-serif drop-shadow-sm">
+              <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                 <Building2 className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
                 <span className="text-[20px] md:text-[26px] text-primary">
                   Dự án liên quan
@@ -2302,6 +2311,69 @@ export default function ProjectDetail({
           </div>
         )}
       </div>
+
+      {/* Fullscreen Lightbox Gallery */}
+      {isLightboxOpen && galleryImages.length > 0 && (
+        <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="flex justify-between items-center p-4 sm:p-6 z-[110]">
+            <div className="text-white/80 font-medium text-sm">
+              {lightboxIndex + 1} / {galleryImages.length}
+            </div>
+            <button
+              onClick={() => setIsLightboxOpen(false)}
+              className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-full p-2 cursor-pointer"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
+          <div className="flex-1 relative flex items-center justify-center overflow-hidden">
+            <button
+              className="absolute left-4 z-[110] w-12 h-12 flex items-center justify-center text-white/50 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-all cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((prev) => (prev === 0 ? galleryImages.length - 1 : prev - 1));
+              }}
+            >
+              <ChevronLeft className="w-8 h-8" />
+            </button>
+            <div className="w-full h-full p-4 sm:p-8 flex items-center justify-center cursor-pointer" onClick={() => setIsLightboxOpen(false)}>
+              <img
+                src={galleryImages[lightboxIndex] ? optimizeImageUrl(galleryImages[lightboxIndex], 1920) : undefined}
+                alt={`Hình ảnh ${lightboxIndex + 1}`}
+                className="max-w-full max-h-full object-contain cursor-default"
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+            <button
+              className="absolute right-4 z-[110] w-12 h-12 flex items-center justify-center text-white/50 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-all cursor-pointer"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((prev) => (prev === galleryImages.length - 1 ? 0 : prev + 1));
+              }}
+            >
+              <ChevronRight className="w-8 h-8" />
+            </button>
+          </div>
+          <div className="h-24 sm:h-32 bg-black/50 p-4 overflow-x-auto flex items-center justify-center gap-2 hide-scrollbar">
+            {galleryImages.map((img, idx) => (
+              <button
+                key={idx}
+                onClick={() => setLightboxIndex(idx)}
+                className={`relative h-16 sm:h-20 aspect-video rounded-md overflow-hidden shrink-0 transition-all cursor-pointer ${
+                  idx === lightboxIndex ? "ring-2 ring-white scale-105" : "opacity-50 hover:opacity-100"
+                }`}
+              >
+                <img
+                  src={img ? optimizeImageUrl(img, 200) : undefined}
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  alt={`Thumbnail ${idx + 1}`}
+                />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

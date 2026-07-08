@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'motion/react';
+// motion removed
 import { X, Mail, Phone, User as UserIcon, Lock, Key, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { 
@@ -21,6 +21,7 @@ interface AuthModalProps {
 }
 
 export default function AuthModal({ isOpen, onClose, onShowNotification, onLoginSuccess }: AuthModalProps) {
+  const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<'login' | 'register' | 'otp' | 'forgot_password' | 'complete_profile'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,6 +30,10 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
   const [otp, setOtp] = useState('');
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,23 +267,19 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
     }
   };
 
+  if (!mounted || !isOpen) return null;
+
   return createPortal(
-    <AnimatePresence>
+    <>
       {isOpen && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 mt-10 md:mt-0">
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-bg-inverse/80 backdrop-blur-sm"
+          <div 
+            className="absolute inset-0 bg-bg-inverse/80 backdrop-blur-sm animate-in fade-in"
             onClick={onClose}
           />
           
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="relative w-full max-w-md max-h-[85vh] overflow-y-auto bg-bg-surface border border-border-color rounded-2xl shadow-2xl p-5 md:p-6"
+          <div
+            className="relative w-full max-w-md max-h-[85vh] overflow-y-auto bg-bg-surface border border-border-color rounded-2xl shadow-2xl p-5 md:p-6 animate-in zoom-in-95 duration-200"
           >
             <button 
               onClick={onClose}
@@ -643,10 +644,10 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
               </form>
             )}
 
-          </motion.div>
+          </div>
         </div>
       )}
-    </AnimatePresence>,
+    </>,
     document.body
   );
 }

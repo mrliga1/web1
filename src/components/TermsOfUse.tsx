@@ -24,7 +24,7 @@ export default function TermsOfUse({ onNavigate }: TermsOfUseProps) {
           <div className="w-16 h-16 bg-[#064E3B]/10 rounded-full flex items-center justify-center mx-auto mb-6">
              <FileText className="w-8 h-8 text-primary" />
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-primary font-serif mb-6 tracking-tight">Điều Khoản Sử Dụng</h1>
+          <h1 className="text-3xl md:text-5xl font-bold text-primary  mb-6 tracking-tight">Điều Khoản Sử Dụng</h1>
           <p className="text-text-secondary text-sm md:text-base max-w-2xl mx-auto">
             Vui lòng đọc kỹ các điều khoản sử dụng dưới đây trước khi truy cập hoặc sử dụng các dịch vụ của Greenia Homes.
           </p>

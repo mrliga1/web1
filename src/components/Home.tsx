@@ -14,6 +14,24 @@ import CustomSectionRenderer from './CustomSectionRenderer';
 import { EditableText, EditableImage } from './EditableComponent';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { Helmet } from 'react-helmet-async';
+import { useInView } from 'react-intersection-observer';
+
+const LazySection = ({ children, sectionId, isEditMode }: { children: React.ReactNode, sectionId: string, isEditMode: boolean }) => {
+  const { ref, inView } = useInView({
+    triggerOnce: true,
+    rootMargin: '400px 0px', // Pre-render slightly before it comes into view
+  });
+
+  if (sectionId === 'hero' || isEditMode) {
+    return <>{children}</>;
+  }
+
+  return (
+    <div ref={ref} className={inView ? "" : "min-h-[400px]"}>
+      {inView ? children : null}
+    </div>
+  );
+};
 
 interface HomeProps {
   onNavigate: (route: RouteState) => void;
@@ -25,8 +43,7 @@ interface HomeProps {
   setSelectedSectionId: (id: string | null) => void;
 }
 
-import { notifyAdminEmail } from '../lib/email';
-import { fetchClientIp } from '../lib/ip';
+
 
 export default function Home({ 
   onNavigate, 
@@ -44,23 +61,8 @@ export default function Home({
 
   // See More Click Counter for Product Listings Grid
   const [productClickCount, setProductClickCount] = useState(0);
-  const [isDeferred, setIsDeferred] = useState(false);
 
-  useEffect(() => {
-    // Delay rendering below-the-fold sections to improve Mobile FCP and LCP
-    const timer = setTimeout(() => setIsDeferred(true), 150);
-    return () => clearTimeout(timer);
-  }, []);
 
-  // Consultation Form State
-  const [clientName, setClientName] = useState('');
-  const [clientPhone, setClientPhone] = useState('');
-  const [clientEmail, setClientEmail] = useState('');
-  const [clientDemand, setClientDemand] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formSubmitted, setFormSubmitted] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(true);
-  const [agreePrivacy, setAgreePrivacy] = useState(true);
 
   useEffect(() => {
     async function loadHomepageData() {
@@ -110,65 +112,7 @@ export default function Home({
     loadHomepageData();
   }, []);
 
-  const handleConsultationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!clientName.trim() || !clientPhone.trim()) {
-      onShowNotification('Vui lòng nhập họ tên và số điện thoại.', 'error');
-      return;
-    }
 
-    const phoneRegex = /^[0-9+ ]{9,16}$/;
-    if (!phoneRegex.test(clientPhone.trim())) {
-      onShowNotification('Số điện thoại không đúng định dạng. Vui lòng nhập tối thiểu 9 số.', 'error');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const clientIp = await fetchClientIp();
-      let friendlyUrl = "";
-      if (window.location.hostname.includes('aistudio')) {
-        friendlyUrl = `https://greeniahomes.vn${window.location.pathname}`;
-      } else if (window.location.hostname.includes('run.app')) {
-        friendlyUrl = `https://greeniahomes.vn${window.location.pathname}`;
-      } else {
-        friendlyUrl = window.location.href;
-      }
-
-      await addDoc(collection(db, 'consultations'), {
-        name: clientName.trim(),
-        phone: clientPhone.trim(),
-        email: clientEmail.trim(),
-        demand: clientDemand.trim(),
-        createdAt: new Date().toISOString(),
-        status: 'pending',
-        propertyId: 'homepage-consultation',
-        propertyTitle: 'Tư vấn chuyên sâu trang chủ',
-        sourceUrl: friendlyUrl,
-        ipAddress: clientIp
-      });
-
-      notifyAdminEmail({
-        name: clientName.trim(),
-        phone: clientPhone.trim(),
-        email: clientEmail.trim(),
-        message: clientDemand.trim(),
-        propertyTitle: 'Tư vấn chuyên sâu trang chủ',
-        sourceUrl: friendlyUrl
-      });
-
-      setFormSubmitted(true);
-      setClientName('');
-      setClientPhone('');
-      setClientEmail('');
-      setClientDemand('');
-      onShowNotification('Đã gửi thông tin yêu cầu tư vấn thành công!', 'success');
-    } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, 'consultations');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const handleProductSeeMore = () => {
     if (productClickCount === 0) {
@@ -244,12 +188,6 @@ export default function Home({
         {sections.map((section, index) => {
           if (!section.visible && !isEditMode) return null;
 
-          if (!isDeferred && section.id !== 'hero') {
-            return (
-              <div key={section.id} className="min-h-[400px]"></div>
-            );
-          }
-
           let cardContent = null;
           
           if (section.id.startsWith('custom_')) {
@@ -273,22 +211,7 @@ export default function Home({
                 onNavigate={onNavigate}
                 sections={sections}
                 onUpdateSections={onUpdateSections}
-                formSubmitted={formSubmitted}
-                setFormSubmitted={setFormSubmitted}
-                clientName={clientName}
-                setClientName={setClientName}
-                clientPhone={clientPhone}
-                setClientPhone={setClientPhone}
-                clientEmail={clientEmail}
-                setClientEmail={setClientEmail}
-                clientDemand={clientDemand}
-                setClientDemand={setClientDemand}
-                agreeTerms={agreeTerms}
-                setAgreeTerms={setAgreeTerms}
-                agreePrivacy={agreePrivacy}
-                setAgreePrivacy={setAgreePrivacy}
-                isSubmitting={isSubmitting}
-                handleConsultationSubmit={handleConsultationSubmit}
+
                 onShowNotification={onShowNotification}
               />
             );
@@ -352,49 +275,50 @@ export default function Home({
           }
 
           return (
-            <div 
-              key={section.id} 
-              id={`section-wrapper-${section.id}`}
-              style={{
-                paddingTop: section.id === 'corporate_intro' ? '0px' : section.id === 'reasons' ? '25px' : section.id === 'featured_listings' ? '35px' : section.id === 'projects' ? '5px' : section.id === 'news' ? '35px' : `${section.paddingTop}px`,
-                paddingBottom: (section.id === 'hero' || section.id === 'corporate_intro') ? '0px' : (section.id === 'reasons' || section.id === 'featured_listings') ? '15px' : section.id === 'projects' ? '5px' : section.id === 'news' ? '35px' : `${section.paddingBottom}px`,
-                marginBottom: section.id === 'hero' || section.id === 'reasons' || section.id === 'projects' ? '0px' : undefined
-              }}
-              className={`relative transition-all duration-300 ${
-                isEditMode 
-                  ? `border-2 ${
-                      selectedSectionId === section.id 
-                        ? 'border-primary bg-primary/[0.01]' 
-                        : 'border-dashed border-border-color hover:border-primary/30'
-                    }` 
-                  : ''
-              } ${!section.visible ? 'opacity-40 bg-bg-inverse/20' : ''}`}
-              onClick={() => {
-                if (isEditMode) {
-                  setSelectedSectionId(section.id);
-                }
-              }}
-            >
-              {isEditMode && (
-                <SectionHeaderToolbar
-                  section={section}
-                  sections={sections}
-                  onUpdateSections={onUpdateSections}
-                  onShowNotification={onShowNotification}
-                  index={index}
-                  setSelectedSectionId={setSelectedSectionId}
-                />
-              )}
+            <LazySection key={section.id} sectionId={section.id} isEditMode={isEditMode}>
+              <div 
+                id={`section-wrapper-${section.id}`}
+                style={{
+                  paddingTop: section.id === 'corporate_intro' ? '0px' : section.id === 'reasons' ? '25px' : section.id === 'featured_listings' ? '35px' : section.id === 'projects' ? '5px' : section.id === 'news' ? '35px' : `${section.paddingTop}px`,
+                  paddingBottom: (section.id === 'hero' || section.id === 'corporate_intro') ? '0px' : (section.id === 'reasons' || section.id === 'featured_listings') ? '15px' : section.id === 'projects' ? '5px' : section.id === 'news' ? '35px' : `${section.paddingBottom}px`,
+                  marginBottom: section.id === 'hero' || section.id === 'reasons' || section.id === 'projects' ? '0px' : undefined
+                }}
+                className={`relative transition-all duration-300 ${
+                  isEditMode 
+                    ? `border-2 ${
+                        selectedSectionId === section.id 
+                          ? 'border-primary bg-primary/[0.01]' 
+                          : 'border-dashed border-border-color hover:border-primary/30'
+                      }` 
+                    : ''
+                } ${!section.visible ? 'opacity-40 bg-bg-inverse/20' : ''}`}
+                onClick={() => {
+                  if (isEditMode) {
+                    setSelectedSectionId(section.id);
+                  }
+                }}
+              >
+                {isEditMode && (
+                  <SectionHeaderToolbar
+                    section={section}
+                    sections={sections}
+                    onUpdateSections={onUpdateSections}
+                    onShowNotification={onShowNotification}
+                    index={index}
+                    setSelectedSectionId={setSelectedSectionId}
+                  />
+                )}
 
-              {cardContent}
+                {cardContent}
 
-              {section.id === 'hero' && (
-                <AdBanner slot="home-top" containerClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-6" />
-              )}
-              {section.id === 'featured_listings' && (
-                <AdBanner slot="home-middle" containerClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-6" />
-              )}
-            </div>
+                {section.id === 'hero' && (
+                  <AdBanner slot="home-top" containerClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-6" />
+                )}
+                {section.id === 'featured_listings' && (
+                  <AdBanner slot="home-middle" containerClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-6" />
+                )}
+              </div>
+            </LazySection>
           );
         })}
       </div>

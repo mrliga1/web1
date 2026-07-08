@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { optimizeImageUrl, generateSrcSet, generateSlug } from '../lib/utils';
+import { db, collection, addDoc } from '../firebase';
+import { handleFirestoreError, OperationType } from '../firebase-errors';
+import { fetchClientIp } from '../lib/ip';
+import { notifyAdminEmail } from '../lib/email';
 import { 
   Sparkles, ArrowRight, User, Phone, CheckCircle2, 
   MapPin, ChevronRight, Compass, Shield, Award, Calendar,
@@ -20,24 +24,230 @@ interface SectionRendererProps {
 
 // 1. HERO BANNER
 interface HeroProps extends SectionRendererProps {
-  formSubmitted: boolean;
-  setFormSubmitted: (v: boolean) => void;
-  clientName: string;
-  setClientName: (v: string) => void;
-  clientPhone: string;
-  setClientPhone: (v: string) => void;
-  clientEmail: string;
-  setClientEmail: (v: string) => void;
-  clientDemand: string;
-  setClientDemand: (v: string) => void;
-  agreeTerms: boolean;
-  setAgreeTerms: (v: boolean) => void;
-  agreePrivacy: boolean;
-  setAgreePrivacy: (v: boolean) => void;
-  isSubmitting: boolean;
-  handleConsultationSubmit: (e: React.FormEvent) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
 }
+
+const HeroConsultationForm: React.FC<{
+  onNavigate: (route: RouteState) => void;
+  onShowNotification: (message: string, type: 'success' | 'error') => void;
+}> = ({ onNavigate, onShowNotification }) => {
+  const [clientName, setClientName] = useState('');
+  const [clientPhone, setClientPhone] = useState('');
+  const [clientEmail, setClientEmail] = useState('');
+  const [clientDemand, setClientDemand] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [agreePrivacy, setAgreePrivacy] = useState(true);
+
+  const handleConsultationSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!clientName.trim() || !clientPhone.trim()) {
+      onShowNotification('Vui lòng nhập họ tên và số điện thoại.', 'error');
+      return;
+    }
+
+    const phoneRegex = /^[0-9+ ]{9,16}$/;
+    if (!phoneRegex.test(clientPhone.trim())) {
+      onShowNotification('Số điện thoại không đúng định dạng. Vui lòng nhập tối thiểu 9 số.', 'error');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const clientIp = await fetchClientIp();
+      let friendlyUrl = "";
+      if (window.location.hostname.includes('aistudio')) {
+        friendlyUrl = `https://greeniahomes.vn${window.location.pathname}`;
+      } else if (window.location.hostname.includes('run.app')) {
+        friendlyUrl = `https://greeniahomes.vn${window.location.pathname}`;
+      } else {
+        friendlyUrl = window.location.href;
+      }
+
+      await addDoc(collection(db, 'consultations'), {
+        name: clientName.trim(),
+        phone: clientPhone.trim(),
+        email: clientEmail.trim(),
+        demand: clientDemand.trim(),
+        createdAt: new Date().toISOString(),
+        status: 'pending',
+        propertyId: 'homepage-consultation',
+        propertyTitle: 'Tư vấn chuyên sâu trang chủ',
+        sourceUrl: friendlyUrl,
+        ipAddress: clientIp
+      });
+
+      notifyAdminEmail({
+        name: clientName.trim(),
+        phone: clientPhone.trim(),
+        email: clientEmail.trim(),
+        message: clientDemand.trim(),
+        propertyTitle: 'Tư vấn chuyên sâu trang chủ',
+        sourceUrl: friendlyUrl
+      });
+
+      setFormSubmitted(true);
+      setClientName('');
+      setClientPhone('');
+      setClientEmail('');
+      setClientDemand('');
+      onShowNotification('Đã gửi thông tin yêu cầu tư vấn thành công!', 'success');
+    } catch (err) {
+      handleFirestoreError(err, OperationType.WRITE, 'consultations');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="bg-bg-surface backdrop-blur-md border border-border-color rounded-lg shadow-xl relative text-left pt-[20px]" style={{ width: '100%', paddingLeft: '15px', paddingRight: '15px', paddingBottom: '20px' }}>
+      <div className="absolute top-0 right-0 -mr-2 -mt-2 bg-accent text-text-primary text-[10px] px-3.5 py-1 rounded-full font-bold shadow-md uppercase tracking-wide">
+        Tư vấn nhanh
+      </div>
+
+      <h3 className="font-display text-xl font-bold text-primary mb-1">Yêu Cầu Tư Vấn Chuyên Sâu</h3>
+      <p className="text-text-secondary text-xs mb-[15px] font-light">Chủ đầu tư sẽ trực tiếp liên hệ và gửi trọn bộ thông tin pháp lý của các biệt thự cao cấp trong vòng 5 phút.</p>
+
+      {formSubmitted ? (
+        <div className="bg-bg-base text-primary border border-border-color rounded-xl p-5 text-center space-y-3 animate-in zoom-in-95">
+          <div className="w-12 h-12 rounded-full border-2 border-primary/20 flex items-center justify-center mx-auto bg-bg-surface text-primary">
+            <CheckCircle2 className="w-6 h-6" />
+          </div>
+          <div>
+            <h5 className="font-medium text-[15px] text-primary">Đăng ký thành công!</h5>
+            <p className="text-[11px] text-text-secondary mt-1.5 leading-relaxed">Bộ phận chăm sóc giới tinh hoa sẽ gọi đến cho quý khách trong vài phút tới qua Hotline hoặc số điện thoại {clientPhone}.</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setFormSubmitted(false)}
+            className="text-primary text-xs font-semibold hover:underline border-none bg-transparent cursor-pointer pt-2 block mx-auto"
+          >
+            Gửi yêu cầu tư vấn khác
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleConsultationSubmit} className="p-[5px]">
+          <div className="text-left mb-[5px]">
+            <input
+              type="text"
+              value={clientName}
+              onChange={(e) => setClientName(e.target.value)}
+              placeholder="Họ tên *"
+              className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] h-[35.5px] px-3.5 pt-0 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all"
+              required
+            />
+          </div>
+          <div className="text-left mb-[5px]">
+            <input
+              type="tel"
+              value={clientPhone}
+              onChange={(e) => setClientPhone(e.target.value)}
+              placeholder="Số điện thoại *"
+              className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 h-[35.5px] rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all"
+              required
+            />
+          </div>
+          <div className="text-left mb-[5px]">
+            <input
+              type="email"
+              value={clientEmail}
+              onChange={(e) => setClientEmail(e.target.value)}
+              placeholder="Email *"
+              className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 h-[35.5px] rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all"
+              required
+            />
+          </div>
+          <div className="text-left mb-[10px]">
+            <textarea
+              value={clientDemand}
+              onChange={(e) => setClientDemand(e.target.value)}
+              placeholder="Nhu cầu tư vấn (VD: Tôi cần mua để ở...)"
+              rows={2}
+              className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 py-[5px] h-[55px] rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all resize-none"
+            />
+          </div>
+
+          <div className="space-y-2.5 pt-2 mt-[14px]">
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(e) => setAgreeTerms(e.target.checked)}
+                className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
+              />
+              <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-primary">
+                Tôi đã đọc và đồng ý với{" "}
+                <button
+                  type="button"
+                  onClick={() => onNavigate({ screen: "terms-of-use" })}
+                  className="underline text-primary hover:text-primary-light"
+                >
+                  Điều khoản & Điều kiện
+                </button>{" "}
+                của Greenia Homes.
+              </span>
+            </label>
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <input
+                type="checkbox"
+                checked={agreePrivacy}
+                onChange={(e) => setAgreePrivacy(e.target.checked)}
+                className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
+              />
+              <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-primary">
+                Tôi đã đọc và đồng ý với{" "}
+                <button
+                  type="button"
+                  onClick={() => onNavigate({ screen: "privacy-policy" })}
+                  className="underline text-primary hover:text-primary-light"
+                >
+                  Chính sách bảo mật dữ liệu cá nhân
+                </button>{" "}
+                của Greenia Homes.
+              </span>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            disabled={isSubmitting || !agreeTerms || !agreePrivacy}
+            className="w-full my-0 mt-[14px] bg-primary hover:bg-primary-light shadow-[var(--shadow-elevation)] disabled:opacity-50 text-text-inverse font-semibold py-[5px] px-4 rounded-lg text-[13px] md:text-sm transition-all cursor-pointer text-center border-none"
+          >
+            {isSubmitting ? "Đang gửi thông tin..." : "Nhận tư vấn ngay"}
+          </button>
+
+          <div className="grid grid-cols-2 gap-2 pt-2 mt-[14px]">
+            <a
+              href="tel:0932966700"
+              className="flex flex-col items-center justify-center gap-1 bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 rounded-lg py-2 transition-colors cursor-pointer text-center"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-medium">Gọi trực tiếp</span>
+            </a>
+            <a 
+              href="https://zalo.me/0932966700" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex flex-col items-center justify-center gap-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500/20 rounded-lg py-2 transition-colors cursor-pointer text-center"
+            >
+              <img
+                loading="lazy"
+                decoding="async"
+                src="/zalo-icon.svg"
+                alt="Zalo"
+                width="16"
+                height="16"
+                className="w-4 h-4"
+              />
+              <span className="text-[10px] font-medium">Chat qua Zalo</span>
+            </a>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+};
 
 export const HeroSectionBody: React.FC<HeroProps> = ({
   sec,
@@ -45,22 +255,6 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
   onNavigate,
   sections,
   onUpdateSections,
-  formSubmitted,
-  setFormSubmitted,
-  clientName,
-  setClientName,
-  clientPhone,
-  setClientPhone,
-  clientEmail,
-  setClientEmail,
-  clientDemand,
-  setClientDemand,
-  agreeTerms,
-  setAgreeTerms,
-  agreePrivacy,
-  setAgreePrivacy,
-  isSubmitting,
-  handleConsultationSubmit,
   onShowNotification
 }) => {
   return (
@@ -127,7 +321,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             />
           </h1>
 
-          <div className="text-white/70 text-sm sm:text-md max-w-xl font-light leading-relaxed whitespace-pre-wrap">
+          <div className="text-white/70 text-sm sm:text-md lg:max-w-[95%] xl:max-w-[600px] font-light leading-relaxed whitespace-pre-wrap">
             <EditableText
               sectionId="hero" 
               field="description" 
@@ -136,7 +330,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
               sections={sections}
               onUpdateSections={onUpdateSections}
               isArea 
-              className="text-white/70 text-sm sm:text-md max-w-xl font-light leading-relaxed whitespace-pre-wrap" 
+              className="text-white/70 text-sm sm:text-md w-full font-light leading-relaxed whitespace-pre-wrap" 
               tag="p" 
             />
           </div>
@@ -186,160 +380,16 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
         </div>
 
         {/* Right Column: Form */}
-        <div className="lg:col-span-5 w-full flex justify-center lg:justify-end mt-12 lg:mt-0">
+        <div className="lg:col-span-5 w-full mt-12 lg:mt-0">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="relative z-10 w-full max-w-md bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-border-inverse shadow-[var(--shadow-elevation)]"
+            className="relative z-10 w-full max-w-[420px] mx-auto lg:ml-auto lg:mr-0 bg-white/10 backdrop-blur-md p-5 lg:p-6 rounded-2xl border border-border-inverse shadow-[var(--shadow-elevation)]"
             id="hero-banner-consultation-form"
           >
-            <div className="bg-bg-surface backdrop-blur-md border border-border-color rounded-lg shadow-xl relative text-left pt-[20px]" style={{ width: '100%', paddingLeft: '15px', paddingRight: '15px', paddingBottom: '20px' }}>
-            <div className="absolute top-0 right-0 -mr-2 -mt-2 bg-accent text-text-primary text-[10px] px-3.5 py-1 rounded-full font-bold shadow-md uppercase tracking-wide">
-              Tư vấn nhanh
-            </div>
-
-            <h3 className="font-display text-xl font-bold text-primary mb-1">Yêu Cầu Tư Vấn Chuyên Sâu</h3>
-            <p className="text-text-secondary text-xs mb-[15px] font-light">Chủ đầu tư sẽ trực tiếp liên hệ và gửi trọn bộ thông tin pháp lý của các biệt thự cao cấp trong vòng 5 phút.</p>
-
-            {formSubmitted ? (
-              <div className="bg-bg-base text-primary border border-border-color rounded-xl p-5 text-center space-y-3 animate-in zoom-in-95">
-                <div className="w-12 h-12 rounded-full border-2 border-primary/20 flex items-center justify-center mx-auto bg-bg-surface text-primary">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <h5 className="font-medium text-[15px] text-primary">Đăng ký thành công!</h5>
-                  <p className="text-[11px] text-text-secondary mt-1.5 leading-relaxed">Bộ phận chăm sóc giới tinh hoa sẽ gọi đến cho quý khách trong vài phút tới qua Hotline hoặc số điện thoại {clientPhone}.</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setFormSubmitted(false)}
-                  className="text-primary text-xs font-semibold hover:underline border-none bg-transparent cursor-pointer pt-2 block mx-auto"
-                >
-                  Gửi yêu cầu tư vấn khác
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleConsultationSubmit} className="p-[5px]">
-                <div className="text-left mb-[5px]">
-                  <input
-                    type="text"
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder="Họ tên *"
-                    className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] h-[35.5px] px-3.5 pt-0 rounded-lg outline-none focus:border-primary/70 placeholder-text-secondary transition-colors"
-                    required
-                  />
-                </div>
-                <div className="text-left mb-[5px]">
-                  <input
-                    type="tel"
-                    value={clientPhone}
-                    onChange={(e) => setClientPhone(e.target.value)}
-                    placeholder="Số điện thoại *"
-                    className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 h-[35.5px] rounded-lg outline-none focus:border-primary/70 placeholder-text-secondary transition-colors"
-                    required
-                  />
-                </div>
-                <div className="text-left mb-[5px]">
-                  <input
-                    type="email"
-                    value={clientEmail}
-                    onChange={(e) => setClientEmail(e.target.value)}
-                    placeholder="Email *"
-                    className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 h-[35.5px] rounded-lg outline-none focus:border-primary/70 placeholder-text-secondary transition-colors"
-                    required
-                  />
-                </div>
-                <div className="text-left mb-[10px]">
-                  <textarea
-                    value={clientDemand}
-                    onChange={(e) => setClientDemand(e.target.value)}
-                    placeholder="Nhu cầu tư vấn (VD: Tôi cần mua để ở...)"
-                    rows={2}
-                    className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 py-[5px] h-[55px] rounded-lg outline-none focus:border-primary/70 placeholder-text-secondary transition-colors resize-none"
-                  />
-                </div>
-
-                <div className="space-y-2.5 pt-2 mt-[14px]">
-                  <label className="flex items-start gap-2.5 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
-                    />
-                    <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-primary">
-                      Tôi đã đọc và đồng ý với{" "}
-                      <button
-                        type="button"
-                        onClick={() => onNavigate({ screen: "terms-of-use" })}
-                        className="underline text-primary hover:text-primary-light"
-                      >
-                        Điều khoản & Điều kiện
-                      </button>{" "}
-                      của Greenia Homes.
-                    </span>
-                  </label>
-                  <label className="flex items-start gap-2.5 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={agreePrivacy}
-                      onChange={(e) => setAgreePrivacy(e.target.checked)}
-                      className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
-                    />
-                    <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-primary">
-                      Tôi đã đọc và đồng ý với{" "}
-                      <button
-                        type="button"
-                        onClick={() => onNavigate({ screen: "privacy-policy" })}
-                        className="underline text-primary hover:text-primary-light"
-                      >
-                        Chính sách bảo mật dữ liệu cá nhân
-                      </button>{" "}
-                      của Greenia Homes.
-                    </span>
-                  </label>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting || !agreeTerms || !agreePrivacy}
-                  className="w-full my-0 mt-[14px] bg-primary hover:bg-primary-light shadow-[var(--shadow-elevation)] disabled:opacity-50 text-text-inverse font-semibold py-[5px] px-4 rounded-lg text-[13px] md:text-sm transition-all cursor-pointer text-center border-none"
-                >
-                  {isSubmitting ? "Đang gửi thông tin..." : "Nhận tư vấn ngay"}
-                </button>
-
-                <div className="grid grid-cols-2 gap-2 pt-2 mt-[14px]">
-                  <a
-                    href="tel:0932966700"
-                    className="flex flex-col items-center justify-center gap-1 bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 rounded-lg py-2 transition-colors cursor-pointer text-center"
-                  >
-                    <Phone className="w-3.5 h-3.5" />
-                    <span className="text-[10px] font-medium">Gọi trực tiếp</span>
-                  </a>
-                  <a 
-                    href="https://zalo.me/0932966700" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="flex flex-col items-center justify-center gap-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500/20 rounded-lg py-2 transition-colors cursor-pointer text-center"
-                  >
-                    <img
-                      loading="lazy"
-                      decoding="async"
-                      src="/zalo-icon.svg"
-                      alt="Zalo"
-                      width="16"
-                      height="16"
-                      className="w-4 h-4"
-                    />
-                    <span className="text-[10px] font-medium">Chat qua Zalo</span>
-                  </a>
-                </div>
-              </form>
-            )}
-          </div>
-        </motion.div>
+            <HeroConsultationForm onNavigate={onNavigate} onShowNotification={onShowNotification} />
+          </motion.div>
         </div>
       </div>
     </section>

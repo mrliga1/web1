@@ -27,7 +27,6 @@ interface ProductListProps {
 }
 
 import ProductCard from './ProductCard';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ProductList({ 
   onNavigate, 

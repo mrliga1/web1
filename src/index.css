@@ -315,3 +315,25 @@ div#app-workspace-flow:nth-of-type(2) > main#main-viewport:nth-of-type(1) > div:
 }
 
 
+/* =========================================================
+   CSS REPLACEMENT ANIMATIONS (thay th? framer-motion)
+   ========================================================= */
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-20px) translateX(-50%); }
+  to   { opacity: 1; transform: translateY(0)     translateX(-50%); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}

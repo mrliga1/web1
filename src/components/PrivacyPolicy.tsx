@@ -22,7 +22,7 @@ export default function PrivacyPolicy({ onNavigate }: PrivacyPolicyProps) {
           <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
              <Shield className="w-8 h-8 text-accent" />
           </div>
-          <h1 className="text-3xl md:text-5xl font-bold text-accent font-serif mb-6 tracking-tight">Chính Sách Bảo Mật Dữ Liệu</h1>
+          <h1 className="text-3xl md:text-5xl font-bold text-accent  mb-6 tracking-tight">Chính Sách Bảo Mật Dữ Liệu</h1>
           <p className="text-text-secondary text-sm md:text-base max-w-2xl mx-auto">
             Greenia Homes coi trọng sự riêng tư của bạn. Chính sách này giải thích cách chúng tôi thu thập, sử dụng và bảo vệ thông tin cá nhân.
           </p>

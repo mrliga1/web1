@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState } from 'react';
 import { Home, Building2, ShieldCheck, LogOut, User as UserIcon, Menu, X, Compass, Newspaper, Mail, Phone, Heart } from 'lucide-react';
 import { RouteState, ScreenType } from '../types';
 import { useScrollDirection } from '../hooks/useScrollDirection';
@@ -268,16 +267,12 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
       </div>
 
       {/* Drawer mobile dropdown list */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div 
-            id="mobile-dropdown"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className={`lg:hidden border-b text-left ${theme === 'dark' ? 'bg-[#0B1F16]/95 border-zinc-900' : 'bg-white border-border-color shadow-md'}`}
-          >
+      {mobileMenuOpen && (
+        <div 
+          id="mobile-dropdown"
+          style={{ animation: 'slideDown 0.2s ease-out' }}
+          className={`lg:hidden border-b text-left ${theme === 'dark' ? 'bg-[#0B1F16]/95 border-zinc-900' : 'bg-white border-border-color shadow-md'}`}
+        >
             <div className="px-4 pt-2 pb-6 space-y-1 bg-white">
               {menuItems.map((item) => {
                 const active = currentRoute.screen === item.screen;
@@ -339,9 +334,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 )}
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+      )}
 
       <AuthModal 
         isOpen={authModalOpen} 

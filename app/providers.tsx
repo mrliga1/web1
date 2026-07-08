@@ -24,7 +24,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <HelmetProvider>
+        <HelmetProvider context={{}}>
           <Suspense fallback={null}>{children}</Suspense>
         </HelmetProvider>
       </QueryClientProvider>

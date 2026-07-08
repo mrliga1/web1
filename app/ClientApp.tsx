@@ -9,7 +9,7 @@
 import dynamic from 'next/dynamic';
 import { AuthProvider } from "../src/contexts/AuthContext";
 
-const App = dynamic(() => import("../src/App"), { ssr: false });
+const App = dynamic(() => import("../src/App"));
 
 interface ClientAppProps {
   /** Route ban đầu được server truyền xuống */

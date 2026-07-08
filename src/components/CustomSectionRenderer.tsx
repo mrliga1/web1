@@ -1,7 +1,8 @@
 import React from 'react';
 import { Sparkles, Phone, Mail, CheckCircle, ShieldCheck, Star } from 'lucide-react';
 import { VisualSection } from '../types';
-import VisualDragCanvas from './VisualDragCanvas';
+import dynamic from 'next/dynamic';
+const VisualDragCanvas = dynamic(() => import('./VisualDragCanvas'));
 
 interface CustomSectionRendererProps {
   section: VisualSection;

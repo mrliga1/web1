@@ -63,9 +63,8 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
           height="300"
           loading={priority ? "eager" : "lazy"}
           decoding="async"
-          // @ts-ignore
-          fetchpriority={priority ? "high" : "auto"}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+          fetchPriority={priority ? "high" : "auto"}
+          className={`w-full h-full sm:h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-[1.03] group-hover:rotate-1 ${priority ? '' : 'opacity-0 animate-in fade-in zoom-in-95 duration-700'}`}
           referrerPolicy="no-referrer" 
           onError={(e) => { e.currentTarget.onerror = null;
             (e.target as HTMLImageElement).src = '/no-image.svg';

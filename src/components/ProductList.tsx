@@ -940,7 +940,10 @@ export default function ProductList({
                               className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
                             >
                               <div className="relative aspect-[16/10] overflow-hidden">
-                                <img loading="lazy" decoding="async"
+                                <img 
+                                  loading={idx < 2 ? "eager" : "lazy"} 
+                                  decoding="async"
+                                  fetchPriority={idx < 2 ? "high" : "auto"}
                                   src={optimizeImageUrl(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                                   alt={proj.title}
                                   width="800"

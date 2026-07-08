@@ -270,25 +270,6 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
         {/* Left Column: Text & CTAs */}
         <div className="lg:col-span-7 space-y-6 text-left w-full" id="banner-intro-txt">
           <h1 className="font-display font-medium tracking-tight text-white leading-tight flex flex-col gap-1">
-            <EditableText 
-              sectionId="hero" 
-              field="title" 
-              value={sec.title === "Greenia Homes Phân phối, Chuyển nhượng BĐS Chuyên nghiệp" || sec.title === "Phân Phối Bất Động Sản\n[gradient]Xanh, Sang & Đẳng Cấp[/gradient]" ? "Greenia Homes" : (sec.title || "Greenia Homes")} 
-              isEditMode={isEditMode}
-              sections={sections}
-              onUpdateSections={onUpdateSections}
-              className="text-[45px] lg:text-[60px] block font-display text-text-inverse font-bold drop-shadow-md" 
-              tag="span" 
-            />
-            <EditableText 
-              sectionId="hero" 
-              field="subtitle" 
-              value={!sec.subtitle || sec.subtitle === "Greenia Homes Phân phối, Chuyển nhượng BĐS Chuyên nghiệp" || sec.subtitle === "Đồng hành cùng nhà đầu tư bất động sản" ? "Đồng hành - Tận Tâm - Vững Bước Tương Lai" : sec.subtitle} 
-              isEditMode={isEditMode}
-              sections={sections}
-              onUpdateSections={onUpdateSections}
-              className="text-[15px] font-medium text-accent block underline underline-offset-4 drop-shadow-sm" 
-              tag="span" 
             />
           </h1>
 

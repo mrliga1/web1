@@ -264,35 +264,6 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,var(--color-primary-light),transparent_45%)] opacity-20" />
       <div className="absolute inset-0" style={{ background: 'var(--overlay-hero)' }} />
-      <img
-        loading="eager"
-        decoding="async"
-        src={optimizeImageUrl(sec.imageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1600', 800) || undefined}
-        srcSet={generateSrcSet(sec.imageUrl || 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c')}
-        sizes="100vw"
-        alt="Hero Background"
-        width="1600"
-        height="900"
-        // @ts-ignore
-        fetchpriority="high"
-        className="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay"
-        referrerPolicy="no-referrer"
-      />
-      {isEditMode && (
-        <div className="absolute top-16 right-4 z-40 bg-bg-inverse border border-border-inverse p-2.5 rounded-lg shadow-2xl flex items-center gap-2" onClick={e => e.stopPropagation()}>
-          <span className="text-[10px] text-white/70 font-bold font-mono">Ảnh nền Hero:</span>
-          <EditableImage
-            sectionId="hero"
-            field="imageUrl"
-            imageUrl={sec.imageUrl || ''}
-            isEditMode={isEditMode}
-            sections={sections}
-            onUpdateSections={onUpdateSections}
-            onShowNotification={onShowNotification}
-            className="w-16 h-10 rounded overflow-hidden"
-          />
-        </div>
-      )}
 
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10 pt-[20px] pb-10">
         

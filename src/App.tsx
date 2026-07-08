@@ -59,7 +59,7 @@ import AuthModal from "./components/AuthModal";
 // Children Components
 import dynamic from "next/dynamic";
 import Navbar from "./components/Navbar";
-import Home from "./components/Home";
+const Home = dynamic(() => import("./components/Home"));
 
 // Lazy loaded for performance (Code Splitting like Next.js)
 const ProductList = dynamic(() => import("./components/ProductList"));

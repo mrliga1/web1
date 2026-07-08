@@ -26,10 +26,25 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
     }
   }
   
-  // Use wsrv.nl image proxy for automatic WebP/AVIF compression
-  // Skip local SVGs, Unsplash, or already proxied URLs
+  // Handle Unsplash natively for much faster LCP and auto WebP/AVIF
+  if (finalUrl.includes('unsplash.com')) {
+    // If it already has query params, we append, otherwise create new
+    try {
+      const urlObj = new URL(finalUrl);
+      urlObj.searchParams.set('auto', 'format,compress');
+      urlObj.searchParams.set('q', '75');
+      if (width) urlObj.searchParams.set('w', width.toString());
+      return urlObj.toString();
+    } catch (e) {
+      // Fallback if URL parsing fails
+      const separator = finalUrl.includes('?') ? '&' : '?';
+      return `${finalUrl}${separator}auto=format,compress&q=75${width ? `&w=${width}` : ''}`;
+    }
+  }
+  
+  // Use wsrv.nl image proxy and force WebP for other external images
   if (finalUrl.startsWith('http') && !finalUrl.includes('wsrv.nl') && !finalUrl.endsWith('.svg')) {
-     let optimized = `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&q=65&a=attention`;
+     let optimized = `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&output=webp&q=75`;
      if (width) {
        optimized += `&w=${width}`;
      }

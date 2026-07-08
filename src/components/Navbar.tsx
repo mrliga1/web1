@@ -3,7 +3,8 @@ import { Home, Building2, ShieldCheck, LogOut, User as UserIcon, Menu, X, Compas
 import { RouteState, ScreenType } from '../types';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { useAuth } from '../contexts/AuthContext';
-import AuthModal from './AuthModal';
+import dynamic from 'next/dynamic';
+const AuthModal = dynamic(() => import('./AuthModal'));
 
 interface NavbarProps {
   currentRoute: RouteState;

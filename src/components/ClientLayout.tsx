@@ -5,12 +5,14 @@ import Navbar from './Navbar';
 import Footer from './Footer';
 import AuthModal from './AuthModal';
 import { useAuth } from '../contexts/AuthContext';
+import { usePathname } from 'next/navigation';
 
 import FloatingActionButtons from './FloatingActionButtons';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [notification, setNotification] = useState<{message: string, type: 'success'|'error'} | null>(null);
   const [logoUrl, setLogoUrl] = useState<string>('');
+  const pathname = usePathname();
   
   useEffect(() => {
     const savedLogo = localStorage.getItem('greenia_logoUrl');
@@ -41,7 +43,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       
       <Footer />
       
-      <FloatingActionButtons />
+      {!pathname?.startsWith('/admin') && <FloatingActionButtons />}
 
       {notification && (
         <div className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg z-[120] animate-slide-up text-white font-medium ${

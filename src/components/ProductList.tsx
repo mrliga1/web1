@@ -363,7 +363,27 @@ export default function ProductList({
               />
             );
           } else if (section.id === 'products_header') {
-            cardContent = null;
+            if (initialCategory && initialCategory !== 'all') {
+              const currentCat = productCategoriesExt.find(c => c.name === initialCategory || generateSlug(c.name) === initialCategory);
+              if (currentCat) {
+                cardContent = (
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6 text-center animate-in fade-in duration-500 bg-gradient-to-b from-primary/5 to-transparent rounded-2xl mb-6 border border-border-color/50 shadow-sm">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-primary mb-4 tracking-tight drop-shadow-sm">
+                      {currentCat.seoTitle || currentCat.name}
+                    </h1>
+                    {(currentCat.seoDescription || currentCat.description) && (
+                      <p className="text-text-secondary text-sm md:text-base max-w-3xl mx-auto leading-relaxed">
+                        {currentCat.seoDescription || currentCat.description}
+                      </p>
+                    )}
+                  </div>
+                );
+              } else {
+                cardContent = null;
+              }
+            } else {
+              cardContent = null;
+            }
           } else if (section.id === 'products_filter') {
             cardContent = (
               <div className="block max-w-7xl mx-auto px-0 mt-0">

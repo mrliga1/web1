@@ -662,18 +662,19 @@ export default function ProductList({
           } else if (section.id === 'products_grid') {
             cardContent = (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-6 pt-[10px]" id="products-grid-section">
+                {!searchQuery && (
                   <div className="pt-[10px] px-0 pb-0">
                     <EditableText 
                       sectionId={section.id} 
                       field="title" 
                       value={
                         (() => {
-                          if (initialCategory && initialCategory !== 'all') {
-                            const catExt = productCategoriesExt.find(c => c.name === initialCategory || generateSlug(c.name) === initialCategory);
-                            return catExt?.seoTitle || catExt?.name || `Danh mục: ${catExt?.name || initialCategory}`;
+                          if (selectedCategory && selectedCategory !== 'all') {
+                            const catExt = productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory);
+                            return catExt?.seoTitle || catExt?.name || `Danh mục: ${catExt?.name || selectedCategory}`;
                           }
-                          if (initialType === 'sale') return 'Bất Động Sản Chuyển Nhượng';
-                          if (initialType === 'rent') return 'Bất Động Sản Cho thuê';
+                          if (selectedType === 'sale') return 'Bất Động Sản Chuyển Nhượng';
+                          if (selectedType === 'rent') return 'Bất Động Sản Cho thuê';
                           return sec.title === 'Bàn giao đúng hạn, đắc lộc cát tường' ? 'Giao Dịch Chuyển Nhượng & Cho thuê Mới Nhất' : sec.title;
                         })()
                       } 
@@ -685,14 +686,15 @@ export default function ProductList({
                     />
                     <p className="text-text-secondary text-xs mt-2 pl-[5px] max-w-3xl">
                       {(() => {
-                          if (initialCategory && initialCategory !== 'all') {
-                            const catExt = productCategoriesExt.find(c => c.name === initialCategory || generateSlug(c.name) === initialCategory);
-                            return catExt?.seoDescription || catExt?.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${catExt?.name || initialCategory}.`;
+                          if (selectedCategory && selectedCategory !== 'all') {
+                            const catExt = productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory);
+                            return catExt?.seoDescription || catExt?.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${catExt?.name || selectedCategory}.`;
                           }
                           return 'Khám phá danh sách các dự án bất động sản sang trọng, cập nhật liên tục các cơ hội mua bán và cho thuê biệt thự, penthouse tại vị trí đắc địa nhất.';
                         })()}
                     </p>
                   </div>
+                )}
 
                 {loading ? (
                   <div className="space-y-6">

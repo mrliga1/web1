@@ -76,11 +76,11 @@ export default function RootLayout({
         </noscript>
         {/* PWA Tags */}
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#05080f" />
+        <meta name="theme-color" content="#ffffff" />
       </head>
       <body
         style={{
-          backgroundColor: "#05080f",
+          backgroundColor: "#ffffff",
           margin: 0,
           padding: 0,
           fontFamily: '"Inter", sans-serif',

@@ -430,7 +430,7 @@ export default function ProductList({
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'category' ? null : 'category'); })}
                           className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
                           <span className={selectedCategory !== 'all' ? 'text-primary' : ''}>
-                            {selectedCategory === 'all' ? 'Danh mục' : selectedCategory}
+                            {selectedCategory === 'all' ? 'Danh mục' : (productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory)?.name || selectedCategory)}
                           </span>
                           <ChevronDown size={14} strokeWidth={2} />
                         </button>
@@ -670,7 +670,7 @@ export default function ProductList({
                         (() => {
                           if (initialCategory && initialCategory !== 'all') {
                             const catExt = productCategoriesExt.find(c => c.name === initialCategory || generateSlug(c.name) === initialCategory);
-                            return catExt?.seoTitle || `Danh mục: ${initialCategory}`;
+                            return catExt?.seoTitle || catExt?.name || `Danh mục: ${catExt?.name || initialCategory}`;
                           }
                           if (initialType === 'sale') return 'Bất Động Sản Chuyển Nhượng';
                           if (initialType === 'rent') return 'Bất Động Sản Cho thuê';
@@ -687,7 +687,7 @@ export default function ProductList({
                       {(() => {
                           if (initialCategory && initialCategory !== 'all') {
                             const catExt = productCategoriesExt.find(c => c.name === initialCategory || generateSlug(c.name) === initialCategory);
-                            return catExt?.seoDescription || catExt?.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${initialCategory}.`;
+                            return catExt?.seoDescription || catExt?.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${catExt?.name || initialCategory}.`;
                           }
                           return 'Khám phá danh sách các dự án bất động sản sang trọng, cập nhật liên tục các cơ hội mua bán và cho thuê biệt thự, penthouse tại vị trí đắc địa nhất.';
                         })()}

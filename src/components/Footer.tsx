@@ -46,7 +46,7 @@ export default function Footer() {
               <li><Link href="/category-product/Chuyển Nhượng" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chuyển Nhượng</Link></li>
               <li><Link href="/tin-tuc" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Tin Tức & Sự Kiện</Link></li>
               <li className="pb-4 border-b border-white/10"><Link href="/lien-he" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Liên Hệ</Link></li>
-              <li className="pt-2"><Link href="/privacy-policy" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chính sách bảo mật</Link></li>
+              <li className="pt-2"><Link href="/chinh-sach-bao-mat" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chính sách bảo mật</Link></li>
             </ul>
           </div>
           <div className="space-y-6">
@@ -57,7 +57,7 @@ export default function Footer() {
               <li><Link href="/category-product/Cho thuê" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Cho thuê</Link></li>
               <li><Link href="/category-product/Căn Hộ" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Căn Hộ</Link></li>
               <li className="pb-4 border-b border-white/10"><Link href="/category-product/Nhà Phố - Biệt Thự" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Nhà Phố - Biệt Thự</Link></li>
-              <li className="pt-2"><Link href="/terms-of-use" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Điều khoản sử dụng</Link></li>
+              <li className="pt-2"><Link href="/dieu-khoan-su-dung" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Điều khoản sử dụng</Link></li>
             </ul>
           </div>
           <div className="space-y-6 lg:col-span-1 border-l border-border-inverse pl-0 lg:pl-10">

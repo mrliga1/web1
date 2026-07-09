@@ -101,8 +101,8 @@ export function getRouteUrl(route: import('../types').RouteState): string {
   if (route.screen === "category-news") return "/category-news";
   if (route.screen === "latest-sales") return "/latest-sales";
   if (route.screen === "latest-rents") return "/latest-rents";
-  if (route.screen === "terms-of-use") return "/terms-of-use";
-  if (route.screen === "privacy-policy") return "/privacy-policy";
+  if (route.screen === "terms-of-use") return "/dieu-khoan-su-dung";
+  if (route.screen === "privacy-policy") return "/chinh-sach-bao-mat";
   if (route.screen === "favorites") return "/yeu-thich";
   return "/";
 }

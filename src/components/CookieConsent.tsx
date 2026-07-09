@@ -39,10 +39,10 @@ export default function CookieConsent() {
               <p className="text-[11px] text-text-secondary leading-relaxed w-full">
                 Chúng tôi sử dụng cookie để cải thiện trải nghiệm duyệt web của bạn, cung cấp các quảng cáo hoặc nội dung được cá nhân hóa và phân tích lưu lượng truy cập của chúng tôi. Bằng cách nhấp vào "Đồng ý", bạn đồng ý với việc chúng tôi sử dụng cookie. 
                 <a 
-                  href="/privacy-policy" 
+                  href="/chinh-sach-bao-mat" 
                   onClick={(e) => {
                     e.preventDefault();
-                    window.history.pushState(null, '', '/privacy-policy');
+                    window.history.pushState(null, '', '/chinh-sach-bao-mat');
                     window.dispatchEvent(new Event('popstate'));
                   }}
                   className="text-primary hover:underline ml-1"

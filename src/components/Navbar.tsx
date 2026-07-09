@@ -72,7 +72,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 src={(logoUrl) || undefined} 
                 alt="Greenia Homes" 
                 // @ts-ignore
-                fetchpriority="high"
+                fetchPriority="high"
                 className="h-7 md:h-8 max-h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-all duration-300"
                 referrerPolicy="no-referrer"
                 width={120}

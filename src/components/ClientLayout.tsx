@@ -10,7 +10,7 @@ import FloatingActionButtons from './FloatingActionButtons';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const [notification, setNotification] = useState<{message: string, type: 'success'|'error'} | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string>('/logo.svg');
+  const [logoUrl, setLogoUrl] = useState<string>('');
   
   useEffect(() => {
     const savedLogo = localStorage.getItem('greenia_logoUrl');

@@ -6,7 +6,11 @@ import { useAppContext } from '../../src/contexts/AppContext';
 import { useRouter } from 'next/navigation';
 import { getRouteUrl } from '../../src/lib/utils';
 
-export default function SanPhamPage() {
+export default function SanPhamPage({ 
+  searchParams 
+}: { 
+  searchParams: { [key: string]: string | string[] | undefined } 
+}) {
   const { sections, setSections, isEditMode } = useAppContext();
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
@@ -19,6 +23,10 @@ export default function SanPhamPage() {
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
     alert(`${type.toUpperCase()}: ${message}`);
   };
+  
+  const priceRange = typeof searchParams.priceRange === 'string' ? searchParams.priceRange : undefined;
+  const areaRange = typeof searchParams.areaRange === 'string' ? searchParams.areaRange : undefined;
+  const location = typeof searchParams.location === 'string' ? searchParams.location : undefined;
 
   return (
     <ProductList 
@@ -29,6 +37,9 @@ export default function SanPhamPage() {
       onUpdateSections={setSections}
       selectedSectionId={selectedSectionId}
       setSelectedSectionId={setSelectedSectionId}
+      initialPriceRange={priceRange}
+      initialAreaRange={areaRange}
+      initialLocation={location}
     />
   );
 }

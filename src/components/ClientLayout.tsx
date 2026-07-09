@@ -3,8 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import AuthModal from './AuthModal';
-import { useAuth } from '../contexts/AuthContext';
 import { usePathname } from 'next/navigation';
 
 import FloatingActionButtons from './FloatingActionButtons';

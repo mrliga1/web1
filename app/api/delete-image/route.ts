@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { verifyAdmin } from '../lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await verifyAdmin(req);
+    if (!authResult.authorized) {
+      return NextResponse.json({ error: authResult.error }, { status: 401 });
+    }
+
     const { url } = await req.json();
     if (!url) return NextResponse.json({ error: 'Thiếu đường dẫn ảnh (url)' }, { status: 400 });
 

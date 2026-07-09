@@ -13,7 +13,7 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   
-  const { data: projects } = await supabase.from('projects').select('*');
+  const { data: projects } = await supabase.from('projects').select('title, imageUrl, description, seoTitle, metaTitle, seoDesc');
   let matchedItem = null;
   
   if (projects) {

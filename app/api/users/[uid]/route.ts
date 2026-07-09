@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { verifyAdmin } from '../../lib/auth';
 
 /* API xoá user qua Supabase Admin */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ uid: string }> }) {
   try {
+    const authResult = await verifyAdmin(req);
+    if (!authResult.authorized) {
+      return NextResponse.json({ error: authResult.error }, { status: 401 });
+    }
+
     const { uid } = await params;
     const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

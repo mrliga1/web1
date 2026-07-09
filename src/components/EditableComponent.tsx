@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Sparkles, Upload } from 'lucide-react';
+import { authFetch } from '../lib/authFetch';
 
 interface EditableTextProps {
   sectionId: string;
@@ -226,7 +227,7 @@ export function EditableImage({
       const base64 = await base64Promise;
 
       try {
-        const response = await fetch('/api/upload', {
+        const response = await authFetch('/api/upload', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

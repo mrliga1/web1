@@ -42,7 +42,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (data) {
         let profile = data as UserProfile;
         const emailLower = user.email?.toLowerCase() || '';
-        const isAdmin = emailLower === 'nguyenthanhthuan091095@gmail.com' || emailLower === 'thuankdbds@gmail.com';
+        
+        const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
+          .split(',')
+          .map(e => e.trim().toLowerCase())
+          .filter(Boolean);
+          
+        const isAdmin = adminEmails.includes(emailLower);
         if (isAdmin && profile.role !== 'admin') {
           profile.role = 'admin';
           await supabase.from('users').update({ role: 'admin' }).eq('uid', user.id);
@@ -53,7 +59,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         let role: UserRole = 'user';
         const email = user.email || '';
         const emailLower = email.toLowerCase();
-        if (emailLower === 'nguyenthanhthuan091095@gmail.com' || emailLower === 'thuankdbds@gmail.com') {
+        
+        const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
+          .split(',')
+          .map(e => e.trim().toLowerCase())
+          .filter(Boolean);
+          
+        if (adminEmails.includes(emailLower)) {
           role = 'admin';
         }
         const newProfile: UserProfile = {

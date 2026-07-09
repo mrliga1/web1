@@ -20,6 +20,7 @@ import {
   onSnapshot,
 } from "../firebase-realtime";
 import { onAuthStateChanged } from '../firebase';
+import { authFetch } from '../lib/authFetch';
 import {
   PlusCircle,
   Trash2,
@@ -1078,7 +1079,7 @@ export default function AdminPanel({
       setGithubFirestoreConfig(firestorePayload);
 
       try {
-        const res = await fetch("/api/github-config", {
+        const res = await authFetch("/api/github-config", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -1175,7 +1176,7 @@ export default function AdminPanel({
 
   const fetchBlockedIps = async () => {
     try {
-      const resp = await fetch("/api/blocked-ips");
+      const resp = await authFetch("/api/blocked-ips");
       const data = await resp.json();
       if (data.success) setBlockedIps(data.ips || []);
     } catch (e) {
@@ -1186,7 +1187,7 @@ export default function AdminPanel({
   const saveBlockedIps = async (ips: string[]) => {
     try {
       setLoading(true);
-      const resp = await fetch("/api/blocked-ips", {
+      const resp = await authFetch("/api/blocked-ips", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ips }),
@@ -2721,7 +2722,7 @@ export default function AdminPanel({
       // Xóa bên Auth ĐẦU TIÊN để đảm bảo xóa triệt để
       let authWarning = "";
       try {
-        const fetchRes = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+        const fetchRes = await authFetch(`/api/users/${userId}`, { method: 'DELETE' });
         const resData = await fetchRes.json();
 
         if (!fetchRes.ok) {

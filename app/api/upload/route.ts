@@ -4,6 +4,7 @@ import path from 'path';
 
 export async function POST(req: NextRequest) {
   try {
+
     const { name, base64 } = await req.json();
     if (!base64) return NextResponse.json({ error: 'Missing base64' }, { status: 400 });
 

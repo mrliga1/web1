@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { verifyAdmin } from '../lib/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    const authResult = await verifyAdmin(req);
+    if (!authResult.authorized) {
+      return NextResponse.json({ error: authResult.error }, { status: 401 });
+    }
+
     const { token, owner, repo, branch } = await req.json();
     if (!token || !owner || !repo) return NextResponse.json({ error: 'Missing token, owner or repo' }, { status: 400 });
 

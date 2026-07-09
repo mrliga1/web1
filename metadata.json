@@ -1,6 +1,0 @@
-{
-  "name": "Greenia Homes",
-  "description": "Hệ thống mua bán và cho thuê bất động sản, biệt thự, căn hộ cao cấp tích hợp hòm thư tư vấn và bảng điều khiển quản trị viên chủ đầu tư.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

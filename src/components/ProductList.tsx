@@ -363,27 +363,7 @@ export default function ProductList({
               />
             );
           } else if (section.id === 'products_header') {
-            if (initialCategory && initialCategory !== 'all') {
-              const currentCat = productCategoriesExt.find(c => c.name === initialCategory || generateSlug(c.name) === initialCategory);
-              if (currentCat) {
-                cardContent = (
-                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-6 text-center animate-in fade-in duration-500 bg-gradient-to-b from-primary/5 to-transparent rounded-2xl mb-6 border border-border-color/50 shadow-sm">
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-display font-bold text-primary mb-4 tracking-tight drop-shadow-sm">
-                      {currentCat.seoTitle || currentCat.name}
-                    </h1>
-                    {(currentCat.seoDescription || currentCat.description) && (
-                      <p className="text-text-secondary text-sm md:text-base max-w-3xl mx-auto leading-relaxed">
-                        {currentCat.seoDescription || currentCat.description}
-                      </p>
-                    )}
-                  </div>
-                );
-              } else {
-                cardContent = null;
-              }
-            } else {
-              cardContent = null;
-            }
+            cardContent = null;
           } else if (section.id === 'products_filter') {
             cardContent = (
               <div className="block max-w-7xl mx-auto px-0 mt-0">
@@ -682,15 +662,14 @@ export default function ProductList({
           } else if (section.id === 'products_grid') {
             cardContent = (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-6 pt-[10px]" id="products-grid-section">
-                {selectedType === 'all' && selectedCategory === 'all' && selectedDistrict === 'all' && selectedPriceRange === 'all' && selectedAreaRange === 'all' && (
                   <div className="pt-[10px] px-0 pb-0">
                     <EditableText 
                       sectionId={section.id} 
                       field="title" 
                       value={
                         (() => {
-                          if (initialCategory) {
-                            const catExt = productCategoriesExt.find(c => c.name === initialCategory);
+                          if (initialCategory && initialCategory !== 'all') {
+                            const catExt = productCategoriesExt.find(c => c.name === initialCategory || generateSlug(c.name) === initialCategory);
                             return catExt?.seoTitle || `Danh mục: ${initialCategory}`;
                           }
                           if (initialType === 'sale') return 'Bất Động Sản Chuyển Nhượng';
@@ -706,15 +685,14 @@ export default function ProductList({
                     />
                     <p className="text-text-secondary text-xs mt-2 pl-[5px] max-w-3xl">
                       {(() => {
-                          if (initialCategory) {
-                            const catExt = productCategoriesExt.find(c => c.name === initialCategory);
-                            return catExt?.seoDesc || `Khám phá các sản phẩm nổi bật thuộc danh mục ${initialCategory}.`;
+                          if (initialCategory && initialCategory !== 'all') {
+                            const catExt = productCategoriesExt.find(c => c.name === initialCategory || generateSlug(c.name) === initialCategory);
+                            return catExt?.seoDescription || catExt?.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${initialCategory}.`;
                           }
                           return 'Khám phá danh sách các dự án bất động sản sang trọng, cập nhật liên tục các cơ hội mua bán và cho thuê biệt thự, penthouse tại vị trí đắc địa nhất.';
                         })()}
                     </p>
                   </div>
-                )}
 
                 {loading ? (
                   <div className="space-y-6">

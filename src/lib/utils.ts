@@ -75,7 +75,14 @@ export function generateSrcSet(url: string | undefined | null): string | undefin
 
 export function getRouteUrl(route: import('../types').RouteState): string {
   if (route.screen === "home") return "/";
-  if (route.screen === "san-pham") return "/san-pham";
+  if (route.screen === "san-pham") {
+    const params = new URLSearchParams();
+    if (route.priceRange) params.append("priceRange", route.priceRange);
+    if (route.areaRange) params.append("areaRange", route.areaRange);
+    if (route.location) params.append("location", route.location);
+    const queryString = params.toString();
+    return queryString ? `/san-pham?${queryString}` : "/san-pham";
+  }
   if (route.screen === "du-an") return "/du-an";
   if (route.screen === "tin-tuc") return "/tin-tuc";
   if (route.screen === "lien-he") return "/lien-he";

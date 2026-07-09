@@ -1,6 +1,19 @@
-// Trang điều khoản sử dụng
-import ClientApp from "../ClientApp";
+"use client";
+
+import React from 'react';
+import { getRouteUrl } from '../../src/lib/utils';
+
+import { useRouter } from 'next/navigation';
+import TermsOfUse from '../../src/components/TermsOfUse';
 
 export default function TermsOfUsePage() {
-  return <ClientApp initialScreen="terms-of-use" />;
+  const router = useRouter();
+
+  const handleNavigate = (route: any) => {
+    router.push(getRouteUrl(route));
+  };
+
+  return (
+    <TermsOfUse onNavigate={handleNavigate} />
+  );
 }

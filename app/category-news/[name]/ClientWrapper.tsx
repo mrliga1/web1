@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState } from 'react';
-import { getRouteUrl } from '../../src/lib/utils';
+import { getRouteUrl } from '../../../src/lib/utils';
 
 import { useRouter } from 'next/navigation';
-import ProductList from '../../src/components/ProductList';
-import { useAppContext } from '../../src/contexts/AppContext';
+import NewsList from '../../../src/components/NewsList';
+import { useAppContext } from '../../../src/contexts/AppContext';
 
-export default function LatestSalesPage() {
+export default function ClientWrapper({ categoryName }: { categoryName: string }) {
   const { sections, setSections, isEditMode } = useAppContext();
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
@@ -22,7 +22,7 @@ export default function LatestSalesPage() {
   };
 
   return (
-    <ProductList 
+    <NewsList 
       onNavigate={handleNavigate}
       onShowNotification={handleShowNotification}
       isEditMode={isEditMode}
@@ -30,7 +30,7 @@ export default function LatestSalesPage() {
       onUpdateSections={setSections}
       selectedSectionId={selectedSectionId}
       setSelectedSectionId={setSelectedSectionId}
-      initialType="sale"
+      categoryName={categoryName}
     />
   );
 }

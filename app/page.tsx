@@ -1,9 +1,34 @@
-import ClientApp from "./ClientApp";
+"use client";
 
-/**
- * Trang chủ - Server Component.
- * App.tsx sẽ tự nhận pathname "/" và hiển thị home.
- */
+import React, { useState } from 'react';
+import Home from '../src/components/Home';
+import { useAppContext } from '../src/contexts/AppContext';
+import { useRouter } from 'next/navigation';
+import { getRouteUrl } from '../src/lib/utils';
+
 export default function HomePage() {
-  return <ClientApp initialScreen="home" />;
+  const { sections, setSections, isEditMode } = useAppContext();
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+
+  const router = useRouter();
+
+  const handleNavigate = (route: any) => {
+    router.push(getRouteUrl(route));
+  };
+
+  const handleShowNotification = (message: string, type: 'success' | 'error') => {
+    alert(`${type.toUpperCase()}: ${message}`);
+  };
+
+  return (
+    <Home 
+      onNavigate={handleNavigate}
+      onShowNotification={handleShowNotification}
+      isEditMode={isEditMode}
+      sections={sections}
+      onUpdateSections={setSections}
+      selectedSectionId={selectedSectionId}
+      setSelectedSectionId={setSelectedSectionId}
+    />
+  );
 }

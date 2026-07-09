@@ -55,9 +55,9 @@ import {
 } from "./lib/documentHead";
 import { Helmet, HelmetProvider } from "react-helmet-async";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import AuthModal from "./components/AuthModal";
 // Children Components
 import dynamic from "next/dynamic";
+const AuthModal = dynamic(() => import("./components/AuthModal"));
 import Navbar from "./components/Navbar";
 const Home = dynamic(() => import("./components/Home"));
 

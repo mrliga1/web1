@@ -1,5 +1,5 @@
 import { Metadata, ResolvingMetadata } from "next";
-import ClientApp from "../../ClientApp";
+import ClientWrapper from "./ClientWrapper";
 import { supabase } from "../../../src/supabase";
 import { generateSlug } from "../../../src/lib/utils";
 
@@ -42,5 +42,5 @@ export async function generateMetadata(
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
-  return <ClientApp initialScreen="product-detail" slug={slug} />;
+  return <ClientWrapper slug={slug} />;
 }

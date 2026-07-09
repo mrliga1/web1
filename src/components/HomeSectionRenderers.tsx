@@ -259,73 +259,61 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
 }) => {
   return (
     <section 
-      className="relative min-h-[640px] flex items-center justify-center p-6 md:p-12 lg:p-20 overflow-hidden bg-bg-inverse rounded-lg" 
+      className="relative min-h-[640px] flex items-center justify-center p-6 md:p-12 lg:p-20 overflow-hidden bg-[#0B1F16]" 
       id="home-hero-banner"
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,var(--color-primary-light),transparent_45%)] opacity-20" />
-      <div className="absolute inset-0" style={{ background: 'var(--overlay-hero)' }} />
-
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10 pt-[20px] pb-10">
         
         {/* Left Column: Text & CTAs */}
         <div className="lg:col-span-7 space-y-6 text-left w-full" id="banner-intro-txt">
-          <h1 className="font-display font-medium tracking-tight text-white leading-tight flex flex-col gap-1">
-            />
-          </h1>
-
-          <div className="text-white/70 text-sm sm:text-md lg:max-w-[95%] xl:max-w-[600px] font-light leading-relaxed whitespace-pre-wrap">
-            <EditableText
-              sectionId="hero" 
-              field="description" 
-              value={!sec.description || sec.description.startsWith("Greenia Homes là điểm tựa") || sec.description.startsWith("Tận tâm đồng hành") ? "Greenia Homes là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư Greenia Homes tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS.\n\nGreenia Homes chuyên cung cấp và phân phối các sản phẩm từ những CĐT uy tín như: Vinhomes, Masteri Homes, Sun Group... Các dòng sản phẩm chủ lực: Căn hộ Cao cấp, Nhà phố, Biệt thự, Dinh thự..." : sec.description} 
-              isEditMode={isEditMode}
-              sections={sections}
-              onUpdateSections={onUpdateSections}
-              isArea 
-              className="text-white/70 text-sm sm:text-md w-full font-light leading-relaxed whitespace-pre-wrap" 
-              tag="p" 
-            />
+          <div className="mb-6">
+            <h1 className="text-white font-display text-4xl sm:text-5xl font-bold tracking-tight mb-2">
+              Greenia Homes
+            </h1>
+            <p className="text-accent text-sm sm:text-base font-medium tracking-wide inline-block border-b border-accent/40 pb-[1px]">
+              Đồng hành - Tận tâm - An tâm mua nhà
+            </p>
           </div>
 
-          <div className="flex flex-row items-center gap-2 sm:gap-4 pt-[10px] w-full">
+          <div className="text-white/70 text-sm sm:text-[15px] lg:max-w-[95%] xl:max-w-[600px] font-light leading-relaxed space-y-6">
+            <p>
+              <strong className="text-accent font-bold">Greenia Homes</strong> là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư <strong className="text-accent font-bold">Greenia Homes</strong> tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS.
+            </p>
+            <p>
+              <strong className="text-accent font-bold">Greenia Homes</strong> chuyên cung cấp và phân phối các sản phẩm từ những CĐT uy tín như: Vinhomes, Masteri Homes, Sun Group... Các dòng sản phẩm chủ lực: Căn hộ Cao cấp, Nhà phố, Biệt thự, Dinh thự...
+            </p>
+          </div>
+
+          <div className="flex flex-row items-center gap-4 pt-6 w-full">
             <button
               onClick={() => onNavigate({ screen: 'san-pham' })}
-              className="flex items-center justify-center gap-1 sm:gap-2 bg-accent hover:bg-accent-hover outline-none text-text-primary font-bold px-3 sm:px-[15px] py-2 sm:py-[5px] rounded-full text-[11px] sm:text-[12px] shadow-lg cursor-pointer hover:scale-[1.02] active:scale-[0.98] transition-all border-none whitespace-nowrap"
+              className="flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-[#0B1F16] font-bold px-6 py-2.5 rounded-full text-[13px] sm:text-sm shadow-lg transition-all border-none cursor-pointer"
             >
-              <span>{sec.extraData?.buttonText || 'Xem Ngay Sản Phẩm'}</span>
-              <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+              <span>Xem Ngay Sản Phẩm</span>
+              <ArrowRight className="w-4 h-4" />
             </button>
             
             <a 
               href="tel:0932966700"
-              className="group flex items-center justify-center gap-1 sm:gap-2 font-mono text-[11px] sm:text-xs text-slate-200 bg-white/10 backdrop-blur border border-border-inverse rounded-full px-3 sm:px-5 py-2 sm:py-3 hover:border-emerald-500 hover:text-emerald-400 transition-all cursor-pointer hover:shadow-lg hover:shadow-emerald-500/10 hover:-translate-y-0.5 whitespace-nowrap"
+              className="flex items-center justify-center gap-2 text-white bg-white/5 border border-white/10 rounded-full px-6 py-2.5 hover:bg-white/10 transition-all font-mono text-[13px] sm:text-sm cursor-pointer"
             >
-              <Phone className="w-3.5 h-3.5 text-primary animate-pulse" />
-              <EditableText 
-                sectionId="hero" 
-                field="extraData" 
-                subField="hotlineText" 
-                value={(sec.extraData?.hotlineText || 'Hotline 24/7: 0932 966 700').replace('Hotline 24/7: ', '').replace('Hotline 24/7:', '').trim()} 
-                isEditMode={isEditMode}
-                sections={sections}
-                onUpdateSections={onUpdateSections}
-                className="text-xs text-slate-200 group-hover:text-emerald-400 transition-colors" 
-                tag="span" 
-              />
+              <div className="bg-[#0B1F16] p-1.5 rounded-full border border-white/10">
+                <Phone className="w-3.5 h-3.5 text-emerald-400" />
+              </div>
+              <span>0932 966 700</span>
             </a>
           </div>
           
-          <div className="mt-[30px] pt-[15px] w-full max-w-[320px] border-t border-border-inverse/50 hidden sm:block">
-            <p className="text-white/70 text-[10px] uppercase font-bold tracking-[0.2em] mb-4">ĐỐI TÁC PHÂN PHỐI CHIẾN LƯỢC CAO CẤP CỦA</p>
+          <div className="mt-12 pt-8 w-full border-t border-white/10 hidden sm:block">
+            <p className="text-white/50 text-[10px] uppercase font-bold tracking-[0.2em] mb-6">ĐỐI TÁC PHÂN PHỐI CHIẾN LƯỢC CAO CẤP CỦA</p>
             <div className="flex flex-wrap items-center gap-8 opacity-70">
-              <div className="flex items-center gap-2 group cursor-pointer transition-all hover:opacity-100">
-                <Building2 className="w-6 h-6 text-white/70 group-hover:text-emerald-400 transition-colors" />
-                <span className="font-display text-[15px] font-bold text-slate-200 tracking-widest uppercase">Vinhomes</span>
+              <div className="flex items-center gap-2">
+                <Building2 className="w-6 h-6 text-white" />
+                <span className="font-display text-[15px] font-bold text-white tracking-widest uppercase">VINHOMES</span>
               </div>
-              <div className="w-px h-6 bg-slate-700"></div>
-              <div className="flex items-center gap-2 group cursor-pointer transition-all hover:opacity-100">
-                <Layers className="w-[16px] h-[16px] text-white/70 group-hover:text-emerald-400 transition-colors" />
-                <span className="font-display text-[14px] font-bold text-slate-200 tracking-widest uppercase">Masterise</span>
+              <div className="flex items-center gap-2">
+                <Layers className="w-6 h-6 text-white" />
+                <span className="font-display text-[15px] font-bold text-white tracking-widest uppercase">MASTERISE</span>
               </div>
             </div>
           </div>
@@ -337,7 +325,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="relative z-10 w-full max-w-[420px] mx-auto lg:ml-auto lg:mr-0 bg-white/10 backdrop-blur-md p-5 lg:p-6 rounded-2xl border border-border-inverse shadow-[var(--shadow-elevation)]"
+            className="relative z-10 w-full max-w-[420px] mx-auto lg:ml-auto lg:mr-0 bg-white/5 p-4 rounded-3xl border border-white/10"
             id="hero-banner-consultation-form"
           >
             <HeroConsultationForm onNavigate={onNavigate} onShowNotification={onShowNotification} />

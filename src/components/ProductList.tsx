@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { generateSlug, optimizeImageUrl } from '../lib/utils';
+import { generateSlug, optimizeImageUrl, getRouteUrl } from '../lib/utils';
+import { useRouter } from 'next/navigation';
 import { SEO } from './SEO';
 import { collection, getDocs, getDoc, doc, db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
@@ -57,6 +58,7 @@ export default function ProductList({
   const [openDropdown, setOpenDropdown] = useState<'type' | 'district' | 'price' | 'area' | 'category' | null>(null);
   const [dropdownPos, setDropdownPos] = useState<number | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const router = useRouter();
   const scrollDirection = useScrollDirection();
   
   const tabsContainerRef = useRef<HTMLDivElement>(null);
@@ -353,10 +355,11 @@ export default function ProductList({
                 isEditMode={isEditMode}
                 EditableText={EditableText}
                 EditableImage={EditableImage}
-                onNavigate={onNavigate}
+               
                 sections={sections}
                 onUpdateSections={onUpdateSections}
                 onShowNotification={onShowNotification}
+                onNavigate={onNavigate}
               />
             );
           } else if (section.id === 'products_header') {
@@ -546,7 +549,7 @@ export default function ProductList({
                                return (
                                  <button
                                    key={cat.id}
-                                   onClick={() => { setSelectedCategory(cat.name); setOpenDropdown(null); onNavigate({ screen: 'category-product', categoryName: cat.name }); }}
+                                   onClick={(e) => { e.preventDefault(); setSelectedCategory(cat.name); setOpenDropdown(null); router.push(getRouteUrl({ screen: 'category-product', categoryName: cat.name })); }}
                                    className={`w-full text-left !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${cat.parentId ? '!px-[20px] text-[12px] md:text-[11px]' : '!px-[10px]'} ${isSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}
                                  >
                                    <span>{cat.parentId ? `└ ${cat.name}` : cat.name}</span>
@@ -720,7 +723,7 @@ export default function ProductList({
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                       {filteredProducts.slice(0, mainGridLimit).map((item, index) => (
-                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} priority={index < 2} />
+                        <ProductCard key={item.id} item={item} priority={index < 2} onNavigate={onNavigate} />
                       ))}
                     </div>
 
@@ -771,7 +774,7 @@ export default function ProductList({
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                       {recentlyViewed.slice(0, recentGridLimit).map((item) => (
-                        <ProductCard key={item.id} item={item} onNavigate={onNavigate} badgeText="Vừa xem" badgeColor="bg-pink-700 text-white" />
+                        <ProductCard key={item.id} item={item} badgeText="Vừa xem" badgeColor="bg-pink-700 text-white" onNavigate={onNavigate} />
                       ))}
                     </div>
 
@@ -808,7 +811,7 @@ export default function ProductList({
 
                     <button
                       type="button"
-                      onClick={() => onNavigate({ screen: 'latest-sales' })}
+                      onClick={() => router.push(getRouteUrl({ screen: 'latest-sales' }))}
                       className="flex items-center gap-1.5 text-[11px] font-mono tracking-widest text-primary font-bold hover:underline bg-transparent border-none cursor-pointer"
                     >
                       <span>Xem thêm</span>
@@ -857,7 +860,7 @@ export default function ProductList({
 
                     <button
                       type="button"
-                      onClick={() => onNavigate({ screen: 'latest-rents' })}
+                      onClick={() => router.push(getRouteUrl({ screen: 'latest-rents' }))}
                       className="flex items-center gap-1.5 text-[11px] font-mono tracking-widest text-primary font-bold hover:underline bg-transparent border-none cursor-pointer"
                     >
                       <span>Xem thêm</span>
@@ -906,7 +909,7 @@ export default function ProductList({
 
                     <button
                       type="button"
-                      onClick={() => onNavigate({ screen: 'du-an' })}
+                      onClick={() => router.push(getRouteUrl({ screen: 'du-an' }))}
                       className="flex items-center gap-1.5 text-[11px] font-mono tracking-widest text-primary font-bold hover:underline bg-transparent border-none cursor-pointer"
                     >
                       <span>Xem thêm →</span>
@@ -936,7 +939,7 @@ export default function ProductList({
                           return (
                             <div
                               key={`${proj.id}-${idx}`}
-                              onClick={() => onNavigate({ screen: 'project-detail', projectId: proj.id, slug: generateSlug(proj.title) })}
+                              onClick={() => router.push(getRouteUrl({ screen: 'project-detail', projectId: proj.id, slug: generateSlug(proj.title) }))}
                               className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
                             >
                               <div className="relative aspect-[16/10] overflow-hidden">

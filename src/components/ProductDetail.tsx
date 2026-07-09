@@ -171,7 +171,7 @@ export default function ProductDetail({
 
   useEffect(() => {
     async function loadProductData() {
-      if (!productId) return;
+      if (!productId && !slug) return;
       try {
         if (!product) setLoading(true);
 

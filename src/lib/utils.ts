@@ -72,3 +72,31 @@ export function generateSrcSet(url: string | undefined | null): string | undefin
   if (!url) return undefined;
   return `${optimizeImageUrl(url, 400)} 400w, ${optimizeImageUrl(url, 800)} 800w, ${optimizeImageUrl(url, 1200)} 1200w, ${optimizeImageUrl(url, 1600)} 1600w`;
 }
+
+export function getRouteUrl(route: import('../types').RouteState): string {
+  if (route.screen === "home") return "/";
+  if (route.screen === "san-pham") return "/san-pham";
+  if (route.screen === "du-an") return "/du-an";
+  if (route.screen === "tin-tuc") return "/tin-tuc";
+  if (route.screen === "lien-he") return "/lien-he";
+  if (route.screen === "product-detail" && (route.slug || route.productId))
+    return `/san-pham/${route.slug || route.productId}`;
+  if (route.screen === "project-detail" && (route.slug || route.projectId))
+    return `/du-an/${route.slug || route.projectId}`;
+  if (route.screen === "news-detail" && (route.slug || route.newsId))
+    return `/tin-tuc/${route.slug || route.newsId}`;
+  if (route.screen === "admin") return "/admin";
+  if (route.screen === "category-product" && route.categoryName)
+    return `/category-product/${generateSlug(route.categoryName)}`;
+  if (route.screen === "category-product") return "/category-product";
+  if (route.screen === "category-news" && route.categoryName)
+    return `/category-news/${generateSlug(route.categoryName)}`;
+  if (route.screen === "category-news") return "/category-news";
+  if (route.screen === "latest-sales") return "/latest-sales";
+  if (route.screen === "latest-rents") return "/latest-rents";
+  if (route.screen === "terms-of-use") return "/terms-of-use";
+  if (route.screen === "privacy-policy") return "/privacy-policy";
+  if (route.screen === "favorites") return "/yeu-thich";
+  return "/";
+}
+

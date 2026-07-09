@@ -4,6 +4,8 @@ import React, { Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "../src/ErrorBoundary";
+import { AppProvider } from "../src/contexts/AppContext";
+import { AuthProvider } from "../src/contexts/AuthContext";
 
 /* Tạo QueryClient 1 lần duy nhất */
 const queryClient = new QueryClient({
@@ -25,7 +27,13 @@ export default function Providers({ children }: { children: React.ReactNode }) {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <HelmetProvider context={{}}>
-          <Suspense fallback={null}>{children}</Suspense>
+          <Suspense fallback={null}>
+            <AuthProvider>
+              <AppProvider>
+                {children}
+              </AppProvider>
+            </AuthProvider>
+          </Suspense>
         </HelmetProvider>
       </QueryClientProvider>
     </ErrorBoundary>

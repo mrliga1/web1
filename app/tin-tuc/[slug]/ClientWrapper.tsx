@@ -1,14 +1,11 @@
 "use client";
 
 import React from 'react';
-import { getRouteUrl } from '../../src/lib/utils';
-
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
+import { getRouteUrl } from '../../../src/lib/utils';
+import NewsDetail from '../../../src/components/NewsDetail';
 
-const AdminPanel = dynamic(() => import('../../src/components/AdminPanel'), { ssr: false });
-
-export default function AdminPage() {
+export default function ClientWrapper({ slug }: { slug: string }) {
   const [logoUrl, setLogoUrl] = React.useState<string>('');
 
   React.useEffect(() => {
@@ -29,12 +26,11 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-bg-surface text-slate-900 font-sans" id="app-root">
-      <AdminPanel 
-        onNavigate={handleNavigate}
-        onShowNotification={handleShowNotification}
-        logoUrl={logoUrl}
-      />
-    </div>
+    <NewsDetail 
+      slug={slug}
+      newsId=""
+      onNavigate={handleNavigate}
+      onShowNotification={handleShowNotification}
+    />
   );
 }

@@ -1,6 +1,19 @@
-// Trang danh sách yêu thích
-import ClientApp from "../ClientApp";
+"use client";
+
+import React from 'react';
+import { getRouteUrl } from '../../src/lib/utils';
+
+import { useRouter } from 'next/navigation';
+import FavoritesPage from '../../src/components/FavoritesPage';
 
 export default function YeuThichPage() {
-  return <ClientApp initialScreen="favorites" />;
+  const router = useRouter();
+
+  const handleNavigate = (route: any) => {
+    router.push(getRouteUrl(route));
+  };
+
+  return (
+    <FavoritesPage onNavigate={handleNavigate} />
+  );
 }

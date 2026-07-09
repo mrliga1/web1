@@ -20,7 +20,7 @@ export const collectionRealtime = (dbInstance: any, path: string) => {
 };
 
 /* Cập nhật onSnapshot - Lấy dữ liệu lần đầu và lắng nghe realtime qua Supabase */
-export const onSnapshot = (ref: any, callback: (snapshot: any) => void) => {
+export const onSnapshot = (ref: any, callback: (snapshot: any) => void, onError?: (error: any) => void) => {
   // 1. Fetch initial data immediately
   if (ref.isCollection) {
     getDocs(ref).then(snapshot => {

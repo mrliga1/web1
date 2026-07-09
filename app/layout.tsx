@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Providers from "./providers";
+import ClientLayout from "../src/components/ClientLayout";
 import "../src/index.css";
 
 /* Metadata mặc định cho toàn bộ site */
@@ -86,7 +87,9 @@ export default function RootLayout({
         }}
       >
         <Providers>
-          <div id="root">{children}</div>
+          <div id="root">
+            <ClientLayout>{children}</ClientLayout>
+          </div>
         </Providers>
         <script
           dangerouslySetInnerHTML={{

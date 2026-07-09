@@ -2613,7 +2613,7 @@ export default function AdminPanel({
   const handleAddCareHistory = async (lead: any, text: string) => {
     if (!text.trim()) return;
     try {
-      const currentUserName = userProfile?.employeeName || userProfile?.displayName || userProfile?.username || currentUser?.email || (currentUserRole === "admin" ? "Admin" : currentUserRole === "editor" ? "Editor" : "Nhân viên");
+      const currentUserName = userProfile?.username || currentUser?.email || (currentUserRole === "admin" ? "Admin" : currentUserRole === "editor" ? "Editor" : "Nhân viên");
       const historyItem = {
         time: Date.now(),
         note: text.trim(),
@@ -3003,7 +3003,7 @@ export default function AdminPanel({
                     setActiveTab("blocked_ips" as any);
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "blocked_ips"
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === ("blocked_ips" as any)
                       ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
                       : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
                     }`}

@@ -4084,7 +4084,12 @@ export default function AdminPanel({
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Danh Mục Cha (ID)</label>
-                          <input type="text" value={catModal.data.parentId} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, parentId: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none" placeholder="Để trống nếu là cấp 1" />
+                          <select value={catModal.data.parentId} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, parentId: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none">
+                            <option value="">-- Để trống (Cấp 1) --</option>
+                            {categories.filter(c => c !== catModal.data.name).map(c => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">SEO Title</label>
@@ -4201,7 +4206,12 @@ export default function AdminPanel({
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Danh Mục Cha (ID)</label>
-                          <input type="text" value={catModal.data.parentId} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, parentId: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none" placeholder="Để trống nếu là cấp 1" />
+                          <select value={catModal.data.parentId} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, parentId: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none">
+                            <option value="">-- Để trống (Cấp 1) --</option>
+                            {newsCategories.filter(c => c !== catModal.data.name).map(c => (
+                              <option key={c} value={c}>{c}</option>
+                            ))}
+                          </select>
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">SEO Title</label>

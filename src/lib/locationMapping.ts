@@ -79,7 +79,7 @@ export function parseLocation(rawLocation: string) {
   for (const prov of locationTree) {
     const pName = normalizeText(prov.name);
     // e.g. "Hồ Chí Minh" matches "Thành phố Hồ Chí Minh"
-    const pShort = pName.replace('thành phố ', '').replace('tỉnh ', '');
+    const pShort = pName.replace('thành phố ', '').replace('tp. ', '').replace('tỉnh ', '');
     
     if (mappedRaw.includes(pName) || mappedRaw.includes(pShort)) {
       matchedProvince = prov.name;
@@ -87,7 +87,7 @@ export function parseLocation(rawLocation: string) {
       // Find District within Province
       for (const dist of prov.districts || []) {
         const dName = normalizeText(dist.name);
-        const dShort = dName.replace('quận ', '').replace('huyện ', '').replace('tp ', '').replace('thành phố ', '');
+        const dShort = dName.replace('quận ', '').replace('huyện ', '').replace('tp. ', '').replace('tp ', '').replace('thành phố ', '');
         
         // Exact word match to avoid matching "Quận 1" in "Quận 10"
         const distRegex = new RegExp(`\\b${dShort}\\b`, 'i');
@@ -98,7 +98,7 @@ export function parseLocation(rawLocation: string) {
           // Find Ward within District
           for (const ward of dist.wards || []) {
             const wName = normalizeText(ward);
-            const wShort = wName.replace('phường ', '').replace('xã ', '').replace('thị trấn ', '');
+            const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
             
             const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
             if (mappedRaw.includes(wName) || wardRegex.test(mappedRaw)) {
@@ -118,7 +118,7 @@ export function parseLocation(rawLocation: string) {
     for (const prov of locationTree) {
       for (const dist of prov.districts || []) {
         const dName = normalizeText(dist.name);
-        const dShort = dName.replace('quận ', '').replace('huyện ', '').replace('tp ', '').replace('thành phố ', '');
+        const dShort = dName.replace('quận ', '').replace('huyện ', '').replace('tp. ', '').replace('tp ', '').replace('thành phố ', '');
         const distRegex = new RegExp(`\\b${dShort}\\b`, 'i');
         
         if (mappedRaw.includes(dName) || distRegex.test(mappedRaw)) {
@@ -127,7 +127,7 @@ export function parseLocation(rawLocation: string) {
           
           for (const ward of dist.wards || []) {
             const wName = normalizeText(ward);
-            const wShort = wName.replace('phường ', '').replace('xã ', '').replace('thị trấn ', '');
+            const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
             
             const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
             if (mappedRaw.includes(wName) || wardRegex.test(mappedRaw)) {

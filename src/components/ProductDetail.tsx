@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
 import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from "../firebase";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
@@ -1408,8 +1409,8 @@ export default function ProductDetail({
     </section>
 
       {/* Lightbox Overlay */}
-      {isLightboxOpen && (
-        <div className="fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center animate-in fade-in">
+      {isLightboxOpen && typeof document !== "undefined" && createPortal(
+        <div className="fixed inset-0 bg-black/90 flex flex-col items-center justify-center animate-in fade-in" style={{ zIndex: 99999 }}>
           <button 
             onClick={() => setIsLightboxOpen(false)}
             className="absolute top-4 right-4 z-[210] p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm transition-all"
@@ -1445,7 +1446,8 @@ export default function ProductDetail({
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium bg-black/40 px-4 py-1.5 rounded-full backdrop-blur-sm">
             {currentImages.indexOf(selectedImage) + 1} / {currentImages.length}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

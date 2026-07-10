@@ -645,18 +645,6 @@ export default function ProductList({
 
                 </div>
 
-                {/* Status bar */}
-                {(searchQuery || selectedDistrict !== 'all' || selectedPriceRange !== 'all' || selectedAreaRange !== 'all' || selectedType !== 'all' || selectedCategory !== 'all') && (
-                  <div className="pt-[15px] pb-0 mb-[15px] text-text-secondary text-[12px] flex items-center border-b border-dashed border-border-color pl-[20px]">
-                    <span className="">Tìm thấy <strong className="mx-1 text-primary font-bold">{filteredProducts.length}</strong> kết quả</span>
-                    <button 
-                      onClick={resetFilters} 
-                      className="ml-3 text-error text-[12px] underline cursor-pointer bg-transparent border-none"
-                    >
-                      Xóa bộ lọc
-                    </button>
-                  </div>
-                )}
               </div>
             );
           } else if (section.id === 'products_grid') {
@@ -693,6 +681,19 @@ export default function ProductList({
                           return 'Khám phá danh sách các dự án bất động sản sang trọng, cập nhật liên tục các cơ hội mua bán và cho thuê biệt thự, penthouse tại vị trí đắc địa nhất.';
                         })()}
                     </p>
+                  </div>
+                )}
+
+                {/* Status bar */}
+                {(searchQuery || selectedDistrict !== 'all' || selectedPriceRange !== 'all' || selectedAreaRange !== 'all' || selectedType !== 'all' || selectedCategory !== 'all') && (
+                  <div className="pt-[5px] pb-0 mb-[10px] text-text-secondary text-[12px] flex items-center border-b border-dashed border-border-color pl-[5px]">
+                    <span className="">Tìm thấy <strong className="mx-1 text-primary font-bold">{filteredProducts.length}</strong> kết quả</span>
+                    <button 
+                      onClick={resetFilters} 
+                      className="ml-3 text-error text-[12px] underline cursor-pointer bg-transparent border-none"
+                    >
+                      Xóa bộ lọc
+                    </button>
                   </div>
                 )}
 

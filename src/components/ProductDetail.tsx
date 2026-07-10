@@ -1175,6 +1175,7 @@ export default function ProductDetail({
           </div>
         </div>
       </div>
+      </div>
 
       <AdBanner
         slot="product-detail-deep"

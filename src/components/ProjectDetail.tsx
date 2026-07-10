@@ -588,7 +588,7 @@ export default function ProjectDetail({
     return (
       <>
         <div
-          className="py-32 text-center space-y-4 max-w-sm mx-auto"
+          className="min-h-[70vh] flex flex-col justify-center items-center text-center space-y-4 max-w-sm mx-auto"
           id="project-detail-loading"
         >
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />

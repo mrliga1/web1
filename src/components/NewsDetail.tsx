@@ -220,7 +220,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
   if (loading) {
     return (
       <>
-        <div className="py-32 text-center space-y-4 max-w-sm mx-auto" id="news-detail-loading">
+        <div className="min-h-[70vh] flex flex-col justify-center items-center text-center space-y-4 max-w-sm mx-auto" id="news-detail-loading">
         <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
         <p className="text-text-secondary text-xs font-light">Đang mở bài phân tích tư liệu...</p>
       </div>

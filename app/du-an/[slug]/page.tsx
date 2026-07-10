@@ -33,12 +33,23 @@ export async function generateMetadata(
   const title = itemData.seoTitle?.trim() || itemData.metaTitle?.trim() || itemData.title?.trim() || "";
   const finalTitle = title.includes("|") ? title : `${title} | Greenia Homes`;
 
+  // Tự động tạo mô tả rich text với icon
+  const location = itemData.district || itemData.location || "Đang cập nhật";
+  const price = itemData.priceText || "Đang cập nhật";
+  const area = itemData.area ? `${itemData.area}m2` : "";
+  
+  let richDesc = `📍 Vị trí: ${location} | 💰 Giá: ${price}`;
+  if (area) richDesc += ` | 📐 Diện tích: ${area}`;
+  richDesc += `. Tìm hiểu dự án ngay tại Greenia Homes!`;
+
+  const finalDescription = itemData.seoDesc || richDesc;
+
   return {
     title: finalTitle,
-    description: itemData.seoDesc || (itemData.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160),
+    description: finalDescription,
     openGraph: {
       title: finalTitle,
-      description: itemData.seoDesc || (itemData.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160),
+      description: finalDescription,
       images: itemData.imageUrl ? [itemData.imageUrl] : [],
     }
   };

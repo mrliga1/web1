@@ -1,0 +1,1726 @@
+[
+  {
+    "name": "Tỉnh Khánh Hòa",
+    "districts": [
+      {
+        "name": "Thành phố Nha Trang",
+        "wards": [
+          "Phường Vĩnh Hòa",
+          "Phường Vĩnh Hải",
+          "Phường Vĩnh Phước",
+          "Phường Ngọc Hiệp",
+          "Phường Vĩnh Thọ",
+          "Phường Xương Huân",
+          "Phường Vạn Thắng",
+          "Phường Vạn Thạnh",
+          "Phường Phương Sài",
+          "Phường Phương Sơn",
+          "Phường Phước Hải",
+          "Phường Phước Tân",
+          "Phường Lộc Thọ",
+          "Phường Phước Tiến",
+          "Phường Tân Lập",
+          "Phường Phước Hòa",
+          "Phường Vĩnh Nguyên",
+          "Phường Phước Long",
+          "Phường Vĩnh Trường",
+          "Xã Vĩnh Lương",
+          "Xã Vĩnh Phương",
+          "Xã Vĩnh Ngọc",
+          "Xã Vĩnh Thạnh",
+          "Xã Vĩnh Trung",
+          "Xã Vĩnh Hiệp",
+          "Xã Vĩnh Thái",
+          "Xã Phước Đồng"
+        ]
+      },
+      {
+        "name": "Thành phố Cam Ranh",
+        "wards": [
+          "Phường Cam Nghĩa",
+          "Phường Cam Phúc Bắc",
+          "Phường Cam Phúc Nam",
+          "Phường Cam Lộc",
+          "Phường Cam Phú",
+          "Phường Ba Ngòi",
+          "Phường Cam Thuận",
+          "Phường Cam Lợi",
+          "Phường Cam Linh",
+          "Xã Cam Thành Nam",
+          "Xã Cam Phước Đông",
+          "Xã Cam Thịnh Tây",
+          "Xã Cam Thịnh Đông",
+          "Xã Cam Lập",
+          "Xã Cam Bình"
+        ]
+      },
+      {
+        "name": "Huyện Cam Lâm",
+        "wards": [
+          "Xã Cam Tân",
+          "Xã Cam Hòa",
+          "Xã Cam Hải Đông",
+          "Xã Cam Hải Tây",
+          "Xã Sơn Tân",
+          "Xã Cam Hiệp Bắc",
+          "Thị trấn Cam Đức",
+          "Xã Cam Hiệp Nam",
+          "Xã Cam Phước Tây",
+          "Xã Cam Thành Bắc",
+          "Xã Cam An Bắc",
+          "Xã Cam An Nam",
+          "Xã Suối Cát",
+          "Xã Suối Tân"
+        ]
+      },
+      {
+        "name": "Huyện Vạn Ninh",
+        "wards": [
+          "Thị trấn Vạn Giã",
+          "Xã Đại Lãnh",
+          "Xã Vạn Phước",
+          "Xã Vạn Long",
+          "Xã Vạn Bình",
+          "Xã Vạn Thọ",
+          "Xã Vạn Khánh",
+          "Xã Vạn Phú",
+          "Xã Vạn Lương",
+          "Xã Vạn Thắng",
+          "Xã Vạn Thạnh",
+          "Xã Xuân Sơn",
+          "Xã Vạn Hưng"
+        ]
+      },
+      {
+        "name": "Thị xã Ninh Hòa",
+        "wards": [
+          "Phường Ninh Hiệp",
+          "Xã Ninh Sơn",
+          "Xã Ninh Tây",
+          "Xã Ninh Thượng",
+          "Xã Ninh An",
+          "Phường Ninh Hải",
+          "Xã Ninh Thọ",
+          "Xã Ninh Trung",
+          "Xã Ninh Sim",
+          "Xã Ninh Xuân",
+          "Xã Ninh Thân",
+          "Phường Ninh Diêm",
+          "Xã Ninh Đông",
+          "Phường Ninh Thủy",
+          "Phường Ninh Đa",
+          "Xã Ninh Phụng",
+          "Xã Ninh Bình",
+          "Xã Ninh Phước",
+          "Xã Ninh Phú",
+          "Xã Ninh Tân",
+          "Xã Ninh Quang",
+          "Phường Ninh Giang",
+          "Phường Ninh Hà",
+          "Xã Ninh Hưng",
+          "Xã Ninh Lộc",
+          "Xã Ninh Ích",
+          "Xã Ninh Vân"
+        ]
+      },
+      {
+        "name": "Huyện Khánh Vĩnh",
+        "wards": [
+          "Thị trấn Khánh Vĩnh",
+          "Xã Khánh Hiệp",
+          "Xã Khánh Bình",
+          "Xã Khánh Trung",
+          "Xã Khánh Đông",
+          "Xã Khánh Thượng",
+          "Xã Khánh Nam",
+          "Xã Sông Cầu",
+          "Xã Giang Ly",
+          "Xã Cầu Bà",
+          "Xã Liên Sang",
+          "Xã Khánh Thành",
+          "Xã Khánh Phú",
+          "Xã Sơn Thái"
+        ]
+      },
+      {
+        "name": "Huyện Diên Khánh",
+        "wards": [
+          "Thị trấn Diên Khánh",
+          "Xã Diên Lâm",
+          "Xã Diên Điền",
+          "Xã Diên Xuân",
+          "Xã Diên Sơn",
+          "Xã Diên Đồng",
+          "Xã Diên Phú",
+          "Xã Diên Thọ",
+          "Xã Diên Phước",
+          "Xã Diên Lạc",
+          "Xã Diên Tân",
+          "Xã Diên Hòa",
+          "Xã Diên Thạnh",
+          "Xã Diên Toàn",
+          "Xã Diên An",
+          "Xã Bình Lộc",
+          "Xã Suối Hiệp",
+          "Xã Suối Tiên"
+        ]
+      },
+      {
+        "name": "Huyện Khánh Sơn",
+        "wards": [
+          "Thị trấn Tô Hạp",
+          "Xã Thành Sơn",
+          "Xã Sơn Lâm",
+          "Xã Sơn Hiệp",
+          "Xã Sơn Bình",
+          "Xã Sơn Trung",
+          "Xã Ba Cụm Bắc",
+          "Xã Ba Cụm Nam"
+        ]
+      },
+      {
+        "name": "Huyện Trường Sa",
+        "wards": [
+          "Thị trấn Trường Sa",
+          "Xã Song Tử Tây",
+          "Xã Sinh Tồn"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Tỉnh Tây Ninh",
+    "districts": [
+      {
+        "name": "Thành phố Tây Ninh",
+        "wards": [
+          "Phường 1",
+          "Phường 3",
+          "Phường 4",
+          "Phường Hiệp Ninh",
+          "Phường 2",
+          "Xã Thạnh Tân",
+          "Xã Tân Bình",
+          "Xã Bình Minh",
+          "Phường Ninh Sơn",
+          "Phường Ninh Thạnh"
+        ]
+      },
+      {
+        "name": "Huyện Tân Biên",
+        "wards": [
+          "Thị trấn Tân Biên",
+          "Xã Tân Lập",
+          "Xã Thạnh Bắc",
+          "Xã Tân Bình",
+          "Xã Thạnh Bình",
+          "Xã Thạnh Tây",
+          "Xã Hòa Hiệp",
+          "Xã Tân Phong",
+          "Xã Mỏ Công",
+          "Xã Trà Vong"
+        ]
+      },
+      {
+        "name": "Huyện Tân Châu",
+        "wards": [
+          "Thị trấn Tân Châu",
+          "Xã Tân Hà",
+          "Xã Tân Đông",
+          "Xã Tân Hội",
+          "Xã Tân Hòa",
+          "Xã Suối Ngô",
+          "Xã Suối Dây",
+          "Xã Tân Hiệp",
+          "Xã Thạnh Đông",
+          "Xã Tân Thành",
+          "Xã Tân Phú",
+          "Xã Tân Hưng"
+        ]
+      },
+      {
+        "name": "Huyện Dương Minh Châu",
+        "wards": [
+          "Thị trấn Dương Minh Châu",
+          "Xã Suối Đá",
+          "Xã Phan",
+          "Xã Phước Ninh",
+          "Xã Phước Minh",
+          "Xã Bàu Năng",
+          "Xã Chà Là",
+          "Xã Cầu Khởi",
+          "Xã Bến Củi",
+          "Xã Lộc Ninh",
+          "Xã Truông Mít"
+        ]
+      },
+      {
+        "name": "Huyện Châu Thành",
+        "wards": [
+          "Thị trấn Châu Thành",
+          "Xã Hảo Đước",
+          "Xã Phước Vinh",
+          "Xã Đ���ng Khởi",
+          "Xã Thái Bình",
+          "Xã An Cơ",
+          "Xã Biên Giới",
+          "Xã Hòa Thạnh",
+          "Xã Trí Bình",
+          "Xã Hòa Hội",
+          "Xã An Bình",
+          "Xã Thanh Điền",
+          "Xã Thành Long",
+          "Xã Ninh Điền",
+          "Xã Long Vĩnh"
+        ]
+      },
+      {
+        "name": "Thị xã Hòa Thành",
+        "wards": [
+          "Phường Long Hoa",
+          "Phường Hiệp Tân",
+          "Phường Long Thành Bắc",
+          "Xã Trường Hòa",
+          "Xã Trường Đông",
+          "Phường Long Thành Trung",
+          "Xã Trường Tây",
+          "Xã Long Thành Nam"
+        ]
+      },
+      {
+        "name": "Huyện Gò Dầu",
+        "wards": [
+          "Thị trấn Gò Dầu",
+          "Xã Thạnh Đức",
+          "Xã Cẩm Giang",
+          "Xã Hiệp Thạnh",
+          "Xã Bàu Đồn",
+          "Xã Phước Thạnh",
+          "Xã Phước Đông",
+          "Xã Phước Trạch",
+          "Xã Thanh Phước"
+        ]
+      },
+      {
+        "name": "Huyện Bến Cầu",
+        "wards": [
+          "Thị trấn Bến Cầu",
+          "Xã Long Chữ",
+          "Xã Long Phước",
+          "Xã Long Giang",
+          "Xã Tiên Thuận",
+          "Xã Long Khánh",
+          "Xã Lợi Thuận",
+          "Xã Long Thuận",
+          "Xã An Thạnh"
+        ]
+      },
+      {
+        "name": "Thị xã Trảng Bàng",
+        "wards": [
+          "Phường Trảng Bàng",
+          "Xã Đôn Thuận",
+          "Xã Hưng Thuận",
+          "Phường Lộc Hưng",
+          "Phường Gia Lộc",
+          "Phường Gia Bình",
+          "Xã Phước Bình",
+          "Phường An Tịnh",
+          "Phường An Hòa",
+          "Xã Phước Chỉ"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Tỉnh Đồng Nai",
+    "districts": [
+      {
+        "name": "Thành phố Biên Hòa",
+        "wards": [
+          "Phường Trảng Dài",
+          "Phường Tân Phong",
+          "Phường Tân Biên",
+          "Phường Hố Nai",
+          "Phường Tân Hòa",
+          "Phường Tân Hiệp",
+          "Phường Bửu Long",
+          "Phường Tân Tiến",
+          "Phường Tam Hiệp",
+          "Phường Long Bình",
+          "Phường Quang Vinh",
+          "Phường Tân Mai",
+          "Phường Thống Nhất",
+          "Phường Trung Dũng",
+          "Phường Tam Hòa",
+          "Phường Hòa Bình",
+          "Phường Quyết Thắng",
+          "Phường Thanh Bình",
+          "Phường Bình Đa",
+          "Phường An Bình",
+          "Phường Bửu Hòa",
+          "Phường Long Bình Tân",
+          "Phường Tân Vạn",
+          "Phường Tân Hạnh",
+          "Phường Hiệp Hòa",
+          "Phường Hóa An",
+          "Phường An Hòa",
+          "Phường Tam Phước",
+          "Phường Phước Tân",
+          "Xã Long Hưng"
+        ]
+      },
+      {
+        "name": "Thành phố Long Khánh",
+        "wards": [
+          "Phường Xuân Trung",
+          "Phường Xuân Thanh",
+          "Phường Xuân Bình",
+          "Phường Xuân An",
+          "Phường Xuân Hoà",
+          "Phường Phú Bình",
+          "Xã Bình Lộc",
+          "Xã Bảo Quang",
+          "Phường Suối Tre",
+          "Phường Bảo Vinh",
+          "Phường Xuân Lập",
+          "Phường Bàu Sen",
+          "Xã Bàu Trâm",
+          "Phường Xuân Tân",
+          "Xã Hàng Gòn"
+        ]
+      },
+      {
+        "name": "Huyện Tân Phú",
+        "wards": [
+          "Thị trấn Tân Phú",
+          "Xã Dak Lua",
+          "Xã Nam Cát Tiên",
+          "Xã Phú An",
+          "Xã Núi Tượng",
+          "Xã Tà Lài",
+          "Xã Phú Lập",
+          "Xã Phú Sơn",
+          "Xã Phú Thịnh",
+          "Xã Thanh Sơn",
+          "Xã Phú Trung",
+          "Xã Phú Xuân",
+          "Xã Phú Lộc",
+          "Xã Phú Lâm",
+          "Xã Phú Bình",
+          "Xã Phú Thanh",
+          "Xã Trà Cổ",
+          "Xã Phú Điền"
+        ]
+      },
+      {
+        "name": "Huyện Vĩnh Cửu",
+        "wards": [
+          "Thị trấn Vĩnh An",
+          "Xã Phú Lý",
+          "Xã Trị An",
+          "Xã Tân An",
+          "Xã Vĩnh Tân",
+          "Xã Bình Lợi",
+          "Xã Thạnh Phú",
+          "Xã Thiện Tân",
+          "Xã Tân Bình",
+          "Xã Bình Hòa",
+          "Xã Mã Đà",
+          "Xã Hiếu Liêm"
+        ]
+      },
+      {
+        "name": "Huyện Định Quán",
+        "wards": [
+          "Thị trấn Định Quán",
+          "Xã Thanh Sơn",
+          "Xã Phú Tân",
+          "Xã Phú Vinh",
+          "Xã Phú Lợi",
+          "Xã Phú Hòa",
+          "Xã Ngọc Định",
+          "Xã La Ngà",
+          "Xã Gia Canh",
+          "Xã Phú Ngọc",
+          "Xã Phú Cường",
+          "Xã Túc Trưng",
+          "Xã Phú Túc",
+          "Xã Suối Nho"
+        ]
+      },
+      {
+        "name": "Huyện Trảng Bom",
+        "wards": [
+          "Thị trấn Trảng Bom",
+          "Xã Thanh Bình",
+          "Xã Cây Gáo",
+          "Xã Bàu Hàm",
+          "Xã Sông Thao",
+          "Xã Sông Trầu",
+          "Xã Đông Hoà",
+          "Xã Bắc Sơn",
+          "Xã Hố Nai 3",
+          "Xã Tây Hoà",
+          "Xã Bình Minh",
+          "Xã Trung Hoà",
+          "Xã Đồi 61",
+          "Xã Hưng Thịnh",
+          "Xã Quảng Tiến",
+          "Xã Giang Điền",
+          "Xã An Viễn"
+        ]
+      },
+      {
+        "name": "Huyện Thống Nhất",
+        "wards": [
+          "Xã Gia Tân 1",
+          "Xã Gia Tân 2",
+          "Xã Gia Tân 3",
+          "Xã Gia Kiệm",
+          "Xã Quang Trung",
+          "Xã Bàu Hàm 2",
+          "Xã Hưng Lộc",
+          "Xã Lộ 25",
+          "Xã Xuân Thiện",
+          "Thị trấn Dầu Giây"
+        ]
+      },
+      {
+        "name": "Huyện Cẩm Mỹ",
+        "wards": [
+          "Xã Sông Nhạn",
+          "Xã Xuân Quế",
+          "Xã Nhân Nghĩa",
+          "Xã Xuân Đường",
+          "Thị trấn Long Giao",
+          "Xã Xuân Mỹ",
+          "Xã Thừa Đức",
+          "Xã Bảo Bình",
+          "Xã Xuân Bảo",
+          "Xã Xuân Tây",
+          "Xã Xuân Đông",
+          "Xã Sông Ray",
+          "Xã Lâm San"
+        ]
+      },
+      {
+        "name": "Huyện Long Thành",
+        "wards": [
+          "Thị trấn Long Thành",
+          "Xã An Phước",
+          "Xã Bình An",
+          "Xã Long Đức",
+          "Xã Lộc An",
+          "Xã Bình Sơn",
+          "Xã Tam An",
+          "Xã Cẩm Đường",
+          "Xã Long An",
+          "Xã Bàu Cạn",
+          "Xã Long Phước",
+          "Xã Phước Bình",
+          "Xã Tân Hiệp",
+          "Xã Phước Thái"
+        ]
+      },
+      {
+        "name": "Huyện Xuân Lộc",
+        "wards": [
+          "Thị trấn Gia Ray",
+          "Xã Xuân Bắc",
+          "Xã Suối Cao",
+          "Xã Xuân Thành",
+          "Xã Xuân Thọ",
+          "Xã Xuân Trường",
+          "Xã Xuân Hòa",
+          "Xã Xuân Hưng",
+          "Xã Xuân Tâm",
+          "Xã Suối Cát",
+          "Xã Xuân Hiệp",
+          "Xã Xuân Phú",
+          "Xã Xuân Định",
+          "Xã Bảo Hoà",
+          "Xã Lang Minh"
+        ]
+      },
+      {
+        "name": "Huyện Nhơn Trạch",
+        "wards": [
+          "Xã Phước Thiền",
+          "Xã Long Tân",
+          "Xã Đại Phước",
+          "Thị trấn Hiệp Phước",
+          "Xã Phú Hữu",
+          "Xã Phú Hội",
+          "Xã Phú Thạnh",
+          "Xã Phú Đông",
+          "Xã Long Thọ",
+          "Xã Vĩnh Thanh",
+          "Xã Phước Khánh",
+          "Xã Phước An"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Thành phố Hồ Chí Minh",
+    "districts": [
+      {
+        "name": "Quận 1",
+        "wards": [
+          "Phường Tân Định",
+          "Phường Đa Kao",
+          "Phường Bến Nghé",
+          "Phường Bến Thành",
+          "Phường Nguyễn Thái Bình",
+          "Phường Phạm Ngũ Lão",
+          "Phường Cầu Ông Lãnh",
+          "Phường Cô Giang",
+          "Phường Nguyễn Cư Trinh",
+          "Phường Cầu Kho"
+        ]
+      },
+      {
+        "name": "Quận 12",
+        "wards": [
+          "Phường Thạnh Xuân",
+          "Phường Thạnh Lộc",
+          "Phường Hiệp Thành",
+          "Phường Thới An",
+          "Phường Tân Chánh Hiệp",
+          "Phường An Phú Đông",
+          "Phường Tân Thới Hiệp",
+          "Phường Trung Mỹ Tây",
+          "Phường Tân Hưng Thuận",
+          "Phường Đông Hưng Thuận",
+          "Phường Tân Thới Nhất"
+        ]
+      },
+      {
+        "name": "Quận Gò Vấp",
+        "wards": [
+          "Phường 15",
+          "Phường 13",
+          "Phường 17",
+          "Phường 6",
+          "Phường 16",
+          "Phường 12",
+          "Phường 14",
+          "Phường 10",
+          "Phường 05",
+          "Phường 07",
+          "Phường 04",
+          "Phường 01",
+          "Phường 9",
+          "Phường 8",
+          "Phường 11",
+          "Phường 03"
+        ]
+      },
+      {
+        "name": "Quận Bình Thạnh",
+        "wards": [
+          "Phường 13",
+          "Phường 11",
+          "Phường 27",
+          "Phường 26",
+          "Phường 12",
+          "Phường 25",
+          "Phường 05",
+          "Phường 07",
+          "Phường 24",
+          "Phường 06",
+          "Phường 14",
+          "Phường 15",
+          "Phường 02",
+          "Phường 01",
+          "Phường 03",
+          "Phường 17",
+          "Phường 21",
+          "Phường 22",
+          "Phường 19",
+          "Phường 28"
+        ]
+      },
+      {
+        "name": "Quận Tân Bình",
+        "wards": [
+          "Phường 02",
+          "Phường 04",
+          "Phường 12",
+          "Phường 13",
+          "Phường 01",
+          "Phường 03",
+          "Phường 11",
+          "Phường 07",
+          "Phường 05",
+          "Phường 10",
+          "Phường 06",
+          "Phường 08",
+          "Phường 09",
+          "Phường 14",
+          "Phường 15"
+        ]
+      },
+      {
+        "name": "Quận Tân Phú",
+        "wards": [
+          "Phường Tân Sơn Nhì",
+          "Phường Tây Thạnh",
+          "Phường Sơn Kỳ",
+          "Phường Tân Quý",
+          "Phường Tân Thành",
+          "Phường Phú Thọ Hòa",
+          "Phường Phú Thạnh",
+          "Phường Phú Trung",
+          "Phường Hòa Thạnh",
+          "Phường Hiệp Tân",
+          "Phường Tân Thới Hòa"
+        ]
+      },
+      {
+        "name": "Quận Phú Nhuận",
+        "wards": [
+          "Phường 04",
+          "Phường 05",
+          "Phường 09",
+          "Phường 07",
+          "Phường 03",
+          "Phường 01",
+          "Phường 02",
+          "Phường 08",
+          "Phường 15",
+          "Phường 10",
+          "Phường 11",
+          "Phường 17",
+          "Phường 13"
+        ]
+      },
+      {
+        "name": "TP Thủ Đức",
+        "wards": [
+          "Phường Linh Xuân",
+          "Phường Bình Chiểu",
+          "Phường Linh Trung",
+          "Phường Tam Bình",
+          "Phường Tam Phú",
+          "Phường Hiệp Bình Phước",
+          "Phường Hiệp Bình Chánh",
+          "Phường Linh Chiểu",
+          "Phường Linh Tây",
+          "Phường Linh Đông",
+          "Phường Bình Thọ",
+          "Phường Trường Thọ",
+          "Phường Long Bình",
+          "Phường Long Thạnh Mỹ",
+          "Phường Tân Phú",
+          "Phường Hiệp Phú",
+          "Phường Tăng Nhơn Phú A",
+          "Phường Tăng Nhơn Phú B",
+          "Phường Phước Long B",
+          "Phường Phước Long A",
+          "Phường Trường Thạnh",
+          "Phường Long Phước",
+          "Phường Long Trường",
+          "Phường Phước Bình",
+          "Phường Phú Hữu",
+          "Phường Thảo Điền",
+          "Phường An Phú",
+          "Phường An Khánh",
+          "Phường Bình Trưng Đông",
+          "Phường Bình Trưng Tây",
+          "Phường Cát Lái",
+          "Phường Thạnh Mỹ Lợi",
+          "Phường An Lợi Đông",
+          "Phường Thủ Thiêm"
+        ]
+      },
+      {
+        "name": "Quận 3",
+        "wards": [
+          "Phường 14",
+          "Phường 12",
+          "Phường 11",
+          "Phường 13",
+          "Phường Võ Thị Sáu",
+          "Phường 09",
+          "Phường 10",
+          "Phường 04",
+          "Phường 05",
+          "Phường 03",
+          "Phường 02",
+          "Phường 01"
+        ]
+      },
+      {
+        "name": "Quận 10",
+        "wards": [
+          "Phường 15",
+          "Phường 13",
+          "Phường 14",
+          "Phường 12",
+          "Phường 11",
+          "Phường 10",
+          "Phường 09",
+          "Phường 01",
+          "Phường 08",
+          "Phường 02",
+          "Phường 04",
+          "Phường 07",
+          "Phường 05",
+          "Phường 06"
+        ]
+      },
+      {
+        "name": "Quận 11",
+        "wards": [
+          "Phường 15",
+          "Phường 05",
+          "Phường 14",
+          "Phường 11",
+          "Phường 03",
+          "Phường 10",
+          "Phường 13",
+          "Phường 08",
+          "Phường 09",
+          "Phường 12",
+          "Phường 07",
+          "Phường 06",
+          "Phường 04",
+          "Phường 01",
+          "Phường 02",
+          "Phường 16"
+        ]
+      },
+      {
+        "name": "Quận 4",
+        "wards": [
+          "Phường 13",
+          "Phường 09",
+          "Phường 06",
+          "Phường 08",
+          "Phường 10",
+          "Phường 18",
+          "Phường 14",
+          "Phường 04",
+          "Phường 03",
+          "Phường 16",
+          "Phường 02",
+          "Phường 15",
+          "Phường 01"
+        ]
+      },
+      {
+        "name": "Quận 5",
+        "wards": [
+          "Phường 04",
+          "Phường 09",
+          "Phường 03",
+          "Phường 12",
+          "Phường 02",
+          "Phường 08",
+          "Phường 07",
+          "Phường 01",
+          "Phường 11",
+          "Phường 14",
+          "Phường 05",
+          "Phường 06",
+          "Phường 10",
+          "Phường 13"
+        ]
+      },
+      {
+        "name": "Quận 6",
+        "wards": [
+          "Phường 14",
+          "Phường 13",
+          "Phường 09",
+          "Phường 06",
+          "Phường 12",
+          "Phường 05",
+          "Phường 11",
+          "Phường 02",
+          "Phường 01",
+          "Phường 04",
+          "Phường 08",
+          "Phường 03",
+          "Phường 07",
+          "Phường 10"
+        ]
+      },
+      {
+        "name": "Quận 8",
+        "wards": [
+          "Phường 08",
+          "Phường 02",
+          "Phường 01",
+          "Phường 03",
+          "Phường 11",
+          "Phường 09",
+          "Phường 10",
+          "Phường 04",
+          "Phường 13",
+          "Phường 12",
+          "Phường 05",
+          "Phường 14",
+          "Phường 06",
+          "Phường 15",
+          "Phường 16",
+          "Phường 07"
+        ]
+      },
+      {
+        "name": "Quận Bình Tân",
+        "wards": [
+          "Phường Bình Hưng Hòa",
+          "Phường Bình Hưng Hoà A",
+          "Phường Bình Hưng Hoà B",
+          "Phường Bình Trị Đông",
+          "Phường Bình Trị Đông A",
+          "Phường Bình Trị Đông B",
+          "Phường Tân Tạo",
+          "Phường Tân Tạo A",
+          "Phường  An Lạc",
+          "Phường An Lạc A"
+        ]
+      },
+      {
+        "name": "Quận 7",
+        "wards": [
+          "Phường Tân Thuận Đông",
+          "Phường Tân Thuận Tây",
+          "Phường Tân Kiểng",
+          "Phường Tân Hưng",
+          "Phường Bình Thuận",
+          "Phường Tân Quy",
+          "Phường Phú Thuận",
+          "Phường Tân Phú",
+          "Phường Tân Phong",
+          "Phường Phú Mỹ"
+        ]
+      },
+      {
+        "name": "Huyện Củ Chi",
+        "wards": [
+          "Thị trấn Củ Chi",
+          "Xã Phú Mỹ Hưng",
+          "Xã An Phú",
+          "Xã Trung Lập Thượng",
+          "Xã An Nhơn Tây",
+          "Xã Nhuận Đức",
+          "Xã Phạm Văn Cội",
+          "Xã Phú Hòa Đông",
+          "Xã Trung Lập Hạ",
+          "Xã Trung An",
+          "Xã Phước Thạnh",
+          "Xã Phước Hiệp",
+          "Xã Tân An Hội",
+          "Xã Phước Vĩnh An",
+          "Xã Thái Mỹ",
+          "Xã Tân Thạnh Tây",
+          "Xã Hòa Phú",
+          "Xã Tân Thạnh Đông",
+          "Xã Bình Mỹ",
+          "Xã Tân Phú Trung",
+          "Xã Tân Thông Hội"
+        ]
+      },
+      {
+        "name": "Huyện Hóc Môn",
+        "wards": [
+          "Thị trấn Hóc Môn",
+          "Xã Tân Hiệp",
+          "Xã Nhị Bình",
+          "Xã Đông Thạnh",
+          "Xã Tân Thới Nhì",
+          "Xã Thới Tam Thôn",
+          "Xã Xuân Thới Sơn",
+          "Xã Tân Xuân",
+          "Xã Xuân Thới Đông",
+          "Xã Trung Chánh",
+          "Xã Xuân Thới Thượng",
+          "Xã Bà Điểm"
+        ]
+      },
+      {
+        "name": "Huyện Bình Chánh",
+        "wards": [
+          "Thị trấn Tân Túc",
+          "Xã Phạm Văn Hai",
+          "Xã Vĩnh Lộc A",
+          "Xã Vĩnh Lộc B",
+          "Xã Bình Lợi",
+          "Xã Lê Minh Xuân",
+          "Xã Tân Nhựt",
+          "Xã Tân Kiên",
+          "Xã Bình Hưng",
+          "Xã Phong Phú",
+          "Xã An Phú Tây",
+          "Xã Hưng Long",
+          "Xã Đa Phước",
+          "Xã Tân Quý Tây",
+          "Xã Bình Chánh",
+          "Xã Quy Đức"
+        ]
+      },
+      {
+        "name": "Huyện Nhà Bè",
+        "wards": [
+          "Thị trấn Nhà Bè",
+          "Xã Phước Kiển",
+          "Xã Phước Lộc",
+          "Xã Nhơn Đức",
+          "Xã Phú Xuân",
+          "Xã Long Thới",
+          "Xã Hiệp Phước"
+        ]
+      },
+      {
+        "name": "Huyện Cần Giờ",
+        "wards": [
+          "Thị trấn Cần Thạnh",
+          "Xã Bình Khánh",
+          "Xã Tam Thôn Hiệp",
+          "Xã An Thới Đông",
+          "Xã Thạnh An",
+          "Xã Long Hòa",
+          "Xã Lý Nhơn"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Thành phố Hà Nội",
+    "districts": [
+      {
+        "name": "Huyện Mê Linh",
+        "wards": [
+          "Thị trấn Chi Đông",
+          "Xã Đại Thịnh",
+          "Xã Kim Hoa",
+          "Xã Thạch Đà",
+          "Xã Tiến Thắng",
+          "Xã Tự Lập",
+          "Thị trấn Quang Minh",
+          "Xã Thanh Lâm",
+          "Xã Tam Đồng",
+          "Xã Liên Mạc",
+          "Xã Vạn Yên",
+          "Xã Chu Phan",
+          "Xã Tiến Thịnh",
+          "Xã Mê Linh",
+          "Xã Văn Khê",
+          "Xã Hoàng Kim",
+          "Xã Tiền Phong",
+          "Xã Tráng Việt"
+        ]
+      },
+      {
+        "name": "Quận Hà Đông",
+        "wards": [
+          "Phường Đồng Mai",
+          "Phường Biên Giang",
+          "Phường Nguyễn Trãi",
+          "Phường Mộ Lao",
+          "Phường Văn Quán",
+          "Phường Vạn Phúc",
+          "Phường Yết Kiêu",
+          "Phường Quang Trung",
+          "Phường La Khê",
+          "Phường Phú La",
+          "Phường Phúc La",
+          "Phường Hà Cầu",
+          "Phường Yên Nghĩa",
+          "Phường Kiến Hưng",
+          "Phường Phú Lãm",
+          "Phường Phú Lương",
+          "Phường Dương Nội"
+        ]
+      },
+      {
+        "name": "Thị xã Sơn Tây",
+        "wards": [
+          "Phường Lê Lợi",
+          "Phường Phú Thịnh",
+          "Phường Ngô Quyền",
+          "Phường Quang Trung",
+          "Phường Sơn Lộc",
+          "Phường Xuân Khanh",
+          "Xã Đường Lâm",
+          "Phường Viên Sơn",
+          "Xã Xuân Sơn",
+          "Phường Trung Hưng",
+          "Xã Thanh Mỹ",
+          "Phường Trung Sơn Trầm",
+          "Xã Kim Sơn",
+          "Xã Sơn Đông",
+          "Xã Cổ Đông"
+        ]
+      },
+      {
+        "name": "Huyện Ba Vì",
+        "wards": [
+          "Thị trấn Tây Đằng",
+          "Xã Phú Cường",
+          "Xã Cổ Đô",
+          "Xã Tản Hồng",
+          "Xã Vạn Thắng",
+          "Xã Châu Sơn",
+          "Xã Phong Vân",
+          "Xã Phú Đông",
+          "Xã Phú Phương",
+          "Xã Phú Châu",
+          "Xã Thái Hòa",
+          "Xã Đồng Thái",
+          "Xã Phú Sơn",
+          "Xã Minh Châu",
+          "Xã Vật Lại",
+          "Xã Chu Minh",
+          "Xã Tòng Bạt",
+          "Xã Cẩm Lĩnh",
+          "Xã Sơn Đà",
+          "Xã Đông Quang",
+          "Xã Tiên Phong",
+          "Xã Thụy An",
+          "Xã Cam Thượng",
+          "Xã Thuần Mỹ",
+          "Xã Tản Lĩnh",
+          "Xã Ba Trại",
+          "Xã Minh Quang",
+          "Xã Ba Vì",
+          "Xã Vân Hòa",
+          "Xã Yên Bài",
+          "Xã Khánh Thượng"
+        ]
+      },
+      {
+        "name": "Huyện Phúc Thọ",
+        "wards": [
+          "Thị trấn Phúc Thọ",
+          "Xã Vân Hà",
+          "Xã Vân Phúc",
+          "Xã Vân Nam",
+          "Xã Xuân Đình",
+          "Xã Sen Phương",
+          "Xã Võng Xuyên",
+          "Xã Thọ Lộc",
+          "Xã Long Xuyên",
+          "Xã Thượng Cốc",
+          "Xã Hát Môn",
+          "Xã Tích Giang",
+          "Xã Thanh Đa",
+          "Xã Trạch Mỹ Lộc",
+          "Xã Phúc Hòa",
+          "Xã Ngọc Tảo",
+          "Xã Phụng Thượng",
+          "Xã Tam Thuấn",
+          "Xã Tam Hiệp",
+          "Xã Hiệp Thuận",
+          "Xã Liên Hiệp"
+        ]
+      },
+      {
+        "name": "Huyện Đan Phượng",
+        "wards": [
+          "Thị trấn Phùng",
+          "Xã Trung Châu",
+          "Xã Thọ An",
+          "Xã Thọ Xuân",
+          "Xã Hồng Hà",
+          "Xã Liên Hồng",
+          "Xã Liên Hà",
+          "Xã Hạ Mỗ",
+          "Xã Liên Trung",
+          "Xã Phương Đình",
+          "Xã Thượng Mỗ",
+          "Xã Tân Hội",
+          "Xã Tân Lập",
+          "Xã Đan Phượng",
+          "Xã Đồng Tháp",
+          "Xã Song Phượng"
+        ]
+      },
+      {
+        "name": "Huyện Hoài Đức",
+        "wards": [
+          "Thị trấn Trạm Trôi",
+          "Xã Đức Thượng",
+          "Xã Minh Khai",
+          "Xã Dương Liễu",
+          "Xã Di Trạch",
+          "Xã Đức Giang",
+          "Xã Cát Quế",
+          "Xã Kim Chung",
+          "Xã Yên Sở",
+          "Xã Sơn Đồng",
+          "Xã Vân Canh",
+          "Xã Đắc Sở",
+          "Xã Lại Yên",
+          "Xã Tiền Yên",
+          "Xã Song Phương",
+          "Xã An Khánh",
+          "Xã An Thượng",
+          "Xã Vân Côn",
+          "Xã La Phù",
+          "Xã Đông La"
+        ]
+      },
+      {
+        "name": "Huyện Quốc Oai",
+        "wards": [
+          "Xã Đông Xuân",
+          "Thị trấn Quốc Oai",
+          "Xã Sài Sơn",
+          "Xã Phượng Cách",
+          "Xã Yên Sơn",
+          "Xã Ngọc Liệp",
+          "Xã Ngọc Mỹ",
+          "Xã Liệp Tuyết",
+          "Xã Thạch Thán",
+          "Xã Đồng Quang",
+          "Xã Phú Cát",
+          "Xã Tuyết Nghĩa",
+          "Xã Nghĩa Hương",
+          "Xã Cộng Hòa",
+          "Xã Tân Phú",
+          "Xã Đại Thành",
+          "Xã Phú Mãn",
+          "Xã Cấn Hữu",
+          "Xã Tân Hòa",
+          "Xã Hòa Thạch",
+          "Xã Đông Yên"
+        ]
+      },
+      {
+        "name": "Huyện Thạch Thất",
+        "wards": [
+          "Xã Tân Xã",
+          "Xã Thạch Xá",
+          "Xã Bình Phú",
+          "Xã Hạ Bằng",
+          "Xã Đồng Trúc",
+          "Xã Yên Trung",
+          "Xã Yên Bình",
+          "Xã Tiến Xuân",
+          "Thị trấn Liên Quan",
+          "Xã Đại Đồng",
+          "Xã Cẩm Yên",
+          "Xã Lại Thượng",
+          "Xã Phú Kim",
+          "Xã Hương Ngải",
+          "Xã Canh Nậu",
+          "Xã Kim Quan",
+          "Xã Dị Nậu",
+          "Xã Bình Yên",
+          "Xã Chàng Sơn",
+          "Xã Thạch Hoà",
+          "Xã Cần Kiệm",
+          "Xã Hữu Bằng",
+          "Xã Phùng Xá"
+        ]
+      },
+      {
+        "name": "Huyện Chương Mỹ",
+        "wards": [
+          "Thị trấn Chúc Sơn",
+          "Thị trấn Xuân Mai",
+          "Xã Phụng Châu",
+          "Xã Tiên Phương",
+          "Xã Đông Sơn",
+          "Xã Đông Phương Yên",
+          "Xã Phú Nghĩa",
+          "Xã Trường Yên",
+          "Xã Ngọc Hòa",
+          "Xã Thủy Xuân Tiên",
+          "Xã Thanh Bình",
+          "Xã Trung Hòa",
+          "Xã Đại Yên",
+          "Xã Thụy Hương",
+          "Xã Tốt Động",
+          "Xã Lam Điền",
+          "Xã Tân Tiến",
+          "Xã Nam Phương Tiến",
+          "Xã Hợp Đồng",
+          "Xã Hoàng Văn Thụ",
+          "Xã Hoàng Diệu",
+          "Xã Hữu Văn",
+          "Xã Quảng Bị",
+          "Xã Mỹ Lương",
+          "Xã Thượng Vực",
+          "Xã Hồng Phong",
+          "Xã Đồng Phú",
+          "Xã Trần Phú",
+          "Xã Văn Võ",
+          "Xã Đồng Lạc",
+          "Xã Hòa Chính",
+          "Xã Phú Nam An"
+        ]
+      },
+      {
+        "name": "Huyện Thanh Oai",
+        "wards": [
+          "Thị trấn Kim Bài",
+          "Xã Cự Khê",
+          "Xã Bích Hòa",
+          "Xã Mỹ Hưng",
+          "Xã Cao Viên",
+          "Xã Bình Minh",
+          "Xã Tam Hưng",
+          "Xã Thanh Cao",
+          "Xã Thanh Thùy",
+          "Xã Thanh Mai",
+          "Xã Thanh Văn",
+          "Xã Đỗ Động",
+          "Xã Kim An",
+          "Xã Kim Thư",
+          "Xã Phương Trung",
+          "Xã Tân Ước",
+          "Xã Dân Hòa",
+          "Xã Liên Châu",
+          "Xã Cao Dương",
+          "Xã Xuân Dương",
+          "Xã Hồng Dương"
+        ]
+      },
+      {
+        "name": "Huyện Thường Tín",
+        "wards": [
+          "Thị trấn Thường Tín",
+          "Xã Ninh Sở",
+          "Xã Nhị Khê",
+          "Xã Duyên Thái",
+          "Xã Khánh Hà",
+          "Xã Hòa Bình",
+          "Xã Văn Bình",
+          "Xã Hiền Giang",
+          "Xã Hồng Vân",
+          "Xã Vân Tảo",
+          "Xã Liên Phương",
+          "Xã Văn Phú",
+          "Xã Tự Nhiên",
+          "Xã Tiền Phong",
+          "Xã Hà Hồi",
+          "Xã Thư Phú",
+          "Xã Nguyễn Trãi",
+          "Xã Quất Động",
+          "Xã Chương Dương",
+          "Xã Tân Minh",
+          "Xã Lê Lợi",
+          "Xã Thắng Lợi",
+          "Xã Dũng Tiến",
+          "Xã Thống Nhất",
+          "Xã Nghiêm Xuyên",
+          "Xã Tô Hiệu",
+          "Xã Văn Tự",
+          "Xã Vạn Điểm",
+          "Xã Minh Cường"
+        ]
+      },
+      {
+        "name": "Huyện Phú Xuyên",
+        "wards": [
+          "Thị trấn Phú Minh",
+          "Thị trấn Phú Xuyên",
+          "Xã Hồng Minh",
+          "Xã Phượng Dực",
+          "Xã Nam Tiến",
+          "Xã Tri Trung",
+          "Xã Đại Thắng",
+          "Xã Phú Túc",
+          "Xã Văn Hoàng",
+          "Xã Hồng Thái",
+          "Xã Hoàng Long",
+          "Xã Quang Trung",
+          "Xã Nam Phong",
+          "Xã Nam Triều",
+          "Xã Tân Dân",
+          "Xã Sơn Hà",
+          "Xã Chuyên Mỹ",
+          "Xã Khai Thái",
+          "Xã Phúc Tiến",
+          "Xã Vân Từ",
+          "Xã Tri Thủy",
+          "Xã Đại Xuyên",
+          "Xã Phú Yên",
+          "Xã Bạch Hạ",
+          "Xã Quang Lãng",
+          "Xã Châu Can",
+          "Xã Minh Tân"
+        ]
+      },
+      {
+        "name": "Huyện Ứng Hòa",
+        "wards": [
+          "Thị trấn Vân Đình",
+          "Xã Viên An",
+          "Xã Viên Nội",
+          "Xã Hoa Sơn",
+          "Xã Quảng Phú Cầu",
+          "Xã Trường Thịnh",
+          "Xã Cao Thành",
+          "Xã Liên Bạt",
+          "Xã Sơn Công",
+          "Xã Đồng Tiến",
+          "Xã Phương Tú",
+          "Xã Trung Tú",
+          "Xã Đồng Tân",
+          "Xã Tảo Dương Văn",
+          "Xã Vạn Thái",
+          "Xã Minh Đức",
+          "Xã Hòa Lâm",
+          "Xã Hòa Xá",
+          "Xã Trầm Lộng",
+          "Xã Kim Đường",
+          "Xã Hòa Nam",
+          "Xã Hòa Phú",
+          "Xã Đội Bình",
+          "Xã Đại Hùng",
+          "Xã Đông Lỗ",
+          "Xã Phù Lưu",
+          "Xã Đại Cường",
+          "Xã Lưu Hoàng",
+          "Xã Hồng Quang"
+        ]
+      },
+      {
+        "name": "Huyện Mỹ Đức",
+        "wards": [
+          "Thị trấn Đại Nghĩa",
+          "Xã Đồng Tâm",
+          "Xã Thượng Lâm",
+          "Xã Tuy Lai",
+          "Xã Phúc Lâm",
+          "Xã Mỹ Thành",
+          "Xã Bột Xuyên",
+          "Xã An Mỹ",
+          "Xã Hồng Sơn",
+          "Xã Lê Thanh",
+          "Xã Xuy Xá",
+          "Xã Phùng Xá",
+          "Xã Phù Lưu Tế",
+          "Xã Đại Hưng",
+          "Xã Vạn Kim",
+          "Xã Đốc Tín",
+          "Xã Hương Sơn",
+          "Xã Hùng Tiến",
+          "Xã An Tiến",
+          "Xã Hợp Tiến",
+          "Xã Hợp Thanh",
+          "Xã An Phú"
+        ]
+      },
+      {
+        "name": "Quận Ba Đình",
+        "wards": [
+          "Phường Phúc Xá",
+          "Phường Trúc Bạch",
+          "Phường Vĩnh Phúc",
+          "Phường Cống Vị",
+          "Phường Liễu Giai",
+          "Phường Nguyễn Trung Trực",
+          "Phường Quán Thánh",
+          "Phường Ngọc Hà",
+          "Phường Điện Biên",
+          "Phường Đội Cấn",
+          "Phường Ngọc Khánh",
+          "Phường Kim Mã",
+          "Phường Giảng Võ",
+          "Phường Thành Công"
+        ]
+      },
+      {
+        "name": "Quận Hoàn Kiếm",
+        "wards": [
+          "Phường Phúc Tân",
+          "Phường Đồng Xuân",
+          "Phường Hàng Mã",
+          "Phường Hàng Buồm",
+          "Phường Hàng Đào",
+          "Phường Hàng Bồ",
+          "Phường Cửa Đông",
+          "Phường Lý Thái Tổ",
+          "Phường Hàng Bạc",
+          "Phường Hàng Gai",
+          "Phường Chương Dương",
+          "Phường Hàng Trống",
+          "Phường Cửa Nam",
+          "Phường Hàng Bông",
+          "Phường Tràng Tiền",
+          "Phường Trần Hưng Đạo",
+          "Phường Phan Chu Trinh",
+          "Phường Hàng Bài"
+        ]
+      },
+      {
+        "name": "Quận Tây Hồ",
+        "wards": [
+          "Phường Phú Thượng",
+          "Phường Nhật Tân",
+          "Phường Tứ Liên",
+          "Phường Quảng An",
+          "Phường Xuân La",
+          "Phường Yên Phụ",
+          "Phường Bưởi",
+          "Phường Thụy Khuê"
+        ]
+      },
+      {
+        "name": "Quận Long Biên",
+        "wards": [
+          "Phường Thượng Thanh",
+          "Phường Ngọc Thụy",
+          "Phường Giang Biên",
+          "Phường Đức Giang",
+          "Phường Việt Hưng",
+          "Phường Gia Thụy",
+          "Phường Ngọc Lâm",
+          "Phường Phúc Lợi",
+          "Phường Bồ Đề",
+          "Phường Sài Đồng",
+          "Phường Long Biên",
+          "Phường Thạch Bàn",
+          "Phường Phúc Đồng",
+          "Phường Cự Khối"
+        ]
+      },
+      {
+        "name": "Quận Cầu Giấy",
+        "wards": [
+          "Phường Nghĩa Đô",
+          "Phường Nghĩa Tân",
+          "Phường Mai Dịch",
+          "Phường Dịch Vọng",
+          "Phường Dịch Vọng Hậu",
+          "Phường Quan Hoa",
+          "Phường Yên Hoà",
+          "Phường Trung Hoà"
+        ]
+      },
+      {
+        "name": "Quận Đống Đa",
+        "wards": [
+          "Phường Cát Linh",
+          "Phường Văn Miếu",
+          "Phường Quốc Tử Giám",
+          "Phường Láng Thượng",
+          "Phường Ô Chợ Dừa",
+          "Phường Văn Chương",
+          "Phường Hàng Bột",
+          "Phường Láng Hạ",
+          "Phường Khâm Thiên",
+          "Phường Thổ Quan",
+          "Phường Nam Đồng",
+          "Phường Trung Phụng",
+          "Phường Quang Trung",
+          "Phường Trung Liệt",
+          "Phường Phương Liên",
+          "Phường Thịnh Quang",
+          "Phường Trung Tự",
+          "Phường Kim Liên",
+          "Phường Phương Mai",
+          "Phường Ngã Tư Sở",
+          "Phường Khương Thượng"
+        ]
+      },
+      {
+        "name": "Quận Hai Bà Trưng",
+        "wards": [
+          "Phường Nguyễn Du",
+          "Phường Bạch Đằng",
+          "Phường Phạm Đình Hổ",
+          "Phường Lê Đại Hành",
+          "Phường Đồng Nhân",
+          "Phường Phố Huế",
+          "Phường Đống Mác",
+          "Phường Thanh Lương",
+          "Phường Thanh Nhàn",
+          "Phường Cầu Dền",
+          "Phường Bách Khoa",
+          "Phường Đồng Tâm",
+          "Phường Vĩnh Tuy",
+          "Phường Bạch Mai",
+          "Phường Quỳnh Mai",
+          "Phường Quỳnh Lôi",
+          "Phường Minh Khai",
+          "Phường Trương Định"
+        ]
+      },
+      {
+        "name": "Quận Hoàng Mai",
+        "wards": [
+          "Phường Thanh Trì",
+          "Phường Vĩnh Hưng",
+          "Phường Định Công",
+          "Phường Mai Động",
+          "Phường Tương Mai",
+          "Phường Đại Kim",
+          "Phường Tân Mai",
+          "Phường Hoàng Văn Thụ",
+          "Phường Giáp Bát",
+          "Phường Lĩnh Nam",
+          "Phường Thịnh Liệt",
+          "Phường Trần Phú",
+          "Phường Hoàng Liệt",
+          "Phường Yên Sở"
+        ]
+      },
+      {
+        "name": "Quận Thanh Xuân",
+        "wards": [
+          "Phường Nhân Chính",
+          "Phường Thượng Đình",
+          "Phường Khương Trung",
+          "Phường Khương Mai",
+          "Phường Thanh Xuân Trung",
+          "Phường Phương Liệt",
+          "Phường Hạ Đình",
+          "Phường Khương Đình",
+          "Phường Thanh Xuân Bắc",
+          "Phường Thanh Xuân Nam",
+          "Phường Kim Giang"
+        ]
+      },
+      {
+        "name": "Huyện Sóc Sơn",
+        "wards": [
+          "Thị trấn Sóc Sơn",
+          "Xã Bắc Sơn",
+          "Xã Minh Trí",
+          "Xã Hồng Kỳ",
+          "Xã Nam Sơn",
+          "Xã Trung Giã",
+          "Xã Tân Hưng",
+          "Xã Minh Phú",
+          "Xã Phù Linh",
+          "Xã Bắc Phú",
+          "Xã Tân Minh",
+          "Xã Quang Tiến",
+          "Xã Hiền Ninh",
+          "Xã Tân Dân",
+          "Xã Tiên Dược",
+          "Xã Việt Long",
+          "Xã Xuân Giang",
+          "Xã Mai Đình",
+          "Xã Đức Hoà",
+          "Xã Thanh Xuân",
+          "Xã Đông Xuân",
+          "Xã Kim Lũ",
+          "Xã Phú Cường",
+          "Xã Phú Minh",
+          "Xã Phù Lỗ",
+          "Xã Xuân Thu"
+        ]
+      },
+      {
+        "name": "Huyện Đông Anh",
+        "wards": [
+          "Thị trấn Đông Anh",
+          "Xã Xuân Nộn",
+          "Xã Thuỵ Lâm",
+          "Xã Bắc Hồng",
+          "Xã Nguyên Khê",
+          "Xã Nam Hồng",
+          "Xã Tiên Dương",
+          "Xã Vân Hà",
+          "Xã Uy Nỗ",
+          "Xã Vân Nội",
+          "Xã Liên Hà",
+          "Xã Việt Hùng",
+          "Xã Kim Nỗ",
+          "Xã Kim Chung",
+          "Xã Dục Tú",
+          "Xã Đại Mạch",
+          "Xã Vĩnh Ngọc",
+          "Xã Cổ Loa",
+          "Xã Hải Bối",
+          "Xã Xuân Canh",
+          "Xã Võng La",
+          "Xã Tàm Xá",
+          "Xã Mai Lâm",
+          "Xã Đông Hội"
+        ]
+      },
+      {
+        "name": "Huyện Gia Lâm",
+        "wards": [
+          "Thị trấn Yên Viên",
+          "Xã Yên Thường",
+          "Xã Yên Viên",
+          "Xã Ninh Hiệp",
+          "Xã Đình Xuyên",
+          "Xã Dương Hà",
+          "Xã Phù Đổng",
+          "Xã Trung Mầu",
+          "Xã Lệ Chi",
+          "Xã Cổ Bi",
+          "Xã Đặng Xá",
+          "Xã Phú Thị",
+          "Xã Kim Sơn",
+          "Thị trấn Trâu Quỳ",
+          "Xã Dương Quang",
+          "Xã Dương Xá",
+          "Xã Đông Dư",
+          "Xã Đa Tốn",
+          "Xã Kiêu Kỵ",
+          "Xã Bát Tràng",
+          "Xã Kim Lan",
+          "Xã Văn Đức"
+        ]
+      },
+      {
+        "name": "Quận Nam Từ Liêm",
+        "wards": [
+          "Phường Cầu Diễn",
+          "Phường Xuân Phương",
+          "Phường Phương Canh",
+          "Phường Mỹ Đình 1",
+          "Phường Mỹ Đình 2",
+          "Phường Tây Mỗ",
+          "Phường Mễ Trì",
+          "Phường Phú Đô",
+          "Phường Đại Mỗ",
+          "Phường Trung Văn"
+        ]
+      },
+      {
+        "name": "Huyện Thanh Trì",
+        "wards": [
+          "Thị trấn Văn Điển",
+          "Xã Tân Triều",
+          "Xã Thanh Liệt",
+          "Xã Tả Thanh Oai",
+          "Xã Hữu Hoà",
+          "Xã Tam Hiệp",
+          "Xã Tứ Hiệp",
+          "Xã Yên Mỹ",
+          "Xã Vĩnh Quỳnh",
+          "Xã Ngũ Hiệp",
+          "Xã Duyên Hà",
+          "Xã Ngọc Hồi",
+          "Xã Vạn Phúc",
+          "Xã Đại áng",
+          "Xã Liên Ninh",
+          "Xã Đông Mỹ"
+        ]
+      },
+      {
+        "name": "Quận Bắc Từ Liêm",
+        "wards": [
+          "Phường Thượng Cát",
+          "Phường Liên Mạc",
+          "Phường Đông Ngạc",
+          "Phường Đức Thắng",
+          "Phường Thụy Phương",
+          "Phường Tây Tựu",
+          "Phường Xuân Đỉnh",
+          "Phường Xuân Tảo",
+          "Phường Minh Khai",
+          "Phường Cổ Nhuế 1",
+          "Phường Cổ Nhuế 2",
+          "Phường Phú Diễn",
+          "Phường Phúc Diễn"
+        ]
+      }
+    ]
+  }
+]

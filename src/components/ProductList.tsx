@@ -11,6 +11,7 @@ import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { useScrollDirection } from '../hooks/useScrollDirection';
+import { parseLocation, locationTree, LocationNode } from '../lib/locationMapping';
 
 interface ProductListProps {
   onNavigate: (route: RouteState) => void;
@@ -134,6 +135,10 @@ export default function ProductList({
   const [recentGridLimit, setRecentGridLimit] = useState(5);
 
   const [districts, setDistricts] = useState<string[]>([]);
+  const [filteredLocationTree, setFilteredLocationTree] = useState<LocationNode[]>([]);
+  const [expandedLocationLevel, setExpandedLocationLevel] = useState<string | null>(null);
+  const [expandedLocationParent, setExpandedLocationParent] = useState<string | null>(null);
+  
   const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
   const [expandedParentCat, setExpandedParentCat] = useState<string | null>(null);
 
@@ -201,6 +206,31 @@ export default function ProductList({
         setProducts(list);
         setDistricts(adminConfiguredDistricts.length > 0 ? adminConfiguredDistricts : Array.from(uniqueDistricts).sort());
 
+        const activeNodes = new Set<string>();
+        uniqueDistricts.forEach(d => {
+            const loc = parseLocation(d);
+            if (loc.province) activeNodes.add(loc.province);
+            if (loc.district) activeNodes.add(loc.district);
+            if (loc.ward) activeNodes.add(loc.ward);
+        });
+
+        const dynamicTree = locationTree.map(prov => {
+           if (!activeNodes.has(prov.name)) return null;
+           const newProv = { ...prov };
+           if (newProv.districts) {
+             newProv.districts = newProv.districts.filter(dist => activeNodes.has(dist.name)).map(dist => {
+               const newDist = { ...dist };
+               if (newDist.wards) {
+                 newDist.wards = newDist.wards.filter(ward => activeNodes.has(ward));
+               }
+               return newDist;
+             });
+           }
+           return newProv;
+        }).filter(Boolean) as LocationNode[];
+
+        setFilteredLocationTree(dynamicTree);
+
         const viewedIds: string[] = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
         if (viewedIds.length > 0) {
           const historyList = list.filter(p => viewedIds.includes(p.id));
@@ -253,12 +283,28 @@ export default function ProductList({
   };
 
   const filteredProducts = React.useMemo(() => products.filter(p => {
-    const matchesSearch = p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          p.district.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (p.category && p.category.trim().toLowerCase().includes(searchQuery.toLowerCase()));
+    // 6. Type search matches title, district, type, or parsed location
+    const sQuery = searchQuery.toLowerCase().trim();
+    const parsedSearch = parseLocation(sQuery);
+    
+    const matchesSearch = sQuery === '' || (
+      p.title.toLowerCase().includes(sQuery) ||
+      (p.district && p.district.toLowerCase().includes(sQuery)) ||
+      (p.type && p.type.toLowerCase().includes(sQuery)) ||
+      (parsedSearch.province && p.district && parseLocation(p.district).province === parsedSearch.province) ||
+      (parsedSearch.district && p.district && parseLocation(p.district).district === parsedSearch.district)
+    );
     
     const matchesType = selectedType === 'all' || (selectedType === 'sale' ? p.type !== 'rent' : p.type === 'rent');
-    const matchesDistrict = selectedDistrict === 'all' || p.district.trim() === selectedDistrict;
+    
+    // District matches exact text OR hierarchical mappings
+    const matchesDistrict = selectedDistrict === 'all' || (() => {
+      const parsed = parseLocation(p.district || '');
+      return p.district?.trim() === selectedDistrict || 
+             parsed.province === selectedDistrict || 
+             parsed.district === selectedDistrict || 
+             parsed.ward === selectedDistrict;
+    })();
     
     // Safety matching exactly for selectedCategory
     const matchesCategory = selectedCategory === 'all' || (p.category && (p.category.trim().toLowerCase() === selectedCategory.trim().toLowerCase() || generateSlug(p.category) === selectedCategory));
@@ -524,11 +570,80 @@ export default function ProductList({
                         )}
                         
                         {openDropdown === 'district' && (
-                          <div onClick={(e) => e.stopPropagation()} className="w-full md:w-[260px] bg-bg-surface border border-border-color shadow-md scrollbar-thumb-border-color pointer-events-auto block">
+                          <div onClick={(e) => e.stopPropagation()} className="w-full md:w-[260px] bg-bg-surface border border-border-color shadow-md scrollbar-thumb-border-color pointer-events-auto block max-h-[400px] overflow-y-auto">
                                <button onClick={() => { setSelectedDistrict('all'); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedDistrict === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
                                  <span>Tất cả Khu vực</span>
                                </button>
-                               {districts.map(dist => (
+                               
+                               {filteredLocationTree.length > 0 ? filteredLocationTree.map(prov => {
+                                  const isProvSelected = selectedDistrict === prov.name;
+                                  const isProvExpanded = expandedLocationLevel === prov.name;
+                                  return (
+                                    <div key={prov.name} className="w-full flex flex-col">
+                                      <div className={`w-full flex justify-between items-stretch transition-colors border-b border-border-color/50 ${isProvSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}>
+                                        <button
+                                          onClick={() => { setSelectedDistrict(prov.name); setOpenDropdown(null); }}
+                                          className="flex-1 text-left !px-[10px] !py-[5px] text-[13px] md:text-xs border-none cursor-pointer bg-transparent text-inherit font-inherit"
+                                        >
+                                          <span>{prov.name}</span>
+                                        </button>
+                                        {prov.districts && prov.districts.length > 0 && (
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); setExpandedLocationLevel(isProvExpanded ? null : prov.name); }}
+                                            className="px-3 flex items-center justify-center border-none cursor-pointer bg-transparent text-text-secondary hover:text-primary transition-colors"
+                                          >
+                                            <ChevronDown size={14} className={`transition-transform duration-200 ${isProvExpanded ? 'rotate-180' : ''}`} />
+                                          </button>
+                                        )}
+                                      </div>
+                                      
+                                      {isProvExpanded && prov.districts && (
+                                        <div className="flex flex-col bg-bg-surface overflow-hidden">
+                                           {prov.districts.map(dist => {
+                                              const isDistSelected = selectedDistrict === dist.name;
+                                              const isDistExpanded = expandedLocationParent === dist.name;
+                                              return (
+                                                <div key={dist.name} className="w-full flex flex-col">
+                                                   <div className={`w-full flex justify-between items-stretch transition-colors border-b border-border-color/50 ${isDistSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}>
+                                                      <button
+                                                        onClick={() => { setSelectedDistrict(dist.name); setOpenDropdown(null); }}
+                                                        className="flex-1 text-left !px-[10px] !py-[5px] pl-[25px] text-[13px] md:text-xs border-none cursor-pointer bg-transparent text-inherit font-inherit"
+                                                      >
+                                                        <span className="opacity-80">└ {dist.name}</span>
+                                                      </button>
+                                                      {dist.wards && dist.wards.length > 0 && (
+                                                        <button
+                                                          onClick={(e) => { e.stopPropagation(); setExpandedLocationParent(isDistExpanded ? null : dist.name); }}
+                                                          className="px-3 flex items-center justify-center border-none cursor-pointer bg-transparent text-text-secondary hover:text-primary transition-colors"
+                                                        >
+                                                          <ChevronDown size={14} className={`transition-transform duration-200 ${isDistExpanded ? 'rotate-180' : ''}`} />
+                                                        </button>
+                                                      )}
+                                                   </div>
+                                                   {isDistExpanded && dist.wards && (
+                                                      <div className="flex flex-col bg-bg-surface overflow-hidden">
+                                                         {dist.wards.map(ward => {
+                                                            const isWardSelected = selectedDistrict === ward;
+                                                            return (
+                                                              <button
+                                                                key={ward}
+                                                                onClick={() => { setSelectedDistrict(ward); setOpenDropdown(null); }}
+                                                                className={`w-full text-left !px-[10px] !py-[5px] pl-[40px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${isWardSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}
+                                                              >
+                                                                <span className="opacity-60">└ {ward}</span>
+                                                              </button>
+                                                            )
+                                                         })}
+                                                      </div>
+                                                   )}
+                                                </div>
+                                              )
+                                           })}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )
+                               }) : districts.map(dist => (
                                  <button 
                                    key={dist}
                                    onClick={() => { setSelectedDistrict(dist); setOpenDropdown(null); }} 

@@ -96,6 +96,7 @@ import {
 } from "recharts";
 import { useAuth } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
+import { allLocationsList } from "../lib/locationMapping";
 import {
   GITHUB_DEFAULTS,
   GithubFirestoreConfig,
@@ -6572,12 +6573,18 @@ export default function AdminPanel({
                         Địa Điểm / Khu Vực Bản Đồ
                       </label>
                       <input
+                        list="locations-list"
                         type="text"
                         value={district}
                         onChange={(e) => setDistrict(e.target.value)}
                         placeholder="Quận 7, TP. HCM"
                         className="w-full bg-white border border-slate-200 rounded-lg px-3 min-h-[32px] py-1.5 text-[10px] text-slate-900 outline-none"
                       />
+                      <datalist id="locations-list">
+                        {allLocationsList.map((loc) => (
+                          <option key={loc} value={loc} />
+                        ))}
+                      </datalist>
                     </div>
 
                     {/* Visual Map and Technical Specifications */}

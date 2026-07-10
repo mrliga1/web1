@@ -372,7 +372,7 @@ export default function ProductList({
     }
 
     return matchesSearch && matchesType && matchesDistrict && matchesCategory && matchesPrice && matchesArea;
-  }), [products, searchQuery, selectedType, selectedDistrict, selectedCategory, selectedPriceRange, selectedAreaRange, priceSaleConfig, priceRentConfig, areaConfig]);
+  }), [products, searchQuery, selectedType, selectedDistrict, selectedCategory, selectedPriceRange, selectedAreaRange, priceSaleConfig, priceRentConfig, areaConfig, productCategoriesExt]);
 
   const latestSales = React.useMemo(() => products.filter(p => p.type !== 'rent').slice(0, 8), [products]);
   const latestRents = React.useMemo(() => products.filter(p => p.type === 'rent').slice(0, 8), [products]);

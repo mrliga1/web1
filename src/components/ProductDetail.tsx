@@ -75,6 +75,7 @@ const MapViewer = React.memo(
 
 import { notifyAdminEmail } from "../lib/email";
 import { fetchClientIp } from "../lib/ip";
+import { parseLocation } from "../lib/locationMapping";
 
 declare global {
   interface Window {
@@ -373,7 +374,10 @@ export default function ProductDetail({
     categoryCounts[finalCatName] = (categoryCounts[finalCatName] || 0) + 1;
 
     if (p.district) {
-      districtCounts[p.district] = (districtCounts[p.district] || 0) + 1;
+      const parsedLoc = parseLocation(p.district || '');
+      // Try to use the normalized district name, fallback to province or raw string if parsing fails
+      const locName = parsedLoc.district || parsedLoc.province || p.district?.trim() || 'Khác';
+      districtCounts[locName] = (districtCounts[locName] || 0) + 1;
     }
   });
 

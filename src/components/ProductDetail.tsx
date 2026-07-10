@@ -498,7 +498,7 @@ export default function ProductDetail({
       </Helmet>
 
       {/* 9.2.1. Breadcrumb Navigation */}
-      <div className="space-y-5">
+      <div className="flex flex-col">
         <nav
           className="flex items-center justify-between text-xs text-text-secondary border-b border-border-color pb-[5px]"
           id="detail-breadcrumb"
@@ -544,8 +544,8 @@ export default function ProductDetail({
         </button>
       </nav>
 
-      {/* 9.2.2. Three Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        {/* 9.2.2. Three Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mt-3">
         {/* =========================================================
             COLUMN 1 (Left): Covers 6 grid column widths (lg:col-span-6)
             ========================================================= */}

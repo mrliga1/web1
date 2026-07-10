@@ -10,6 +10,8 @@ import {
   Building2,
   ChevronLeft,
   ArrowRight,
+  ChevronRight,
+  X,
   Share2,
   Heart,
   CheckCircle2,
@@ -169,6 +171,31 @@ export default function ProductDetail({
     "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=800",
     "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
   ];
+
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const currentImages = product?.imageUrls && product.imageUrls.length > 0 
+    ? product.imageUrls 
+    : [product?.imageUrl || sampleThumbs[0], ...sampleThumbs.slice(1)];
+
+  const handlePrevImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setIsAutoplayPaused(true);
+    setSelectedImage((prev) => {
+      const idx = currentImages.indexOf(prev);
+      if (idx === -1) return currentImages[0];
+      return currentImages[(idx - 1 + currentImages.length) % currentImages.length];
+    });
+  };
+
+  const handleNextImage = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setIsAutoplayPaused(true);
+    setSelectedImage((prev) => {
+      const idx = currentImages.indexOf(prev);
+      if (idx === -1) return currentImages[0];
+      return currentImages[(idx + 1) % currentImages.length];
+    });
+  };
 
   useEffect(() => {
     async function loadProductData() {
@@ -552,7 +579,7 @@ export default function ProductDetail({
         <div className="lg:col-span-6 space-y-8" id="detail-pane-left">
           {/* Cover Multi-image Slider */}
           <div className="space-y-4 !mb-[10px]">
-            <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-border-color bg-bg-surface shadow-xl">
+            <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-border-color bg-bg-surface shadow-xl group">
               <img
                 loading="eager"
                 decoding="async"
@@ -563,8 +590,26 @@ export default function ProductDetail({
                 sizes="(max-width: 1024px) 100vw, 800px"
                 alt={product.title}
                 referrerPolicy="no-referrer"
-                className="w-full h-full object-cover transition-all duration-300"
+                className="w-full h-full object-cover transition-all duration-300 cursor-pointer"
+                onClick={() => setIsLightboxOpen(true)}
               />
+
+              {currentImages.length > 1 && (
+                <>
+                  <button
+                    onClick={handlePrevImage}
+                    className="absolute top-1/2 left-2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all z-20"
+                  >
+                    <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
+                  </button>
+                  <button
+                    onClick={handleNextImage}
+                    className="absolute top-1/2 right-2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all z-20"
+                  >
+                    <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
+                  </button>
+                </>
+              )}
 
               <div className="absolute top-0 left-0 z-10">
                 <span
@@ -1361,6 +1406,48 @@ export default function ProductDetail({
         </div>
       </div>
     </section>
+
+      {/* Lightbox Overlay */}
+      {isLightboxOpen && (
+        <div className="fixed inset-0 z-[200] bg-black/90 flex flex-col items-center justify-center animate-in fade-in">
+          <button 
+            onClick={() => setIsLightboxOpen(false)}
+            className="absolute top-4 right-4 z-[210] p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm transition-all"
+          >
+            <X className="w-6 h-6 md:w-8 md:h-8" />
+          </button>
+          
+          <div className="relative w-full max-w-6xl max-h-[90vh] flex items-center justify-center px-4">
+            <img 
+              src={selectedImage}
+              alt={product.title}
+              className="max-w-full max-h-[90vh] object-contain select-none"
+            />
+            
+            {currentImages.length > 1 && (
+              <>
+                <button
+                  onClick={handlePrevImage}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm transition-all"
+                >
+                  <ChevronLeft className="w-8 h-8 md:w-12 md:h-12" />
+                </button>
+                <button
+                  onClick={handleNextImage}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm transition-all"
+                >
+                  <ChevronRight className="w-8 h-8 md:w-12 md:h-12" />
+                </button>
+              </>
+            )}
+          </div>
+          
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium bg-black/40 px-4 py-1.5 rounded-full backdrop-blur-sm">
+            {currentImages.indexOf(selectedImage) + 1} / {currentImages.length}
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

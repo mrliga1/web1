@@ -2185,6 +2185,7 @@ export default function AdminPanel({
             seoTitle: data.seoTitle.trim() || data.name.trim(),
             seoDesc: data.seoDesc.trim(),
             seoKeywords: data.seoKeywords?.trim() || "",
+            parentId: data.parentId?.trim() || null,
           });
         } else if (mode === "edit" && index !== undefined) {
           newExts[index] = {
@@ -2193,6 +2194,7 @@ export default function AdminPanel({
             seoTitle: data.seoTitle.trim() || data.name.trim(),
             seoDesc: data.seoDesc.trim(),
             seoKeywords: data.seoKeywords?.trim() || "",
+            parentId: data.parentId?.trim() || null,
           };
         }
 

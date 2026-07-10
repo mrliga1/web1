@@ -2302,7 +2302,7 @@ export default function AdminPanel({
         seoTitle: cat.seoTitle || "",
         seoDesc: cat.seoDesc || "",
         seoKeywords: cat.seoKeywords || "",
-        parentId: "",
+        parentId: cat.parentId || "",
       },
     });
   };

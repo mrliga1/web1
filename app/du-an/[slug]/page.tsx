@@ -3,6 +3,9 @@ import ClientWrapper from "./ClientWrapper";
 import { supabase } from "../../../src/supabase";
 import { generateSlug } from "../../../src/lib/utils";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 type Props = {
   params: Promise<{ slug: string }>;
 };
@@ -13,29 +16,30 @@ export async function generateMetadata(
 ): Promise<Metadata> {
   const { slug } = await params;
   
-  const { data: projects } = await supabase.from('projects').select('title, imageUrl, description, seoTitle, metaTitle, seoDesc');
+  const { data: projects } = await supabase.from('projects').select('data');
   let matchedItem = null;
   
   if (projects) {
-    matchedItem = projects.find((n: any) => generateSlug(n.title) === slug);
+    matchedItem = projects.find((n: any) => generateSlug(n.data?.title || '') === slug);
   }
 
-  if (!matchedItem) {
+  if (!matchedItem || !matchedItem.data) {
     return {
       title: "Dự án | Greenia Homes",
     };
   }
 
-  const title = matchedItem.seoTitle?.trim() || matchedItem.metaTitle?.trim() || matchedItem.title?.trim() || "";
+  const itemData = matchedItem.data;
+  const title = itemData.seoTitle?.trim() || itemData.metaTitle?.trim() || itemData.title?.trim() || "";
   const finalTitle = title.includes("|") ? title : `${title} | Greenia Homes`;
 
   return {
     title: finalTitle,
-    description: matchedItem.seoDesc || (matchedItem.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160),
+    description: itemData.seoDesc || (itemData.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160),
     openGraph: {
       title: finalTitle,
-      description: matchedItem.seoDesc || (matchedItem.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160),
-      images: matchedItem.imageUrl ? [matchedItem.imageUrl] : [],
+      description: itemData.seoDesc || (itemData.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160),
+      images: itemData.imageUrl ? [itemData.imageUrl] : [],
     }
   };
 }

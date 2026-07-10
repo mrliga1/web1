@@ -338,7 +338,7 @@ export default function ProductDetail({
     return (
       <>
         <div
-          className="min-h-[70vh] flex flex-col justify-center items-center text-center space-y-4 max-w-sm mx-auto"
+          className="min-h-[100vh] flex flex-col justify-center items-center text-center space-y-4 max-w-sm mx-auto"
           id="product-detail-loader"
         >
           <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />

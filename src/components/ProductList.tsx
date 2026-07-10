@@ -306,8 +306,27 @@ export default function ProductList({
              parsed.ward === selectedDistrict;
     })();
     
-    // Safety matching exactly for selectedCategory
-    const matchesCategory = selectedCategory === 'all' || (p.category && (p.category.trim().toLowerCase() === selectedCategory.trim().toLowerCase() || generateSlug(p.category) === selectedCategory));
+    // Category matches exact category OR sub-categories of the selected category
+    const matchesCategory = selectedCategory === 'all' || (() => {
+      if (!p.category) return false;
+      const pCatName = p.category.trim().toLowerCase();
+      const sCatName = selectedCategory.trim().toLowerCase();
+      
+      // Exact match (by name or slug)
+      if (pCatName === sCatName || generateSlug(p.category) === selectedCategory) {
+        return true;
+      }
+      
+      // Match if product's category is a child of the selected category
+      const parentCat = productCategoriesExt.find(c => c.name.toLowerCase() === sCatName || generateSlug(c.name) === selectedCategory);
+      if (parentCat) {
+        const childCats = productCategoriesExt.filter(c => c.parentId === parentCat.name);
+        if (childCats.some(child => child.name.toLowerCase() === pCatName || generateSlug(child.name) === generateSlug(p.category))) {
+          return true;
+        }
+      }
+      return false;
+    })();
 
     let matchesPrice = true;
     if (selectedPriceRange !== 'all') {

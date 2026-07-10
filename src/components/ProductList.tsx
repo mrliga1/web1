@@ -135,6 +135,7 @@ export default function ProductList({
 
   const [districts, setDistricts] = useState<string[]>([]);
   const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
+  const [expandedParentCat, setExpandedParentCat] = useState<string | null>(null);
 
   const [priceSaleConfig, setPriceSaleConfig] = useState<any[]>([]);
   const [priceRentConfig, setPriceRentConfig] = useState<any[]>([]);
@@ -544,16 +545,41 @@ export default function ProductList({
                             <button onClick={() => { setSelectedCategory('all'); setOpenDropdown(null); }} className={`w-full text-left !px-[10px] !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedCategory === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
                               <span>Tất cả Danh mục</span>
                             </button>
-                            {productCategoriesExt.map((cat: any) => {
-                               const isSelected = selectedCategory === cat.name || selectedCategory === generateSlug(cat.name);
+                            {productCategoriesExt.filter(c => !c.parentId).map((parentCat: any) => {
+                               const childCats = productCategoriesExt.filter(c => c.parentId === parentCat.name);
+                               const isParentSelected = selectedCategory === parentCat.name || selectedCategory === generateSlug(parentCat.name);
+                               const isExpanded = expandedParentCat === parentCat.name;
                                return (
-                                 <button
-                                   key={cat.id}
-                                   onClick={(e) => { e.preventDefault(); setSelectedCategory(cat.name); setOpenDropdown(null); router.push(getRouteUrl({ screen: 'category-product', categoryName: cat.name })); }}
-                                   className={`w-full text-left !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${cat.parentId ? '!px-[20px] text-[12px] md:text-[11px]' : '!px-[10px]'} ${isSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}
-                                 >
-                                   <span>{cat.parentId ? `└ ${cat.name}` : cat.name}</span>
-                                 </button>
+                                 <div key={parentCat.id} className="w-full flex flex-col">
+                                   <div className={`w-full flex justify-between items-stretch transition-colors border-b border-border-color/50 ${isParentSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}>
+                                     <button
+                                       onClick={(e) => { e.preventDefault(); setSelectedCategory(parentCat.name); setOpenDropdown(null); router.push(getRouteUrl({ screen: 'category-product', categoryName: parentCat.name })); }}
+                                       className="flex-1 text-left !py-[5px] !px-[10px] text-[13px] md:text-xs border-none cursor-pointer bg-transparent text-inherit"
+                                     >
+                                       {parentCat.name}
+                                     </button>
+                                     {childCats.length > 0 && (
+                                       <button 
+                                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpandedParentCat(isExpanded ? null : parentCat.name); }}
+                                         className="px-3 border-none cursor-pointer bg-transparent text-inherit flex items-center justify-center shrink-0 hover:bg-black/5"
+                                       >
+                                         <ChevronDown size={14} className={`transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                                       </button>
+                                     )}
+                                   </div>
+                                   {isExpanded && childCats.map((childCat: any) => {
+                                     const isChildSelected = selectedCategory === childCat.name || selectedCategory === generateSlug(childCat.name);
+                                     return (
+                                       <button
+                                         key={childCat.id}
+                                         onClick={(e) => { e.preventDefault(); setSelectedCategory(childCat.name); setOpenDropdown(null); router.push(getRouteUrl({ screen: 'category-product', categoryName: childCat.name })); }}
+                                         className={`w-full text-left !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 !px-[20px] ${isChildSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-slate-50 text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}
+                                       >
+                                         <span className="text-[12px] md:text-[11px] text-slate-500">└ {childCat.name}</span>
+                                       </button>
+                                     );
+                                   })}
+                                 </div>
                                );
                              })}
                           </div>

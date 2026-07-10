@@ -498,10 +498,11 @@ export default function ProductDetail({
       </Helmet>
 
       {/* 9.2.1. Breadcrumb Navigation */}
-      <nav
-        className="flex items-center justify-between text-xs text-text-secondary border-b border-border-color pb-[5px] mb-[15px]"
-        id="detail-breadcrumb"
-      >
+      <div className="space-y-5">
+        <nav
+          className="flex items-center justify-between text-xs text-text-secondary border-b border-border-color pb-[5px]"
+          id="detail-breadcrumb"
+        >
         <div className="flex items-center gap-1.5 flex-wrap">
           <button
             onClick={() => onNavigate({ screen: "home" })}

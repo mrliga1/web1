@@ -10,13 +10,23 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
+let productsPromise: Promise<any> | null = null;
+let cacheTime = 0;
+
+async function getProducts() {
+  if (productsPromise && Date.now() - cacheTime < 60000) return productsPromise;
+  productsPromise = supabase.from('products').select('data').then(res => res.data);
+  cacheTime = Date.now();
+  return productsPromise;
+}
+
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata
 ): Promise<Metadata> {
   const { slug } = await params;
   
-  const { data: products } = await supabase.from('products').select('data');
+  const products = await getProducts();
   let matchedItem = null;
   
   if (products) {

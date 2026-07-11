@@ -1815,10 +1815,7 @@ export default function AdminPanel({
             metaKeywords: itemSeoKeywords.trim(),
           };
           await updateDoc(doc(db, "products", editingItemId), updatePayload);
-          onShowNotification(
-            "Cập nhật thông tin bất động sản thành công!",
-            "success",
-          );
+          // Removed success notification when editing product as requested
         } else if (createType === "project") {
           if (currentUserRole === "member" || currentUserRole === "user") {
             onShowNotification(
@@ -1877,7 +1874,7 @@ export default function AdminPanel({
             metaKeywords: itemSeoKeywords.trim(),
           };
           await updateDoc(doc(db, "projects", editingItemId), updatePayload);
-          onShowNotification("Cập nhật quy hoạch dự án thành công!", "success");
+          // Removed success notification when editing project as requested
         } else if (createType === "article") {
           if (currentUserRole === "member" || currentUserRole === "user") {
             const found = news.find((n) => n.id === editingItemId);
@@ -1906,10 +1903,7 @@ export default function AdminPanel({
             metaKeywords: itemSeoKeywords.trim(),
           };
           await updateDoc(doc(db, "news", editingItemId), updatePayload);
-          onShowNotification(
-            "Cập nhật chuyên mục bài viết thành công!",
-            "success",
-          );
+          // Removed success notification when editing article as requested
         }
       } else {
         if (createType === "product") {

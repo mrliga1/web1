@@ -253,10 +253,7 @@ export default function ProductDetail({
           }
         } else {
           setLoading(false);
-          onShowNotification(
-            "Sản phẩm không có hoặc đã bị gỡ xuống khỏi hệ thống.",
-            "error",
-          );
+          // Removed the error notification "Sản phẩm không có..." as requested by user
           onNavigate({ screen: "san-pham" });
           return;
         }

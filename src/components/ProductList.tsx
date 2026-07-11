@@ -11,7 +11,7 @@ import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { useScrollDirection } from '../hooks/useScrollDirection';
-import { parseLocation, locationTree, LocationNode } from '../lib/locationMapping';
+import { locationTree, parseLocation, LocationNode, formatLocationName } from '../lib/locationMapping';
 
 interface ProductListProps {
   onNavigate: (route: RouteState) => void;
@@ -215,8 +215,9 @@ export default function ProductList({
         });
 
         const dynamicTree = locationTree.map(prov => {
-           if (!activeNodes.has(prov.name)) return null;
-           const newProv = { ...prov };
+           const formattedProvName = formatLocationName(prov.name);
+           if (!activeNodes.has(formattedProvName) && !activeNodes.has(prov.name)) return null;
+           const newProv = { ...prov, name: formattedProvName };
            if (newProv.wards) {
              newProv.wards = newProv.wards.filter(ward => activeNodes.has(ward));
            }

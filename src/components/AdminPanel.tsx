@@ -192,6 +192,7 @@ export default function AdminPanel({
   const [priceVal, setPriceVal] = useState("");
   const [prodType, setProdType] = useState<"sale" | "rent">("sale");
   const [district, setDistrict] = useState("");
+  const [street, setStreet] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [htmlContent, setHtmlContent] = useState("");
@@ -649,6 +650,7 @@ export default function AdminPanel({
     setPriceVal(String(item.priceVal || ""));
     setProdType(item.type || "sale");
     setDistrict(item.district || "");
+    setStreet(item.street || "");
     setContactPhone(item.phone || "");
     setImageUrl(item.imageUrl || "");
     setImageUrls(item.imageUrls || [item.imageUrl || ""]);
@@ -1787,6 +1789,7 @@ export default function AdminPanel({
             priceVal: isNaN(priceNumerical) ? 0 : priceNumerical,
             type: prodType,
             district: district.trim(),
+            street: street.trim(),
             phone: contactPhone.trim(),
             imageUrl: finalImage,
             imageUrls: imageUrls,
@@ -1916,6 +1919,7 @@ export default function AdminPanel({
             priceVal: isNaN(priceNumerical) ? 0 : priceNumerical,
             type: prodType,
             district: district.trim(),
+            street: street.trim(),
             phone: contactPhone.trim(),
             imageUrl: finalImage,
             imageUrls: imageUrls,
@@ -6586,6 +6590,22 @@ export default function AdminPanel({
                         ))}
                       </datalist>
                     </div>
+
+                    {/* Street Name / Number */}
+                    {createType === "product" && (
+                      <div className="space-y-1">
+                        <label className="text-[10px] text-slate-700 font-bold font-display block">
+                          Tên đường / Số nhà
+                        </label>
+                        <input
+                          type="text"
+                          value={street}
+                          onChange={(e) => setStreet(e.target.value)}
+                          placeholder="Số 12, Đường Nguyễn Hoàng"
+                          className="w-full bg-white border border-slate-200 rounded-lg px-3 min-h-[32px] py-1.5 text-[10px] text-slate-900 outline-none"
+                        />
+                      </div>
+                    )}
 
                     {/* Visual Map and Technical Specifications */}
                     {createType === "product" && (

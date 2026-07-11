@@ -5,6 +5,7 @@ export interface Product {
   priceVal: number;      // Numerical value for range queries and filters
   type: 'sale' | 'rent'; // 'sale' = Bán, 'rent' = Cho thuê
   district: string;      // District or area (e.g. "Quận 1", "TP. Thủ Đức", "Quận 7", "Huyện Nhà Bè")
+  street?: string;       // Street name or address (e.g. "Đường Nguyễn Hoàng")
   phone: string;         // Contact phone number
   description?: string;   // HTML formatting description
   imageUrl: string;      // Primary cover image layout

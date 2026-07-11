@@ -8,16 +8,25 @@ export interface LocationNode {
 
 export const locationTree = locationData as LocationNode[];
 
+export function formatLocationName(name: string): string {
+  if (!name) return '';
+  return name
+    .replace(/^Tỉnh\s+/i, '')
+    .replace(/Tp\.?\s*Hồ\s*Chí\s*Minh/i, 'TP. HCM')
+    .replace(/Thành phố Hồ Chí Minh/i, 'TP. HCM');
+}
+
 // Export a flat list of all locations for autocomplete (Province, District, Ward)
 export const allLocationsList: string[] = [];
 locationTree.forEach(prov => {
-  allLocationsList.push(prov.name);
+  const pName = formatLocationName(prov.name);
+  allLocationsList.push(pName);
   if (prov.districts) {
     prov.districts.forEach(dist => {
-      allLocationsList.push(`${dist.name}, ${prov.name}`);
+      allLocationsList.push(`${dist.name}, ${pName}`);
       if (dist.wards) {
         dist.wards.forEach(ward => {
-          allLocationsList.push(`${ward}, ${dist.name}, ${prov.name}`);
+          allLocationsList.push(`${ward}, ${dist.name}, ${pName}`);
         });
       }
     });
@@ -37,6 +46,9 @@ const legacyMapping: Record<string, string> = {
   'p.bình an': 'Phường An Khánh',
   'phường bình khánh': 'Phường An Khánh',
   'p.bình khánh': 'Phường An Khánh',
+  'tp. hcm': 'hồ chí minh',
+  'tp hcm': 'hồ chí minh',
+  'hcm': 'hồ chí minh',
   // Ha Noi mergers 2024 (examples, as there are many, we map common ones if needed)
   // For safety, users searching exact legacy strings will be mapped if we add them here.
 };
@@ -82,7 +94,7 @@ export function parseLocation(rawLocation: string) {
     const pShort = pName.replace('thành phố ', '').replace('tp. ', '').replace('tỉnh ', '');
     
     if (mappedRaw.includes(pName) || mappedRaw.includes(pShort)) {
-      matchedProvince = prov.name;
+      matchedProvince = formatLocationName(prov.name);
       
       // Find District within Province
       for (const dist of prov.districts || []) {
@@ -109,6 +121,25 @@ export function parseLocation(rawLocation: string) {
           break;
         }
       }
+
+      // Fallback: If district was missing but ward is specified (e.g. "P. Bình Hưng Hòa, Tp HCM")
+      if (!matchedDistrict) {
+        for (const dist of prov.districts || []) {
+          for (const ward of dist.wards || []) {
+            const wName = normalizeText(ward);
+            const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
+            const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
+            
+            if (mappedRaw.includes(wName) || wardRegex.test(mappedRaw)) {
+              matchedDistrict = dist.name;
+              matchedWard = ward;
+              break;
+            }
+          }
+          if (matchedDistrict) break;
+        }
+      }
+
       break;
     }
   }
@@ -122,7 +153,7 @@ export function parseLocation(rawLocation: string) {
         const distRegex = new RegExp(`\\b${dShort}\\b`, 'i');
         
         if (mappedRaw.includes(dName) || distRegex.test(mappedRaw)) {
-          matchedProvince = prov.name;
+          matchedProvince = formatLocationName(prov.name);
           matchedDistrict = dist.name;
           
           for (const ward of dist.wards || []) {

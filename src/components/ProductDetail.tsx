@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
+import { parseLocation, formatLocationName } from "../lib/locationMapping";
 import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from "../firebase";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import { Product, Project, RouteState } from "../types";
@@ -508,7 +509,7 @@ export default function ProductDetail({
       : computedTotalStars / computedTotalCount;
 
   const socialDescription = [
-    product.district ? `📍 ${product.street ? product.street + ', ' : ''}${product.district}` : null,
+    product.district ? `📍 ${product.street ? product.street + ', ' : ''}${formatLocationName(product.district)}` : null,
     product.priceText ? `💰 ${product.priceText}` : null,
     product.area ? `📐 ${product.area} m²` : null,
     product.bedrooms ? `🛏️ ${product.bedrooms} PN` : null,
@@ -735,7 +736,7 @@ export default function ProductDetail({
               <div className="flex items-center justify-between pb-0">
                 <p className="text-xs text-text-secondary flex items-center gap-1.5">
                   <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                  <span>{product.street ? `${product.street}, ` : ''}{product.district || "Thảo Điền, Quận 2"}</span>
+                  <span>{product.street ? `${product.street}, ` : ''}{product.district ? formatLocationName(product.district) : "Thảo Điền, Quận 2"}</span>
                 </p>
                 <div className="relative">
                   <button
@@ -1010,7 +1011,7 @@ export default function ProductDetail({
               >
                 <MapViewer
                   mapHtml={product.mapHtml}
-                  address={`${product.title}, ${product.street ? product.street + ', ' : ''}${product.district}`}
+                  address={`${product.title}, ${product.street ? product.street + ', ' : ''}${product.district ? formatLocationName(product.district) : ''}`}
                 />
               </div>
 

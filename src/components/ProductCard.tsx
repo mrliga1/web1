@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Product, RouteState } from '../types';
 import { MapPin, Tag, Layers, Bookmark, Bath, Heart } from 'lucide-react';
+import { formatLocationName } from '../lib/locationMapping';
 import { generateSlug, optimizeImageUrl, generateSrcSet } from '../lib/utils';
 
 interface ProductCardProps {
@@ -87,7 +88,7 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
         </h3>
         <div className="flex items-center gap-[5px] text-[12px] text-text-secondary mb-[4px] sm:mb-[2px]">
           <MapPin className="w-3 h-3 text-primary shrink-0" />
-          <span className="truncate text-[10px]">{item.street ? `${item.street}, ` : ''}{item.district}</span>
+          <span className="truncate text-[10px]">{item.street ? `${item.street}, ` : ''}{formatLocationName(item.district)}</span>
         </div>
         
         <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-border-color mt-auto">

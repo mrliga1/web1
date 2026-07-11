@@ -18,10 +18,6 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [sections, setSectionsState] = useState<any[]>([]);
-  const [isEditMode, setIsEditMode] = useState(false);
-  const [isQuotePopupOpen, setIsQuotePopupOpen] = useState(false);
-  
   const pathname = usePathname();
 
   const getLayoutDocName = (path: string) => {
@@ -32,6 +28,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     if (path.startsWith('/lien-he')) return 'lien-he';
     return null;
   };
+
+  const [sections, setSectionsState] = useState<any[]>(() => {
+    const docName = getLayoutDocName(pathname || '');
+    if (docName) {
+      let defaults = getPageDefaultSections(docName);
+      if (docName === "home") defaults = sanitizeHomeSections(defaults);
+      return defaults;
+    }
+    return [];
+  });
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [isQuotePopupOpen, setIsQuotePopupOpen] = useState(false);
+
 
   useEffect(() => {
     const docName = getLayoutDocName(pathname || '');

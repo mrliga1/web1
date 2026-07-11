@@ -96,6 +96,7 @@ import {
 } from "recharts";
 import { useAuth } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
+import FiltersConfigTab from "./FiltersConfigTab";
 import { allLocationsList } from "../lib/locationMapping";
 import {
   GITHUB_DEFAULTS,
@@ -2943,6 +2944,20 @@ export default function AdminPanel({
                   <span>Danh Mục Sản Phẩm</span>
                 </button>
 
+                <button
+                  onClick={() => {
+                    setActiveTab("filters" as any);
+                    setSidebarOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "filters" as any
+                      ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
+                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
+                    }`}
+                >
+                  <Filter className="w-4 h-4 shrink-0 text-primary" />
+                  <span>Bộ Lọc (Dropdown)</span>
+                </button>
+
 
                 <button
                   onClick={() => {
@@ -4041,7 +4056,7 @@ export default function AdminPanel({
             {/* =========================================================
             TAB: Filters Configuration
             ========================================================= */}
-            
+            {activeTab === "filters" as any && <FiltersConfigTab />}
 
             {/* =========================================================
             TAB 4: Categories listing group (Wordpress style)

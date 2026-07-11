@@ -208,7 +208,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         sourceUrl: friendlyUrl,
       });
 
-      setIsBooked(true);
+      setFormSubmitted(true);
       setClientName('');
       setClientPhone('');
       setClientEmail('');
@@ -669,7 +669,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSidebarConsultSubmit} className="space-y-2 pt-[5px] mt-1">
+              <form onSubmit={handleBookingSubmit} className="space-y-2 pt-[5px] mt-1">
                 <div className="space-y-1 text-left">
                   <input
                     type="text"

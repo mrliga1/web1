@@ -26,6 +26,7 @@ import {
   Bath,
   Facebook,
   Link as LinkIcon,
+  FolderOpen,
 } from "lucide-react";
 
 import { Helmet } from "react-helmet-async";
@@ -268,6 +269,12 @@ export default function ProductDetail({
         });
         setProjects(projList);
 
+        // 3.5 Fetch Categories Config
+        const genSnap = await getDoc(doc(db, 'settings', 'general'));
+        if (genSnap.exists() && genSnap.data().productCategoriesExt) {
+          setProductCategoriesExt(genSnap.data().productCategoriesExt);
+        }
+
         // 4. Save viewed ID to localStorage History
         const viewedIds: string[] = JSON.parse(
           localStorage.getItem("recentlyViewed") || "[]",
@@ -407,6 +414,37 @@ export default function ProductDetail({
       const locName = parsedLoc.district || parsedLoc.province || p.district?.trim() || 'Khác';
       districtCounts[locName] = (districtCounts[locName] || 0) + 1;
     }
+  });
+
+  const parentCats = productCategoriesExt.filter(c => !c.parentId);
+  const configuredCatNames = productCategoriesExt.map(c => c.name);
+  const unconfiguredCats = Object.keys(categoryCounts).filter(catName => !configuredCatNames.includes(catName) && categoryCounts[catName] > 0);
+
+  const categoryHierarchy = parentCats.map(p => {
+    const children = productCategoriesExt.filter(c => c.parentId === p.name);
+    const childrenWithCounts = children.map(c => ({
+      name: c.name,
+      count: categoryCounts[c.name] || 0
+    })).filter(c => c.count > 0);
+
+    const parentOwnCount = categoryCounts[p.name] || 0;
+    const totalCount = parentOwnCount + childrenWithCounts.reduce((sum, c) => sum + c.count, 0);
+
+    return {
+      name: p.name,
+      ownCount: parentOwnCount,
+      totalCount,
+      children: childrenWithCounts
+    };
+  }).filter(p => p.totalCount > 0);
+
+  unconfiguredCats.forEach(catName => {
+    categoryHierarchy.push({
+      name: catName,
+      ownCount: categoryCounts[catName] || 0,
+      totalCount: categoryCounts[catName] || 0,
+      children: []
+    });
   });
 
   // Filter out configured categories that have 0 products IF user wants, but currently we show 0 count too if it's configured. Let's just render all.
@@ -1067,26 +1105,45 @@ export default function ProductDetail({
             </h4>
 
             <div className="space-y-2">
-              {Object.entries(categoryCounts).map(([catName, cnt]) => (
-                <div
-                  key={catName}
-                  onClick={() =>
-                    onNavigate({
-                      screen: "category-product",
-                      categoryName: catName,
-                    })
-                  }
-                  className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer pt-2 pb-0 transition-colors border-b border-black/40 last:border-0"
-                >
-                  <span className="truncate flex items-center gap-1">
-                    <Tag className="w-3 h-3 text-primary shrink-0" />
-                    {catName}
-                  </span>
-                  <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary">
-                    ({cnt})
-                  </span>
-                </div>
-              ))}
+              {categoryHierarchy.length === 0 ? (
+                <div className="text-text-secondary text-xs py-2 text-left">Đang đối chiếu dữ liệu danh mục...</div>
+              ) : (
+                categoryHierarchy.map(parent => (
+                  <div key={parent.name} className="border-b border-black/10 last:border-0 pb-2 mb-2 last:pb-0 last:mb-0">
+                    <div
+                      onClick={() => onNavigate({ screen: "category-product", categoryName: parent.name })}
+                      className="flex justify-between items-center text-xs font-bold text-text-secondary hover:text-primary cursor-pointer pt-1 pb-1 transition-colors"
+                    >
+                      <span className="truncate flex items-center gap-1.5">
+                        <FolderOpen className="w-3.5 h-3.5 text-primary" />
+                        {parent.name}
+                      </span>
+                      <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary">
+                        ({parent.totalCount})
+                      </span>
+                    </div>
+                    {parent.children.length > 0 && (
+                      <div className="pl-3 space-y-1 mt-1 border-l border-border-color ml-1.5">
+                        {parent.children.map(child => (
+                          <div
+                            key={child.name}
+                            onClick={() => onNavigate({ screen: "category-product", categoryName: child.name })}
+                            className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-1 transition-colors relative before:content-[''] before:absolute before:-left-[13px] before:top-1/2 before:w-2.5 before:border-t before:border-border-color"
+                          >
+                            <span className="truncate flex items-center gap-1">
+                              <Tag className="w-3 h-3 text-primary/70" />
+                              {child.name}
+                            </span>
+                            <span className="bg-bg-surface px-1.5 py-0.5 rounded-full text-[9px] font-mono text-text-secondary">
+                              ({child.count})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
 

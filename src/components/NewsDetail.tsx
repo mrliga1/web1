@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { optimizeImageUrl, generateSlug, generateSrcSet } from '../lib/utils';
 import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
-import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone } from 'lucide-react';
+import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone, FolderOpen } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { parseSlugTitleFromPath, resolveItemTitle } from '../lib/documentHead';
 import AdBanner from './AdBanner';
@@ -35,6 +35,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
 
   // Categories count map
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
+  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
 
   // Sidebar Booking request
   const [clientName, setClientName] = useState('');
@@ -109,6 +110,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         let configCategories: any[] = [];
         if (genSnap.exists() && genSnap.data().productCategoriesExt) {
           configCategories = genSnap.data().productCategoriesExt;
+          setProductCategoriesExt(configCategories);
         }
 
         const pList: Product[] = [];
@@ -158,16 +160,17 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
     loadArticleData();
   }, [newsId, slug]);
 
-  const handleSidebarConsultSubmit = async (e: React.FormEvent) => {
+  const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !clientPhone.trim() || !clientEmail.trim() || !clientDemand.trim()) {
-      onShowNotification("Quý khách vui lòng cung cấp đủ thông tin.", "error");
+    if (!clientName.trim() || !clientPhone.trim()) {
+      onShowNotification("Vui lòng cung cấp đầy đủ tên và số điện thoại", "error");
       return;
     }
 
     setIsSubmitting(true);
     try {
       const clientIp = await fetchClientIp();
+      
       let friendlyUrl = "";
       if (window.location.hostname.includes('aistudio')) {
         friendlyUrl = `https://greeniahomes.vn${window.location.pathname}`;
@@ -177,45 +180,73 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         friendlyUrl = window.location.href;
       }
 
-      await addDoc(collection(db, 'consultations'), {
+      await addDoc(collection(db, "consultations"), {
         name: clientName.trim(),
         phone: clientPhone.trim(),
         email: clientEmail.trim(),
-        message: clientDemand.trim(),
+        message: "Yêu cầu tư vấn từ bài viết: " + (article?.title || ""),
         createdAt: new Date().toISOString(),
-        status: 'pending',
-        propertyId: article?.id || newsId || slug || 'unknown',
-        propertyTitle: `Đăng ký tư vấn từ bài tin: ${article?.title}`,
+        status: "pending",
+        propertyId: "news_sidebar",
+        propertyTitle: "Từ bài viết: " + (article?.title || ""),
         sourceUrl: friendlyUrl,
-        ipAddress: clientIp
+        ipAddress: clientIp,
       });
 
       notifyAdminEmail({
         name: clientName.trim(),
         phone: clientPhone.trim(),
         email: clientEmail.trim(),
-        message: clientDemand.trim(),
-        propertyTitle: `Đăng ký tư vấn từ bài tin: ${article?.title}`,
-        sourceUrl: friendlyUrl
+        message: "Yêu cầu tư vấn từ bài viết: " + (article?.title || ""),
+        propertyTitle: "Từ bài viết: " + (article?.title || ""),
+        sourceUrl: friendlyUrl,
       });
 
-      setFormSubmitted(true);
+      setIsBooked(true);
       setClientName('');
       setClientPhone('');
       setClientEmail('');
-      onShowNotification("Đăng ký nhận thông tin thành công!", "success");
+      onShowNotification("Đã gửi yêu cầu tư vấn thành công!", "success");
     } catch (err) {
       console.error(err);
-      onShowNotification("Gặp sự cố kết nối dữ liệu. Vui lòng thử lại sau.", "error");
+      onShowNotification("Có lỗi xảy ra, vui lòng thử lại sau.", "error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const pageTitle = article
-    ? resolveItemTitle(article, 'Greenia Homes')
-    : "Đang tải... | Greenia Homes";
+  const parentCats = productCategoriesExt.filter(c => !c.parentId);
+  const configuredCatNames = productCategoriesExt.map(c => c.name);
+  const unconfiguredCats = Object.keys(categoryCounts).filter(catName => !configuredCatNames.includes(catName) && categoryCounts[catName] > 0);
 
+  const categoryHierarchy = parentCats.map(p => {
+    const children = productCategoriesExt.filter(c => c.parentId === p.name);
+    const childrenWithCounts = children.map(c => ({
+      name: c.name,
+      count: categoryCounts[c.name] || 0
+    })).filter(c => c.count > 0);
+
+    const parentOwnCount = categoryCounts[p.name] || 0;
+    const totalCount = parentOwnCount + childrenWithCounts.reduce((sum, c) => sum + c.count, 0);
+
+    return {
+      name: p.name,
+      ownCount: parentOwnCount,
+      totalCount,
+      children: childrenWithCounts
+    };
+  }).filter(p => p.totalCount > 0);
+
+  unconfiguredCats.forEach(catName => {
+    categoryHierarchy.push({
+      name: catName,
+      ownCount: categoryCounts[catName] || 0,
+      totalCount: categoryCounts[catName] || 0,
+      children: []
+    });
+  });
+
+  const pageTitle = article ? resolveItemTitle(article, "Tin Tức Bất Động Sản | Greenia Homes") : "Đang tải bài viết... | Greenia Homes";
 
   if (loading) {
     return (
@@ -477,22 +508,42 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
             </h4>
 
             <div className="space-y-2">
-              {Object.keys(categoryCounts).length === 0 ? (
-                <div className="text-white/70 text-xs py-2 text-left">Đang đối chiếu dữ liệu danh mục...</div>
+              {categoryHierarchy.length === 0 ? (
+                <div className="text-text-secondary text-xs py-2 text-left">Đang đối chiếu dữ liệu danh mục...</div>
               ) : (
-                Object.entries(categoryCounts).map(([catName, cnt]) => (
-                  <div
-                    key={catName}
-                    onClick={() => onNavigate({ screen: 'category-product', categoryName: catName })}
-                    className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-0 transition-colors border-b border-black/40 last:border-0"
-                  >
-                    <span className="truncate flex items-center gap-1.5">
-                      <Tag className="w-3.5 h-3.5 text-primary" />
-                      {catName}
-                    </span>
-                    <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary font-bold">
-                      ({cnt})
-                    </span>
+                categoryHierarchy.map(parent => (
+                  <div key={parent.name} className="border-b border-black/10 last:border-0 pb-2 mb-2 last:pb-0 last:mb-0">
+                    <div
+                      onClick={() => onNavigate({ screen: "category-product", categoryName: parent.name })}
+                      className="flex justify-between items-center text-xs font-bold text-text-secondary hover:text-primary cursor-pointer pt-1 pb-1 transition-colors"
+                    >
+                      <span className="truncate flex items-center gap-1.5">
+                        <FolderOpen className="w-3.5 h-3.5 text-primary" />
+                        {parent.name}
+                      </span>
+                      <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary font-bold">
+                        ({parent.totalCount})
+                      </span>
+                    </div>
+                    {parent.children.length > 0 && (
+                      <div className="pl-3 space-y-1 mt-1 border-l border-border-color ml-1.5">
+                        {parent.children.map(child => (
+                          <div
+                            key={child.name}
+                            onClick={() => onNavigate({ screen: "category-product", categoryName: child.name })}
+                            className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-1 transition-colors relative before:content-[''] before:absolute before:-left-[13px] before:top-1/2 before:w-2.5 before:border-t before:border-border-color"
+                          >
+                            <span className="truncate flex items-center gap-1">
+                              <Tag className="w-3 h-3 text-primary/70" />
+                              {child.name}
+                            </span>
+                            <span className="bg-bg-surface px-1.5 py-0.5 rounded-full text-[9px] font-mono text-text-secondary font-bold">
+                              ({child.count})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))
               )}

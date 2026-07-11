@@ -217,6 +217,9 @@ export default function ProductList({
         const dynamicTree = locationTree.map(prov => {
            if (!activeNodes.has(prov.name)) return null;
            const newProv = { ...prov };
+           if (newProv.wards) {
+             newProv.wards = newProv.wards.filter(ward => activeNodes.has(ward));
+           }
            if (newProv.districts) {
              newProv.districts = newProv.districts.filter(dist => activeNodes.has(dist.name)).map(dist => {
                const newDist = { ...dist };
@@ -606,19 +609,19 @@ export default function ProductList({
                                         >
                                           <span>{prov.name}</span>
                                         </button>
-                                        {prov.districts && prov.districts.length > 0 && (
+                                        {(prov.wards && prov.wards.length > 0) || (prov.districts && prov.districts.length > 0) ? (
                                           <button
                                             onClick={(e) => { e.stopPropagation(); setExpandedLocationLevel(isProvExpanded ? null : prov.name); }}
                                             className="px-3 flex items-center justify-center border-none cursor-pointer bg-transparent text-text-secondary hover:text-primary transition-colors"
                                           >
                                             <ChevronDown size={14} className={`transition-transform duration-200 ${isProvExpanded ? 'rotate-180' : ''}`} />
                                           </button>
-                                        )}
+                                        ) : null}
                                       </div>
                                       
-                                      {isProvExpanded && prov.districts && (
+                                      {isProvExpanded && prov.wards && (
                                         <div className="flex flex-col bg-bg-surface overflow-hidden">
-                                           {Array.from(new Set(prov.districts.flatMap(d => d.wards || []))).sort().map(ward => {
+                                           {prov.wards.sort().map(ward => {
                                               const isWardSelected = selectedDistrict === ward;
                                               return (
                                                 <button

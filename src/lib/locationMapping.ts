@@ -21,6 +21,12 @@ export const allLocationsList: string[] = [];
 locationTree.forEach(prov => {
   const pName = formatLocationName(prov.name);
   allLocationsList.push(pName);
+  if (prov.wards) {
+    prov.wards.forEach(ward => {
+      allLocationsList.push(`${ward}, ${pName}`);
+    });
+  }
+  // Fallback for legacy data if needed
   if (prov.districts) {
     prov.districts.forEach(dist => {
       if (dist.wards) {
@@ -95,77 +101,59 @@ export function parseLocation(rawLocation: string) {
     if (mappedRaw.includes(pName) || mappedRaw.includes(pShort)) {
       matchedProvince = formatLocationName(prov.name);
       
-      // Find District within Province
-      for (const dist of prov.districts || []) {
-        const dName = normalizeText(dist.name);
-        const dShort = dName.replace('quận ', '').replace('huyện ', '').replace('tp. ', '').replace('tp ', '').replace('thành phố ', '');
-        
-        // Exact word match to avoid matching "Quận 1" in "Quận 10"
-        const distRegex = new RegExp(`\\b${dShort}\\b`, 'i');
-        
-        if (mappedRaw.includes(dName) || distRegex.test(mappedRaw)) {
-          matchedDistrict = dist.name;
+      // Find Ward within Province (New 34-province 2-level structure)
+      if (prov.wards) {
+        for (const ward of prov.wards) {
+          const wName = normalizeText(ward);
+          const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
+          const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
+          if (mappedRaw.includes(wName) || wardRegex.test(mappedRaw)) {
+            matchedWard = ward;
+            break;
+          }
+        }
+      }
+
+      // Legacy fallback for old data formats
+      if (!matchedWard && prov.districts) {
+        for (const dist of prov.districts) {
+          const dName = normalizeText(dist.name);
+          const dShort = dName.replace('quận ', '').replace('huyện ', '').replace('tp. ', '').replace('tp ', '').replace('thành phố ', '');
+          const distRegex = new RegExp(`\\b${dShort}\\b`, 'i');
           
-          // Find Ward within District
-          for (const ward of dist.wards || []) {
-            const wName = normalizeText(ward);
-            const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
-            
-            const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
-            if (mappedRaw.includes(wName) || wardRegex.test(mappedRaw)) {
-              matchedWard = ward;
-              break;
+          if (mappedRaw.includes(dName) || distRegex.test(mappedRaw)) {
+            matchedDistrict = dist.name;
+            for (const ward of dist.wards || []) {
+              const wName = normalizeText(ward);
+              const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
+              const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
+              if (mappedRaw.includes(wName) || wardRegex.test(mappedRaw)) {
+                matchedWard = ward;
+                break;
+              }
             }
+            break;
           }
-          break;
         }
       }
-
-      // Fallback: If district was missing but ward is specified (e.g. "P. Bình Hưng Hòa, Tp HCM")
-      if (!matchedDistrict) {
-        for (const dist of prov.districts || []) {
-          for (const ward of dist.wards || []) {
-            const wName = normalizeText(ward);
-            const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
-            const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
-            
-            if (mappedRaw.includes(wName) || wardRegex.test(mappedRaw)) {
-              matchedDistrict = dist.name;
-              matchedWard = ward;
-              break;
-            }
-          }
-          if (matchedDistrict) break;
-        }
-      }
-
       break;
     }
   }
 
-  // Fallback: If province not explicitly stated but district matches something unique
+  // Fallback: If province not explicitly stated but ward matches something unique
   if (!matchedProvince) {
     for (const prov of locationTree) {
-      for (const dist of prov.districts || []) {
-        const dName = normalizeText(dist.name);
-        const dShort = dName.replace('quận ', '').replace('huyện ', '').replace('tp. ', '').replace('tp ', '').replace('thành phố ', '');
-        const distRegex = new RegExp(`\\b${dShort}\\b`, 'i');
-        
-        if (mappedRaw.includes(dName) || distRegex.test(mappedRaw)) {
-          matchedProvince = formatLocationName(prov.name);
-          matchedDistrict = dist.name;
+      if (prov.wards) {
+        for (const ward of prov.wards) {
+          const wName = normalizeText(ward);
+          const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
+          const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
           
-          for (const ward of dist.wards || []) {
-            const wName = normalizeText(ward);
-            const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
-            
-            const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
-            if (mappedRaw.includes(wName) || wardRegex.test(mappedRaw)) {
-              matchedWard = ward;
-              break;
-            }
+          if (mappedRaw.includes(wName) || wardRegex.test(mappedRaw)) {
+            matchedProvince = formatLocationName(prov.name);
+            matchedWard = ward;
+            break;
           }
-          break;
         }
       }
       if (matchedProvince) break;

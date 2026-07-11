@@ -79,6 +79,18 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
               break;
             }
           }
+          if (!fetchedArticle) {
+            try {
+              const docRef = doc(db, 'news', slug);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                fetchedArticle = { id: docSnap.id, ...docSnap.data() } as News;
+                finalNewsId = docSnap.id;
+              }
+            } catch (e) {
+              // Ignore invalid ID errors
+            }
+          }
         }
 
         if (fetchedArticle) {

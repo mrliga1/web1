@@ -25,6 +25,7 @@ import {
   Sparkles,
   MessageCircle,
   Bath,
+  Armchair,
   Facebook,
   Link as LinkIcon,
   FolderOpen,
@@ -236,6 +237,18 @@ export default function ProductDetail({
               activeProd = { id: doc.id, ...data } as Product;
               finalProductId = doc.id;
               break;
+            }
+          }
+          if (!activeProd) {
+            try {
+              const docRef = doc(db, "products", slug);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                activeProd = { id: docSnap.id, ...docSnap.data() } as Product;
+                finalProductId = docSnap.id;
+              }
+            } catch (e) {
+              // Ignore invalid ID errors
             }
           }
         }
@@ -924,6 +937,17 @@ export default function ProductDetail({
                     </div>
                     <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
                       {product.legalStatus}
+                    </span>
+                  </div>
+                )}
+                {(product as any).interior && (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
+                    <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
+                      <Armchair className="w-4 h-4 text-primary" />
+                      <span className="text-[11px] sm:text-[13px]">Nội thất</span>
+                    </div>
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1" title={(product as any).interior}>
+                      {(product as any).interior}
                     </span>
                   </div>
                 )}

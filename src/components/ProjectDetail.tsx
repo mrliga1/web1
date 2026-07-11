@@ -319,6 +319,18 @@ export default function ProjectDetail({
               break;
             }
           }
+          if (!fetchedProject) {
+            try {
+              const docRef = doc(db, "projects", slug);
+              const docSnap = await getDoc(docRef);
+              if (docSnap.exists()) {
+                fetchedProject = { id: docSnap.id, ...docSnap.data() } as Project;
+                finalProjectId = docSnap.id;
+              }
+            } catch (e) {
+              // Ignore invalid ID errors
+            }
+          }
         }
 
         if (fetchedProject) {

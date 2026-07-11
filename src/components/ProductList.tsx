@@ -378,8 +378,12 @@ export default function ProductList({
     return matchesSearch && matchesType && matchesDistrict && matchesCategory && matchesPrice && matchesArea;
   }), [products, searchQuery, selectedType, selectedDistrict, selectedCategory, selectedPriceRange, selectedAreaRange, priceSaleConfig, priceRentConfig, areaConfig, productCategoriesExt]);
 
-  const latestSales = React.useMemo(() => products.filter(p => p.type !== 'rent').slice(0, 8), [products]);
-  const latestRents = React.useMemo(() => products.filter(p => p.type === 'rent').slice(0, 8), [products]);
+  const displayedProductIds = React.useMemo(() => {
+    return new Set(filteredProducts.slice(0, mainGridLimit).map(p => p.id));
+  }, [filteredProducts, mainGridLimit]);
+
+  const latestSales = React.useMemo(() => products.filter(p => p.type !== 'rent' && !displayedProductIds.has(p.id)).slice(0, 8), [products, displayedProductIds]);
+  const latestRents = React.useMemo(() => products.filter(p => p.type === 'rent' && !displayedProductIds.has(p.id)).slice(0, 8), [products, displayedProductIds]);
 
   const getSection = (id: string) => {
     return sections.find(s => s.id === id) || {

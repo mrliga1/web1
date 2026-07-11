@@ -488,15 +488,17 @@ export default function ProductDetail({
       p.category &&
       product.category &&
       p.id !== product.id &&
-      p.category.trim().toLowerCase() === product.category.trim().toLowerCase(),
-  );
+      p.category.trim().toLowerCase() === product.category.trim().toLowerCase()
+  ).slice(0, 4);
+
+  const relatedIds = new Set(relatedCategoryProducts.map((p) => p.id));
 
   // Categorized Sliders at the footer
   const footerLatestSales = products
-    .filter((p) => p.type !== "rent")
+    .filter((p) => p.type !== "rent" && p.id !== product.id && !relatedIds.has(p.id))
     .slice(0, 8);
   const footerLatestRents = products
-    .filter((p) => p.type === "rent")
+    .filter((p) => p.type === "rent" && p.id !== product.id && !relatedIds.has(p.id))
     .slice(0, 8);
 
   const productImages =

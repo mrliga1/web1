@@ -16,17 +16,16 @@ export function formatLocationName(name: string): string {
     .replace(/Thành phố Hồ Chí Minh/i, 'TP. HCM');
 }
 
-// Export a flat list of all locations for autocomplete (Province, District, Ward)
+// Export a flat list of all locations for autocomplete (Province, Ward)
 export const allLocationsList: string[] = [];
 locationTree.forEach(prov => {
   const pName = formatLocationName(prov.name);
   allLocationsList.push(pName);
   if (prov.districts) {
     prov.districts.forEach(dist => {
-      allLocationsList.push(`${dist.name}, ${pName}`);
       if (dist.wards) {
         dist.wards.forEach(ward => {
-          allLocationsList.push(`${ward}, ${dist.name}, ${pName}`);
+          allLocationsList.push(`${ward}, ${pName}`);
         });
       }
     });

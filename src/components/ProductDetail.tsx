@@ -424,15 +424,15 @@ export default function ProductDetail({
     if (p.district) {
       const parsedLoc = parseLocation(p.district || '');
       const provName = parsedLoc.province || p.district?.trim() || 'Khác';
-      const distName = parsedLoc.district;
+      const childName = parsedLoc.ward;
       
       if (!locationHierarchy[provName]) {
         locationHierarchy[provName] = { count: 0, districts: {} };
       }
       locationHierarchy[provName].count += 1;
       
-      if (distName) {
-        locationHierarchy[provName].districts[distName] = (locationHierarchy[provName].districts[distName] || 0) + 1;
+      if (childName) {
+        locationHierarchy[provName].districts[childName] = (locationHierarchy[provName].districts[childName] || 0) + 1;
       }
     }
   });

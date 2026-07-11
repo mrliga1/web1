@@ -137,7 +137,7 @@ export default function ProductList({
   const [districts, setDistricts] = useState<string[]>([]);
   const [filteredLocationTree, setFilteredLocationTree] = useState<LocationNode[]>([]);
   const [expandedLocationLevel, setExpandedLocationLevel] = useState<string | null>(null);
-  const [expandedLocationParent, setExpandedLocationParent] = useState<string | null>(null);
+
   
   const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
   const [expandedParentCat, setExpandedParentCat] = useState<string | null>(null);
@@ -618,44 +618,16 @@ export default function ProductList({
                                       
                                       {isProvExpanded && prov.districts && (
                                         <div className="flex flex-col bg-bg-surface overflow-hidden">
-                                           {prov.districts.map(dist => {
-                                              const isDistSelected = selectedDistrict === dist.name;
-                                              const isDistExpanded = expandedLocationParent === dist.name;
+                                           {Array.from(new Set(prov.districts.flatMap(d => d.wards || []))).sort().map(ward => {
+                                              const isWardSelected = selectedDistrict === ward;
                                               return (
-                                                <div key={dist.name} className="w-full flex flex-col">
-                                                   <div className={`w-full flex justify-between items-stretch transition-colors border-b border-border-color/50 ${isDistSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}>
-                                                      <button
-                                                        onClick={() => { setSelectedDistrict(dist.name); setOpenDropdown(null); }}
-                                                        className="flex-1 text-left !px-[10px] !py-[5px] pl-[25px] text-[13px] md:text-xs border-none cursor-pointer bg-transparent text-inherit font-inherit"
-                                                      >
-                                                        <span className="opacity-80">└ {dist.name}</span>
-                                                      </button>
-                                                      {dist.wards && dist.wards.length > 0 && (
-                                                        <button
-                                                          onClick={(e) => { e.stopPropagation(); setExpandedLocationParent(isDistExpanded ? null : dist.name); }}
-                                                          className="px-3 flex items-center justify-center border-none cursor-pointer bg-transparent text-text-secondary hover:text-primary transition-colors"
-                                                        >
-                                                          <ChevronDown size={14} className={`transition-transform duration-200 ${isDistExpanded ? 'rotate-180' : ''}`} />
-                                                        </button>
-                                                      )}
-                                                   </div>
-                                                   {isDistExpanded && dist.wards && (
-                                                      <div className="flex flex-col bg-bg-surface overflow-hidden">
-                                                         {dist.wards.map(ward => {
-                                                            const isWardSelected = selectedDistrict === ward;
-                                                            return (
-                                                              <button
-                                                                key={ward}
-                                                                onClick={() => { setSelectedDistrict(ward); setOpenDropdown(null); }}
-                                                                className={`w-full text-left !px-[10px] !py-[5px] pl-[40px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${isWardSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}
-                                                              >
-                                                                <span className="opacity-60">└ {ward}</span>
-                                                              </button>
-                                                            )
-                                                         })}
-                                                      </div>
-                                                   )}
-                                                </div>
+                                                <button
+                                                  key={ward}
+                                                  onClick={() => { setSelectedDistrict(ward); setOpenDropdown(null); }}
+                                                  className={`w-full text-left !px-[10px] !py-[5px] pl-[25px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${isWardSelected ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary'}`}
+                                                >
+                                                  <span className="opacity-80">└ {ward}</span>
+                                                </button>
                                               )
                                            })}
                                         </div>

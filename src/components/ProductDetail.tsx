@@ -81,7 +81,6 @@ const MapViewer = React.memo(
 
 import { notifyAdminEmail } from "../lib/email";
 import { fetchClientIp } from "../lib/ip";
-import { parseLocation } from "../lib/locationMapping";
 
 declare global {
   interface Window {

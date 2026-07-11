@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { optimizeImageUrl, generateSlug, generateSrcSet } from '../lib/utils';
 import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
-import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone, FolderOpen } from 'lucide-react';
+import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { parseSlugTitleFromPath, resolveItemTitle } from '../lib/documentHead';
 import AdBanner from './AdBanner';
@@ -36,6 +36,12 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
   // Categories count map
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+  const toggleCategory = (catName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedCategories(prev => ({ ...prev, [catName]: !prev[catName] }));
+  };
 
   // Sidebar Booking request
   const [clientName, setClientName] = useState('');
@@ -511,21 +517,31 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
               {categoryHierarchy.length === 0 ? (
                 <div className="text-text-secondary text-xs py-2 text-left">Đang đối chiếu dữ liệu danh mục...</div>
               ) : (
-                categoryHierarchy.map(parent => (
+                categoryHierarchy.map(parent => {
+                  const isExpanded = expandedCategories[parent.name];
+                  return (
                   <div key={parent.name} className="border-b border-black/10 last:border-0 pb-2 mb-2 last:pb-0 last:mb-0">
                     <div
                       onClick={() => onNavigate({ screen: "category-product", categoryName: parent.name })}
                       className="flex justify-between items-center text-xs font-bold text-text-secondary hover:text-primary cursor-pointer pt-1 pb-1 transition-colors"
                     >
-                      <span className="truncate flex items-center gap-1.5">
-                        <FolderOpen className="w-3.5 h-3.5 text-primary" />
-                        {parent.name}
+                      <span className="truncate flex items-center gap-1.5 flex-1">
+                        <FolderOpen className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="truncate">{parent.name}</span>
+                        <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary font-bold shrink-0">
+                          ({parent.totalCount})
+                        </span>
                       </span>
-                      <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary font-bold">
-                        ({parent.totalCount})
-                      </span>
+                      {parent.children.length > 0 && (
+                        <div 
+                          className="px-2 py-1 ml-1 hover:bg-black/5 rounded cursor-pointer"
+                          onClick={(e) => toggleCategory(parent.name, e)}
+                        >
+                          <ChevronDown className={`w-3.5 h-3.5 text-text-secondary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        </div>
+                      )}
                     </div>
-                    {parent.children.length > 0 && (
+                    {parent.children.length > 0 && isExpanded && (
                       <div className="pl-3 space-y-1 mt-1 border-l border-border-color ml-1.5">
                         {parent.children.map(child => (
                           <div
@@ -534,10 +550,10 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                             className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-1 transition-colors relative before:content-[''] before:absolute before:-left-[13px] before:top-1/2 before:w-2.5 before:border-t before:border-border-color"
                           >
                             <span className="truncate flex items-center gap-1">
-                              <Tag className="w-3 h-3 text-primary/70" />
-                              {child.name}
+                              <Tag className="w-3 h-3 text-primary/70 shrink-0" />
+                              <span className="truncate">{child.name}</span>
                             </span>
-                            <span className="bg-bg-surface px-1.5 py-0.5 rounded-full text-[9px] font-mono text-text-secondary font-bold">
+                            <span className="bg-bg-surface px-1.5 py-0.5 rounded-full text-[9px] font-mono text-text-secondary font-bold shrink-0">
                               ({child.count})
                             </span>
                           </div>
@@ -545,7 +561,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                       </div>
                     )}
                   </div>
-                ))
+                )})
               )}
             </div>
           </div>

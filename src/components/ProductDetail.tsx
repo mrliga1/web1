@@ -27,6 +27,7 @@ import {
   Facebook,
   Link as LinkIcon,
   FolderOpen,
+  ChevronDown,
 } from "lucide-react";
 
 import { Helmet } from "react-helmet-async";
@@ -109,6 +110,18 @@ export default function ProductDetail({
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
   const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
   const [loading, setLoading] = useState(!product);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+  const [expandedLocations, setExpandedLocations] = useState<Record<string, boolean>>({});
+
+  const toggleCategory = (catName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedCategories(prev => ({ ...prev, [catName]: !prev[catName] }));
+  };
+
+  const toggleLocation = (locName: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedLocations(prev => ({ ...prev, [locName]: !prev[locName] }));
+  };
 
   // Left column variables
   const [selectedImage, setSelectedImage] = useState(() => {
@@ -389,7 +402,7 @@ export default function ProductDetail({
 
   // Real-time calculation of categories with counts
   const categoryCounts: Record<string, number> = {};
-  const districtCounts: Record<string, number> = {};
+  const locationHierarchy: Record<string, { count: number, districts: Record<string, number> }> = {};
 
   // Pre-fill configured categories with 0 count
   if (productCategoriesExt && productCategoriesExt.length > 0) {
@@ -410,11 +423,21 @@ export default function ProductDetail({
 
     if (p.district) {
       const parsedLoc = parseLocation(p.district || '');
-      // Try to use the normalized district name, fallback to province or raw string if parsing fails
-      const locName = parsedLoc.district || parsedLoc.province || p.district?.trim() || 'Khác';
-      districtCounts[locName] = (districtCounts[locName] || 0) + 1;
+      const provName = parsedLoc.province || p.district?.trim() || 'Khác';
+      const distName = parsedLoc.district;
+      
+      if (!locationHierarchy[provName]) {
+        locationHierarchy[provName] = { count: 0, districts: {} };
+      }
+      locationHierarchy[provName].count += 1;
+      
+      if (distName) {
+        locationHierarchy[provName].districts[distName] = (locationHierarchy[provName].districts[distName] || 0) + 1;
+      }
     }
   });
+
+  const locationEntries = Object.entries(locationHierarchy).sort((a, b) => b[1].count - a[1].count);
 
   const parentCats = productCategoriesExt.filter(c => !c.parentId);
   const configuredCatNames = productCategoriesExt.map(c => c.name);
@@ -1108,21 +1131,31 @@ export default function ProductDetail({
               {categoryHierarchy.length === 0 ? (
                 <div className="text-text-secondary text-xs py-2 text-left">Đang đối chiếu dữ liệu danh mục...</div>
               ) : (
-                categoryHierarchy.map(parent => (
+                categoryHierarchy.map(parent => {
+                  const isExpanded = expandedCategories[parent.name];
+                  return (
                   <div key={parent.name} className="border-b border-black/10 last:border-0 pb-2 mb-2 last:pb-0 last:mb-0">
                     <div
                       onClick={() => onNavigate({ screen: "category-product", categoryName: parent.name })}
                       className="flex justify-between items-center text-xs font-bold text-text-secondary hover:text-primary cursor-pointer pt-1 pb-1 transition-colors"
                     >
-                      <span className="truncate flex items-center gap-1.5">
-                        <FolderOpen className="w-3.5 h-3.5 text-primary" />
-                        {parent.name}
+                      <span className="truncate flex items-center gap-1.5 flex-1">
+                        <FolderOpen className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="truncate">{parent.name}</span>
+                        <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary shrink-0">
+                          ({parent.totalCount})
+                        </span>
                       </span>
-                      <span className="bg-bg-surface px-2 py-0.5 rounded-full text-[9px] font-mono text-text-secondary">
-                        ({parent.totalCount})
-                      </span>
+                      {parent.children.length > 0 && (
+                        <div 
+                          className="px-2 py-1 ml-1 hover:bg-black/5 rounded cursor-pointer"
+                          onClick={(e) => toggleCategory(parent.name, e)}
+                        >
+                          <ChevronDown className={`w-3.5 h-3.5 text-text-secondary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        </div>
+                      )}
                     </div>
-                    {parent.children.length > 0 && (
+                    {parent.children.length > 0 && isExpanded && (
                       <div className="pl-3 space-y-1 mt-1 border-l border-border-color ml-1.5">
                         {parent.children.map(child => (
                           <div
@@ -1131,10 +1164,10 @@ export default function ProductDetail({
                             className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-1 transition-colors relative before:content-[''] before:absolute before:-left-[13px] before:top-1/2 before:w-2.5 before:border-t before:border-border-color"
                           >
                             <span className="truncate flex items-center gap-1">
-                              <Tag className="w-3 h-3 text-primary/70" />
-                              {child.name}
+                              <Tag className="w-3 h-3 text-primary/70 shrink-0" />
+                              <span className="truncate">{child.name}</span>
                             </span>
-                            <span className="bg-bg-surface px-1.5 py-0.5 rounded-full text-[9px] font-mono text-text-secondary">
+                            <span className="bg-bg-surface px-1.5 py-0.5 rounded-full text-[9px] font-mono text-text-secondary shrink-0">
                               ({child.count})
                             </span>
                           </div>
@@ -1142,7 +1175,7 @@ export default function ProductDetail({
                       </div>
                     )}
                   </div>
-                ))
+                )})
               )}
             </div>
           </div>
@@ -1254,21 +1287,53 @@ export default function ProductDetail({
             </h4>
 
             <div className="space-y-2">
-              {Object.entries(districtCounts).length > 0 ? (
-                Object.entries(districtCounts).map(([distName, cnt]) => (
-                  <div
-                    key={distName}
-                    onClick={() =>
-                      onNavigate({ screen: "san-pham", location: distName })
-                    }
-                    className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-1 transition-colors border-b border-black/40 last:border-0"
-                  >
-                    <span className="truncate pr-2">• {distName}</span>
-                    <span className="text-[10px] text-text-secondary bg-bg-surface px-1.5 py-0.5 rounded">
-                      {cnt}
-                    </span>
+              {locationEntries.length > 0 ? (
+                locationEntries.map(([provName, info]) => {
+                  const hasDistricts = Object.keys(info.districts).length > 0;
+                  const isExpanded = expandedLocations[provName];
+                  return (
+                  <div key={provName} className="border-b border-black/10 last:border-0 pb-2 mb-2 last:pb-0 last:mb-0">
+                    <div
+                      onClick={() => onNavigate({ screen: "san-pham", location: provName })}
+                      className="flex justify-between items-center text-xs font-bold text-text-secondary hover:text-primary cursor-pointer pt-1 pb-1 transition-colors"
+                    >
+                      <span className="truncate flex items-center gap-1.5 flex-1">
+                        <FolderOpen className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="truncate">{provName}</span>
+                        <span className="text-[9px] font-mono text-text-secondary bg-bg-surface px-1.5 py-0.5 rounded-full shrink-0">
+                          ({info.count})
+                        </span>
+                      </span>
+                      {hasDistricts && (
+                        <div 
+                          className="px-2 py-1 ml-1 hover:bg-black/5 rounded cursor-pointer"
+                          onClick={(e) => toggleLocation(provName, e)}
+                        >
+                          <ChevronDown className={`w-3.5 h-3.5 text-text-secondary transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`} />
+                        </div>
+                      )}
+                    </div>
+                    {hasDistricts && isExpanded && (
+                      <div className="pl-3 space-y-1 mt-1 border-l border-border-color ml-1.5">
+                        {Object.entries(info.districts).sort((a, b) => b[1] - a[1]).map(([distName, cnt]) => (
+                          <div
+                            key={distName}
+                            onClick={() => onNavigate({ screen: "san-pham", location: distName })}
+                            className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-1 transition-colors relative before:content-[''] before:absolute before:-left-[13px] before:top-1/2 before:w-2.5 before:border-t before:border-border-color"
+                          >
+                            <span className="truncate flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-primary/70 shrink-0" />
+                              <span className="truncate">{distName}</span>
+                            </span>
+                            <span className="text-[9px] font-mono text-text-secondary bg-bg-surface px-1.5 py-0.5 rounded-full shrink-0">
+                              ({cnt})
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                ))
+                )})
               ) : (
                 <div className="text-text-secondary text-xs italic py-2">
                   Chưa có dữ liệu khu vực

@@ -15,7 +15,7 @@ let cacheTime = 0;
 
 async function getProducts() {
   if (productsPromise && Date.now() - cacheTime < 60000) return productsPromise;
-  productsPromise = supabase.from('products').select('data').then(res => res.data);
+  productsPromise = supabase.from('products').select('data').then(res => res.data) as Promise<any>;
   cacheTime = Date.now();
   return productsPromise;
 }

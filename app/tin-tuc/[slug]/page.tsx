@@ -15,7 +15,7 @@ let cacheTime = 0;
 
 async function getNews() {
   if (newsPromise && Date.now() - cacheTime < 60000) return newsPromise;
-  newsPromise = supabase.from('news').select('data').then(res => res.data);
+  newsPromise = supabase.from('news').select('data').then(res => res.data) as Promise<any>;
   cacheTime = Date.now();
   return newsPromise;
 }

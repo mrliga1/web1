@@ -29,15 +29,15 @@ export const getDocs = async (collectionRef: { path: string }) => {
 }
 
 export const getDoc = async (docRef: { path: string, id: string }) => {
-  const { data, error } = await supabase.from(docRef.path).select('*').eq('id', docRef.id).single();
-  if (error && error.code === 'PGRST116') {
+  const { data, error } = await supabase.from(docRef.path).select('*').eq('id', docRef.id).maybeSingle();
+  if (error) throw error;
+  if (!data) {
     return {
       id: docRef.id,
       exists: () => false,
       data: () => undefined
     };
   }
-  if (error) throw error;
   return {
     id: data.id,
     exists: () => true,

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, MessageSquare, Mail, X } from 'lucide-react';
+import { Phone, MessageSquare, Mail, X, CheckCircle2 } from 'lucide-react';
 import { db, addDoc, collection } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 
@@ -7,6 +7,7 @@ export default function FloatingActionButtons() {
   const [showQuotePopup, setShowQuotePopup] = useState(false);
   const [quoteName, setQuoteName] = useState('');
   const [quotePhone, setQuotePhone] = useState('');
+  const [quoteEmail, setQuoteEmail] = useState('');
   const [quoteDemand, setQuoteDemand] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -20,7 +21,8 @@ export default function FloatingActionButtons() {
       await addDoc(collection(db, 'consultations'), {
         name: quoteName,
         phone: quotePhone,
-        demand: quoteDemand || 'Tư vấn tổng quan',
+        email: quoteEmail,
+        demand: quoteDemand || 'Tư vấn mua nhà chuyên sâu',
         status: 'new',
         createdAt: new Date().toISOString(),
         source: 'quote_popup',
@@ -28,6 +30,7 @@ export default function FloatingActionButtons() {
       setFormSubmitted(true);
       setQuoteName('');
       setQuotePhone('');
+      setQuoteEmail('');
       setQuoteDemand('');
       setTimeout(() => {
         setFormSubmitted(false);
@@ -107,75 +110,113 @@ export default function FloatingActionButtons() {
 
       {/* Quote Popup */}
       {showQuotePopup && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            onClick={() => setShowQuotePopup(false)}
-          ></div>
-          <div className="bg-bg-surface w-full max-w-md rounded-2xl shadow-2xl relative z-10 animate-in zoom-in-95 overflow-hidden">
-            <div className="bg-primary p-4 md:p-6 text-white text-center relative">
-              <button 
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="relative w-full max-w-[374px] h-auto min-h-[460px] bg-bg-surface border border-border-color rounded-[10px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pt-3 px-3 pb-[1px] md:pt-4 md:px-4 md:pb-[1px] border-b border-border-color">
+              <h3 className="text-base md:text-lg font-bold text-text-primary font-display">
+                Tư vấn mua nhà chuyên sâu
+              </h3>
+              <button
                 onClick={() => setShowQuotePopup(false)}
-                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors border-none bg-transparent cursor-pointer"
+                aria-label="Đóng popup"
+                className="w-8 h-8 flex items-center justify-center rounded-full text-text-secondary hover:text-text-primary hover:bg-bg-base transition border-none bg-transparent cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
-              <h3 className="font-display font-bold text-xl mb-1">Yêu cầu báo giá & Tư vấn</h3>
-              <p className="text-white/80 text-sm">Chuyên viên Greenia sẽ liên hệ ngay với quý khách</p>
             </div>
-            
-            <div className="p-4 md:p-6">
+
+            <div className="p-3 md:p-4 pb-4 md:pb-5">
+              <ul className="space-y-2 mb-4">
+                <li className="flex items-start gap-2 text-[13px] text-text-secondary">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span>
+                    <span className="font-semibold text-text-primary">
+                      Phân tích
+                    </span>{" "}
+                    quỹ căn, chính sách, tiện ích giúp Khách hàng lựa chọn căn tốt nhất.
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-[13px] text-text-secondary">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  <span>
+                    <span className="font-semibold text-text-primary">
+                      Giải đáp mọi thắc mắc
+                    </span>{" "}
+                    của khách hàng.
+                  </span>
+                </li>
+                <li className="flex items-center gap-2 text-[13px] text-text-secondary">
+                  <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                  <span>
+                    <span className="font-semibold text-text-primary">
+                      Tuyệt đối bảo mật
+                    </span>{" "}
+                    thông tin cá nhân.
+                  </span>
+                </li>
+              </ul>
+
+              <h4 className="font-semibold text-text-primary text-sm mb-3">
+                Thông tin liên hệ
+              </h4>
+
               {formSubmitted ? (
-                <div className="text-center py-8 space-y-3">
-                  <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
+                <div className="flex flex-col items-center justify-center py-6">
+                  <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
                   </div>
-                  <h4 className="text-lg font-bold text-primary">Đã gửi yêu cầu thành công!</h4>
-                  <p className="text-text-secondary text-sm">Cảm ơn quý khách đã quan tâm. Chúng tôi sẽ liên hệ trong thời gian sớm nhất.</p>
+                  <p className="text-primary text-sm text-center font-medium">
+                    Cảm ơn bạn! Chúng tôi đã nhận được thông tin.
+                  </p>
                 </div>
               ) : (
-                <form onSubmit={handleQuoteSubmit} className="space-y-4">
+                <form onSubmit={handleQuoteSubmit} className="space-y-3">
                   <div>
                     <input
                       type="text"
-                      placeholder="Họ và tên *"
+                      required
                       value={quoteName}
                       onChange={(e) => setQuoteName(e.target.value)}
-                      required
-                      className="w-full bg-bg-base border border-border-color rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                      className="w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary"
+                      placeholder="Họ tên *"
                     />
                   </div>
                   <div>
                     <input
                       type="tel"
-                      placeholder="Số điện thoại *"
+                      required
                       value={quotePhone}
                       onChange={(e) => setQuotePhone(e.target.value)}
-                      required
-                      className="w-full bg-bg-base border border-border-color rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"
+                      className="w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary"
+                      placeholder="Số điện thoại *"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      type="email"
+                      value={quoteEmail}
+                      onChange={(e) => setQuoteEmail(e.target.value)}
+                      className="w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary"
+                      placeholder="Email (Tùy chọn)"
                     />
                   </div>
                   <div>
                     <textarea
-                      placeholder="Nhu cầu tư vấn (Ví dụ: Tôi muốn nhận bảng giá Vinhomes Grand Park...)"
+                      rows={3}
                       value={quoteDemand}
                       onChange={(e) => setQuoteDemand(e.target.value)}
-                      rows={3}
-                      className="w-full bg-bg-base border border-border-color rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none"
-                    ></textarea>
+                      className="w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary resize-none"
+                      placeholder="Nhu cầu của bạn (Tùy chọn)"
+                    />
                   </div>
+
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full bg-primary hover:bg-primary-hover text-text-inverse font-bold py-3.5 rounded-xl transition-all disabled:opacity-70 border-none cursor-pointer shadow-lg shadow-primary/20"
+                    className="w-full py-2.5 border-none cursor-pointer rounded-[10px] font-bold bg-primary text-white hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs mt-2 shadow-lg shadow-primary/30"
                   >
-                    {isSubmitting ? 'Đang gửi...' : 'Gửi yêu cầu ngay'}
+                    {isSubmitting ? "Đang gửi..." : "Nhận tư vấn ngay"}
                   </button>
-                  <p className="text-center text-[11px] text-text-secondary mt-4">
-                    Thông tin của quý khách được bảo mật tuyệt đối theo chính sách của Greenia Homes.
-                  </p>
                 </form>
               )}
             </div>

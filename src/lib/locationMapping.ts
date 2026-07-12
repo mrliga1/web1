@@ -103,7 +103,8 @@ export function parseLocation(rawLocation: string) {
       
       // Find Ward within Province (New 34-province 2-level structure)
       if (prov.wards) {
-        for (const ward of prov.wards) {
+        const sortedWards = [...prov.wards].sort((a, b) => b.length - a.length);
+        for (const ward of sortedWards) {
           const wName = normalizeText(ward);
           const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
           const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
@@ -123,7 +124,8 @@ export function parseLocation(rawLocation: string) {
           
           if (mappedRaw.includes(dName) || distRegex.test(mappedRaw)) {
             matchedDistrict = dist.name;
-            for (const ward of dist.wards || []) {
+            const sortedDistWards = [...(dist.wards || [])].sort((a, b) => b.length - a.length);
+            for (const ward of sortedDistWards) {
               const wName = normalizeText(ward);
               const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
               const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');
@@ -144,7 +146,8 @@ export function parseLocation(rawLocation: string) {
   if (!matchedProvince) {
     for (const prov of locationTree) {
       if (prov.wards) {
-        for (const ward of prov.wards) {
+        const sortedWards = [...prov.wards].sort((a, b) => b.length - a.length);
+        for (const ward of sortedWards) {
           const wName = normalizeText(ward);
           const wShort = wName.replace('phường ', '').replace('p. ', '').replace('xã ', '').replace('thị trấn ', '');
           const wardRegex = new RegExp(`\\b${wShort}\\b`, 'i');

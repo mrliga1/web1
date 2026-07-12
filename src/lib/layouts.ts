@@ -25,18 +25,18 @@ export const DEFAULT_HOME_SECTIONS: VisualSection[] = [
     visible: true,
     paddingTop: 80,
     paddingBottom: 80,
-    title: "Từ Dấu Ấn Cá Nhân Chuyên Gia Đến Hệ Sinh Thái Doanh Nghiệp",
-    subtitle: "Chân dung người đồng hành",
+    title: "Greenia Homes Phân phối, Chuyển nhượng BĐS Chuyên nghiệp",
+    subtitle: "Đồng hành cùng nhà đầu tư bất động sản",
     description:
-      "Khởi đầu từ một chuyên viên tư vấn độc lập được các nhà đầu tư cá nhân tín nhiệm, Greenia Homes ra đời với khát vọng chuẩn hóa và nâng tầm dịch vụ môi giới. Chúng tôi đang chuyển mình mạnh mẽ từ một thương hiệu cá nhân uy tín thành một doanh nghiệp cung cấp giải pháp bất động sản toàn diện.",
+      "Greenia Homes là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư Greenia Homes tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS.",
     extraData: {
-      visionTitle: "Tầm Nhìn",
+      visionTitle: "Tầm Nhìn Sứ Mệnh",
       visionDesc:
         "Trở thành công ty tư vấn đầu tư và quản lý tài sản bất động sản hàng đầu, nơi kiến tạo và định chuẩn lại chất lượng phục vụ cho giới thượng lưu.",
-      strategyTitle: "Chiến Lược Đặc Quyền",
+      strategyTitle: "Chiến Lược Phát Triển",
       strategyDesc:
         "Kết hợp sự am hiểu thị trường sâu sắc của chuyên gia địa phương với hệ thống vận hành doanh nghiệp chuyên nghiệp: bám sát từng biên độ biến động giá, phân tích tính thanh khoản và đánh giá tiềm năng tăng trưởng thực tế.",
-      processTitle: "Triết Lý Đồng Hành",
+      processTitle: "Quy Trình Nghiệp Vụ",
       processDesc:
         "Tuyệt đối không chạy theo số lượng bề nổi. Mỗi giao dịch đều được thẩm định chéo qua 3 vòng: Tính pháp lý sạch, Dòng tiền kỳ vọng, và Yếu tố vượng khí phong thủy.",
     },
@@ -52,13 +52,13 @@ export const DEFAULT_HOME_SECTIONS: VisualSection[] = [
     description:
       'Sự mở rộng quy mô thành Greenia Homes không làm mất đi "chất" tận tụy của người làm nghề nguyên bản, mà càng củng cố thêm sức mạnh nguồn lực để bảo vệ quyền lợi tối thượng cho khách hàng.',
     extraData: {
-      item1Title: "Làm việc trực tiếp cùng Founder",
+      item1Title: "Bảo mật thông tin tối thượng",
       item1Desc:
         "Đối với những thương vụ lớn, Founder trực tiếp dẫn dắt quá trình đàm phán, đảm bảo không một chi tiết pháp lý hay điều khoản nào bị bỏ sót.",
-      item2Title: 'Nguồn hàng độc quyền "Off-market"',
+      item2Title: "Tập trung rạch ròi mảng xanh",
       item2Desc:
         "Nhờ mạng lưới quan hệ sâu rộng cá nhân, chúng tôi nắm giữ nhiều danh mục tài sản khan hiếm chưa từng public ra thị trường.",
-      item3Title: "Hậu mãi cấp doanh nghiệp",
+      item3Title: "Thủ tục pháp lý mượt mà",
       item3Desc:
         "Quy trình hậu mãi (sang tên, thủ tục ngân hàng, hoàn thiện nội thất) được đội ngũ back-office của công ty xử lý nhanh chóng.",
       stat1Val: "7+ Năm",

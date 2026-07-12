@@ -18,7 +18,7 @@ export default function ClientWrapper({ categoryName }: { categoryName: string }
   };
 
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    alert(`${type.toUpperCase()}: ${message}`);
+    // alert removed;
   };
 
   return (

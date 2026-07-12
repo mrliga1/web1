@@ -1,7 +1,7 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Danh SÃ¡ch Báº¥t Äá»™ng Sáº£n - Greenia Homes',
+  title: 'Danh Sách Bất Động Sản - Greenia Homes',
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

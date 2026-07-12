@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from 'react';
 import Home from '../src/components/Home';
@@ -17,7 +17,7 @@ export default function HomePage() {
   };
 
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // console.log(`${type.toUpperCase()}: ${message}`);
+    // alert removed;
   };
 
   return (

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from 'react';
 import ProductList from '../../src/components/ProductList';
@@ -21,7 +21,7 @@ export default function SanPhamPage({
   };
 
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // console.log(`${type.toUpperCase()}: ${message}`);
+    // alert removed;
   };
   
   const priceRange = typeof searchParams.priceRange === 'string' ? searchParams.priceRange : undefined;

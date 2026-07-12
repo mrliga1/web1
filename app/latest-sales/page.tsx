@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from 'react';
 import { getRouteUrl } from '../../src/lib/utils';
@@ -18,7 +18,7 @@ export default function LatestSalesPage() {
   };
 
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // console.log(`${type.toUpperCase()}: ${message}`);
+    // alert removed;
   };
 
   return (

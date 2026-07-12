@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from 'react';
 import NewsList from '../../src/components/NewsList';
@@ -17,7 +17,7 @@ export default function TinTucPage() {
   };
 
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // console.log(`${type.toUpperCase()}: ${message}`);
+    // alert removed;
   };
 
   return (

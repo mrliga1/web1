@@ -1,16 +1,16 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Providers from "./providers";
 import ClientLayout from "../src/components/ClientLayout";
 import "../src/index.css";
 
-/* Metadata máº·c Ä‘á»‹nh cho toÃ n bá»™ site */
+/* Metadata mặc định cho toàn bộ site */
 export const metadata: Metadata = {
   title: {
-    default: "Greenia Homes - Cá»‘ Váº¥n Äáº§u TÆ° Báº¥t Äá»™ng Sáº£n ChuyÃªn SÃ¢u",
+    default: "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu",
     template: "%s | Greenia Homes",
   },
   description:
-    "ChÃ o má»«ng Ä‘áº¿n vá»›i Greenia Homes - Äá»“ng hÃ nh cÃ¹ng nhÃ  Ä‘áº§u tÆ° báº¥t Ä‘á»™ng sáº£n vá»›i phÃ¡p lÃ½ minh báº¡ch vÃ  dá»¯ liá»‡u thá»±c chiáº¿n.",
+    "Chào mừng đến với Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
   keywords:
     "greenia homes, biet thu chateau, phu my hung, vinhomes, can ho hang sang, phong thuy bat dong san",
   authors: [{ name: "Greenia Homes" }],
@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   },
   other: {
     "geo.region": "VN",
-    "geo.placename": "Viá»‡t Nam",
+    "geo.placename": "Việt Nam",
     "geo.position": "10.733852;106.715344",
     ICBM: "10.733852, 106.715344",
   },
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
 
 /**
  * Root Layout - Server Component.
- * Bao bá»c toÃ n bá»™ app vá»›i HTML, font, vÃ  providers.
+ * Bao bọc toàn bộ app với HTML, font, và providers.
  */
 export default function RootLayout({
   children,
@@ -44,7 +44,7 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <head>
-        {/* Preconnect cho Google Fonts vÃ  Firebase */}
+        {/* Preconnect cho Google Fonts và Firebase */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -55,7 +55,7 @@ export default function RootLayout({
           rel="preconnect"
           href="https://firestore.googleapis.com"
         />
-        {/* Font loading khÃ´ng block render */}
+        {/* Font loading không block render */}
         <link
           rel="preload"
           as="style"

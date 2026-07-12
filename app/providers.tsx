@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
@@ -7,7 +7,7 @@ import { ErrorBoundary } from "../src/ErrorBoundary";
 import { AppProvider } from "../src/contexts/AppContext";
 import { AuthProvider } from "../src/contexts/AuthContext";
 
-/* Táº¡o QueryClient 1 láº§n duy nháº¥t */
+/* Tạo QueryClient 1 lần duy nhất */
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -19,8 +19,8 @@ const queryClient = new QueryClient({
 });
 
 /**
- * Providers bá»c toÃ n bá»™ app á»Ÿ phÃ­a client.
- * TÃ¡ch riÃªng "use client" Ä‘á»ƒ layout.tsx cÃ³ thá»ƒ lÃ  Server Component.
+ * Providers bọc toàn bộ app ở phía client.
+ * Tách riêng "use client" để layout.tsx có thể là Server Component.
  */
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -16,7 +16,7 @@ export default function LienHePage() {
   };
 
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    alert(`${type.toUpperCase()}: ${message}`);
+    // console.log(`${type.toUpperCase()}: ${message}`);
   };
 
   return (

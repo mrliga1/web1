@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from 'react';
 import { getRouteUrl } from '../../src/lib/utils';
@@ -18,7 +18,7 @@ export default function LatestRentsPage() {
   };
 
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    alert(`${type.toUpperCase()}: ${message}`);
+    // console.log(`${type.toUpperCase()}: ${message}`);
   };
 
   return (

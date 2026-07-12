@@ -26,6 +26,8 @@ interface ProductListProps {
   initialType?: 'all' | 'sale' | 'rent';
   initialPriceRange?: string;
   initialAreaRange?: string;
+  initialCategoryTitle?: string;
+  initialCategoryDesc?: string;
 }
 
 import ProductCard from './ProductCard';
@@ -42,7 +44,9 @@ export default function ProductList({
   initialCategory,
   initialType,
   initialPriceRange,
-  initialAreaRange
+  initialAreaRange,
+  initialCategoryTitle,
+  initialCategoryDesc
 }: ProductListProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -797,6 +801,7 @@ export default function ProductList({
                       field="title" 
                       value={
                         (() => {
+                          if (initialCategoryTitle) return initialCategoryTitle;
                           if (loading) return 'Đang tải danh mục...';
                           if (selectedCategory && selectedCategory !== 'all') {
                             const catExt = productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory);
@@ -815,6 +820,7 @@ export default function ProductList({
                     />
                     <p className="text-text-secondary text-xs mt-2 pl-[5px] max-w-3xl">
                       {(() => {
+                          if (initialCategoryDesc) return initialCategoryDesc;
                           if (loading) return 'Vui lòng chờ trong giây lát...';
                           if (selectedCategory && selectedCategory !== 'all') {
                             const catExt = productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory);

@@ -7,7 +7,15 @@ import { useRouter } from 'next/navigation';
 import ProductList from '../../../src/components/ProductList';
 import { useAppContext } from '../../../src/contexts/AppContext';
 
-export default function ClientWrapper({ categoryName }: { categoryName: string }) {
+export default function ClientWrapper({ 
+  categoryName,
+  initialCategoryTitle,
+  initialCategoryDesc
+}: { 
+  categoryName: string,
+  initialCategoryTitle?: string,
+  initialCategoryDesc?: string
+}) {
   const { sections, setSections, isEditMode } = useAppContext();
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
@@ -31,6 +39,8 @@ export default function ClientWrapper({ categoryName }: { categoryName: string }
       selectedSectionId={selectedSectionId}
       setSelectedSectionId={setSelectedSectionId}
       initialCategory={categoryName}
+      initialCategoryTitle={initialCategoryTitle}
+      initialCategoryDesc={initialCategoryDesc}
     />
   );
 }

@@ -14,6 +14,7 @@ import CustomSectionRenderer from './CustomSectionRenderer';
 import { EditableText, EditableImage } from './EditableComponent';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { Helmet } from 'react-helmet-async';
+import SchemaMarkup from './SchemaMarkup';
 import { useInView } from 'react-intersection-observer';
 
 const LazySection = ({ children, sectionId, isEditMode }: { children: React.ReactNode, sectionId: string, isEditMode: boolean }) => {
@@ -162,11 +163,11 @@ export default function Home({
         "image": "https://greeniahomes.vn/logo.png",
         "description": "Chuyên gia phân phối bất động sản cao cấp Vinhomes và Masterise Homes.",
         "telephone": "0932966700",
-        "email": "sales@greeniahomes.vn",
+        "email": "cskh@greeniahomes.vn",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng",
-          "addressLocality": "Quận 7",
+          "streetAddress": "67 Võ Văn Kiệt, Phường An Lạc",
+          "addressLocality": "Quận Bình Tân",
           "addressRegion": "Hồ Chí Minh",
           "postalCode": "700000",
           "addressCountry": "VN"
@@ -183,6 +184,9 @@ export default function Home({
 
   return (
     <div className="relative min-h-screen overflow-x-hidden w-full">
+      <Helmet>
+        <SchemaMarkup schema={schemaOrgJSONLD} />
+      </Helmet>
       
       <div className="space-y-4 pb-0 font-sans" id="home-view-root">
         {sections.map((section, index) => {

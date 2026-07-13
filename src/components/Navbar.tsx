@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Home, Building2, ShieldCheck, LogOut, User as UserIcon, Menu, X, Compass, Newspaper, Mail, Phone, Heart } from 'lucide-react';
 import { RouteState, ScreenType } from '../types';
 import { useScrollDirection } from '../hooks/useScrollDirection';
@@ -54,7 +55,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
   return (
     <>
       <div className="h-10 md:h-10 w-full shrink-0" />
-      <nav className={`fixed top-0 w-full z-[110] transition-transform duration-300 border-b ${scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'} ${theme === 'dark' ? 'bg-[#0B1F16]/70 backdrop-blur-lg border-border-inverse shadow-lg shadow-black/50' : 'bg-white/70 backdrop-blur-lg border-border-color shadow-sm'}`} id="main-nav">
+      <header className={`fixed top-0 w-full z-[110] transition-transform duration-300 border-b ${scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'} ${theme === 'dark' ? 'bg-[#0B1F16]/70 backdrop-blur-lg border-border-inverse shadow-lg shadow-black/50' : 'bg-white/70 backdrop-blur-lg border-border-color shadow-sm'}`} id="main-nav">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:bg-transparent`}>
         <div className="flex items-center justify-between h-10 md:h-10 relative">
           
@@ -62,9 +63,9 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
           <div className="block lg:hidden w-10" />
 
           {/* Brand Logo Identity */}
-          <div 
+          <Link 
+            href="/"
             className="flex items-center gap-2 cursor-pointer group absolute left-1/2 -translate-x-1/2 lg:relative lg:left-0 lg:transform-none z-10"
-            onClick={() => handleNavigate({ screen: 'home' })}
             id="logo-container"
           >
             {logoUrl ? (
@@ -95,10 +96,10 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 </div>
               </>
             )}
-          </div>
+          </Link>
  
           {/* Desktop Nav Items */}
-          <div className="hidden lg:flex items-center gap-1" id="desktop-menu">
+          <nav className="hidden lg:flex items-center gap-1" id="desktop-menu">
             {menuItems.map((item) => {
               // Exact active status matching screen type
               const active = currentRoute.screen === item.screen;
@@ -125,7 +126,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 </button>
               );
             })}
-          </div>
+          </nav>
  
           {/* Right section wrapper to group elements correctly on tablet/mobile */}
           <div className="flex items-center gap-2">
@@ -276,7 +277,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
 
       {/* Drawer mobile dropdown list */}
       {mobileMenuOpen && (
-        <div 
+        <nav 
           id="mobile-dropdown"
           style={{ animation: 'slideDown 0.2s ease-out' }}
           className={`lg:hidden border-b text-left ${theme === 'dark' ? 'bg-[#0B1F16]/95 border-zinc-900' : 'bg-white border-border-color shadow-md'}`}
@@ -342,7 +343,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                 )}
               </div>
             </div>
-          </div>
+          </nav>
       )}
 
       <AuthModal 
@@ -351,7 +352,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
         onShowNotification={onShowNotification} 
         onLoginSuccess={() => handleNavigate({ screen: 'admin' })}
       />
-    </nav>
+    </header>
     </>
   );
 }

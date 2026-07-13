@@ -35,7 +35,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: finalTitle.includes('Greenia Homes') ? finalTitle : `${finalTitle} - Greenia Homes`,
-    description: finalDesc
+    description: finalDesc,
+    openGraph: {
+      title: finalTitle,
+      description: finalDesc,
+      type: "website",
+      url: `https://greeniahomes.vn/category-product/${name}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: finalTitle,
+      description: finalDesc,
+    },
+    alternates: {
+      canonical: `https://greeniahomes.vn/category-product/${name}`,
+    }
   };
 }
 

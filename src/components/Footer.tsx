@@ -11,32 +11,34 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 text-left">
           <div className="space-y-6 lg:col-span-1">
             <span className="font-display font-bold text-2xl text-accent uppercase tracking-wide">Greenia Homes</span>
-            <ul className="space-y-4 text-[13px] text-white/70">
-              <li className="flex items-start gap-3">
-                <MapPin className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span className="text-text-inverse">
-                  <strong className="text-text-inverse">Trụ sở:</strong> 67 Võ Văn Kiệt, P. An Lạc, Quận Bình Tân, TP.HCM.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Building2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span className="text-text-inverse">
-                  <strong className="text-text-inverse">Văn phòng:</strong> 520 Võ Văn Kiệt, Quận Bình Tân, TP.HCM.
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Phone className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span className="text-text-inverse">
-                  <strong className="text-text-inverse">Hotline:</strong> 0932 966 700
-                </span>
-              </li>
-              <li className="flex items-start gap-3">
-                <Mail className="w-4 h-4 text-accent shrink-0 mt-0.5" />
-                <span className="text-text-inverse">
-                  <strong className="text-text-inverse">Email:</strong> cskh@greeniahomes.vn
-                </span>
-              </li>
-            </ul>
+            <address className="not-italic">
+              <ul className="space-y-4 text-[13px] text-white/70">
+                <li className="flex items-start gap-3">
+                  <MapPin className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                  <span className="text-text-inverse">
+                    <strong className="text-text-inverse">Trụ sở:</strong> 67 Võ Văn Kiệt, P. An Lạc, Quận Bình Tân, TP.HCM.
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Building2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                  <span className="text-text-inverse">
+                    <strong className="text-text-inverse">Văn phòng:</strong> 520 Võ Văn Kiệt, Quận Bình Tân, TP.HCM.
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Phone className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                  <span className="text-text-inverse">
+                    <strong className="text-text-inverse">Hotline:</strong> <a href="tel:0932966700" className="hover:text-accent transition-colors">0932 966 700</a>
+                  </span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Mail className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                  <span className="text-text-inverse">
+                    <strong className="text-text-inverse">Email:</strong> <a href="mailto:cskh@greeniahomes.vn" className="hover:text-accent transition-colors">cskh@greeniahomes.vn</a>
+                  </span>
+                </li>
+              </ul>
+            </address>
           </div>
           <div className="space-y-6">
             <h3 className="font-display font-bold text-text-inverse text-sm uppercase tracking-wider relative pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-accent">Về Chúng Tôi</h3>

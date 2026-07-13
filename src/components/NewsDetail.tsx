@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SchemaMarkup from './SchemaMarkup';
 import { optimizeImageUrl, generateSlug, generateSrcSet } from '../lib/utils';
 import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
@@ -314,9 +315,13 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
   const computedTotalCount = rawBaseCount + (article.userReviewCount || 0);
   const currentAvg = computedTotalCount === 0 ? rawBaseRating : computedTotalStars / computedTotalCount;
 
-  const schemaOrgJSONLD = {
+  const schemaOrgJSONLD: any = {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": "NewsArticle",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": typeof window !== 'undefined' ? window.location.href : ''
+    },
     "headline": article.title,
     "image": [
       articleImage
@@ -327,16 +332,50 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         "@type": "Person",
         "name": article.author || "Greenia Admin"
     }],
-    "description": (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160),
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": currentAvg.toFixed(1),
-      "reviewCount": computedTotalCount === 0 ? 1 : computedTotalCount
-    }
+    "publisher": {
+      "@type": "Organization",
+      "name": "Greenia Homes",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://greeniahomes.vn/logo.png"
+      }
+    },
+    "description": (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Trang chủ",
+        item: "https://greeniahomes.vn"
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Tin tức",
+        item: "https://greeniahomes.vn/tin-tuc"
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: article.category || "Danh mục",
+        item: `https://greeniahomes.vn/tin-tuc?category=${encodeURIComponent(article.category)}`
+      },
+      {
+        "@type": "ListItem",
+        position: 4,
+        name: article.title,
+        item: typeof window !== 'undefined' ? window.location.href : ''
+      }
+    ]
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-12 animate-in fade-in" id="news-detail-root-container">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-12 animate-in fade-in" id="news-detail-root-container">
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
@@ -358,14 +397,13 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
         <meta name="geo.position" content="10.823099;106.629664" />
         <meta name="ICBM" content="10.823099, 106.629664" />
-        <script type="application/ld+json">
-          {JSON.stringify(schemaOrgJSONLD)}
-        </script>
+        <SchemaMarkup schema={schemaOrgJSONLD} />
+        <SchemaMarkup schema={breadcrumbSchema} />
       </Helmet>
       
       <div className="mb-[35px]">
         {/* Breadcrumb row */}
-        <div className="flex items-center text-xs text-text-secondary border-b border-border-color pb-[5px]" id="news-detail-breadcrumb">
+        <nav aria-label="breadcrumb" className="flex items-center text-xs text-text-secondary border-b border-border-color pb-[5px]" id="news-detail-breadcrumb">
           <div className="flex items-center gap-2 text-text-secondary font-mono">
             <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary truncate max-w-[100px] cursor-pointer">Tin tức</button>
             <span>/</span>
@@ -373,7 +411,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
             <span>/</span>
             <span className="text-primary font-bold truncate max-w-[200px]" title={article.title}>{article.title}</span>
           </div>
-        </div>
+        </nav>
 
         {/* Header Info Banner: Title, published date, author */}
         <div className="text-left max-w-4xl" id="news-detail-briefing">
@@ -970,6 +1008,6 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
       </section>
       )}
 
-    </div>
+    </main>
   );
 }

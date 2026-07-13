@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import SchemaMarkup from "./SchemaMarkup";
 import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
 import { parseLocation, formatLocationName } from "../lib/locationMapping";
 import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from "../firebase";
@@ -527,29 +528,35 @@ export default function ProductDetail({
     product.toilets ? `🛁 ${product.toilets} WC` : null
   ].filter(Boolean).join(" | ") + (product.description ? ` - ${(product.description || "").replace(/<[^>]*>?/gm, "").substring(0, 100)}...` : "");
 
-  const schemaOrgJSONLD = {
+  const schemaOrgJSONLD: any = {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "RealEstateListing",
     name: product.title,
     image: productImages,
     description: (product.description || "")
       .replace(/<[^>]*>?/gm, "")
       .substring(0, 160),
-    brand: {
-      "@type": "Brand",
-      name: "Greenia Homes",
+    datePosted: product.createdAt,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: product.street || undefined,
+      addressLocality: product.district || undefined,
+      addressRegion: "Hồ Chí Minh",
+      addressCountry: "VN"
     },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: currentAvg.toFixed(1),
-      reviewCount: computedTotalCount === 0 ? 1 : computedTotalCount,
-    },
+    numberOfRooms: product.bedrooms || undefined,
+    numberOfBedrooms: product.bedrooms || undefined,
+    numberOfBathroomsTotal: product.toilets || undefined,
+    floorSize: product.area ? {
+      "@type": "QuantitativeValue",
+      value: product.area,
+      unitCode: "MTK"
+    } : undefined,
     offers: {
       "@type": "Offer",
-      url: window.location.href,
+      url: typeof window !== "undefined" ? window.location.href : "",
       priceCurrency: "VND",
       price: (product.price || "").replace(/\D.*$/, "") || "1000000000",
-      itemCondition: "https://schema.org/UsedCondition",
       availability: "https://schema.org/InStock",
       seller: {
         "@type": "Organization",
@@ -558,8 +565,53 @@ export default function ProductDetail({
     },
   };
 
+  if (computedTotalCount > 0) {
+    schemaOrgJSONLD.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: currentAvg.toFixed(1),
+      reviewCount: computedTotalCount,
+    };
+  }
+
+  // Nếu có tọa độ, thêm vào schema
+  // @ts-ignore (latitude/longitude có thể không có trong mọi model cũ)
+  if (product.latitude && product.longitude) {
+    schemaOrgJSONLD.geo = {
+      "@type": "GeoCoordinates",
+      // @ts-ignore
+      latitude: product.latitude,
+      // @ts-ignore
+      longitude: product.longitude
+    };
+  }
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Trang chủ",
+        item: "https://greeniahomes.vn"
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: product.type === "rent" ? "Cho Thuê" : "Mua Bán",
+        item: `https://greeniahomes.vn/danh-sach?type=${product.type}`
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.title,
+        item: typeof window !== "undefined" ? window.location.href : ""
+      }
+    ]
+  };
+
   return (
-    <div
+    <article
       className="max-w-7xl mx-auto px-[20px] pt-[15px] !pb-0 space-y-16 animate-in fade-in"
       id={`product-detail-viewport-${product.id}`}
     >
@@ -571,7 +623,7 @@ export default function ProductDetail({
             .replace(/<[^>]*>?/gm, "")
             .substring(0, 160)}
         />
-        <meta property="og:type" content="article" />
+        <meta property="og:type" content="website" />
         <meta
           property="og:url"
           content={typeof window !== "undefined" ? window.location.href : ""}
@@ -588,19 +640,21 @@ export default function ProductDetail({
         <meta property="twitter:description" content={socialDescription} />
         <meta property="twitter:image" content={productImages[0]?.startsWith('http') ? productImages[0] : `https://greeniahomes.vn${productImages[0]?.startsWith('/') ? productImages[0] : `/${productImages[0]}`}`} />
 
-        {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
+        {/* Geo Meta Tags for Local SEO */}
         <meta name="geo.region" content="VN-SG" />
-        <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
-        <meta name="geo.position" content="10.823099;106.629664" />
-        <meta name="ICBM" content="10.823099, 106.629664" />
-        <script type="application/ld+json">
-          {JSON.stringify(schemaOrgJSONLD)}
-        </script>
+        <meta name="geo.placename" content={product.district ? `${product.district}, Hồ Chí Minh` : "Hồ Chí Minh, Việt Nam"} />
+        {/* @ts-ignore */}
+        <meta name="geo.position" content={product.latitude && product.longitude ? `${product.latitude};${product.longitude}` : "10.733852;106.715344"} />
+        {/* @ts-ignore */}
+        <meta name="ICBM" content={product.latitude && product.longitude ? `${product.latitude}, ${product.longitude}` : "10.733852, 106.715344"} />
+        
+        <SchemaMarkup schema={schemaOrgJSONLD} />
+        <SchemaMarkup schema={breadcrumbSchema} />
       </Helmet>
 
       {/* 9.2.1. Breadcrumb Navigation */}
-      <div className="flex flex-col">
-        <nav
+      <nav className="flex flex-col">
+        <div
           className="flex items-center justify-between text-xs text-text-secondary border-b border-border-color pb-[5px]"
           id="detail-breadcrumb"
         >
@@ -643,16 +697,17 @@ export default function ProductDetail({
           <ChevronLeft className="w-4 h-4" />
           <span className="hidden sm:inline">Trở lại danh sách</span>
         </button>
+      </div>
       </nav>
 
         {/* 9.2.2. Three Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mt-3">
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mt-3">
         {/* =========================================================
             COLUMN 1 (Left): Covers 6 grid column widths (lg:col-span-6)
             ========================================================= */}
-        <div className="lg:col-span-6 space-y-8" id="detail-pane-left">
+        <section className="lg:col-span-6 space-y-8" id="detail-pane-left">
           {/* Cover Multi-image Slider */}
-          <div className="space-y-4 !mb-[10px]">
+          <figure className="space-y-4 !mb-[10px]">
             <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-border-color bg-bg-surface shadow-xl group">
               <img
                 loading="eager"
@@ -735,10 +790,10 @@ export default function ProductDetail({
                 </button>
               ))}
             </div>
-          </div>
+          </figure>
 
           {/* Main info & Product details combined */}
-          <div className="bg-bg-surface pt-[10px] pb-4 px-[10px] sm:px-[15px] !mb-[5px] rounded-lg border border-border-color text-left">
+          <section className="bg-bg-surface pt-[10px] pb-4 px-[10px] sm:px-[15px] !mb-[5px] rounded-lg border border-border-color text-left">
             <div className="space-y-3 pb-1 border-b border-border-color/60">
               <h2 className="text-[18px] sm:text-[20px] font-playfair font-bold text-text-primary flex items-center gap-2">
                 {product.title}
@@ -838,7 +893,7 @@ export default function ProductDetail({
               </div>
             </div>
 
-            <div className="mt-4 space-y-4">
+            <section className="mt-4 space-y-4">
               <h2 className="font-display font-bold text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-[13px] md:text-sm text-text-secondary !pb-0 !mb-[5px] border-b border-border-color">
                 Đặc điểm sản phẩm
               </h2>
@@ -954,11 +1009,11 @@ export default function ProductDetail({
                   </div>
                 )}
               </div>
-            </div>
-          </div>
+            </section>
+          </section>
 
           {/* 2 Tabs: details/description, map representation */}
-          <div className="space-y-4 text-left">
+          <section className="space-y-4 text-left">
             <div className="flex border-b border-border-color pb-px gap-1 !mb-[10px] !pb-0 h-[35px] !pt-[5px]">
               <button
                 onClick={() => setActiveTab("desc")}
@@ -1048,13 +1103,13 @@ export default function ProductDetail({
                 />
               </div>
             </div>
-          </div>
-        </div>
+          </section>
+        </section>
 
         {/* =========================================================
             COLUMN 2 (Middle/Right): Sticky Consultation Box + Sidebar
             ========================================================= */}
-        <div
+        <section
           className={`lg:col-span-3 space-y-6 lg:sticky self-start transition-all duration-300 ${scrollDirection === 'down' ? 'lg:top-[10px]' : 'lg:top-[50px]'}`}
           id="detail-pane-right"
         >
@@ -1135,12 +1190,12 @@ export default function ProductDetail({
               </a>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* =========================================================
             COLUMN 3 (Right): Covers 3 grid column widths (lg:col-span-3 - STICKY)
             ========================================================= */}
-        <div
+        <section
           className={`lg:col-span-3 space-y-6 lg:sticky self-start transition-all duration-300 ${scrollDirection === 'down' ? 'lg:top-[10px]' : 'lg:top-[50px]'}`}
           id="detail-pane-far-right"
         >
@@ -1364,9 +1419,8 @@ export default function ProductDetail({
               )}
             </div>
           </div>
-        </div>
-      </div>
-      </div>
+        </section>
+      </section>
 
       <AdBanner
         slot="product-detail-deep"
@@ -1555,7 +1609,7 @@ export default function ProductDetail({
 
       {/* Lightbox Overlay */}
       {isLightboxOpen && typeof document !== "undefined" && createPortal(
-        <div className="fixed inset-0 bg-black/90 flex flex-col items-center justify-center animate-in fade-in" style={{ zIndex: 99999 }}>
+        <section className="fixed inset-0 bg-black/90 flex flex-col items-center justify-center animate-in fade-in" style={{ zIndex: 99999 }}>
           <button 
             onClick={() => setIsLightboxOpen(false)}
             className="absolute top-4 right-4 z-[210] p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm transition-all"
@@ -1563,7 +1617,7 @@ export default function ProductDetail({
             <X className="w-6 h-6 md:w-8 md:h-8" />
           </button>
           
-          <div className="relative w-full max-w-6xl max-h-[90vh] flex items-center justify-center px-4">
+          <figure className="relative w-full max-w-6xl max-h-[90vh] flex items-center justify-center px-4">
             <img 
               src={selectedImage}
               alt={product.title}
@@ -1586,15 +1640,15 @@ export default function ProductDetail({
                 </button>
               </>
             )}
-          </div>
+          </figure>
           
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/80 text-sm font-medium bg-black/40 px-4 py-1.5 rounded-full backdrop-blur-sm">
             {currentImages.indexOf(selectedImage) + 1} / {currentImages.length}
           </div>
-        </div>,
+        </section>,
         document.body
       )}
 
-    </div>
+    </article>
   );
 }

@@ -12,6 +12,8 @@ import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { locationTree, parseLocation, LocationNode, formatLocationName } from '../lib/locationMapping';
+import { Helmet } from 'react-helmet-async';
+import SchemaMarkup from './SchemaMarkup';
 
 interface ProductListProps {
   onNavigate: (route: RouteState) => void;
@@ -409,7 +411,20 @@ export default function ProductList({
     return () => clearTimeout(timer);
   }, []);
 
+  const schemaItemList = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": filteredProducts.slice(0, mainGridLimit).map((product, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "url": `https://greeniahomes.vn/san-pham/${generateSlug(product.title)}-${product.id}`
+    }))
+  };
+
   return (    <>
+    <Helmet>
+      <SchemaMarkup schema={schemaItemList} />
+    </Helmet>
     <div className="relative min-h-screen">
       <div className="font-sans" id="product-hub-view-root" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
         {sections.map((section, idx) => {
@@ -1149,9 +1164,11 @@ export default function ProductList({
           }
 
           if (!cardContent && !isEditMode) return null; // ADD THIS to prevent empty wrappers spacing
+          
+          const SectionTag = section.id === 'products_filter' ? 'aside' : 'section';
 
           return (
-            <div 
+            <SectionTag 
               key={section.id} 
               id={`section-wrapper-${section.id}`}
               style={{
@@ -1196,7 +1213,7 @@ export default function ProductList({
               {idx === 2 && (
                 <AdBanner slot="prods-hub-interstitial" containerClassName="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 mb-6" />
               )}
-            </div>
+            </SectionTag>
           );
         })}
       </div>

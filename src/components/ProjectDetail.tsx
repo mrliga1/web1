@@ -37,6 +37,7 @@ import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
 import StarRatingInteractive from "./StarRatingInteractive";
+import SchemaMarkup from "./SchemaMarkup";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 
 interface ProjectDetailProps {
@@ -636,26 +637,24 @@ export default function ProjectDetail({
       ? rawBaseRating
       : computedTotalStars / computedTotalCount;
 
-  const schemaOrgJSONLD = {
+  const schemaOrgJSONLD: any = {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "RealEstateListing",
     name: project.title,
     image: galleryImages,
     description: (project.description || "")
       .replace(/<[^>]*>?/gm, "")
       .substring(0, 160),
-    brand: {
-      "@type": "Brand",
-      name: project.developer || "Greenia",
-    },
-    aggregateRating: {
-      "@type": "AggregateRating",
-      ratingValue: currentAvg.toFixed(1),
-      reviewCount: computedTotalCount === 0 ? 1 : computedTotalCount,
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: project.street || undefined,
+      addressLocality: project.district || undefined,
+      addressRegion: "Hồ Chí Minh",
+      addressCountry: "VN"
     },
     offers: {
       "@type": "AggregateOffer",
-      url: window.location.href,
+      url: typeof window !== "undefined" ? window.location.href : "",
       priceCurrency: "VND",
       lowPrice: "1000000000",
       highPrice: "10000000000",
@@ -663,8 +662,52 @@ export default function ProjectDetail({
     },
   };
 
+  if (computedTotalCount > 0) {
+    schemaOrgJSONLD.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: currentAvg.toFixed(1),
+      reviewCount: computedTotalCount,
+    };
+  }
+
+  // @ts-ignore
+  if (project.latitude && project.longitude) {
+    schemaOrgJSONLD.geo = {
+      "@type": "GeoCoordinates",
+      // @ts-ignore
+      latitude: project.latitude,
+      // @ts-ignore
+      longitude: project.longitude
+    };
+  }
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Trang chủ",
+        item: "https://greeniahomes.vn"
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Dự án",
+        item: "https://greeniahomes.vn/du-an"
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: project.title,
+        item: typeof window !== "undefined" ? window.location.href : ""
+      }
+    ]
+  };
+
   return (
-    <div className="pb-10" id="project-detail-view-root">
+    <article className="pb-10 animate-in fade-in" id="project-detail-view-root">
       <Helmet>
         <title>{pageTitle}</title>
         <meta
@@ -704,15 +747,16 @@ export default function ProjectDetail({
         {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
         <meta name="geo.region" content="VN-SG" />
         <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
-        <meta name="geo.position" content="10.823099;106.629664" />
-        <meta name="ICBM" content="10.823099, 106.629664" />
-        <script type="application/ld+json">
-          {JSON.stringify(schemaOrgJSONLD)}
-        </script>
+        {/* @ts-ignore */}
+        <meta name="geo.position" content={project.latitude && project.longitude ? `${project.latitude};${project.longitude}` : "10.733852;106.715344"} />
+        {/* @ts-ignore */}
+        <meta name="ICBM" content={project.latitude && project.longitude ? `${project.latitude}, ${project.longitude}` : "10.733852, 106.715344"} />
+        <SchemaMarkup schema={schemaOrgJSONLD} />
+        <SchemaMarkup schema={breadcrumbSchema} />
       </Helmet>
 
       {/* Top Banner (Photo Gallery/Slider) */}
-      <div
+      <figure
         className="relative w-full h-[50vh] sm:h-[60vh] md:h-[75vh] lg:h-[85vh] bg-slate-900 border-t border-border-color overflow-hidden group"
         onMouseEnter={() => setIsGalleryAutoplayPaused(true)}
       >
@@ -780,7 +824,7 @@ export default function ProjectDetail({
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent pointer-events-none z-20" />
 
         {/* Navigation Breadcrumb inside banner */}
-        <div className="absolute top-4 sm:top-6 lg:top-8 left-0 right-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 z-40 pointer-events-none">
+        <nav aria-label="breadcrumb" className="absolute top-4 sm:top-6 lg:top-8 left-0 right-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 z-40 pointer-events-none">
           <div className="flex items-center gap-2 text-[13px] md:text-sm text-white/80 font-medium drop-shadow-md pointer-events-auto">
             <button
               onClick={() => onNavigate({ screen: "du-an" })}
@@ -798,7 +842,7 @@ export default function ProjectDetail({
             <span className="opacity-50">/</span>
             <span className="text-white font-semibold drop-shadow-md">{project.title}</span>
           </div>
-        </div>
+        </nav>
 
         {/* Gallery Thumbnails Overlay */}
         <div className="absolute bottom-4 left-0 right-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 z-40 flex items-end justify-between pointer-events-none">
@@ -2386,6 +2430,6 @@ export default function ProjectDetail({
           </div>
         </div>
       )}
-    </div>
+    </article>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Providers from "./providers";
 import ClientLayout from "../src/components/ClientLayout";
+import SchemaMarkup from "../src/components/SchemaMarkup";
 import "../src/index.css";
 
 /* Metadata mặc định cho toàn bộ site */
@@ -77,6 +78,49 @@ export default function RootLayout({
         {/* PWA Tags */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#ffffff" />
+        <SchemaMarkup schema={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "Greenia Homes",
+          "url": "https://greeniahomes.vn",
+          "description": "Cố vấn đầu tư bất động sản chuyên sâu, uy tín tại Việt Nam.",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://greeniahomes.vn/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }} />
+        <SchemaMarkup schema={{
+          "@context": "https://schema.org",
+          "@type": "RealEstateAgent",
+          "name": "Greenia Homes",
+          "url": "https://greeniahomes.vn",
+          "logo": "https://greeniahomes.vn/logo.png",
+          "image": "https://greeniahomes.vn/default-share.jpg",
+          "description": "Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
+          "telephone": "0932966700",
+          "email": "cskh@greeniahomes.vn",
+          "sameAs": [
+            "https://www.facebook.com/GreeniaHomes",
+            "https://www.tiktok.com/@greeniahomes",
+            "https://www.youtube.com/@GreeniaHomes",
+            "https://zalo.me/greeniahomes"
+          ],
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "67 Võ Văn Kiệt, Phường An Lạc",
+            "addressLocality": "Quận Bình Tân",
+            "addressRegion": "Hồ Chí Minh",
+            "postalCode": "700000",
+            "addressCountry": "VN"
+          },
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 10.733852,
+            "longitude": 106.715344
+          },
+          "priceRange": "$$$"
+        }} />
       </head>
       <body
         style={{
@@ -87,9 +131,7 @@ export default function RootLayout({
         }}
       >
         <Providers>
-          <div id="root">
-            <ClientLayout>{children}</ClientLayout>
-          </div>
+          <ClientLayout>{children}</ClientLayout>
         </Providers>
         <script
           dangerouslySetInnerHTML={{

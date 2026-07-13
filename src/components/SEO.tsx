@@ -1,6 +1,8 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
 
+import SchemaMarkup from './SchemaMarkup';
+
 interface SEOProps {
   title: string;
   description?: string;
@@ -43,16 +45,14 @@ export const SEO: React.FC<SEOProps> = ({
 
       {/* Schema.org / JSON-LD */}
       {structuredData && (
-        <script type="application/ld+json">
-          {JSON.stringify(structuredData)}
-        </script>
+        <SchemaMarkup schema={structuredData} />
       )}
 
       {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
       <meta name="geo.region" content="VN-SG" />
       <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
-      <meta name="geo.position" content="10.823099;106.629664" />
-      <meta name="ICBM" content="10.823099, 106.629664" />
+      <meta name="geo.position" content="10.733852;106.715344" />
+      <meta name="ICBM" content="10.733852, 106.715344" />
     </Helmet>
   );
 };

@@ -259,7 +259,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
 }) => {
   return (
     <section 
-      className="relative min-h-[640px] flex items-center justify-center p-6 md:p-12 lg:p-20 overflow-hidden bg-[#0B1F16]" 
+      className="relative min-h-[640px] flex items-center justify-center p-6 md:p-12 lg:p-20 overflow-hidden bg-bg-surface border-b border-border-color" 
       id="home-hero-banner"
     >
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10 pt-[20px] pb-10">
@@ -267,27 +267,27 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
         {/* Left Column: Text & CTAs */}
         <div className="lg:col-span-7 space-y-6 text-left w-full" id="banner-intro-txt">
           <div className="mb-6">
-            <h1 className="text-white font-display text-4xl sm:text-5xl font-bold tracking-tight mb-2">
+            <h1 className="text-primary font-display text-4xl sm:text-5xl font-bold tracking-tight mb-2">
               Greenia Homes
             </h1>
-            <p className="text-accent text-sm sm:text-base font-medium tracking-wide inline-block border-b border-accent/40 pb-[1px]">
+            <p className="text-text-secondary text-sm sm:text-base font-medium tracking-wide inline-block border-b border-border-color pb-[1px]">
               Đồng hành - Tận tâm - An tâm mua nhà
             </p>
           </div>
 
-          <div className="text-white/70 text-sm sm:text-[15px] lg:max-w-[95%] xl:max-w-[600px] font-light leading-relaxed space-y-6">
+          <div className="text-text-secondary text-sm sm:text-[15px] lg:max-w-[95%] xl:max-w-[600px] font-light leading-relaxed space-y-6">
             <p>
-              <strong className="text-accent font-bold">Greenia Homes</strong> là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư <strong className="text-accent font-bold">Greenia Homes</strong> tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS.
+              <strong className="text-primary font-bold">Greenia Homes</strong> là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư <strong className="text-primary font-bold">Greenia Homes</strong> tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS.
             </p>
             <p>
-              <strong className="text-accent font-bold">Greenia Homes</strong> chuyên cung cấp và phân phối các sản phẩm từ những CĐT uy tín như: Vinhomes, Masteri Homes, Sun Group... Các dòng sản phẩm chủ lực: Căn hộ Cao cấp, Nhà phố, Biệt thự, Dinh thự...
+              <strong className="text-primary font-bold">Greenia Homes</strong> chuyên cung cấp và phân phối các sản phẩm từ những CĐT uy tín như: Vinhomes, Masteri Homes, Sun Group... Các dòng sản phẩm chủ lực: Căn hộ Cao cấp, Nhà phố, Biệt thự, Dinh thự...
             </p>
           </div>
 
           <div className="flex flex-row items-center gap-4 pt-6 w-full">
             <button
               onClick={() => onNavigate({ screen: 'san-pham' })}
-              className="flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-[#0B1F16] font-bold px-6 py-2.5 rounded-full text-[13px] sm:text-sm shadow-lg transition-all border-none cursor-pointer"
+              className="flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-primary font-bold px-6 py-2.5 rounded-full text-[13px] sm:text-sm shadow-lg transition-all border-none cursor-pointer"
             >
               <span>Xem Ngay Sản Phẩm</span>
               <ArrowRight className="w-4 h-4" />
@@ -295,25 +295,25 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             
             <a 
               href="tel:0932966700"
-              className="flex items-center justify-center gap-2 text-white bg-white/5 border border-white/10 rounded-full px-6 py-2.5 hover:bg-white/10 transition-all font-mono text-[13px] sm:text-sm cursor-pointer"
+              className="flex items-center justify-center gap-2 text-primary bg-primary/5 border border-primary/10 rounded-full px-6 py-2.5 hover:bg-primary/10 transition-all font-mono text-[13px] sm:text-sm cursor-pointer"
             >
-              <div className="bg-[#0B1F16] p-1.5 rounded-full border border-white/10">
-                <Phone className="w-3.5 h-3.5 text-emerald-400" />
+              <div className="bg-primary/10 p-1.5 rounded-full border border-primary/20">
+                <Phone className="w-3.5 h-3.5 text-primary" />
               </div>
               <span>0932 966 700</span>
             </a>
           </div>
           
-          <div className="mt-12 pt-8 w-full border-t border-white/10 hidden sm:block">
-            <p className="text-white/50 text-[10px] uppercase font-bold tracking-[0.2em] mb-6">ĐỐI TÁC PHÂN PHỐI CHIẾN LƯỢC CAO CẤP CỦA</p>
+          <div className="mt-12 pt-8 w-full border-t border-border-color hidden sm:block">
+            <p className="text-text-secondary text-[10px] uppercase font-bold tracking-[0.2em] mb-6">ĐỐI TÁC PHÂN PHỐI CHIẾN LƯỢC CAO CẤP CỦA</p>
             <div className="flex flex-wrap items-center gap-8 opacity-70">
               <div className="flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-white" />
-                <span className="font-display text-[15px] font-bold text-white tracking-widest uppercase">VINHOMES</span>
+                <Building2 className="w-6 h-6 text-primary" />
+                <span className="font-display text-[15px] font-bold text-primary tracking-widest uppercase">VINHOMES</span>
               </div>
               <div className="flex items-center gap-2">
-                <Layers className="w-6 h-6 text-white" />
-                <span className="font-display text-[15px] font-bold text-white tracking-widest uppercase">MASTERISE</span>
+                <Layers className="w-6 h-6 text-primary" />
+                <span className="font-display text-[15px] font-bold text-primary tracking-widest uppercase">MASTERISE</span>
               </div>
             </div>
           </div>
@@ -325,7 +325,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="relative z-10 w-full max-w-[420px] mx-auto lg:ml-auto lg:mr-0 bg-white/5 p-4 rounded-3xl border border-white/10"
+            className="relative z-10 w-full max-w-[420px] mx-auto lg:ml-auto lg:mr-0 bg-bg-base p-4 rounded-3xl border border-border-color"
             id="hero-banner-consultation-form"
           >
             <HeroConsultationForm onNavigate={onNavigate} onShowNotification={onShowNotification} />

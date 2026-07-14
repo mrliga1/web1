@@ -701,7 +701,7 @@ export default function ProductDetail({
       </nav>
 
         {/* 9.2.2. Three Column Layout */}
-        <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start mt-3">
+        <section className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start !mt-4">
         {/* =========================================================
             COLUMN 1 (Left): Covers 6 grid column widths (lg:col-span-6)
             ========================================================= */}

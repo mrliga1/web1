@@ -344,7 +344,7 @@ export const CorporateIntroBody: React.FC<SectionRendererProps> = ({
   onUpdateSections
 }) => {
   return (
-    <section className="bg-bg-surface border-y border-border-color pt-[10px] pb-[20px] font-sans" id="home-corporate-intro">
+    <section className="bg-bg-surface border-b border-border-color pt-[10px] pb-[20px] font-sans" id="home-corporate-intro">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[20px]">
         <div className="text-center space-y-3 max-w-xl mx-auto mb-16">
           <EditableText 

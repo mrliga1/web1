@@ -287,7 +287,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-6 w-full">
             <button
               onClick={() => onNavigate({ screen: 'san-pham' })}
-              className="flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-primary font-bold px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] shadow-lg transition-all border-none cursor-pointer"
+              className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-light text-white font-bold px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] shadow-lg transition-all border-none cursor-pointer"
             >
               <span>Xem Sản Phẩm</span>
               <ArrowRight className="w-4 h-4" />
@@ -295,9 +295,9 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             
             <a 
               href="tel:0932966700"
-              className="flex items-center justify-center gap-2 text-primary bg-primary/5 border border-primary/10 rounded-full px-4 py-2 sm:px-6 sm:py-2.5 hover:bg-primary/10 transition-all font-mono text-[12px] sm:text-[13px] cursor-pointer"
+              className="flex items-center justify-center gap-2 text-primary bg-white border border-primary/30 rounded-full px-4 py-2 sm:px-6 sm:py-2.5 hover:bg-primary/5 transition-all font-bold text-[12px] sm:text-[13px] shadow-sm cursor-pointer"
             >
-              <div className="bg-primary/10 p-1 rounded-full border border-primary/20">
+              <div className="bg-primary/10 p-1 rounded-full">
                 <Phone className="w-3.5 h-3.5 text-primary" />
               </div>
               <span>0932 966 700</span>

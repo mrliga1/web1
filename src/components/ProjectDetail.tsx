@@ -911,7 +911,7 @@ export default function ProjectDetail({
         >
           <ChevronRight className="w-6 h-6" />
         </button>
-      </div>
+      </figure>
 
       {/* Sticky Tab Navigation */}
       <div

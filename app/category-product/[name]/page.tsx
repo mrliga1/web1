@@ -22,7 +22,7 @@ export default async function CategoryProductPage({ params }: { params: Promise<
       const cat = cats.find((c: any) => c.name === decodedName || generateSlug(c.name) === decodedName);
       if (cat) {
         initialCategoryTitle = cat.seoTitle || cat.name;
-        initialCategoryDesc = cat.seoDescription || cat.description;
+        initialCategoryDesc = cat.seoDesc || cat.description;
       }
     }
   } catch (e) {

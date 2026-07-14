@@ -835,7 +835,7 @@ export default function ProductList({
                           if (initialCategoryDesc) return initialCategoryDesc;
                           if (selectedCategory && selectedCategory !== 'all') {
                             const catExt = productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory);
-                            return catExt?.seoDescription || catExt?.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${catExt?.name || selectedCategory}.`;
+                            return catExt?.seoDesc || catExt?.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${catExt?.name || selectedCategory}.`;
                           }
                           return 'Khám phá danh sách các dự án bất động sản sang trọng, cập nhật liên tục các cơ hội mua bán và cho thuê biệt thự, penthouse tại vị trí đắc địa nhất.';
                         })()}

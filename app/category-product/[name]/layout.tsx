@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const cat = cats.find((c: any) => c.name === decodedName || generateSlug(c.name) === decodedName);
       if (cat) {
         finalTitle = cat.seoTitle || cat.name || finalTitle;
-        finalDesc = cat.seoDescription || cat.description || finalDesc;
+        finalDesc = cat.seoDesc || cat.description || finalDesc;
       }
     }
   } catch (e) {

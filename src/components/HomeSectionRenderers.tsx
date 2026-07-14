@@ -232,7 +232,6 @@ const HeroConsultationForm: React.FC<{
               className="flex flex-col items-center justify-center gap-1 bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500/20 rounded-lg py-2 transition-colors cursor-pointer text-center"
             >
               <img
-                loading="lazy"
                 decoding="async"
                 src="/zalo-icon.svg"
                 alt="Zalo"
@@ -321,15 +320,12 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
 
         {/* Right Column: Form */}
         <div className="lg:col-span-5 w-full mt-12 lg:mt-0">
-          <motion.div 
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+          <div 
             className="relative z-10 w-full max-w-[420px] mx-auto lg:ml-auto lg:mr-0 bg-bg-base p-4 rounded-3xl border border-border-color"
             id="hero-banner-consultation-form"
           >
             <HeroConsultationForm onNavigate={onNavigate} onShowNotification={onShowNotification} />
-          </motion.div>
+          </div>
         </div>
       </div>
     </section>

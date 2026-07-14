@@ -259,7 +259,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
 }) => {
   return (
     <section 
-      className="relative min-h-[640px] flex items-center justify-center p-6 md:p-12 lg:p-20 overflow-hidden bg-bg-surface border-b border-border-color" 
+      className="relative flex items-center justify-center py-10 px-6 md:py-12 md:px-12 lg:py-16 lg:px-20 overflow-hidden bg-bg-surface border-b border-border-color" 
       id="home-hero-banner"
     >
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10 pt-[20px] pb-10">

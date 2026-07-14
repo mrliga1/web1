@@ -397,8 +397,8 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
         <meta name="geo.position" content="10.823099;106.629664" />
         <meta name="ICBM" content="10.823099, 106.629664" />
-        <SchemaMarkup schema={schemaOrgJSONLD} />
-        <SchemaMarkup schema={breadcrumbSchema} />
+        <script type="application/ld+json">{JSON.stringify(schemaOrgJSONLD)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
       
       <div className="mb-[35px]">

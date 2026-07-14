@@ -751,8 +751,8 @@ export default function ProjectDetail({
         <meta name="geo.position" content={project.latitude && project.longitude ? `${project.latitude};${project.longitude}` : "10.733852;106.715344"} />
         {/* @ts-ignore */}
         <meta name="ICBM" content={project.latitude && project.longitude ? `${project.latitude}, ${project.longitude}` : "10.733852, 106.715344"} />
-        <SchemaMarkup schema={schemaOrgJSONLD} />
-        <SchemaMarkup schema={breadcrumbSchema} />
+        <script type="application/ld+json">{JSON.stringify(schemaOrgJSONLD)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
       {/* Top Banner (Photo Gallery/Slider) */}

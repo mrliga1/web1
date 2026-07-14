@@ -648,8 +648,8 @@ export default function ProductDetail({
         {/* @ts-ignore */}
         <meta name="ICBM" content={product.latitude && product.longitude ? `${product.latitude}, ${product.longitude}` : "10.733852, 106.715344"} />
         
-        <SchemaMarkup schema={schemaOrgJSONLD} />
-        <SchemaMarkup schema={breadcrumbSchema} />
+        <script type="application/ld+json">{JSON.stringify(schemaOrgJSONLD)}</script>
+        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
 
       {/* 9.2.1. Breadcrumb Navigation */}

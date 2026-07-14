@@ -17,6 +17,7 @@ export default async function CategoryProductPage({ params }: { params: Promise<
   
   let initialCategoryTitle;
   let initialCategoryDesc;
+  let initialCategoryName;
 
   try {
     const { data, error } = await supabase.from('settings').select('*').eq('id', 'general').maybeSingle();
@@ -25,11 +26,12 @@ export default async function CategoryProductPage({ params }: { params: Promise<
       const cat = cats.find((c: any) => c.name === decodedName || generateSlug(c.name) === decodedName);
       if (cat) {
         initialCategoryTitle = cat.seoTitle || cat.name;
-        initialCategoryDesc = cat.seoDesc || cat.description;
+        initialCategoryDesc = cat.seoDesc || cat.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${cat.name}.`;
+        initialCategoryName = cat.name;
       }
     }
   } catch (e) {
-    console.error("Lỗi khi load initial metadata:", e);
+    console.error("Error fetching seo data for category", e);
   }
 
   return (
@@ -37,6 +39,7 @@ export default async function CategoryProductPage({ params }: { params: Promise<
       categoryName={decodedName} 
       initialCategoryTitle={initialCategoryTitle}
       initialCategoryDesc={initialCategoryDesc}
+      initialCategoryName={initialCategoryName}
     />
   );
 }

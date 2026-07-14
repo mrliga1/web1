@@ -10,11 +10,13 @@ import { useAppContext } from '../../../src/contexts/AppContext';
 export default function ClientWrapper({ 
   categoryName,
   initialCategoryTitle,
-  initialCategoryDesc
+  initialCategoryDesc,
+  initialCategoryName
 }: { 
   categoryName: string,
   initialCategoryTitle?: string,
-  initialCategoryDesc?: string
+  initialCategoryDesc?: string,
+  initialCategoryName?: string
 }) {
   const { sections, setSections, isEditMode } = useAppContext();
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
@@ -41,6 +43,7 @@ export default function ClientWrapper({
       initialCategory={categoryName}
       initialCategoryTitle={initialCategoryTitle}
       initialCategoryDesc={initialCategoryDesc}
+      initialCategoryName={initialCategoryName}
     />
   );
 }

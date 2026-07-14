@@ -29,6 +29,7 @@ interface ProductListProps {
   initialAreaRange?: string;
   initialCategoryTitle?: string;
   initialCategoryDesc?: string;
+  initialCategoryName?: string;
 }
 
 import ProductCard from './ProductCard';
@@ -47,7 +48,8 @@ export default function ProductList({
   initialPriceRange,
   initialAreaRange,
   initialCategoryTitle,
-  initialCategoryDesc
+  initialCategoryDesc,
+  initialCategoryName
 }: ProductListProps) {
   const [products, setProducts] = useState<Product[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -521,7 +523,7 @@ export default function ProductList({
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'category' ? null : 'category'); })}
                           className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
                           <span className={selectedCategory !== 'all' ? 'text-primary' : ''}>
-                            {selectedCategory === 'all' ? 'Danh mục' : (productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory)?.name || selectedCategory)}
+                            {selectedCategory === 'all' ? 'Danh mục' : (productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory)?.name || (selectedCategory === initialCategory && initialCategoryName ? initialCategoryName : selectedCategory))}
                           </span>
                           <ChevronDown size={14} strokeWidth={2} />
                         </button>
@@ -814,7 +816,7 @@ export default function ProductList({
                       field="title" 
                       value={
                         (() => {
-                          if (initialCategoryTitle) return initialCategoryTitle;
+                          if (selectedCategory === initialCategory && initialCategoryTitle) return initialCategoryTitle;
                           if (selectedCategory && selectedCategory !== 'all') {
                             const catExt = productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory);
                             return catExt?.seoTitle || catExt?.name || `Danh mục: ${catExt?.name || selectedCategory}`;
@@ -832,7 +834,7 @@ export default function ProductList({
                     />
                     <p className="text-text-secondary text-xs mt-2 pl-[5px] max-w-3xl">
                       {(() => {
-                          if (initialCategoryDesc) return initialCategoryDesc;
+                          if (selectedCategory === initialCategory && initialCategoryDesc) return initialCategoryDesc;
                           if (selectedCategory && selectedCategory !== 'all') {
                             const catExt = productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory);
                             return catExt?.seoDesc || catExt?.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${catExt?.name || selectedCategory}.`;

@@ -647,8 +647,8 @@ export default function ProjectDetail({
       .substring(0, 160),
     address: {
       "@type": "PostalAddress",
-      streetAddress: project.street || undefined,
-      addressLocality: project.district || undefined,
+      streetAddress: project.location || undefined,
+      addressLocality: undefined,
       addressRegion: "Hồ Chí Minh",
       addressCountry: "VN"
     },

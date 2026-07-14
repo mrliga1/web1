@@ -653,7 +653,7 @@ export default function ProductDetail({
       </Helmet>
 
       {/* 9.2.1. Breadcrumb Navigation */}
-      <nav className="flex flex-col">
+      <nav className={`flex flex-col sticky z-[90] bg-bg-surface -mx-[20px] px-[20px] py-[10px] transition-all duration-300 ${scrollDirection === 'down' ? 'top-0' : 'top-10'}`}>
         <div
           className="flex items-center justify-between text-xs text-text-secondary border-b border-border-color pb-[5px]"
           id="detail-breadcrumb"

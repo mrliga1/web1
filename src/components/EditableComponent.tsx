@@ -77,18 +77,7 @@ export function EditableText({
             {post}
           </span>
         );
-      } else if (line.includes('Greenia Homes')) {
-        const parts = line.split(/(Greenia Homes)/g);
-        content = (
-          <span key={lidx}>
-            {parts.map((part, i) => 
-              part === 'Greenia Homes' 
-                ? <strong key={i} className="text-accent font-bold drop-shadow-sm">{part}</strong> 
-                : part
-            )}
-          </span>
-        );
-      }
+
       
       return <React.Fragment key={lidx}>{content}{lidx < val.split('\n').length - 1 ? <br /> : null}</React.Fragment>;
     });

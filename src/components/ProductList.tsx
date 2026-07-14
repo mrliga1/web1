@@ -815,7 +815,6 @@ export default function ProductList({
                       value={
                         (() => {
                           if (initialCategoryTitle) return initialCategoryTitle;
-                          if (loading) return 'Đang tải danh mục...';
                           if (selectedCategory && selectedCategory !== 'all') {
                             const catExt = productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory);
                             return catExt?.seoTitle || catExt?.name || `Danh mục: ${catExt?.name || selectedCategory}`;
@@ -834,7 +833,6 @@ export default function ProductList({
                     <p className="text-text-secondary text-xs mt-2 pl-[5px] max-w-3xl">
                       {(() => {
                           if (initialCategoryDesc) return initialCategoryDesc;
-                          if (loading) return 'Vui lòng chờ trong giây lát...';
                           if (selectedCategory && selectedCategory !== 'all') {
                             const catExt = productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory);
                             return catExt?.seoDescription || catExt?.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${catExt?.name || selectedCategory}.`;

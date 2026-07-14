@@ -861,17 +861,17 @@ export default function ProductList({
                 {loading ? (
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
-                      {Array.from({ length: 10 }).map((_, index) => (
+                      {Array.from({ length: mainGridLimit }).map((_, index) => (
                         <div key={index} className="w-full shrink-0 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
-                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-200 animate-pulse" />
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-100" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-                            <div className="h-4 bg-slate-200 rounded w-3/4 mb-2 animate-pulse"></div>
-                            <div className="h-3 bg-slate-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                            <div className="h-4 bg-slate-100 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-100 rounded w-1/2 mb-4"></div>
                             <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-border-color mt-auto">
-                              <div className="h-4 bg-slate-200 rounded w-1/3 mb-2 animate-pulse"></div>
+                              <div className="h-4 bg-slate-100 rounded w-1/3 mb-2"></div>
                               <div className="flex gap-[8px] sm:gap-[10px]">
-                                <div className="h-3 bg-slate-200 rounded w-1/4 animate-pulse"></div>
-                                <div className="h-3 bg-slate-200 rounded w-1/4 animate-pulse"></div>
+                                <div className="h-3 bg-slate-100 rounded w-1/4"></div>
+                                <div className="h-3 bg-slate-100 rounded w-1/4"></div>
                               </div>
                             </div>
                           </div>
@@ -985,12 +985,12 @@ export default function ProductList({
                     {loading ? (
                       Array.from({ length: 5 }).map((_, index) => (
                         <div key={index} className="w-full shrink-0 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
-                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-200 animate-pulse" />
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-100" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-                            <div className="h-4 bg-slate-200 rounded w-3/4 mb-2 animate-pulse"></div>
-                            <div className="h-3 bg-slate-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                            <div className="h-4 bg-slate-100 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-100 rounded w-1/2 mb-4"></div>
                             <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-border-color mt-auto">
-                              <div className="h-4 bg-slate-200 rounded w-1/3 mb-2 animate-pulse"></div>
+                              <div className="h-4 bg-slate-100 rounded w-1/3 mb-2"></div>
                             </div>
                           </div>
                         </div>
@@ -1034,12 +1034,12 @@ export default function ProductList({
                     {loading ? (
                       Array.from({ length: 5 }).map((_, index) => (
                         <div key={index} className="w-full shrink-0 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-row sm:flex-col shadow-sm">
-                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-200 animate-pulse" />
+                          <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] bg-slate-100" />
                           <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-                            <div className="h-4 bg-slate-200 rounded w-3/4 mb-2 animate-pulse"></div>
-                            <div className="h-3 bg-slate-200 rounded w-1/2 mb-4 animate-pulse"></div>
+                            <div className="h-4 bg-slate-100 rounded w-3/4 mb-2"></div>
+                            <div className="h-3 bg-slate-100 rounded w-1/2 mb-4"></div>
                             <div className="pt-[4px] sm:pt-[10px] border-t border-dashed border-border-color mt-auto">
-                              <div className="h-4 bg-slate-200 rounded w-1/3 mb-2 animate-pulse"></div>
+                              <div className="h-4 bg-slate-100 rounded w-1/3 mb-2"></div>
                             </div>
                           </div>
                         </div>

@@ -77,7 +77,7 @@ export function EditableText({
             {post}
           </span>
         );
-
+      }
       
       return <React.Fragment key={lidx}>{content}{lidx < val.split('\n').length - 1 ? <br /> : null}</React.Fragment>;
     });

@@ -1,0 +1,1 @@
+import { parseLocation, locationTree, normalizeText } from './src/lib/locationMapping'; console.log(parseLocation('Phu?ng An Phú Ðông, TP. HCM')); const hcm = locationTree.find(p => p.name === 'Thành ph? H? Chí Minh'); console.log('HCM wards:', hcm?.wards?.filter(w => w.includes('An Phú Ðông')));

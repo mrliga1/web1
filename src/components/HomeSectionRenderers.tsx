@@ -101,7 +101,7 @@ const HeroConsultationForm: React.FC<{
   };
 
   return (
-    <div className="bg-bg-surface backdrop-blur-md border border-border-color rounded-lg shadow-xl relative text-left pt-[20px]" style={{ width: '100%', paddingLeft: '15px', paddingRight: '15px', paddingBottom: '20px' }}>
+    <div className="bg-bg-surface border border-border-color rounded-lg shadow-xl relative text-left pt-[20px]" style={{ width: '100%', paddingLeft: '15px', paddingRight: '15px', paddingBottom: '20px' }}>
       <div className="absolute top-0 right-0 -mr-2 -mt-2 bg-accent text-text-primary text-[10px] px-3.5 py-1 rounded-full font-bold shadow-md uppercase tracking-wide">
         Tư vấn nhanh
       </div>

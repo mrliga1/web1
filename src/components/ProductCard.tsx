@@ -77,7 +77,7 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
         <button
           onClick={toggleFavorite}
           aria-label={isFavorite ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
-          className={`absolute top-1 right-1 sm:top-2 sm:right-2 z-20 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full backdrop-blur-md border transition-colors shadow-sm ${isFavorite ? 'bg-primary text-text-inverse border-primary' : 'bg-white/90 text-text-secondary border-transparent hover:text-rose-600 hover:bg-white'}`}
+          className={`absolute top-1 right-1 sm:top-2 sm:right-2 z-20 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full border transition-colors shadow-sm ${isFavorite ? 'bg-primary text-text-inverse border-primary' : 'bg-white/90 text-text-secondary border-transparent hover:text-rose-600 hover:bg-white'}`}
         >
           <Heart className={`w-[11px] h-[11px] sm:w-[13px] sm:h-[13px] ${isFavorite ? 'fill-current' : ''}`} />
         </button>

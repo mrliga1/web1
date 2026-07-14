@@ -574,7 +574,7 @@ export default function ProductList({
                     </div>
 
                     {/* Mobile Search Icon */}
-                    <div className="absolute right-[5px] md:hidden z-50 bg-bg-surface/80 backdrop-blur-sm h-full flex items-center px-0">
+                    <div className="absolute right-[5px] md:hidden z-50 bg-bg-surface/90 h-full flex items-center px-0">
                       <button aria-label="Mở tìm kiếm" onClick={() => setIsSearchOpen(!isSearchOpen)} className="w-[28px] h-[28px] flex items-center justify-center text-primary bg-bg-surface border border-primary/20 shadow shadow-primary/10 rounded hover:bg-[#064E3B]/10 active:scale-95 transition-all">
                         {isSearchOpen ? <X size={13} strokeWidth={2.5} /> : <Search size={13} strokeWidth={2.5} />}
                       </button>
@@ -1186,7 +1186,7 @@ export default function ProductList({
                   : ''
               } ${!section.visible ? 'opacity-40 bg-white/20' : ''} ${
                 !isEditMode && section.id === 'products_filter' 
-                  ? `sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10'} z-40 bg-white/70 backdrop-blur-md shadow-sm transition-colors duration-300` 
+                  ? `sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10'} z-40 bg-white/95 shadow-sm transition-colors duration-300` 
                   : 'relative z-10'
               }`}
               onClick={() => {

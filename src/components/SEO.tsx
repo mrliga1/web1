@@ -45,7 +45,9 @@ export const SEO: React.FC<SEOProps> = ({
 
       {/* Schema.org / JSON-LD */}
       {structuredData && (
-        <SchemaMarkup schema={structuredData} />
+        <script type="application/ld+json">
+          {JSON.stringify(structuredData)}
+        </script>
       )}
 
       {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}

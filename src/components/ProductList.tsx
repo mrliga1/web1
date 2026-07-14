@@ -12,7 +12,6 @@ import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { locationTree, parseLocation, LocationNode, formatLocationName } from '../lib/locationMapping';
-import { Helmet } from 'react-helmet-async';
 import SchemaMarkup from './SchemaMarkup';
 
 interface ProductListProps {
@@ -421,10 +420,9 @@ export default function ProductList({
     }))
   };
 
+
   return (    <>
-    <Helmet>
-      <SchemaMarkup schema={schemaItemList} />
-    </Helmet>
+    <SchemaMarkup schema={schemaItemList} />
     <div className="relative min-h-screen">
       <div className="font-sans" id="product-hub-view-root" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
         {sections.map((section, idx) => {

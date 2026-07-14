@@ -65,6 +65,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
           {/* Brand Logo Identity */}
           <Link 
             href="/"
+            aria-label="Trang chủ Greenia Homes"
             className="flex items-center gap-2 cursor-pointer group absolute left-1/2 -translate-x-1/2 lg:relative lg:left-0 lg:transform-none z-10"
             id="logo-container"
           >

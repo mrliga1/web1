@@ -184,9 +184,7 @@ export default function Home({
 
   return (
     <div className="relative min-h-screen overflow-x-hidden w-full">
-      <Helmet>
-        <SchemaMarkup schema={schemaOrgJSONLD} />
-      </Helmet>
+      <SchemaMarkup schema={schemaOrgJSONLD} />
       
       <div className="space-y-4 pb-0 font-sans" id="home-view-root">
         {sections.map((section, index) => {

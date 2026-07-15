@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: ,
+  
   description: 'Danh sách bất động sản yêu thích của bạn tại Greenia Homes.',
   alternates: {
     canonical: 'https://greeniahomes.vn/yeu-thich'

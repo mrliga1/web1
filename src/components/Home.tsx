@@ -136,6 +136,7 @@ export default function Home({
       title: '',
       subtitle: '',
       description: ''
+    };
   };
 
   return (

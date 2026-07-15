@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { optimizeImageUrl, generateSlug } from '../lib/utils';
-import { SEO } from './SEO';
+
+function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    action();
+  }
+}
 import { collection, getDocs, getDoc, doc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { Calendar, Eye, Compass, Search, User, ChevronRight, BadgeDollarSign, MapPin, Sparkles, Heart, Bookmark, Layers, Bath, Building2 } from 'lucide-react';
@@ -71,7 +77,7 @@ export default function NewsList({
 
         const newsSnap = await getDocs(collection(db, 'news'));
         const nList: News[] = [];
-        newsSnap.forEach((doc) => {
+        newsSnap.forEach((doc: any) => {
           const data = doc.data();
           if ((!data.approvalStatus || data.approvalStatus === 'approved') && data.title?.trim()) {
             nList.push({ id: doc.id, ...data } as News);
@@ -87,7 +93,7 @@ export default function NewsList({
 
         const prodSnap = await getDocs(collection(db, 'products'));
         const pList: Product[] = [];
-        prodSnap.forEach((doc) => {
+        prodSnap.forEach((doc: any) => {
           const data = doc.data();
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
             pList.push({ id: doc.id, ...data } as Product);
@@ -97,7 +103,7 @@ export default function NewsList({
 
         const projSnap = await getDocs(collection(db, 'projects'));
         const projList: Project[] = [];
-        projSnap.forEach((doc) => {
+        projSnap.forEach((doc: any) => {
           projList.push({ id: doc.id, ...doc.data() } as Project);
         });
         setProjects(projList);
@@ -296,6 +302,7 @@ export default function NewsList({
                           <div className="relative w-full md:w-[150px] shrink-0 h-[26px]">
                             <input
                               type="text"
+                              aria-label="Tìm kiếm tin tức"
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                               placeholder="Tìm kiếm tiêu đề..."
@@ -332,6 +339,7 @@ export default function NewsList({
                           <div className="relative w-full md:w-[150px] shrink-0 h-[26px]">
                             <input
                               type="text"
+                              aria-label="Tìm kiếm tin tức"
                               value={searchQuery}
                               onChange={(e) => setSearchQuery(e.target.value)}
                               placeholder="Tìm kiếm tiêu đề..."
@@ -396,8 +404,11 @@ export default function NewsList({
                         {filteredNews.slice(0, 8).map((article) => (
                           <div
                             key={article.id}
+                            role="link"
+                            tabIndex={0}
                             onMouseEnter={() => setHoveredArticle(article)}
                             onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
+                            onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) }))}
                             className={`p-3 border-b border-dashed border-border-color cursor-pointer text-[#a1a1aa] font-medium text-[13px] transition-all leading-[1.4] ${
                               displayArticle?.id === article.id ? 'bg-primary/5 text-primary border-l-[3px] border-l-yellow-500 pl-4 border-b-yellow-500/20' : 'border-l-[3px] border-l-transparent'
                             }`}
@@ -418,7 +429,10 @@ export default function NewsList({
                         {trendingNews.slice(0, 5).map((article) => (
                           <div
                             key={article.id}
+                            role="link"
+                            tabIndex={0}
                             onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
+                            onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) }))}
                             className="cursor-pointer group flex items-center gap-2.5 mb-4"
                           >
                             <div className="w-[70px] h-[50px] shrink-0 rounded overflow-hidden border border-border-inverse">
@@ -455,7 +469,10 @@ export default function NewsList({
                       {interestNews.map((article) => (
                         <div
                           key={article.id}
+                          role="link"
+                          tabIndex={0}
                           onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
+                          onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) }))}
                           className="flex gap-3 pb-[15px] border-b border-dashed border-border-color transition-colors cursor-pointer group hover:border-b-yellow-500 items-center"
                         >
                           <div className="w-[90px] h-[65px] rounded overflow-hidden shrink-0 border border-border-color relative">
@@ -504,7 +521,10 @@ export default function NewsList({
                             {sec.items.map((p: any) => (
                               <div
                                 key={p.id}
+                                role="link"
+                                tabIndex={0}
                                 onClick={() => onNavigate({ screen: sec.type === 'project' ? 'project-detail' : 'product-detail', [sec.type === 'project' ? 'projectId' : 'productId']: p.id, slug: generateSlug(p.title) } as any)}
+                                onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: sec.type === 'project' ? 'project-detail' : 'product-detail', [sec.type === 'project' ? 'projectId' : 'productId']: p.id, slug: generateSlug(p.title) } as any))}
                                 className="flex gap-3 pb-[15px] border-b border-white/5 transition-colors cursor-pointer group"
                               >
                                 <div className="w-[100px] h-[85px] shrink-0 rounded overflow-hidden border border-border-color relative">

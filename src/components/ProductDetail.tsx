@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import SchemaMarkup from "./SchemaMarkup";
 import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
 import { parseLocation, formatLocationName } from "../lib/locationMapping";
+import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
 import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from "../firebase";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import { Product, Project, RouteState } from "../types";
@@ -42,6 +43,7 @@ import StarRatingInteractive from "./StarRatingInteractive";
 interface ProductDetailProps {
   productId: string;
   slug?: string;
+  initialProduct?: Product;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: "success" | "error") => void;
   logoUrl?: string;
@@ -60,7 +62,7 @@ const MapViewer = React.memo(
       return (
         <div
           className="w-full h-[300px] rounded-lg overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
-          dangerouslySetInnerHTML={{ __html: cleanHtml }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(cleanHtml) }}
         />
       );
     }
@@ -96,8 +98,11 @@ export default function ProductDetail({
   onNavigate,
   onShowNotification,
   logoUrl,
+  initialProduct,
 }: ProductDetailProps) {
   const [product, setProduct] = useState<Product | null>(() => {
+    if (initialProduct) return initialProduct;
+
     if (
       typeof window !== "undefined" &&
       (window.__SERVER_DATA__?.product?.id === productId || 
@@ -126,7 +131,9 @@ export default function ProductDetail({
   };
 
   // Left column variables
-  const [selectedImage, setSelectedImage] = useState(() => {
+  const [selectedImage, setSelectedImage] = useState<string>(() => {
+    if (initialProduct) return initialProduct.imageUrl || "";
+
     if (
       typeof window !== "undefined" &&
       (window.__SERVER_DATA__?.product?.id === productId || 
@@ -221,15 +228,15 @@ export default function ProductDetail({
         if (!product) setLoading(true);
 
         let activeProd: Product | null = product;
-        let finalProductId = productId;
+        let finalProductId = productId || activeProd?.id || "";
 
-        if (finalProductId) {
+        if (!activeProd && finalProductId) {
           const docRef = doc(db, "products", finalProductId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             activeProd = { id: docSnap.id, ...docSnap.data() } as Product;
           }
-        } else if (slug) {
+        } else if (!activeProd && slug) {
           const prodCol = collection(db, "products");
           const prodSnap = await getDocs(prodCol);
           for (const doc of prodSnap.docs) {
@@ -276,7 +283,7 @@ export default function ProductDetail({
         const prodCol = collection(db, "products");
         const prodSnap = await getDocs(prodCol);
         const allProds: Product[] = [];
-        prodSnap.forEach((doc) => {
+        prodSnap.forEach((doc: any) => {
           const data = doc.data();
           if (!data.approvalStatus || data.approvalStatus === "approved") {
             allProds.push({ id: doc.id, ...data } as Product);
@@ -288,7 +295,7 @@ export default function ProductDetail({
         const projCol = collection(db, "projects");
         const projSnap = await getDocs(projCol);
         const projList: Project[] = [];
-        projSnap.forEach((doc) => {
+        projSnap.forEach((doc: any) => {
           projList.push({ id: doc.id, ...doc.data() } as Project);
         });
         setProjects(projList);
@@ -528,6 +535,7 @@ export default function ProductDetail({
     product.toilets ? `🛁 ${product.toilets} WC` : null
   ].filter(Boolean).join(" | ") + (product.description ? ` - ${(product.description || "").replace(/<[^>]*>?/gm, "").substring(0, 100)}...` : "");
 
+  const canonicalUrl = `https://greeniahomes.vn/san-pham/${slug || generateSlug(product.title)}`;
   const schemaOrgJSONLD: any = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
@@ -552,18 +560,21 @@ export default function ProductDetail({
       value: product.area,
       unitCode: "MTK"
     } : undefined,
-    offers: {
+  };
+
+  if (Number.isFinite(product.priceVal) && product.priceVal > 0) {
+    schemaOrgJSONLD.offers = {
       "@type": "Offer",
-      url: typeof window !== "undefined" ? window.location.href : "",
+      url: canonicalUrl,
       priceCurrency: "VND",
-      price: (product.price || "").replace(/\D.*$/, "") || "1000000000",
+      price: product.priceVal,
       availability: "https://schema.org/InStock",
       seller: {
         "@type": "Organization",
         name: "Greenia Homes",
       },
-    },
-  };
+    };
+  }
 
   if (computedTotalCount > 0) {
     schemaOrgJSONLD.aggregateRating = {
@@ -599,13 +610,13 @@ export default function ProductDetail({
         "@type": "ListItem",
         position: 2,
         name: product.type === "rent" ? "Cho Thuê" : "Mua Bán",
-        item: `https://greeniahomes.vn/danh-sach?type=${product.type}`
+        item: "https://greeniahomes.vn/san-pham"
       },
       {
         "@type": "ListItem",
         position: 3,
         name: product.title,
-        item: typeof window !== "undefined" ? window.location.href : ""
+        item: canonicalUrl
       }
     ]
   };
@@ -653,7 +664,7 @@ export default function ProductDetail({
       </Helmet>
 
       {/* 9.2.1. Breadcrumb Navigation */}
-      <nav className={`flex flex-col sticky z-[90] bg-bg-surface -mx-[20px] px-[20px] py-[10px] transition-all duration-300 ${scrollDirection === 'down' ? 'top-0' : 'top-10'}`}>
+      <nav aria-label="Đường dẫn sản phẩm" className={`flex flex-col sticky z-[90] bg-bg-surface -mx-[20px] px-[20px] py-[10px] transition-all duration-300 ${scrollDirection === 'down' ? 'top-0' : 'top-10'}`}>
         <div
           className="flex items-center justify-between text-xs text-text-secondary border-b border-border-color pb-[5px]"
           id="detail-breadcrumb"
@@ -795,9 +806,9 @@ export default function ProductDetail({
           {/* Main info & Product details combined */}
           <section className="bg-bg-surface pt-[10px] pb-4 px-[10px] sm:px-[15px] !mb-[5px] rounded-lg border border-border-color text-left">
             <div className="space-y-3 pb-1 border-b border-border-color/60">
-              <h2 className="text-[18px] sm:text-[20px] font-playfair font-bold text-text-primary flex items-center gap-2">
+              <h1 className="text-[18px] sm:text-[20px] font-playfair font-bold text-text-primary flex items-center gap-2">
                 {product.title}
-              </h2>
+              </h1>
 
               <div className="flex items-center justify-between pb-0">
                 <p className="text-xs text-text-secondary flex items-center gap-1.5">
@@ -1066,7 +1077,7 @@ export default function ProductDetail({
                 {product.description ? (
                   <div
                     className="prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-x-auto leading-relaxed whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(product.description) }}
                   />
                 ) : (
                   <p className="text-text-secondary text-xs italic">

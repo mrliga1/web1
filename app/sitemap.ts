@@ -1,92 +1,117 @@
-import { supabase } from '../src/supabase';
-import { generateSlug } from '../src/lib/utils';
+import type { MetadataRoute } from "next";
+import {
+  getPublishedNews,
+  getPublishedProducts,
+  getPublishedProjects,
+} from "../src/lib/serverContent";
+import { generateSlug } from "../src/lib/utils";
+import { supabase } from "../src/supabase";
 
-// Sitemap động cho Greenia Homes - tự động cập nhật khi có bài mới
-export default async function sitemap() {
-  const baseUrl = 'https://greeniahomes.vn';
-  
-  // Các trang tĩnh
-  const staticRoutes = [
-    { url: baseUrl, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 1.0 },
-    { url: `${baseUrl}/san-pham`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.9 },
-    { url: `${baseUrl}/du-an`, lastModified: new Date(), changeFrequency: 'weekly' as const, priority: 0.8 },
-    { url: `${baseUrl}/tin-tuc`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.8 },
-    { url: `${baseUrl}/lien-he`, lastModified: new Date(), changeFrequency: 'monthly' as const, priority: 0.5 },
-    { url: `${baseUrl}/latest-sales`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.7 },
-    { url: `${baseUrl}/latest-rents`, lastModified: new Date(), changeFrequency: 'daily' as const, priority: 0.7 },
-    { url: `${baseUrl}/chinh-sach-bao-mat`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
-    { url: `${baseUrl}/dieu-khoan-su-dung`, lastModified: new Date(), changeFrequency: 'yearly' as const, priority: 0.3 },
+const BASE_URL = "https://greeniahomes.vn";
+
+function getLastModified(item: { createdAt?: string; updatedAt?: string }) {
+  const source = item.updatedAt || item.createdAt;
+  if (!source) return undefined;
+
+  const date = new Date(source);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}
+
+function createContentRoute(
+  path: string,
+  item: { createdAt?: string; updatedAt?: string },
+  priority: number,
+): MetadataRoute.Sitemap[number] {
+  const lastModified = getLastModified(item);
+
+  return {
+    url: `${BASE_URL}${path}`,
+    ...(lastModified ? { lastModified } : {}),
+    changeFrequency: "weekly",
+    priority,
+  };
+}
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const staticRoutes: MetadataRoute.Sitemap = [
+    { url: BASE_URL, changeFrequency: "daily", priority: 1 },
+    { url: `${BASE_URL}/san-pham`, changeFrequency: "daily", priority: 0.9 },
+    { url: `${BASE_URL}/du-an`, changeFrequency: "weekly", priority: 0.8 },
+    { url: `${BASE_URL}/tin-tuc`, changeFrequency: "daily", priority: 0.8 },
+    { url: `${BASE_URL}/lien-he`, changeFrequency: "monthly", priority: 0.5 },
+    { url: `${BASE_URL}/latest-sales`, changeFrequency: "daily", priority: 0.7 },
+    { url: `${BASE_URL}/latest-rents`, changeFrequency: "daily", priority: 0.7 },
+    { url: `${BASE_URL}/chinh-sach-bao-mat`, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${BASE_URL}/dieu-khoan-su-dung`, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  // Lấy sản phẩm từ Supabase
-  let productRoutes: any[] = [];
-  try {
-    const { data: products } = await supabase.from('products').select('data');
-    if (products) {
-      productRoutes = products
-        .filter((p: any) => p.data?.title && (!p.data?.approvalStatus || p.data?.approvalStatus === 'approved'))
-        .map((p: any) => ({
-          url: `${baseUrl}/san-pham/${generateSlug(p.data.title)}`,
-          lastModified: p.data.updatedAt ? new Date(p.data.updatedAt) : new Date(),
-          changeFrequency: 'weekly' as const,
-          priority: 0.8,
-        }));
-    }
-  } catch (e) {
-    console.error('Lỗi khi tạo sitemap sản phẩm:', e);
-  }
+  const [products, news, projects] = await Promise.all([
+    getPublishedProducts(),
+    getPublishedNews(),
+    getPublishedProjects(),
+  ]);
 
-  // Lấy tin tức từ Supabase
-  let newsRoutes: any[] = [];
-  try {
-    const { data: news } = await supabase.from('news').select('data');
-    if (news) {
-      newsRoutes = news
-        .filter((n: any) => n.data?.title)
-        .map((n: any) => ({
-          url: `${baseUrl}/tin-tuc/${generateSlug(n.data.title)}`,
-          lastModified: n.data.updatedAt ? new Date(n.data.updatedAt) : new Date(),
-          changeFrequency: 'weekly' as const,
-          priority: 0.7,
-        }));
-    }
-  } catch (e) {
-    console.error('Lỗi khi tạo sitemap tin tức:', e);
-  }
+  const productRoutes = products.map(({ data }) =>
+    createContentRoute(
+      `/san-pham/${generateSlug(data.title)}`,
+      data as typeof data & { updatedAt?: string },
+      0.8,
+    ),
+  );
 
-  // Lấy dự án từ Supabase
-  let projectRoutes: any[] = [];
-  try {
-    const { data: projects } = await supabase.from('projects').select('data');
-    if (projects) {
-      projectRoutes = projects
-        .filter((p: any) => p.data?.name)
-        .map((p: any) => ({
-          url: `${baseUrl}/du-an/${generateSlug(p.data.name)}`,
-          lastModified: p.data.updatedAt ? new Date(p.data.updatedAt) : new Date(),
-          changeFrequency: 'weekly' as const,
-          priority: 0.7,
-        }));
-    }
-  } catch (e) {
-    console.error('Lỗi khi tạo sitemap dự án:', e);
-  }
+  const newsRoutes = news.map(({ data }) =>
+    createContentRoute(
+      `/tin-tuc/${generateSlug(data.title)}`,
+      data as typeof data & { updatedAt?: string },
+      0.7,
+    ),
+  );
 
-  // Lấy danh mục sản phẩm
-  let categoryRoutes: any[] = [];
-  try {
-    const { data } = await supabase.from('settings').select('*').eq('id', 'general').maybeSingle();
-    if (data?.data?.productCategoriesExt) {
-      categoryRoutes = data.data.productCategoriesExt.map((c: any) => ({
-        url: `${baseUrl}/category-product/${generateSlug(c.name)}`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly' as const,
+  const projectRoutes = projects.map(({ data }) =>
+    createContentRoute(
+      `/du-an/${generateSlug(data.title)}`,
+      data as typeof data & { updatedAt?: string },
+      0.7,
+    ),
+  );
+
+  const categoryRoutes: MetadataRoute.Sitemap = [];
+  const { data: settings, error } = await supabase
+    .from("settings")
+    .select("data")
+    .eq("id", "general")
+    .maybeSingle();
+
+  if (error) {
+    console.error("Không thể tải danh mục để tạo sitemap:", error);
+  } else {
+    const productCategories = settings?.data?.productCategoriesExt || [];
+    const newsCategories = settings?.data?.newsCategoriesExt || [];
+
+    productCategories.forEach((category: { name?: string }) => {
+      if (!category.name?.trim()) return;
+      categoryRoutes.push({
+        url: `${BASE_URL}/category-product/${generateSlug(category.name)}`,
+        changeFrequency: "weekly",
         priority: 0.6,
-      }));
-    }
-  } catch (e) {
-    console.error('Lỗi khi tạo sitemap danh mục:', e);
+      });
+    });
+
+    newsCategories.forEach((category: { name?: string }) => {
+      if (!category.name?.trim()) return;
+      categoryRoutes.push({
+        url: `${BASE_URL}/category-news/${generateSlug(category.name)}`,
+        changeFrequency: "weekly",
+        priority: 0.6,
+      });
+    });
   }
 
-  return [...staticRoutes, ...productRoutes, ...newsRoutes, ...projectRoutes, ...categoryRoutes];
+  return [
+    ...staticRoutes,
+    ...productRoutes,
+    ...newsRoutes,
+    ...projectRoutes,
+    ...categoryRoutes,
+  ];
 }

@@ -1252,7 +1252,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "products"),
       (snap) => {
         const items: Product[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() } as Product);
         });
         items.sort(
@@ -1271,7 +1271,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "projects"),
       (snap) => {
         const items: Project[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() } as Project);
         });
         items.sort(
@@ -1290,7 +1290,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "news"),
       (snap) => {
         const items: News[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() } as News);
         });
         items.sort(
@@ -1309,7 +1309,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "consultations"),
       (snap) => {
         const items: any[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() });
         });
         items.sort(
@@ -1381,7 +1381,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "users"),
       (snap) => {
         const items: any[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() });
         });
         items.sort(
@@ -6418,7 +6418,7 @@ export default function AdminPanel({
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => {
-                      if (editingItemId) setEditingItemId(null);
+                      if (editingItemId) setEditingItemId("");
                       if (createType === "product") setActiveTab("listings");
                       else if (createType === "project") setActiveTab("projects");
                       else setActiveTab("articles");
@@ -6431,7 +6431,7 @@ export default function AdminPanel({
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
-                        if (editingItemId) setEditingItemId(null);
+                        if (editingItemId) setEditingItemId("");
                         setActiveTab("listings");
                       }}
                       className={`px-3 py-1.5 text-[10px] font-bold rounded transition-colors ${createType === "product" ? "bg-primary text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
@@ -6442,7 +6442,7 @@ export default function AdminPanel({
                       currentUserRole === "editor") && (
                         <button
                           onClick={() => {
-                            if (editingItemId) setEditingItemId(null);
+                            if (editingItemId) setEditingItemId("");
                             setActiveTab("projects");
                           }}
                           className={`px-3 py-1.5 text-[10px] font-bold rounded transition-colors ${createType === "project" ? "bg-primary text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
@@ -6452,7 +6452,7 @@ export default function AdminPanel({
                       )}
                     <button
                       onClick={() => {
-                        if (editingItemId) setEditingItemId(null);
+                        if (editingItemId) setEditingItemId("");
                         setActiveTab("articles");
                       }}
                       className={`px-3 py-1.5 text-[10px] font-bold rounded transition-colors ${createType === "article" ? "bg-primary text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}

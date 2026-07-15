@@ -39,10 +39,12 @@ import ProductCard from "./ProductCard";
 import StarRatingInteractive from "./StarRatingInteractive";
 import SchemaMarkup from "./SchemaMarkup";
 import { useScrollDirection } from "../hooks/useScrollDirection";
+import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
 
 interface ProjectDetailProps {
   projectId: string;
   slug?: string;
+  initialProject?: Project;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: "success" | "error") => void;
   logoUrl?: string;
@@ -57,8 +59,11 @@ export default function ProjectDetail({
   onNavigate,
   onShowNotification,
   logoUrl,
+  initialProject,
 }: ProjectDetailProps) {
   const [project, setProject] = useState<Project | null>(() => {
+    if (initialProject) return initialProject;
+
     if (
       typeof window !== "undefined" &&
       (window.__SERVER_DATA__?.project?.id === projectId ||
@@ -301,15 +306,15 @@ export default function ProjectDetail({
       try {
         if (!project) setLoading(true);
         let fetchedProject: Project | null = project;
-        let finalProjectId = projectId;
+        let finalProjectId = projectId || fetchedProject?.id || "";
 
-        if (finalProjectId) {
+        if (!fetchedProject && finalProjectId) {
           const docRef = doc(db, "projects", finalProjectId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             fetchedProject = { id: docSnap.id, ...docSnap.data() } as Project;
           }
-        } else if (slug) {
+        } else if (!fetchedProject && slug) {
           const projCol = collection(db, "projects");
           const projSnap = await getDocs(projCol);
           for (const doc of projSnap.docs) {
@@ -367,7 +372,7 @@ export default function ProjectDetail({
           }
           setTargetNewsCategory(targetCategory);
 
-          newsSnap.forEach((doc) => {
+          newsSnap.forEach((doc: any) => {
             const data = doc.data();
             if (
               data.approvalStatus !== "rejected" &&
@@ -413,7 +418,7 @@ export default function ProjectDetail({
           }
           setTargetProductCategory(targetProdCategory);
 
-          productsSnap.forEach((prodDoc) => {
+          productsSnap.forEach((prodDoc: any) => {
             const data = prodDoc.data();
             if (data.approvalStatus !== "rejected" && data.name?.trim()) {
               if (targetProdCategory && targetProdCategory.length > 0) {
@@ -435,7 +440,7 @@ export default function ProjectDetail({
           // Fetch related projects
           const projSnap = await getDocs(collection(db, "projects"));
           const projList: Project[] = [];
-          projSnap.forEach((doc) => {
+          projSnap.forEach((doc: any) => {
             const data = doc.data();
             if (data.approvalStatus !== "rejected") {
               projList.push({ id: doc.id, ...data } as Project);
@@ -534,9 +539,11 @@ export default function ProjectDetail({
         <div
           className="w-full aspect-[16/9] rounded-xl overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
           dangerouslySetInnerHTML={{
-            __html: project.mapHtml.includes("iframe")
+            __html: sanitizeRichHtml(
+              project.mapHtml.includes("iframe")
               ? project.mapHtml.replace(/loading=["']lazy["']/g, "")
               : `<iframe title="Bản đồ ${project.title}" src="${project.mapHtml}"></iframe>`,
+            ),
           }}
         />
       );
@@ -584,7 +591,7 @@ export default function ProjectDetail({
           <div className="relative">
             <div
               className="prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-x-auto overflow-y-hidden"
-              dangerouslySetInnerHTML={{ __html: sec.content }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(sec.content) }}
             />
           </div>
         </div>
@@ -592,6 +599,10 @@ export default function ProjectDetail({
     ));
   };
 
+  const safeProjectDescription = sanitizeRichHtml(project?.description);
+  const safeLocationTab = sanitizeRichHtml(project?.locationTab);
+  const safeAmenityTab = sanitizeRichHtml(project?.amenityTab);
+  const qaList = project?.qaList || [];
   const pageTitle = project
     ? resolveItemTitle(project, "Greenia Homes")
     : "Đang tải... | Greenia Homes";
@@ -637,6 +648,7 @@ export default function ProjectDetail({
       ? rawBaseRating
       : computedTotalStars / computedTotalCount;
 
+  const canonicalUrl = `https://greeniahomes.vn/du-an/${slug || generateSlug(project.title)}`;
   const schemaOrgJSONLD: any = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
@@ -652,15 +664,21 @@ export default function ProjectDetail({
       addressRegion: "Hồ Chí Minh",
       addressCountry: "VN"
     },
-    offers: {
-      "@type": "AggregateOffer",
-      url: typeof window !== "undefined" ? window.location.href : "",
-      priceCurrency: "VND",
-      lowPrice: "1000000000",
-      highPrice: "10000000000",
-      offerCount: "1",
-    },
   };
+
+  if (Number.isFinite(project.priceVal) && project.priceVal > 0) {
+    schemaOrgJSONLD.offers = {
+      "@type": "Offer",
+      url: canonicalUrl,
+      priceCurrency: "VND",
+      price: project.priceVal,
+      availability: "https://schema.org/InStock",
+      seller: {
+        "@type": "Organization",
+        name: "Greenia Homes",
+      },
+    };
+  }
 
   if (computedTotalCount > 0) {
     schemaOrgJSONLD.aggregateRating = {
@@ -701,7 +719,7 @@ export default function ProjectDetail({
         "@type": "ListItem",
         position: 3,
         name: project.title,
-        item: typeof window !== "undefined" ? window.location.href : ""
+        item: canonicalUrl
       }
     ]
   };
@@ -1143,7 +1161,7 @@ export default function ProjectDetail({
                     className={`prose prose-invert prose-p:mb-[10px] prose-img:my-[20px] prose-a:text-primary hover:prose-a:text-primary prose-a:font-medium prose-a:underline max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ease-in-out ${isDescriptionExpanded ? "max-h-none" : "max-h-[300px]"}`}
                     dangerouslySetInnerHTML={{
                       __html:
-                        project.description ||
+                        safeProjectDescription ||
                         "<p>Chưa có thông tin tổng quan cập nhật bằng mã HTML.</p>",
                     }}
                   />
@@ -1212,7 +1230,7 @@ export default function ProjectDetail({
                       <div
                         className={`prose prose-invert prose-a:text-primary hover:prose-a:text-primary prose-a:font-medium prose-a:underline max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ease-in-out ${isSubdivisionExpanded ? "max-h-none" : "max-h-[300px]"}`}
                         dangerouslySetInnerHTML={{
-                          __html: project.subdivisionTab,
+                          __html: sanitizeRichHtml(project.subdivisionTab),
                         }}
                       />
                       {!isSubdivisionExpanded && (
@@ -1355,7 +1373,7 @@ export default function ProjectDetail({
                   <div
                     className="prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px]"
                     dangerouslySetInnerHTML={{
-                      __html: project.locationShortDesc,
+                      __html: sanitizeRichHtml(project.locationShortDesc),
                     }}
                   />
                 )}
@@ -1369,7 +1387,7 @@ export default function ProjectDetail({
                     className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isLocationExpanded ? "" : "max-h-[250px]"}`}
                     dangerouslySetInnerHTML={{
                       __html:
-                        project.locationTab ||
+                        safeLocationTab ||
                         "<p>Chưa có bài viết giới thiệu vị trí cụ thể.</p>",
                     }}
                   />
@@ -1416,7 +1434,7 @@ export default function ProjectDetail({
                     className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isAmenityExpanded ? "" : "max-h-[250px]"}`}
                     dangerouslySetInnerHTML={{
                       __html:
-                        project.amenityTab ||
+                        safeAmenityTab ||
                         `<p>${project.title} sở hữu hệ sinh thái tiện ích đẳng cấp, đáp ứng trọn vẹn mọi nhu cầu sống, học tập, làm việc và giải trí.</p>`,
                     }}
                   />
@@ -1611,7 +1629,7 @@ export default function ProjectDetail({
                   <div className="relative">
                     <div
                       className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isFloorPlanExpanded ? "" : "max-h-[250px]"}`}
-                      dangerouslySetInnerHTML={{ __html: project.floorPlanTab }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(project.floorPlanTab) }}
                     />
                     {!isFloorPlanExpanded && project.floorPlanTab && (
                       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
@@ -1669,7 +1687,7 @@ export default function ProjectDetail({
                         {tab.content && (
                           <div
                             className="prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px]"
-                            dangerouslySetInnerHTML={{ __html: tab.content }}
+                            dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(tab.content) }}
                           />
                         )}
                         {tab.images && tab.images.length > 0 && (
@@ -1817,7 +1835,7 @@ export default function ProjectDetail({
                   <div className="relative">
                     <div
                       className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isPriceExpanded ? "" : "max-h-[250px]"}`}
-                      dangerouslySetInnerHTML={{ __html: project.priceTab }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(project.priceTab) }}
                     />
                     {!isPriceExpanded && project.priceTab && (
                       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
@@ -1890,11 +1908,11 @@ export default function ProjectDetail({
               </h2>
 
               <div className="space-y-6">
-                {project.qaList && project.qaList.length > 0 ? (
+                {qaList.length > 0 ? (
                   <div className="bg-bg-surface border border-border-color rounded-xl overflow-hidden">
-                    {project.qaList.map((qa, index) => {
+                    {qaList.map((qa, index) => {
                       const isActive = activeQaIndex === index;
-                      const isLast = index === project.qaList.length - 1;
+                      const isLast = index === qaList.length - 1;
                       return (
                         <div
                           key={index}
@@ -1931,7 +1949,7 @@ export default function ProjectDetail({
                   <div className="relative">
                     <div
                       className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isQaExpanded ? "" : "max-h-[250px]"}`}
-                      dangerouslySetInnerHTML={{ __html: project.qaTab }}
+                      dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(project.qaTab) }}
                     />
                     {!isQaExpanded && (
                       <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
@@ -2145,6 +2163,7 @@ export default function ProjectDetail({
                     <div className="space-y-1 text-left">
                       <input
                         type="text"
+                        aria-label="Họ tên"
                         value={clientName}
                         onChange={(e) => setClientName(e.target.value)}
                         placeholder="Họ tên *"
@@ -2155,6 +2174,7 @@ export default function ProjectDetail({
                     <div className="space-y-1 text-left">
                       <input
                         type="tel"
+                        aria-label="Số điện thoại"
                         value={clientPhone}
                         onChange={(e) => setClientPhone(e.target.value)}
                         placeholder="Số điện thoại *"
@@ -2165,6 +2185,7 @@ export default function ProjectDetail({
                     <div className="space-y-1 text-left">
                       <input
                         type="email"
+                        aria-label="Email"
                         value={clientEmail}
                         onChange={(e) => setClientEmail(e.target.value)}
                         placeholder="Email (Tùy chọn)"
@@ -2173,6 +2194,7 @@ export default function ProjectDetail({
                     </div>
                     <div className="space-y-1 text-left">
                       <textarea
+                        aria-label="Nhu cầu tư vấn"
                         value={clientDemand}
                         onChange={(e) => setClientDemand(e.target.value)}
                         placeholder="Nhu cầu của bạn (Tùy chọn)"

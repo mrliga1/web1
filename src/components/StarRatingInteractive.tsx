@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
 import { doc, updateDoc, increment, db } from '../firebase';
 
@@ -20,9 +20,11 @@ export default function StarRatingInteractive({
   userReviewCount,
 }: StarRatingInteractiveProps) {
   const [hoverRating, setHoverRating] = useState(0);
-  const [hasRated, setHasRated] = useState(() => {
-    return localStorage.getItem(`rated_${collectionName}_${documentId}`) === 'true';
-  });
+  const [hasRated, setHasRated] = useState(false);
+
+  useEffect(() => {
+    setHasRated(localStorage.getItem(`rated_${collectionName}_${documentId}`) === 'true');
+  }, [collectionName, documentId]);
 
   const rawBaseRating = baseRating || 5;
   const rawBaseCount = baseReviewCount || 0;

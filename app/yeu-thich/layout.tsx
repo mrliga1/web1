@@ -6,6 +6,10 @@ export const metadata: Metadata = {
   alternates: {
     canonical: 'https://greeniahomes.vn/yeu-thich'
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

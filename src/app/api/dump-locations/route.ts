@@ -4,7 +4,7 @@ import { db, collection, getDocs } from '../../../firebase';
 export async function GET() {
   const prodSnap = await getDocs(collection(db, 'products'));
   const locations = new Set<string>();
-  prodSnap.forEach(doc => {
+  prodSnap.forEach((doc: any) => {
     const data = doc.data();
     if (data.district) {
       locations.add(data.district.trim());

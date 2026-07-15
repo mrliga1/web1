@@ -100,7 +100,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
           </Link>
  
           {/* Desktop Nav Items */}
-          <nav className="hidden lg:flex items-center gap-1" id="desktop-menu">
+          <nav aria-label="Điều hướng chính" className="hidden lg:flex items-center gap-1" id="desktop-menu">
             <ul className="flex items-center gap-1 m-0 p-0 list-none">
             {menuItems.map((item) => {
               // Exact active status matching screen type
@@ -281,6 +281,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
       {/* Drawer mobile dropdown list */}
       {mobileMenuOpen && (
         <nav 
+          aria-label="Điều hướng di động"
           id="mobile-dropdown"
           style={{ animation: 'slideDown 0.2s ease-out' }}
           className={`lg:hidden border-b text-left ${theme === 'dark' ? 'bg-[#0B1F16]/95 border-zinc-900' : 'bg-white border-border-color shadow-md'}`}

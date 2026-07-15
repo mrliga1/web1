@@ -167,7 +167,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
       sessionStorage.setItem('redirect_after_login', 'true');
       const result = await signInWithPopup(auth, provider);
       
-      const user = result?.user;
+      const user = result?.user as {
+        uid: string;
+        email?: string | null;
+        displayName?: string | null;
+      } | null;
       if (!user) return; // Supabase OAuth redirects, so user will be null here
       
       const userDocRef = doc(db, 'users', user.uid);
@@ -408,10 +412,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
             {mode === 'login' && (
               <form onSubmit={handleLogin} className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-xs text-text-secondary font-medium">Email</label>
+                  <label htmlFor="auth-login-email" className="text-xs text-text-secondary font-medium">Email</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
+                      id="auth-login-email"
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}

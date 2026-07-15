@@ -10,10 +10,19 @@ import AdBanner from './AdBanner';
 import ProductCard from './ProductCard';
 import StarRatingInteractive from './StarRatingInteractive';
 import { useScrollDirection } from '../hooks/useScrollDirection';
+import { sanitizeRichHtml } from '../lib/sanitizeRichHtml';
+
+function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    action();
+  }
+}
 
 interface NewsDetailProps {
   newsId: string;
   slug?: string;
+  initialArticle?: News;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
 }
@@ -21,8 +30,16 @@ interface NewsDetailProps {
 import { notifyAdminEmail } from '../lib/email';
 import { fetchClientIp } from '../lib/ip';
 
-export default function NewsDetail({ newsId, slug, onNavigate, onShowNotification }: NewsDetailProps) {
+export default function NewsDetail({
+  newsId,
+  slug,
+  initialArticle,
+  onNavigate,
+  onShowNotification,
+}: NewsDetailProps) {
   const [article, setArticle] = useState<News | null>(() => {
+    if (initialArticle) return initialArticle;
+
     if (typeof window !== 'undefined' && window.__SERVER_DATA__?.news?.id === newsId) {
       return window.__SERVER_DATA__.news;
     }
@@ -62,15 +79,15 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         if (!article) setLoading(true);
 
         let fetchedArticle: News | null = article;
-        let finalNewsId = newsId;
+        let finalNewsId = newsId || fetchedArticle?.id || '';
 
-        if (finalNewsId) {
+        if (!fetchedArticle && finalNewsId) {
           const docRef = doc(db, 'news', finalNewsId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             fetchedArticle = { id: docSnap.id, ...docSnap.data() } as News;
           }
-        } else if (slug) {
+        } else if (!fetchedArticle && slug) {
           const newsCol = collection(db, 'news');
           const newsSnap = await getDocs(newsCol);
           for (const doc of newsSnap.docs) {
@@ -114,7 +131,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         const newsCol = collection(db, 'news');
         const newsSnap = await getDocs(newsCol);
         const nList: News[] = [];
-        newsSnap.forEach((d) => {
+        newsSnap.forEach((d: any) => {
           const data = d.data();
           if(data.title?.trim()) {
             nList.push({ id: d.id, ...data } as News);
@@ -142,7 +159,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
           });
         }
 
-        prodSnap.forEach((d) => {
+        prodSnap.forEach((d: any) => {
           const data = d.data();
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
             const prod = { id: d.id, ...data } as Product;
@@ -162,7 +179,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         const projCol = collection(db, 'projects');
         const projSnap = await getDocs(projCol);
         const projList: Project[] = [];
-        projSnap.forEach((d) => {
+        projSnap.forEach((d: any) => {
           const data = d.data();
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
             projList.push({ id: d.id, ...data } as Project);
@@ -316,19 +333,20 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
   const computedTotalCount = rawBaseCount + (article.userReviewCount || 0);
   const currentAvg = computedTotalCount === 0 ? rawBaseRating : computedTotalStars / computedTotalCount;
 
+  const canonicalUrl = `https://greeniahomes.vn/tin-tuc/${slug || generateSlug(article.title)}`;
   const schemaOrgJSONLD: any = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     "mainEntityOfPage": {
       "@type": "WebPage",
-      "@id": typeof window !== 'undefined' ? window.location.href : ''
+      "@id": canonicalUrl
     },
     "headline": article.title,
     "image": [
       articleImage
     ],
     "datePublished": article.createdAt,
-    "dateModified": article.createdAt,
+    "dateModified": (article as News & { updatedAt?: string }).updatedAt || article.createdAt,
     "author": [{
         "@type": "Person",
         "name": article.author || "Greenia Admin"
@@ -338,7 +356,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
       "name": "Greenia Homes",
       "logo": {
         "@type": "ImageObject",
-        "url": "https://greeniahomes.vn/logo.png"
+        "url": "https://greeniahomes.vn/favicon.webp"
       }
     },
     "description": (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)
@@ -364,19 +382,19 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         "@type": "ListItem",
         position: 3,
         name: article.category || "Danh mục",
-        item: `https://greeniahomes.vn/tin-tuc?category=${encodeURIComponent(article.category)}`
+        item: `https://greeniahomes.vn/category-news/${generateSlug(article.category || "")}`
       },
       {
         "@type": "ListItem",
         position: 4,
         name: article.title,
-        item: typeof window !== 'undefined' ? window.location.href : ''
+        item: canonicalUrl
       }
     ]
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-6 animate-in fade-in" id="news-detail-root-container">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-6 animate-in fade-in" id="news-detail-root-container">
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
@@ -409,7 +427,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
             <div className="flex items-center gap-2 text-text-secondary font-mono">
               <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary truncate max-w-[100px] cursor-pointer">Tin tức</button>
               <span>/</span>
-              <span className="hover:text-primary truncate max-w-[150px] cursor-pointer" onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })}>{article.category}</span>
+              <span role="link" tabIndex={0} className="hover:text-primary truncate max-w-[150px] cursor-pointer" onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })} onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'category-news', categoryName: article.category }))}>{article.category}</span>
               <span>/</span>
               <span className="text-primary font-bold truncate max-w-[200px]" title={article.title}>{article.title}</span>
             </div>
@@ -455,7 +473,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
 
           {/* HTML rendered prose */}
           <article className="prose prose-invert max-w-none text-text-secondary text-sm leading-relaxed space-y-5" id="article-prose-body">
-            <div dangerouslySetInnerHTML={{ __html: article.content || `<p>${article.description}</p>` }} />
+            <div dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(article.content || `<p>${article.description}</p>`) }} />
           </article>
 
           <StarRatingInteractive
@@ -502,7 +520,10 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                   return relatedList.map((n, index) => (
                   <div
                     key={`${n.id}-${index}`}
+                    role="link"
+                    tabIndex={0}
                     onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
+                    onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
                     className="w-[280px] shrink-0 bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
                   >
                     <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
@@ -524,7 +545,10 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                   return relatedList.map((n, index) => (
                   <div
                     key={`${n.id}-dup-${index}`}
+                    role="link"
+                    tabIndex={0}
                     onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
+                    onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
                     className="w-[280px] shrink-0 bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
                   >
                     <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
@@ -558,7 +582,10 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
               {sidebarNewestNews.map((n) => (
                 <div
                   key={n.id}
+                  role="link"
+                  tabIndex={0}
                   onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
+                  onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
                   className="flex gap-2.5 text-left group cursor-pointer border-b border-black pb-2 last:border-0 items-start"
                 >
                   <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-[45px] h-[45px] object-cover rounded shrink-0" referrerPolicy="no-referrer" />
@@ -590,7 +617,10 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                   return (
                   <div key={parent.name} className="border-b border-black/10 last:border-0 pb-2 mb-2 last:pb-0 last:mb-0">
                     <div
+                      role="link"
+                      tabIndex={0}
                       onClick={() => onNavigate({ screen: "category-product", categoryName: parent.name })}
+                      onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: "category-product", categoryName: parent.name }))}
                       className="flex justify-between items-center text-xs font-bold text-text-secondary hover:text-primary cursor-pointer pt-1 pb-1 transition-colors"
                     >
                       <span className="truncate flex items-center gap-1.5 flex-1">
@@ -614,7 +644,10 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                         {parent.children.map(child => (
                           <div
                             key={child.name}
+                            role="link"
+                            tabIndex={0}
                             onClick={() => onNavigate({ screen: "category-product", categoryName: child.name })}
+                            onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: "category-product", categoryName: child.name }))}
                             className="flex justify-between items-center text-xs text-text-secondary hover:text-primary cursor-pointer py-1 transition-colors relative before:content-[''] before:absolute before:-left-[13px] before:top-1/2 before:w-2.5 before:border-t before:border-border-color"
                           >
                             <span className="truncate flex items-center gap-1">
@@ -741,6 +774,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                 <div className="space-y-1 text-left">
                   <input
                     type="text"
+                    aria-label="Họ tên"
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="Họ tên *"
@@ -752,6 +786,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                 <div className="space-y-1 text-left">
                   <input
                     type="tel"
+                    aria-label="Số điện thoại"
                     value={clientPhone}
                     onChange={(e) => setClientPhone(e.target.value)}
                     placeholder="Số điện thoại *"
@@ -763,6 +798,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                 <div className="space-y-1 text-left">
                   <input
                     type="email"
+                    aria-label="Email"
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
                     placeholder="Email (Tùy chọn)"
@@ -772,6 +808,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
 
                 <div className="space-y-1 text-left">
                   <textarea
+                    aria-label="Nhu cầu tư vấn"
                     value={clientDemand}
                     onChange={(e) => setClientDemand(e.target.value)}
                     placeholder="Nhu cầu của bạn (Tùy chọn)"
@@ -1026,6 +1063,6 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
       </section>
       )}
 
-    </main>
+    </div>
   );
 }

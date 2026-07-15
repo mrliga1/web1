@@ -1,60 +1,77 @@
-import { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
-import { supabase } from "../../../src/supabase";
-import { generateSlug } from "../../../src/lib/utils";
+import { getNewsBySlug } from "../../../src/lib/serverContent";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+const SITE_URL = "https://greeniahomes.vn";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-let newsPromise: Promise<any> | null = null;
-let cacheTime = 0;
-
-async function getNews() {
-  if (newsPromise && Date.now() - cacheTime < 60000) return newsPromise;
-  newsPromise = supabase.from('news').select('data').then(res => res.data) as Promise<any>;
-  cacheTime = Date.now();
-  return newsPromise;
+function removeTrailingBrand(title: string) {
+  return title.replace(/\s*[|–-]\s*Greenia Homes\s*$/i, "").trim();
 }
 
-export async function generateMetadata(
-  { params }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
-  const { slug } = await params;
-  
-  const news = await getNews();
-  let matchedNews = null;
-  
-  if (news) {
-    matchedNews = news.find((n: any) => generateSlug(n.data?.title || '') === slug);
-  }
+function plainText(value: string) {
+  return value.replace(/<[^>]*>?/g, " ").replace(/\s+/g, " ").trim();
+}
 
-  if (!matchedNews || !matchedNews.data) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const article = await getNewsBySlug(slug);
+
+  if (!article) {
     return {
-      title: "Tin tức | Greenia Homes",
+      title: "Tin tức không tồn tại",
+      robots: { index: false, follow: false },
     };
   }
 
-  const newsData = matchedNews.data;
-  const title = newsData.seoTitle?.trim() || newsData.metaTitle?.trim() || newsData.title?.trim() || "";
-  const finalTitle = title.includes("|") ? title : `${title} | Greenia Homes`;
+  const sourceTitle =
+    article.seoTitle?.trim() ||
+    article.metaTitle?.trim() ||
+    article.title.trim();
+  const title = removeTrailingBrand(sourceTitle) || article.title.trim();
+  const brandedTitle = `${title} | Greenia Homes`;
+  const description = (
+    article.seoDesc?.trim() ||
+    article.metaDesc?.trim() ||
+    plainText(article.description || article.content || "")
+  ).slice(0, 160);
+  const canonical = `${SITE_URL}/tin-tuc/${slug}`;
+  const images = article.imageUrl ? [article.imageUrl] : [`${SITE_URL}/og-image.jpg`];
 
   return {
-    title: finalTitle,
-    description: newsData.seoDesc || (newsData.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160),
+    title,
+    description,
+    alternates: { canonical },
     openGraph: {
-      title: finalTitle,
-      description: newsData.seoDesc || (newsData.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160),
-      images: newsData.imageUrl ? [newsData.imageUrl] : [],
-    }
+      type: "article",
+      locale: "vi_VN",
+      siteName: "Greenia Homes",
+      title: brandedTitle,
+      description,
+      url: canonical,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: brandedTitle,
+      description,
+      images,
+    },
   };
 }
 
 export default async function NewsDetailPage({ params }: Props) {
   const { slug } = await params;
-  return <ClientWrapper slug={slug} />;
+  const article = await getNewsBySlug(slug);
+
+  if (!article) notFound();
+
+  return <ClientWrapper slug={slug} initialArticle={article} />;
 }

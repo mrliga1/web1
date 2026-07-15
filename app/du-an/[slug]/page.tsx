@@ -1,71 +1,74 @@
-import { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
-import { supabase } from "../../../src/supabase";
-import { generateSlug } from "../../../src/lib/utils";
+import { getProjectBySlug } from "../../../src/lib/serverContent";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
+const SITE_URL = "https://greeniahomes.vn";
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
-let projectsPromise: Promise<any> | null = null;
-let cacheTime = 0;
-
-async function getProjects() {
-  if (projectsPromise && Date.now() - cacheTime < 60000) return projectsPromise;
-  projectsPromise = supabase.from('projects').select('data').then(res => res.data) as Promise<any>;
-  cacheTime = Date.now();
-  return projectsPromise;
+function removeTrailingBrand(title: string) {
+  return title.replace(/\s*[|–-]\s*Greenia Homes\s*$/i, "").trim();
 }
 
-export async function generateMetadata(
-  { params }: Props,
-  parent: ResolvingMetadata
-): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  
-  const projects = await getProjects();
-  let matchedItem = null;
-  
-  if (projects) {
-    matchedItem = projects.find((n: any) => generateSlug(n.data?.title || '') === slug);
-  }
+  const project = await getProjectBySlug(slug);
 
-  if (!matchedItem || !matchedItem.data) {
+  if (!project) {
     return {
-      title: "Dự án | Greenia Homes",
+      title: "Dự án không tồn tại",
+      robots: { index: false, follow: false },
     };
   }
 
-  const itemData = matchedItem.data;
-  const title = itemData.seoTitle?.trim() || itemData.metaTitle?.trim() || itemData.title?.trim() || "";
-  const finalTitle = title.includes("|") ? title : `${title} | Greenia Homes`;
-
-  // Tự động tạo mô tả rich text với icon
-  const location = itemData.district || itemData.location || "Đang cập nhật";
-  const price = itemData.priceText || "Đang cập nhật";
-  const area = itemData.area ? `${itemData.area}m2` : "";
-  
-  let richDesc = `📍 Vị trí: ${location} | 💰 Giá: ${price}`;
-  if (area) richDesc += ` | 📐 Diện tích: ${area}`;
-  richDesc += `. Tìm hiểu dự án ngay tại Greenia Homes!`;
-
-  const finalDescription = itemData.seoDesc || richDesc;
+  const sourceTitle =
+    project.seoTitle?.trim() ||
+    project.metaTitle?.trim() ||
+    project.title.trim();
+  const title = removeTrailingBrand(sourceTitle) || project.title.trim();
+  const brandedTitle = `${title} | Greenia Homes`;
+  const location = project.location || "Đang cập nhật";
+  const price = project.priceText || "Đang cập nhật";
+  const description =
+    project.seoDesc?.trim() ||
+    project.metaDesc?.trim() ||
+    `Vị trí: ${location} | Giá: ${price}. Xem thông tin dự án tại Greenia Homes.`;
+  const canonical = `${SITE_URL}/du-an/${slug}`;
+  const images = project.imageUrl ? [project.imageUrl] : [`${SITE_URL}/og-image.jpg`];
 
   return {
-    title: finalTitle,
-    description: finalDescription,
+    title,
+    description,
+    alternates: { canonical },
     openGraph: {
-      title: finalTitle,
-      description: finalDescription,
-      images: itemData.imageUrl ? [itemData.imageUrl] : [],
-    }
+      type: "website",
+      locale: "vi_VN",
+      siteName: "Greenia Homes",
+      title: brandedTitle,
+      description,
+      url: canonical,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: brandedTitle,
+      description,
+      images,
+    },
   };
 }
 
 export default async function ProjectDetailPage({ params }: Props) {
   const { slug } = await params;
-  return <ClientWrapper slug={slug} />;
+  const project = await getProjectBySlug(slug);
+
+  if (!project) notFound();
+
+  return <ClientWrapper slug={slug} initialProject={project} />;
 }

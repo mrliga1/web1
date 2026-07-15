@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { generateSlug, optimizeImageUrl } from '../lib/utils';
-import { SEO } from './SEO';
+
+function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    action();
+  }
+}
 import { collection, getDocs, db } from '../firebase';
 import { Product, Project, RouteState } from '../types';
 import { MapPin, ArrowRight, Compass, ShieldCheck, Building2, Layers, Search, X } from 'lucide-react';
@@ -79,14 +85,14 @@ export default function ProjectList({
   const filteredProjects = projects.filter(p => {
     let matchStatus = true;
     if (currentStatus !== '') {
-      matchStatus = p.status === currentStatus || (currentStatus === 'opening' && !p.status); // Default
+      matchStatus = Boolean(p.status === currentStatus || (currentStatus === 'opening' && !p.status)); // Default
     }
     
     let matchKw = true;
     if (keyword !== '') {
       const kw = keyword.toLowerCase();
-      matchKw = (p.title && p.title.toLowerCase().includes(kw)) || 
-                (p.location && p.location.toLowerCase().includes(kw));
+      matchKw = Boolean((p.title && p.title.toLowerCase().includes(kw)) ||
+                (p.location && p.location.toLowerCase().includes(kw)));
     }
     return matchStatus && matchKw;
   });
@@ -99,7 +105,7 @@ export default function ProjectList({
         const projCol = collection(db, 'projects');
         const projSnap = await getDocs(projCol);
         const pList: Project[] = [];
-        projSnap.forEach((doc) => {
+        projSnap.forEach((doc: any) => {
           pList.push({ id: doc.id, ...doc.data() } as Project);
         });
         
@@ -109,7 +115,7 @@ export default function ProjectList({
         const prodCol = collection(db, 'products');
         const prodSnap = await getDocs(prodCol);
         const prodList: Product[] = [];
-        prodSnap.forEach((doc) => {
+        prodSnap.forEach((doc: any) => {
           const data = doc.data();
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
             prodList.push({ id: doc.id, ...data } as Product);
@@ -265,6 +271,7 @@ export default function ProjectList({
                       >
                         <input 
                           type="text" 
+                          aria-label="Tìm kiếm dự án"
                           value={searchInput}
                           onChange={e => setSearchInput(e.target.value)}
                           placeholder="Tìm tên dự án, vị trí..." 
@@ -325,7 +332,10 @@ export default function ProjectList({
                         return (
                           <div
                             key={p.id}
+                            role="link"
+                            tabIndex={0}
                             onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
+                            onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) }))}
                             className="bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
                           >
                             <div className="relative aspect-[16/10] overflow-hidden">

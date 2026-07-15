@@ -5,8 +5,14 @@ import { getRouteUrl } from '../../../src/lib/utils';
 
 import { useRouter } from 'next/navigation';
 import ProjectDetail from '../../../src/components/ProjectDetail';
+import type { Project } from '../../../src/types';
 
-export default function ClientWrapper({ slug }: { slug: string }) {
+interface ClientWrapperProps {
+  slug: string;
+  initialProject: Project;
+}
+
+export default function ClientWrapper({ slug, initialProject }: ClientWrapperProps) {
   const [logoUrl, setLogoUrl] = React.useState<string>('');
 
   React.useEffect(() => {
@@ -33,6 +39,7 @@ export default function ClientWrapper({ slug }: { slug: string }) {
       onNavigate={handleNavigate}
       onShowNotification={handleShowNotification}
       logoUrl={logoUrl}
+      initialProject={initialProject}
     />
   );
 }

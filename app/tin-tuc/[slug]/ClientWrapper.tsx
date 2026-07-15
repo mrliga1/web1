@@ -4,8 +4,14 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { getRouteUrl } from '../../../src/lib/utils';
 import NewsDetail from '../../../src/components/NewsDetail';
+import type { News } from '../../../src/types';
 
-export default function ClientWrapper({ slug }: { slug: string }) {
+interface ClientWrapperProps {
+  slug: string;
+  initialArticle: News;
+}
+
+export default function ClientWrapper({ slug, initialArticle }: ClientWrapperProps) {
   const [logoUrl, setLogoUrl] = React.useState<string>('');
 
   React.useEffect(() => {
@@ -31,6 +37,7 @@ export default function ClientWrapper({ slug }: { slug: string }) {
       newsId=""
       onNavigate={handleNavigate}
       onShowNotification={handleShowNotification}
+      initialArticle={initialArticle}
     />
   );
 }

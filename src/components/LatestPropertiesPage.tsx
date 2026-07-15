@@ -24,7 +24,7 @@ export default function LatestPropertiesPage({ onNavigate, type, categoryName }:
         const prodCol = collection(db, 'products');
         const snap = await getDocs(prodCol);
         const list: Product[] = [];
-        snap.forEach((doc) => {
+        snap.forEach((doc: any) => {
           const data = doc.data();
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
             let matches = true;

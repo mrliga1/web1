@@ -6,7 +6,7 @@ interface EditableTextProps {
   sectionId: string;
   field: string;
   subField?: string;
-  value: string;
+  value?: string;
   isEditMode: boolean;
   sections: any[];
   onUpdateSections: (sections: any[]) => void;

@@ -28,6 +28,8 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Liên kết bỏ qua đến nội dung chính cho accessibility */}
+      <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999] focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">Bỏ qua đến nội dung chính</a>
       <Navbar 
         currentRoute={{ screen: 'home' }} // Dummy route, replaced by pathname in Navbar itself
         onNavigate={() => {}} // Dummy, replaced by router in Navbar itself
@@ -35,7 +37,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         logoUrl={logoUrl}
       />
       
-      <main className="flex-1 w-full bg-bg-surface">
+      <main id="main-content" className="flex-1 w-full bg-bg-surface">
         {children}
       </main>
       

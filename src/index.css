@@ -95,8 +95,14 @@ body {
   color: var(--color-text-primary);
 }
 
-button:focus, a:focus {
-  outline: none !important;
+/* Focus ring tùy chỉnh - hỗ trợ keyboard navigation (WCAG 2.4.7) */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* =========================================================

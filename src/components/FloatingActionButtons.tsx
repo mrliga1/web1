@@ -177,6 +177,7 @@ export default function FloatingActionButtons() {
                       required
                       value={quoteName}
                       onChange={(e) => setQuoteName(e.target.value)}
+                      aria-label="Họ tên"
                       className="w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary"
                       placeholder="Họ tên *"
                     />
@@ -187,6 +188,7 @@ export default function FloatingActionButtons() {
                       required
                       value={quotePhone}
                       onChange={(e) => setQuotePhone(e.target.value)}
+                      aria-label="Số điện thoại"
                       className="w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary"
                       placeholder="Số điện thoại *"
                     />
@@ -196,6 +198,7 @@ export default function FloatingActionButtons() {
                       type="email"
                       value={quoteEmail}
                       onChange={(e) => setQuoteEmail(e.target.value)}
+                      aria-label="Email"
                       className="w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary"
                       placeholder="Email (Tùy chọn)"
                     />
@@ -205,6 +208,7 @@ export default function FloatingActionButtons() {
                       rows={3}
                       value={quoteDemand}
                       onChange={(e) => setQuoteDemand(e.target.value)}
+                      aria-label="Nhu cầu của bạn"
                       className="w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary resize-none"
                       placeholder="Nhu cầu của bạn (Tùy chọn)"
                     />

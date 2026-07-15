@@ -675,7 +675,12 @@ export default function ProductList({
                         
                         {openDropdown === 'category' && (
                           <div onClick={(e) => e.stopPropagation()} className="w-full md:w-[260px] bg-bg-surface border border-border-color shadow-md scrollbar-thumb-border-color pointer-events-auto block">
-                            <button onClick={() => { setSelectedCategory('all'); setOpenDropdown(null); }} className={`w-full text-left !px-[10px] !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedCategory === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
+                            <button onClick={(e) => { 
+                              e.preventDefault(); 
+                              setSelectedCategory('all'); 
+                              setOpenDropdown(null); 
+                              router.push(getRouteUrl({ screen: 'san-pham' })); 
+                            }} className={`w-full text-left !px-[10px] !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedCategory === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
                               <span>Tất cả Danh mục</span>
                             </button>
                             {productCategoriesExt.filter(c => !c.parentId).map((parentCat: any) => {

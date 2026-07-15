@@ -272,24 +272,28 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
   return createPortal(
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 mt-10 md:mt-0">
+        <div role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" className="fixed inset-0 z-[9999] flex items-center justify-center p-4 mt-10 md:mt-0">
           <div 
             className="absolute inset-0 bg-bg-inverse/80 backdrop-blur-sm animate-in fade-in"
             onClick={onClose}
           />
           
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Đăng nhập"
             className="relative w-full max-w-md max-h-[85vh] overflow-y-auto bg-bg-surface border border-border-color rounded-2xl shadow-2xl p-5 md:p-6 animate-in zoom-in-95 duration-200"
           >
             <button 
               onClick={onClose}
+              aria-label="Đóng"
               className="absolute top-4 right-4 text-text-secondary hover:text-text-primary transition-colors p-2"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="text-center mb-4">
-              <h2 className="text-2xl font-display font-bold text-text-primary mb-2">
+              <h2 id="auth-modal-title" className="text-2xl font-display font-bold text-text-primary mb-2">
                 {mode === 'login' && 'Đăng Nhập'}
                 {mode === 'register' && 'Khởi Tạo Tài Khoản'}
                 {mode === 'otp' && 'Xác Thực Mã OTP'}
@@ -308,10 +312,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
             {mode === 'complete_profile' && (
               <form onSubmit={handleCompleteProfile} className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-xs text-text-secondary font-medium">Tên hiển thị</label>
+                  <label htmlFor="auth-cp-username" className="text-xs text-text-secondary font-medium">Tên hiển thị</label>
                   <div className="relative">
                     <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
+                      id="auth-cp-username"
                       required
                       type="text"
                       value={username}
@@ -322,10 +327,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-text-secondary font-medium">Số điện thoại</label>
+                  <label htmlFor="auth-cp-phone" className="text-xs text-text-secondary font-medium">Số điện thoại</label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
+                      id="auth-cp-phone"
                       required
                       type="tel"
                       value={phone}
@@ -336,10 +342,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-text-secondary font-medium">Email</label>
+                  <label htmlFor="auth-cp-email" className="text-xs text-text-secondary font-medium">Email</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
+                      id="auth-cp-email"
                       required
                       type="email"
                       value={email}
@@ -363,10 +370,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
             {mode === 'forgot_password' && (
               <form onSubmit={handleResetPassword} className="space-y-3">
                 <div className="space-y-1">
-                  <label className="text-xs text-text-secondary font-medium">Email của bạn</label>
+                  <label htmlFor="auth-fp-email" className="text-xs text-text-secondary font-medium">Email của bạn</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
+                      id="auth-fp-email"
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
@@ -414,7 +422,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label className="text-xs text-text-secondary font-medium">Mật khẩu</label>
+                    <label htmlFor="auth-login-password" className="text-xs text-text-secondary font-medium">Mật khẩu</label>
                     <button
                       type="button"
                       onClick={() => setMode('forgot_password')}
@@ -426,6 +434,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
+                      id="auth-login-password"
                       type="password"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
@@ -493,10 +502,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
               <form onSubmit={handleSendOTP} className="space-y-3">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-xs text-text-secondary font-medium">Tên hiển thị</label>
+                    <label htmlFor="auth-reg-username" className="text-xs text-text-secondary font-medium">Tên hiển thị</label>
                     <div className="relative">
                       <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                       <input
+                        id="auth-reg-username"
                         required
                         type="text"
                         value={username}
@@ -507,10 +517,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-xs text-text-secondary font-medium">Số điện thoại</label>
+                    <label htmlFor="auth-reg-phone" className="text-xs text-text-secondary font-medium">Số điện thoại</label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                       <input
+                        id="auth-reg-phone"
                         required
                         type="tel"
                         value={phone}
@@ -522,10 +533,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-text-secondary font-medium">Email (Nhận OTP)</label>
+                  <label htmlFor="auth-reg-email" className="text-xs text-text-secondary font-medium">Email (Nhận OTP)</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
+                      id="auth-reg-email"
                       required
                       type="email"
                       value={email}
@@ -536,10 +548,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs text-text-secondary font-medium">Mật khẩu (Sẽ dùng để đăng nhập truy cập)</label>
+                  <label htmlFor="auth-reg-password" className="text-xs text-text-secondary font-medium">Mật khẩu (Sẽ dùng để đăng nhập truy cập)</label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
+                      id="auth-reg-password"
                       required
                       type="password"
                       value={password}
@@ -608,10 +621,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
             {mode === 'otp' && (
               <form onSubmit={handleVerifyOTPAndRegister} className="space-y-4">
                 <div className="space-y-1">
-                  <label className="text-xs text-text-secondary font-medium text-center block">Nhập mã OTP gồm 6 chữ số</label>
+                  <label htmlFor="auth-otp-code" className="text-xs text-text-secondary font-medium text-center block">Nhập mã OTP gồm 6 chữ số</label>
                   <div className="relative max-w-[200px] mx-auto">
                     <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
                     <input
+                      id="auth-otp-code"
                       required
                       type="text"
                       value={otp}

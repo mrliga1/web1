@@ -3,6 +3,7 @@ const analyzer = withBundleAnalyzer({ enabled: process.env.ANALYZE === 'true' })
 const nextConfig = {
   reactStrictMode: true,
   images: {
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
       { protocol: 'https', hostname: 'wsrv.nl' },
@@ -13,11 +14,26 @@ const nextConfig = {
       { protocol: 'https', hostname: '*.googleusercontent.com' },
     ]
   },
-  typescript: { ignoreBuildErrors: true },
-  eslint: { ignoreDuringBuilds: true },
+  typescript: { ignoreBuildErrors: false },
+  eslint: { ignoreDuringBuilds: false },
   experimental: {
     serverComponentsExternalPackages: ['nodemailer'],
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js']
+  },
+  // Security headers - bảo vệ chống XSS, clickjacking, MIME sniffing
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
+        ],
+      },
+    ];
   },
   async redirects() {
     return [{ source: '/:path*', has: [{ type: 'host', value: 'www.greeniahomes.vn' }], destination: 'https://greeniahomes.vn/:path*', permanent: true }];

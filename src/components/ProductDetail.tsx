@@ -55,7 +55,7 @@ const MapViewer = React.memo(
     ) {
       const cleanHtml = mapHtml.includes("iframe")
         ? mapHtml.replace(/loading=["']lazy["']/g, "")
-        : `<iframe src="${mapHtml}" width="100%" height="100%" style="border:0;" allowfullscreen referrerPolicy="no-referrer-when-downgrade"></iframe>`;
+        : `<iframe title="Bản đồ ${address}" src="${mapHtml}" width="100%" height="100%" style="border:0;" allowfullscreen referrerPolicy="no-referrer-when-downgrade"></iframe>`;
         
       return (
         <div
@@ -68,7 +68,7 @@ const MapViewer = React.memo(
     const query = encodeURIComponent(address || "Hồ Chí Minh, Việt Nam");
     return (
       <div className="w-full h-[300px] rounded-lg overflow-hidden border border-border-color shadow-inner bg-bg-surface">
-        <iframe
+        <iframe title={`Bản đồ Google Maps cho ${address}`}
           width="100%"
           height="100%"
           style={{ border: 0 }}
@@ -612,7 +612,7 @@ export default function ProductDetail({
 
   return (
     <article
-      className="max-w-7xl mx-auto px-[20px] pt-[15px] !pb-0 space-y-16 animate-in fade-in"
+      className="max-w-7xl mx-auto px-[20px] pt-[15px] !pb-0 space-y-6 animate-in fade-in"
       id={`product-detail-viewport-${product.id}`}
     >
       <Helmet>
@@ -636,9 +636,9 @@ export default function ProductDetail({
         <meta property="og:image" content={productImages[0]?.startsWith('http') ? productImages[0] : `https://greeniahomes.vn${productImages[0]?.startsWith('/') ? productImages[0] : `/${productImages[0]}`}`} />
         
         <meta name="twitter:card" content="summary_large_image" />
-        <meta property="twitter:title" content={product.title} />
-        <meta property="twitter:description" content={socialDescription} />
-        <meta property="twitter:image" content={productImages[0]?.startsWith('http') ? productImages[0] : `https://greeniahomes.vn${productImages[0]?.startsWith('/') ? productImages[0] : `/${productImages[0]}`}`} />
+        <meta name="twitter:title" content={product.title} />
+        <meta name="twitter:description" content={socialDescription} />
+        <meta name="twitter:image" content={productImages[0]?.startsWith('http') ? productImages[0] : `https://greeniahomes.vn${productImages[0]?.startsWith('/') ? productImages[0] : `/${productImages[0]}`}`} />
 
         {/* Geo Meta Tags for Local SEO */}
         <meta name="geo.region" content="VN-SG" />
@@ -1014,8 +1014,13 @@ export default function ProductDetail({
 
           {/* 2 Tabs: details/description, map representation */}
           <section className="space-y-4 text-left">
-            <div className="flex border-b border-border-color pb-px gap-1 !mb-[10px] !pb-0 h-[35px] !pt-[5px]">
+            <div role="tablist" aria-label="Chi tiết sản phẩm" className="flex border-b border-border-color pb-px gap-1 !mb-[10px] !pb-0 h-[35px] !pt-[5px]">
               <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "desc"}
+                aria-controls="panel-desc"
+                id="tab-desc"
                 onClick={() => setActiveTab("desc")}
                 className={`text-sm font-semibold tracking-wider relative cursor-pointer !py-0 !px-[5px] text-center h-[30px] ${
                   activeTab === "desc"
@@ -1030,6 +1035,11 @@ export default function ProductDetail({
               </button>
 
               <button
+                type="button"
+                role="tab"
+                aria-selected={activeTab === "map"}
+                aria-controls="panel-map"
+                id="tab-map"
                 onClick={() => setActiveTab("map")}
                 className={`text-sm font-semibold tracking-wider relative cursor-pointer text-center !px-[5px] !py-0 h-[30px] ${
                   activeTab === "map"
@@ -1047,7 +1057,12 @@ export default function ProductDetail({
             <div
               className={`bg-bg-surface border border-border-color rounded-lg min-h-[160px] ${activeTab === "map" ? "p-[1px]" : "!pt-[15px] !pb-[10px] !px-[5px]"}`}
             >
-              <div style={{ display: activeTab === "desc" ? "block" : "none" }}>
+              <div 
+                role="tabpanel" 
+                id="panel-desc"
+                aria-labelledby="tab-desc"
+                style={{ display: activeTab === "desc" ? "block" : "none" }}
+              >
                 {product.description ? (
                   <div
                     className="prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-x-auto leading-relaxed whitespace-pre-wrap"
@@ -1083,6 +1098,9 @@ export default function ProductDetail({
               </div>
 
               <div
+                role="tabpanel"
+                id="panel-map"
+                aria-labelledby="tab-map"
                 className="w-full"
                 style={{ display: activeTab === "map" ? "block" : "none" }}
               >

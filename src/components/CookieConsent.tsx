@@ -28,7 +28,7 @@ export default function CookieConsent() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6 pb-[80px] md:pb-6 pointer-events-none">
-      <div className="relative w-full md:w-[830px] max-w-4xl mx-auto bg-bg-surface border border-border-inverse/60 shadow-2xl rounded-2xl overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-10 fade-in duration-500">
+      <div role="alertdialog" aria-label="Thông báo cookie" className="relative w-full md:w-[830px] max-w-4xl mx-auto bg-bg-surface border border-border-inverse/60 shadow-2xl rounded-2xl overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-10 fade-in duration-500">
         <div className="w-full md:w-[830px] flex flex-col md:grid md:grid-cols-[1fr_auto] gap-4 md:gap-6 p-[10px] items-start md:items-center text-[10px]">
           <div className="flex gap-4 items-start w-full">
             <div className="w-[30px] h-[30px] text-[10px] rounded-full bg-[#064E3B]/10 flex items-center justify-center shrink-0">

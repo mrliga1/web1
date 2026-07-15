@@ -93,17 +93,18 @@ export default function LatestPropertiesPage({ onNavigate, type, categoryName }:
           <div className="text-center py-20 text-white/70 text-xs">Không tìm thấy bất động sản nào.</div>
         ) : (
           <div className="space-y-10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
+            <ul role="list" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5">
               {products.slice(0, gridLimit).map((item) => (
-                <ProductCard 
-                  key={item.id} 
-                  item={item} 
-                  onNavigate={onNavigate} 
-                  badgeText={item.type !== 'rent' ? 'Bán' : 'Cho thuê'} 
-                  badgeColor={item.type !== 'rent' ? 'bg-rose-700 text-white' : 'bg-primary text-black'} 
-                />
+                <li key={item.id} className="list-none">
+                  <ProductCard 
+                    item={item} 
+                    onNavigate={onNavigate} 
+                    badgeText={item.type !== 'rent' ? 'Bán' : 'Cho thuê'} 
+                    badgeColor={item.type !== 'rent' ? 'bg-rose-700 text-white' : 'bg-primary text-black'} 
+                  />
+                </li>
               ))}
-            </div>
+            </ul>
 
             {products.length > gridLimit && (
               <div className="text-center">

@@ -50,9 +50,13 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
   };
 
   return (
-    <div
-      onClick={() => onNavigate({ screen: 'product-detail', productId: item.id, slug: generateSlug(item.title) })}
-      className="w-full shrink-0 bg-bg-surface hover:bg-bg-base border border-border-color hover:border-primary/30 rounded-lg overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-row sm:flex-col"
+    <a
+      href={`/san-pham/${generateSlug(item.title)}`}
+      onClick={(e) => {
+        e.preventDefault();
+        onNavigate({ screen: 'product-detail', productId: item.id, slug: generateSlug(item.title) });
+      }}
+      className="w-full shrink-0 bg-bg-surface hover:bg-bg-base border border-border-color hover:border-primary/30 rounded-lg overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-row sm:flex-col block"
     >
       <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] overflow-hidden bg-bg-base flex items-center justify-center">
         <img 
@@ -111,6 +115,6 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
           </div>
         </div>
       </div>
-    </div>
+    </a>
   );
 }

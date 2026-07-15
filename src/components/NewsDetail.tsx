@@ -3,7 +3,7 @@ import SchemaMarkup from './SchemaMarkup';
 import { optimizeImageUrl, generateSlug, generateSrcSet } from '../lib/utils';
 import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
-import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown } from 'lucide-react';
+import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown, Pause, Play } from 'lucide-react';
 import { Helmet } from 'react-helmet-async';
 import { parseSlugTitleFromPath, resolveItemTitle } from '../lib/documentHead';
 import AdBanner from './AdBanner';
@@ -54,6 +54,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
   const [seeMoreClicks, setSeeMoreClicks] = useState(0);
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [agreePrivacy, setAgreePrivacy] = useState(true);
+  const [isMarqueePaused, setIsMarqueePaused] = useState(false);
 
   useEffect(() => {
     async function loadArticleData() {
@@ -375,7 +376,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-12 animate-in fade-in" id="news-detail-root-container">
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-6 animate-in fade-in" id="news-detail-root-container">
       <Helmet>
         <title>{pageTitle}</title>
         <meta name="description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
@@ -388,9 +389,9 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         <link rel="preload" as="image" href={article.imageUrl ? optimizeImageUrl(article.imageUrl, 800) : undefined} />
         
         <meta name="twitter:card" content="summary_large_image" />
-        <meta property="twitter:title" content={article.seoTitle || article.title} />
-        <meta property="twitter:description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
-        <meta property="twitter:image" content={articleImage?.startsWith('http') ? articleImage : `https://greeniahomes.vn${articleImage?.startsWith('/') ? articleImage : `/${articleImage}`}`} />
+        <meta name="twitter:title" content={article.seoTitle || article.title} />
+        <meta name="twitter:description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
+        <meta name="twitter:image" content={articleImage?.startsWith('http') ? articleImage : `https://greeniahomes.vn${articleImage?.startsWith('/') ? articleImage : `/${articleImage}`}`} />
 
         {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
         <meta name="geo.region" content="VN-SG" />
@@ -401,15 +402,17 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
         <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
       </Helmet>
       
-      <div className="mb-[35px]">
+      <div className="mb-[15px]">
         {/* Breadcrumb row */}
-        <nav aria-label="breadcrumb" className="flex items-center text-xs text-text-secondary border-b border-border-color pb-[5px]" id="news-detail-breadcrumb">
-          <div className="flex items-center gap-2 text-text-secondary font-mono">
-            <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary truncate max-w-[100px] cursor-pointer">Tin tức</button>
-            <span>/</span>
-            <span className="hover:text-primary truncate max-w-[150px] cursor-pointer" onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })}>{article.category}</span>
-            <span>/</span>
-            <span className="text-primary font-bold truncate max-w-[200px]" title={article.title}>{article.title}</span>
+        <nav aria-label="breadcrumb" className={`flex flex-col sticky z-[90] bg-bg-surface py-[10px] transition-all duration-300 ${scrollDirection === 'down' ? 'top-0' : 'top-10'}`} id="news-detail-breadcrumb">
+          <div className="flex items-center text-xs text-text-secondary border-b border-border-color pb-[5px]">
+            <div className="flex items-center gap-2 text-text-secondary font-mono">
+              <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary truncate max-w-[100px] cursor-pointer">Tin tức</button>
+              <span>/</span>
+              <span className="hover:text-primary truncate max-w-[150px] cursor-pointer" onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })}>{article.category}</span>
+              <span>/</span>
+              <span className="text-primary font-bold truncate max-w-[200px]" title={article.title}>{article.title}</span>
+            </div>
           </div>
         </nav>
 
@@ -467,17 +470,32 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
           {/* Related related articles widget ("Xem thêm" as title links directly inside Column 1) */}
           <div className="bg-bg-surface/40 border border-border-color p-6 rounded-lg space-y-4 overflow-hidden" id="article-related-links">
             <div className="border-b border-border-color pb-2 flex items-center justify-between">
-              <h4 className="text-text-primary text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
-                <Bookmark className="w-4 h-4 text-primary" />
-                <span>Tin Cùng Danh Mục</span>
-              </h4>
+              <div className="flex items-center gap-2">
+                <h4 className="text-text-primary text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                  <Bookmark className="w-4 h-4 text-primary" />
+                  <span>Tin Cùng Danh Mục</span>
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setIsMarqueePaused(!isMarqueePaused)}
+                  className="p-1 text-text-secondary hover:text-primary transition-colors focus:outline-none focus-visible:ring-1 focus-visible:ring-primary rounded"
+                  aria-label={isMarqueePaused ? "Tiếp tục trượt" : "Tạm dừng trượt"}
+                  title={isMarqueePaused ? "Tiếp tục" : "Tạm dừng"}
+                >
+                  {isMarqueePaused ? <Play className="w-3.5 h-3.5" /> : <Pause className="w-3.5 h-3.5" />}
+                </button>
+              </div>
               <button onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })} className="text-[10px] uppercase font-bold text-primary hover:text-amber-300 flex items-center gap-1 transition-colors">
                 Xem thêm <ArrowRight className="w-3 h-3" />
               </button>
             </div>
 
-            <div className="relative overflow-hidden pb-4 w-full flex group">
-              <div className="flex gap-4 box-border animate-marquee pr-4 flex-nowrap">
+            <div 
+              className="relative overflow-hidden pb-4 w-full flex group"
+              onMouseEnter={() => setIsMarqueePaused(true)}
+              onMouseLeave={() => setIsMarqueePaused(false)}
+            >
+              <div className="flex gap-4 box-border animate-marquee pr-4 flex-nowrap" style={{ animationPlayState: isMarqueePaused ? 'paused' : 'running' }}>
                 {(() => {
                   const relatedList = generalNewsList.filter(n => n.id !== article.id && n.category === article.category).slice(0, 5);
                   
@@ -499,7 +517,7 @@ export default function NewsDetail({ newsId, slug, onNavigate, onShowNotificatio
                 })()}
               </div>
 
-              <div className="flex gap-4 box-border animate-marquee pr-4 flex-nowrap">
+              <div className="flex gap-4 box-border animate-marquee pr-4 flex-nowrap" style={{ animationPlayState: isMarqueePaused ? 'paused' : 'running' }}>
                 {(() => {
                   const relatedList = generalNewsList.filter(n => n.id !== article.id && n.category === article.category).slice(0, 5);
                   

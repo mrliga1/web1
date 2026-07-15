@@ -535,8 +535,8 @@ export default function ProjectDetail({
           className="w-full aspect-[16/9] rounded-xl overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
           dangerouslySetInnerHTML={{
             __html: project.mapHtml.includes("iframe")
-              ? project.mapHtml
-              : `<iframe src="${project.mapHtml}"></iframe>`,
+              ? project.mapHtml.replace(/loading=["']lazy["']/g, "")
+              : `<iframe title="Bản đồ ${project.title}" src="${project.mapHtml}"></iframe>`,
           }}
         />
       );
@@ -544,7 +544,7 @@ export default function ProjectDetail({
     if (project.location) {
       return (
         <div className="w-full aspect-[16/9] rounded-xl overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0">
-          <iframe
+          <iframe title={`Bản đồ Google Maps cho ${project.title}`}
             src={`https://maps.google.com/maps?q=${encodeURIComponent(project.location)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
             frameBorder="0"
             scrolling="no"
@@ -740,9 +740,9 @@ export default function ProjectDetail({
         <meta property="og:image" content={galleryImages[0]?.startsWith('http') ? galleryImages[0] : `https://greeniahomes.vn${galleryImages[0]?.startsWith('/') ? galleryImages[0] : `/${galleryImages[0]}`}`} />
         
         <meta name="twitter:card" content="summary_large_image" />
-        <meta property="twitter:title" content={project.seoTitle || project.title} />
-        <meta property="twitter:description" content={project.seoDesc || (project.description || "").replace(/<[^>]*>?/gm, "").substring(0, 160)} />
-        <meta property="twitter:image" content={galleryImages[0]?.startsWith('http') ? galleryImages[0] : `https://greeniahomes.vn${galleryImages[0]?.startsWith('/') ? galleryImages[0] : `/${galleryImages[0]}`}`} />
+        <meta name="twitter:title" content={project.seoTitle || project.title} />
+        <meta name="twitter:description" content={project.seoDesc || (project.description || "").replace(/<[^>]*>?/gm, "").substring(0, 160)} />
+        <meta name="twitter:image" content={galleryImages[0]?.startsWith('http') ? galleryImages[0] : `https://greeniahomes.vn${galleryImages[0]?.startsWith('/') ? galleryImages[0] : `/${galleryImages[0]}`}`} />
 
         {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
         <meta name="geo.region" content="VN-SG" />

@@ -134,6 +134,7 @@ const HeroConsultationForm: React.FC<{
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Họ tên *"
+              aria-label="Họ tên"
               className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] h-[35.5px] px-3.5 pt-0 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all"
               required
             />
@@ -144,6 +145,7 @@ const HeroConsultationForm: React.FC<{
               value={clientPhone}
               onChange={(e) => setClientPhone(e.target.value)}
               placeholder="Số điện thoại *"
+              aria-label="Số điện thoại"
               className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 h-[35.5px] rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all"
               required
             />
@@ -154,6 +156,7 @@ const HeroConsultationForm: React.FC<{
               value={clientEmail}
               onChange={(e) => setClientEmail(e.target.value)}
               placeholder="Email *"
+              aria-label="Địa chỉ Email"
               className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 h-[35.5px] rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all"
               required
             />
@@ -163,6 +166,7 @@ const HeroConsultationForm: React.FC<{
               value={clientDemand}
               onChange={(e) => setClientDemand(e.target.value)}
               placeholder="Nhu cầu tư vấn (VD: Tôi cần mua để ở...)"
+              aria-label="Nhu cầu tư vấn"
               rows={2}
               className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 py-[5px] h-[55px] rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all resize-none"
             />
@@ -874,10 +878,14 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
             <div className="animate-sliding-container flex w-max">
               <div className="flex w-max animate-slider-projects">
                 {[...Array(6)].flatMap(() => projects.slice(0, 5)).map((proj, idx) => (
-                  <div
+                  <a
                     key={`${proj.id}-${idx}`}
-                    onClick={() => onNavigate({ screen: 'project-detail', projectId: proj.id, slug: generateSlug(proj.title) })}
-                    className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-emerald-500/30 shadow-md rounded-lg overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer flex flex-col justify-between"
+                    href={`/du-an/${generateSlug(proj.title)}`}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onNavigate({ screen: 'project-detail', projectId: proj.id, slug: generateSlug(proj.title) });
+                    }}
+                    className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-emerald-500/30 shadow-md rounded-lg overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer flex flex-col justify-between block"
                   >
                     <div className="relative aspect-[16/10] overflow-hidden">
                       <img loading="lazy" decoding="async"
@@ -921,7 +929,7 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </a>
                 ))}
               </div>
             </div>
@@ -1002,10 +1010,14 @@ export const NewsBody: React.FC<NewsProps> = ({
           <div className="animate-sliding-container flex w-max">
             <div className="flex w-max animate-slider-news">
               {[...Array(6)].flatMap(() => news.slice(0, 5)).map((article, idx) => (
-                <div
+                <a
                   key={`${article.id}-${idx}`}
-                  onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
-                  className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-emerald-500/30 shadow-md rounded-lg overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer flex flex-col justify-between"
+                  href={`/tin-tuc/${generateSlug(article.title)}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) });
+                  }}
+                  className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-emerald-500/30 shadow-md rounded-lg overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer flex flex-col justify-between block"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <img loading="lazy" decoding="async"
@@ -1037,7 +1049,7 @@ export const NewsBody: React.FC<NewsProps> = ({
                       <span className="text-primary font-bold shrink-0">Xem thêm →</span>
                     </div>
                   </div>
-                </div>
+                </a>
               ))}
             </div>
           </div>

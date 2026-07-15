@@ -66,21 +66,22 @@ export default function FavoritesPage({ onNavigate }: { onNavigate: (route: Rout
           <p className="text-text-secondary text-sm font-mono">Đang tải danh sách...</p>
         </div>
       ) : favorites.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <ul role="list" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {favorites.map((product) => (
-            <ProductCard 
-              key={product.id} 
-              item={product} 
-              onNavigate={onNavigate} 
-            />
+            <li key={product.id} className="list-none">
+              <ProductCard 
+                item={product} 
+                onNavigate={onNavigate} 
+              />
+            </li>
           ))}
-        </div>
+        </ul>
       ) : (
         <div className="py-20 text-center">
           <div className="w-16 h-16 rounded-full bg-bg-surface flex items-center justify-center mx-auto mb-4 border border-border-color">
             <Heart className="w-6 h-6 text-white/70" />
           </div>
-          <h3 className="text-lg font-medium text-text-secondary mb-2">Chưa có tin đăng nào được lưu</h3>
+          <h2 className="text-lg font-medium text-text-secondary mb-2">Chưa có tin đăng nào được lưu</h2>
           <p className="text-white/70 text-sm max-w-md mx-auto mb-6">Bạn có thể lưu các tin đăng bất động sản yêu thích để xem lại sau bằng cách nhấn vào biểu tượng trái tim.</p>
           <button
             onClick={() => onNavigate({ screen: 'san-pham' })}

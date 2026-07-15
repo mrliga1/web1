@@ -136,55 +136,10 @@ export default function Home({
       title: '',
       subtitle: '',
       description: ''
-    };
-  };
-
-  const schemaOrgJSONLD = {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": "https://greeniahomes.vn/#website",
-        "url": "https://greeniahomes.vn/",
-        "name": "Greenia Homes",
-        "description": "Thương hiệu bất động sản cá nhân định hướng doanh nghiệp, phân phối Vinhomes & Masterise Homes",
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://greeniahomes.vn/san-pham?q={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
-      },
-      {
-        "@type": "RealEstateAgent",
-        "@id": "https://greeniahomes.vn/#organization",
-        "name": "Greenia Homes",
-        "url": "https://greeniahomes.vn",
-        "logo": "https://greeniahomes.vn/logo.png",
-        "image": "https://greeniahomes.vn/logo.png",
-        "description": "Chuyên gia phân phối bất động sản cao cấp Vinhomes và Masterise Homes.",
-        "telephone": "0932966700",
-        "email": "cskh@greeniahomes.vn",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "67 Võ Văn Kiệt, Phường An Lạc",
-          "addressLocality": "Quận Bình Tân",
-          "addressRegion": "Hồ Chí Minh",
-          "postalCode": "700000",
-          "addressCountry": "VN"
-        },
-        "geo": {
-          "@type": "GeoCoordinates",
-          "latitude": 10.733852,
-          "longitude": 106.715344
-        },
-        "priceRange": "$$$$"
-      }
-    ]
   };
 
   return (
     <div className="relative min-h-screen overflow-x-hidden w-full">
-      <SchemaMarkup schema={schemaOrgJSONLD} />
       
       <div className="space-y-4 pb-0 font-sans" id="home-view-root">
         {sections.map((section, index) => {

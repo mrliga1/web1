@@ -77,7 +77,7 @@ export default function RootLayout({
         </noscript>
         {/* PWA Tags */}
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#ffffff" />
+        <meta name="theme-color" content="#05080f" />
         <SchemaMarkup schema={{
           "@context": "https://schema.org",
           "@type": "WebSite",

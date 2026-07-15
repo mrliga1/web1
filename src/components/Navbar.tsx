@@ -101,32 +101,34 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
  
           {/* Desktop Nav Items */}
           <nav className="hidden lg:flex items-center gap-1" id="desktop-menu">
+            <ul className="flex items-center gap-1 m-0 p-0 list-none">
             {menuItems.map((item) => {
               // Exact active status matching screen type
               const active = currentRoute.screen === item.screen;
               return (
-                <button
-                  key={item.screen}
-                  id={`nav-${item.screen}`}
-                  onClick={() => {
-                    handleNavigate({ screen: item.screen });
-                    setMobileMenuOpen(false);
-                  }}
-                  className={`relative px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold transition-all cursor-pointer ${
-                    active 
-                      ? theme === 'dark'
-                        ? 'text-accent font-bold' 
-                        : 'text-primary font-bold'
-                      : theme === 'dark'
-                        ? 'text-zinc-200 hover:text-white hover:bg-bg-inverse/60'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-bg-base/60'
-                  }`}
-                >
-                  <span className="relative z-10">{item.label}</span>
-                  {/* Remove pill background per user request */}
-                </button>
+                <li key={item.screen}>
+                  <button
+                    id={`nav-${item.screen}`}
+                    onClick={() => {
+                      handleNavigate({ screen: item.screen });
+                      setMobileMenuOpen(false);
+                    }}
+                    className={`relative px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold transition-all cursor-pointer ${
+                      active 
+                        ? theme === 'dark'
+                          ? 'text-accent font-bold' 
+                          : 'text-primary font-bold'
+                        : theme === 'dark'
+                          ? 'text-zinc-200 hover:text-white hover:bg-bg-inverse/60'
+                          : 'text-text-secondary hover:text-text-primary hover:bg-bg-base/60'
+                    }`}
+                  >
+                    <span className="relative z-10">{item.label}</span>
+                  </button>
+                </li>
               );
             })}
+            </ul>
           </nav>
  
           {/* Right section wrapper to group elements correctly on tablet/mobile */}
@@ -284,25 +286,28 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
           className={`lg:hidden border-b text-left ${theme === 'dark' ? 'bg-[#0B1F16]/95 border-zinc-900' : 'bg-white border-border-color shadow-md'}`}
         >
             <div className="px-4 pt-2 pb-6 space-y-1 bg-white">
+              <ul className="m-0 p-0 list-none space-y-1">
               {menuItems.map((item) => {
                 const active = currentRoute.screen === item.screen;
                 return (
-                  <button
-                    key={item.screen}
-                    onClick={() => {
-                      handleNavigate({ screen: item.screen });
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
-                      active 
-                        ? (theme === 'dark' ? 'text-accent bg-accent/10' : 'text-primary bg-primary/10')
-                        : (theme === 'dark' ? 'text-zinc-200 hover:bg-bg-inverse hover:text-white' : 'text-text-secondary hover:bg-slate-50 hover:text-text-primary')
-                    }`}
-                  >
-                    <span>{item.label}</span>
-                  </button>
+                  <li key={item.screen}>
+                    <button
+                      onClick={() => {
+                        handleNavigate({ screen: item.screen });
+                        setMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
+                        active 
+                          ? (theme === 'dark' ? 'text-accent bg-accent/10' : 'text-primary bg-primary/10')
+                          : (theme === 'dark' ? 'text-zinc-200 hover:bg-bg-inverse hover:text-white' : 'text-text-secondary hover:bg-slate-50 hover:text-text-primary')
+                      }`}
+                    >
+                      <span>{item.label}</span>
+                    </button>
+                  </li>
                 );
               })}
+              </ul>
 
               <div className="pt-4 border-t border-zinc-900 space-y-3">
                 <a 

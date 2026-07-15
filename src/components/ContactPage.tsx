@@ -142,7 +142,7 @@ export default function ContactPage({
   };
 
   return (
-    <main className="relative min-h-screen">
+    <section className="relative min-h-screen">
       <div className="space-y-4 pb-0 font-sans" id="contact-catalog-root-wrapper">
         {sections.map((section, idx) => {
           if (!section.visible && !isEditMode) return null;
@@ -208,7 +208,7 @@ export default function ContactPage({
                   {/* Left layout details */}
                   <div className="lg:col-span-5 bg-bg-surface border border-border-color rounded-lg p-8 space-y-6 flex flex-col justify-between text-left">
                     <div>
-                      <h3 className="font-display font-bold text-lg text-text-primary mb-2 uppercase">Trụ Sở Hành Chính</h3>
+                      <h2 className="font-display font-bold text-lg text-text-primary mb-2 uppercase">Trụ Sở Hành Chính</h2>
                       <p className="text-xs text-text-secondary font-light leading-relaxed mb-6">
                         Thuộc khuôn viên biệt thự xa hoa Thảo Điền và hội sở Phú Mỹ Hưng, chuyên viên phong thủy túc trực hỗ trợ bạn tìm kiếm lâu đài hạnh vận cát tường.
                       </p>
@@ -243,13 +243,13 @@ export default function ContactPage({
                     <div className="bg-bg-surface p-4 rounded-lg border border-border-color flex flex-col items-start gap-4">
                       <p className="text-[12px] font-bold uppercase tracking-wider text-text-secondary">Kết nối với chúng tôi</p>
                       <div className="flex gap-6 items-center">
-                        <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Zalo" className="hover:scale-110 transition-transform" title="Zalo">
+                        <a href="https://zalo.me/0932966700" target="_blank" rel="noopener noreferrer" aria-label="Zalo" className="hover:scale-110 transition-transform" title="Zalo">
                           <img loading="lazy" decoding="async" src="/zalo-icon.svg" alt="Zalo" className="w-6 h-6 object-contain" />
                         </a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:scale-110 transition-transform" title="Facebook">
+                        <a href="https://www.facebook.com/greeniahomes" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:scale-110 transition-transform" title="Facebook">
                           <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook" className="w-6 h-6 object-contain" />
                         </a>
-                        <a href="#" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hover:scale-110 transition-transform" title="YouTube">
+                        <a href="https://www.youtube.com/@greeniahomes.vn" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hover:scale-110 transition-transform" title="YouTube">
                           <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube" className="w-7 h-7 object-contain" />
                         </a>
                       </div>
@@ -258,9 +258,9 @@ export default function ContactPage({
 
                   {/* Right layout consult questionnaire form */}
                   <div className="lg:col-span-7 bg-bg-surface border border-border-color rounded-lg p-8 space-y-6 text-left">
-                    <h3 className="font-display font-bold text-lg text-text-primary uppercase border-b border-border-color pb-2">
+                    <h2 className="font-display font-bold text-lg text-text-primary uppercase border-b border-border-color pb-2">
                       Gởi yêu cầu ký gửi, tham quan
-                    </h3>
+                    </h2>
 
                     {contactSuccess ? (
                       <div className="bg-[#064E3B]/10 border border-primary/20 rounded-lg p-8 text-center space-y-4">
@@ -280,8 +280,9 @@ export default function ContactPage({
                       <form onSubmit={handleContactSubmit} className="space-y-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Danh tánh quý khách *</label>
+                            <label htmlFor="contact-name" className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Danh tánh quý khách *</label>
                             <input
+                              id="contact-name"
                               type="text"
                               value={contactName}
                               onChange={(e) => setContactName(e.target.value)}
@@ -293,8 +294,9 @@ export default function ContactPage({
                           </div>
 
                           <div className="space-y-1">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Số điện thoại *</label>
+                            <label htmlFor="contact-phone" className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Số điện thoại *</label>
                             <input
+                              id="contact-phone"
                               type="tel"
                               value={contactPhone}
                               onChange={(e) => setContactPhone(e.target.value)}
@@ -306,8 +308,9 @@ export default function ContactPage({
                           </div>
                           
                           <div className="space-y-1 sm:col-span-2">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Email</label>
+                            <label htmlFor="contact-email" className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Email</label>
                             <input
+                              id="contact-email"
                               type="email"
                               value={contactEmail}
                               onChange={(e) => setContactEmail(e.target.value)}
@@ -319,8 +322,9 @@ export default function ContactPage({
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Thông tin ký gửi hoặc hướng nhà đất cần hỗ trợ</label>
+                          <label htmlFor="contact-message" className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Thông tin ký gửi hoặc hướng nhà đất cần hỗ trợ</label>
                           <textarea
+                            id="contact-message"
                             value={contactMessage}
                             onChange={(e) => setContactMessage(e.target.value)}
                             placeholder="Chi tiết sản phẩm biệt thự, diện tích, giá ước tính, hoặc yêu cầu riêng..."
@@ -428,6 +432,6 @@ export default function ContactPage({
           );
         })}
       </div>
-    </main>
+    </section>
   );
 }

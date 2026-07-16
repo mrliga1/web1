@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Star } from 'lucide-react';
-import { doc, updateDoc, increment, db } from '../firebase';
+import { recordContentEngagement } from '../lib/engagement';
 
 interface StarRatingInteractiveProps {
   collectionName: 'products' | 'projects' | 'news';
@@ -21,15 +21,22 @@ export default function StarRatingInteractive({
 }: StarRatingInteractiveProps) {
   const [hoverRating, setHoverRating] = useState(0);
   const [hasRated, setHasRated] = useState(false);
+  const [ratingTotal, setRatingTotal] = useState(userTotalRating || 0);
+  const [ratingCount, setRatingCount] = useState(userReviewCount || 0);
 
   useEffect(() => {
     setHasRated(localStorage.getItem(`rated_${collectionName}_${documentId}`) === 'true');
   }, [collectionName, documentId]);
 
+  useEffect(() => {
+    setRatingTotal(userTotalRating || 0);
+    setRatingCount(userReviewCount || 0);
+  }, [documentId, userReviewCount, userTotalRating]);
+
   const rawBaseRating = baseRating || 5;
   const rawBaseCount = baseReviewCount || 0;
-  const totalStars = rawBaseRating * rawBaseCount + (userTotalRating || 0);
-  const totalCount = rawBaseCount + (userReviewCount || 0);
+  const totalStars = rawBaseRating * rawBaseCount + ratingTotal;
+  const totalCount = rawBaseCount + ratingCount;
   
   const currentAvg = totalCount === 0 ? rawBaseRating : totalStars / totalCount;
   
@@ -37,11 +44,14 @@ export default function StarRatingInteractive({
     if (hasRated) return;
 
     try {
-      const docRef = doc(db, collectionName, documentId);
-      await updateDoc(docRef, {
-        userTotalRating: increment(rating),
-        userReviewCount: increment(1)
+      const result = await recordContentEngagement({
+        table: collectionName,
+        id: documentId,
+        action: "rating",
+        value: rating,
       });
+      setRatingTotal(result.userTotalRating);
+      setRatingCount(result.userReviewCount);
       localStorage.setItem(`rated_${collectionName}_${documentId}`, 'true');
       setHasRated(true);
     } catch (error) {

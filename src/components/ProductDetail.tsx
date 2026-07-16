@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
 import { parseLocation, formatLocationName } from "../lib/locationMapping";
 import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
-import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from "../firebase";
+import { recordContentEngagement } from "../lib/engagement";
+import { doc, getDoc, collection, getDocs, addDoc, db } from "../firebase";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import { Product, Project, RouteState } from "../types";
 import { useScrollDirection } from "../hooks/useScrollDirection";
@@ -265,7 +266,19 @@ export default function ProductDetail({
           const newViews = (activeProd.viewsCount || 0) + 1;
           activeProd.viewsCount = newViews;
           if (finalProductId) {
-            updateDoc(doc(db, "products", finalProductId), { viewsCount: newViews }).catch(console.error);
+            void recordContentEngagement({
+              table: "products",
+              id: finalProductId,
+              action: "view",
+            })
+              .then((result) => {
+                setProduct((current) =>
+                  current?.id === finalProductId
+                    ? { ...current, viewsCount: result.viewsCount }
+                    : current,
+                );
+              })
+              .catch((error) => console.error("Không thể tăng lượt xem sản phẩm:", error));
           }
         } else {
           setLoading(false);

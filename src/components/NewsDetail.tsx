@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { optimizeImageUrl, generateSlug, generateSrcSet } from '../lib/utils';
-import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from '../firebase';
+import { recordContentEngagement } from '../lib/engagement';
+import { doc, getDoc, collection, getDocs, addDoc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown, Pause, Play } from 'lucide-react';
 import AdBanner from './AdBanner';
@@ -113,7 +114,19 @@ export default function NewsDetail({
           if (!sessionStorage.getItem(`viewed_news_${fetchedArticle.id}`)) {
             const newCount = (fetchedArticle.viewsCount || 0) + 1;
             fetchedArticle.viewsCount = newCount;
-            updateDoc(doc(db, 'news', fetchedArticle.id), { viewsCount: newCount }).catch(console.error);
+            void recordContentEngagement({
+              table: "news",
+              id: fetchedArticle.id,
+              action: "view",
+            })
+              .then((result) => {
+                setArticle((current) =>
+                  current?.id === fetchedArticle?.id
+                    ? { ...current, viewsCount: result.viewsCount }
+                    : current,
+                );
+              })
+              .catch((error) => console.error("Không thể tăng lượt xem tin tức:", error));
             sessionStorage.setItem(`viewed_news_${fetchedArticle.id}`, 'true');
           }
           setArticle({...fetchedArticle});

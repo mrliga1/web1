@@ -1262,7 +1262,7 @@ export default function AdminPanel({
 
       const newsToUpdate = news.filter(n => urlsToDelete.includes(n.thumbnail || ""));
       for (const n of newsToUpdate) {
-        await updateDoc(doc(db, "articles", n.id), { thumbnail: "" });
+        await updateDoc(doc(db, "news", n.id), { thumbnail: "" });
       }
     } catch (e) {
       console.error("Lỗi khi xóa ảnh khỏi database:", e);

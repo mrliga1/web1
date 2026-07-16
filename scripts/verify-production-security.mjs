@@ -63,6 +63,31 @@ async function readRows(path, label) {
   return rows;
 }
 
+async function isAnonDenied(path, label, init = {}) {
+  let response;
+
+  try {
+    response = await fetch(`${supabaseUrl}/rest/v1/${path}`, {
+      ...init,
+      headers: {
+        apikey: anonKey,
+        Authorization: `Bearer ${anonKey}`,
+        ...(init.headers || {}),
+      },
+      signal: AbortSignal.timeout(15_000),
+    });
+  } catch (error) {
+    throw new Error(
+      `${label}: không thể kết nối Supabase (${error instanceof Error ? error.message : "lỗi không xác định"})`,
+    );
+  }
+
+  if ([401, 403, 404].includes(response.status)) return true;
+  if (response.ok) return false;
+
+  throw new Error(`${label}: Supabase trả HTTP ${response.status}`);
+}
+
 const failures = [];
 
 for (const [label, path] of [
@@ -72,6 +97,46 @@ for (const [label, path] of [
   const rows = await readRows(path, label);
   if (rows.length > 0) {
     failures.push(`Anon vẫn đọc được bảng ${label}.`);
+  }
+}
+
+for (const table of [
+  "contacts",
+  "configuration",
+  "categories",
+  "activity_logs",
+  "reviews",
+]) {
+  const denied = await isAnonDenied(
+    `${table}?select=id&limit=1`,
+    `bảng legacy ${table}`,
+  );
+  if (!denied) {
+    failures.push(`Anon vẫn có quyền gọi bảng legacy ${table}.`);
+  }
+}
+
+for (const rpc of ["current_app_role", "is_admin", "record_content_engagement"]) {
+  const denied = await isAnonDenied(`rpc/${rpc}`, `RPC ${rpc}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({}),
+  });
+  if (!denied) {
+    failures.push(`Anon vẫn gọi được RPC ${rpc}.`);
+  }
+}
+
+for (const [label, path] of [
+  ["products", "products?select=id&limit=1"],
+  ["projects", "projects?select=id&limit=1"],
+  ["news", "news?select=id&limit=1"],
+  ["layouts", "layouts?select=id&limit=1"],
+  ["settings/general", "settings?select=id&id=eq.general&limit=1"],
+]) {
+  const rows = await readRows(path, label);
+  if (rows.length === 0) {
+    failures.push(`Dữ liệu công khai ${label} không còn đọc được.`);
   }
 }
 
@@ -91,4 +156,6 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("RLS production đạt: dữ liệu người dùng và settings nhạy cảm không công khai.");
+console.log(
+  "Bảo mật production đạt: dữ liệu công khai hoạt động, dữ liệu nhạy cảm, bảng legacy và RPC đặc quyền đều bị chặn đúng.",
+);

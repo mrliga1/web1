@@ -56,7 +56,17 @@ Không đặt PAT GitHub, khóa R2, SMTP password hoặc Supabase service-role t
 
 Lớp tương thích trong `src/firebase.ts` giữ API gọi dữ liệu cũ nhưng toàn bộ dữ liệu thực tế nằm ở Supabase. Firebase project cũ không còn được sử dụng.
 
-Trước lần deploy đầu tiên của phiên bản này, chạy migration theo thứ tự trong thư mục `supabase/migrations` bằng Supabase Dashboard → SQL Editor. Migration bảo vệ dữ liệu khách hàng, giới hạn cấu hình công khai và chỉ cho tài khoản có `users.role = 'admin'` quản trị nội dung.
+Migration được quản lý bằng Supabase CLI và lưu theo thứ tự trong `supabase/migrations`. Trước khi áp dụng lên production, luôn xác minh đúng project và chạy dry-run:
+
+```bash
+npx supabase login
+npx supabase link --project-ref <project-ref>
+npx supabase db push --dry-run
+npx supabase db push
+npm run verify:production
+```
+
+Không đưa access token, database password hoặc service-role key vào lệnh đã commit, tài liệu hay hội thoại. Migration bảo vệ dữ liệu khách hàng, giới hạn cấu hình công khai và chỉ cho tài khoản có `users.role = 'admin'` quản trị nội dung.
 
 Vai trò admin phải được gán trực tiếp trong Supabase bởi người có quyền cơ sở dữ liệu. Ứng dụng không tự cấp admin theo email.
 
@@ -82,7 +92,7 @@ npm run verify:production # Xác minh anon không đọc được dữ liệu nh
 - `src/contexts/`: trạng thái xác thực, bố cục và cấu hình chung
 - `src/lib/`: dữ liệu mặc định, SEO và tiện ích dùng chung
 - `src/lib/serverContent.ts`, `src/lib/contentSchemas.ts`: dữ liệu và JSON-LD render phía máy chủ
-- `supabase/migrations/`: migration bảo mật/RLS cần áp dụng lên production
+- `supabase/config.toml`, `supabase/migrations/`: cấu hình CLI và migration bảo mật/RLS được quản lý bằng mã nguồn
 - `public/llms.txt`, `app/robots.ts`, `app/sitemap.ts`: dữ liệu hỗ trợ công cụ tìm kiếm và AI Search
 
 ## Upload và xóa hình ảnh
@@ -102,8 +112,8 @@ Trang quản trị gửi JWT Supabase tới API máy chủ. API xác minh vai tr
 ## Triển khai Vercel
 
 1. Khai báo toàn bộ biến trong mục Environment Variables của Vercel.
-2. Áp dụng migration Supabase trước khi đưa build mới lên production.
-3. Chạy `npm run verify:production` và yêu cầu lệnh đạt.
+2. Chạy `npx supabase db push --dry-run`, kiểm tra danh sách rồi mới chạy `npx supabase db push`.
+3. Chạy `npm run verify:production` và yêu cầu lệnh đạt sau khi áp dụng migration.
 4. Chạy `npm run typecheck`, `npm run lint` và `npm run build`.
 5. Deploy, sau đó kiểm tra trang chủ, chi tiết sản phẩm/dự án/tin tức, form tư vấn, đăng nhập admin và upload/xóa ảnh R2.
 

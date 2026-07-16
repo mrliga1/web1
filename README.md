@@ -48,6 +48,7 @@ npm run dev
 | `SMTP_USER` | Máy chủ | Tài khoản gửi Gmail SMTP |
 | `SMTP_PASS` | Máy chủ | Google App Password |
 | `SMTP_TO` | Máy chủ | Email nhận yêu cầu tư vấn |
+| `BLOCKED_IPS` | Máy chủ | Danh sách IP dự phòng, phân tách bằng dấu phẩy |
 
 Không đặt PAT GitHub, khóa R2, SMTP password hoặc Supabase service-role trong biến có tiền tố `NEXT_PUBLIC_`.
 
@@ -59,6 +60,8 @@ Trước lần deploy đầu tiên của phiên bản này, chạy migration the
 
 Vai trò admin phải được gán trực tiếp trong Supabase bởi người có quyền cơ sở dữ liệu. Ứng dụng không tự cấp admin theo email.
 
+Danh sách IP bị chặn được lưu trong bản ghi `settings/blocked-ips`. Admin đọc/ghi bản ghi này qua JWT và RLS; API gửi email chỉ đọc bằng service-role ở phía máy chủ. `BLOCKED_IPS` là phương án dự phòng khi Supabase tạm thời không khả dụng.
+
 ## Lệnh dự án
 
 ```bash
@@ -67,7 +70,10 @@ npm run typecheck  # Kiểm tra TypeScript
 npm run lint       # Kiểm tra ESLint
 npm run build      # Build production
 npm run start      # Chạy production build tại cổng 3000
+npm run verify:production # Xác minh anon không đọc được dữ liệu nhạy cảm
 ```
+
+`verify:production` phải đạt sau khi áp migration RLS. Lệnh chỉ đọc ID tối thiểu, không in nội dung khách hàng hoặc khóa môi trường.
 
 ## Cấu trúc chính
 
@@ -75,6 +81,7 @@ npm run start      # Chạy production build tại cổng 3000
 - `src/components/`: giao diện công khai và bảng quản trị
 - `src/contexts/`: trạng thái xác thực, bố cục và cấu hình chung
 - `src/lib/`: dữ liệu mặc định, SEO và tiện ích dùng chung
+- `src/lib/serverContent.ts`, `src/lib/contentSchemas.ts`: dữ liệu và JSON-LD render phía máy chủ
 - `supabase/migrations/`: migration bảo mật/RLS cần áp dụng lên production
 - `public/llms.txt`, `app/robots.ts`, `app/sitemap.ts`: dữ liệu hỗ trợ công cụ tìm kiếm và AI Search
 
@@ -84,12 +91,21 @@ Trang quản trị gửi JWT Supabase tới API máy chủ. API xác minh vai tr
 
 Ảnh cũ trên GitHub/jsDelivr vẫn được phép hiển thị để tránh làm hỏng nội dung. Khi xóa bản ghi ảnh cũ, API chỉ bỏ tham chiếu dữ liệu và không gọi GitHub.
 
+## SSR và AI Search
+
+- Trang chi tiết sản phẩm, dự án, tin tức và metadata danh mục được render động phía máy chủ từ Supabase.
+- JSON-LD chi tiết và breadcrumb được đưa trực tiếp vào HTML server; không phụ thuộc JavaScript hoặc `react-helmet-async`.
+- `force-dynamic` được giữ cho nội dung cần cập nhật theo request. Khai báo `revalidate = 0` lặp đã được loại bỏ.
+- Trang quản trị tiếp tục dùng `ssr: false` có chủ đích vì không cần lập chỉ mục và chứa editor phụ thuộc trình duyệt.
+- Dự án không dùng pipeline `dist-ssr`; output production của Next.js nằm trong `.next/`.
+
 ## Triển khai Vercel
 
 1. Khai báo toàn bộ biến trong mục Environment Variables của Vercel.
 2. Áp dụng migration Supabase trước khi đưa build mới lên production.
-3. Chạy `npm run typecheck`, `npm run lint` và `npm run build`.
-4. Deploy, sau đó kiểm tra trang chủ, chi tiết sản phẩm/dự án/tin tức, form tư vấn, đăng nhập admin và upload/xóa ảnh R2.
+3. Chạy `npm run verify:production` và yêu cầu lệnh đạt.
+4. Chạy `npm run typecheck`, `npm run lint` và `npm run build`.
+5. Deploy, sau đó kiểm tra trang chủ, chi tiết sản phẩm/dự án/tin tức, form tư vấn, đăng nhập admin và upload/xóa ảnh R2.
 
 ## Thông tin liên hệ chính thức
 

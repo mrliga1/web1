@@ -1,7 +1,6 @@
 "use client";
 
 import React, { Suspense } from "react";
-import { HelmetProvider } from "react-helmet-async";
 import { ErrorBoundary } from "../src/ErrorBoundary";
 import { AppProvider } from "../src/contexts/AppContext";
 import { AuthProvider } from "../src/contexts/AuthContext";
@@ -14,16 +13,14 @@ import CookieConsent from "../src/components/CookieConsent";
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary>
-      <HelmetProvider context={{}}>
-        <Suspense fallback={null}>
-          <AuthProvider>
-            <AppProvider>
-              {children}
-              <CookieConsent />
-            </AppProvider>
-          </AuthProvider>
-        </Suspense>
-      </HelmetProvider>
+      <Suspense fallback={null}>
+        <AuthProvider>
+          <AppProvider>
+            {children}
+            <CookieConsent />
+          </AppProvider>
+        </AuthProvider>
+      </Suspense>
     </ErrorBoundary>
   );
 }

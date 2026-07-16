@@ -1,11 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import SchemaMarkup from './SchemaMarkup';
 import { optimizeImageUrl, generateSlug, generateSrcSet } from '../lib/utils';
 import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown, Pause, Play } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
-import { parseSlugTitleFromPath, resolveItemTitle } from '../lib/documentHead';
 import AdBanner from './AdBanner';
 import ProductCard from './ProductCard';
 import StarRatingInteractive from './StarRatingInteractive';
@@ -283,8 +280,6 @@ export default function NewsDetail({
     });
   });
 
-  const pageTitle = article ? resolveItemTitle(article, "Tin Tức Bất Động Sản | Greenia Homes") : "Đang tải bài viết... | Greenia Homes";
-
   if (loading) {
     return (
       <>
@@ -325,101 +320,8 @@ export default function NewsDetail({
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
     .slice(0, 5);
 
-  const articleImage = article.imageUrl || '/no-image.svg';
-
-  const rawBaseRating = article.baseRating || 5;
-  const rawBaseCount = article.baseReviewCount || 0;
-  const computedTotalStars = rawBaseRating * rawBaseCount + (article.userTotalRating || 0);
-  const computedTotalCount = rawBaseCount + (article.userReviewCount || 0);
-  const currentAvg = computedTotalCount === 0 ? rawBaseRating : computedTotalStars / computedTotalCount;
-
-  const canonicalUrl = `https://greeniahomes.vn/tin-tuc/${slug || generateSlug(article.title)}`;
-  const schemaOrgJSONLD: any = {
-    "@context": "https://schema.org",
-    "@type": "NewsArticle",
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": canonicalUrl
-    },
-    "headline": article.title,
-    "image": [
-      articleImage
-    ],
-    "datePublished": article.createdAt,
-    "dateModified": (article as News & { updatedAt?: string }).updatedAt || article.createdAt,
-    "author": [{
-        "@type": "Person",
-        "name": article.author || "Greenia Admin"
-    }],
-    "publisher": {
-      "@type": "Organization",
-      "name": "Greenia Homes",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://greeniahomes.vn/favicon.webp"
-      }
-    },
-    "description": (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)
-  };
-
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Trang chủ",
-        item: "https://greeniahomes.vn"
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Tin tức",
-        item: "https://greeniahomes.vn/tin-tuc"
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: article.category || "Danh mục",
-        item: `https://greeniahomes.vn/category-news/${generateSlug(article.category || "")}`
-      },
-      {
-        "@type": "ListItem",
-        position: 4,
-        name: article.title,
-        item: canonicalUrl
-      }
-    ]
-  };
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-6 animate-in fade-in" id="news-detail-root-container">
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta name="description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
-        {article.seoKeywords && <meta name="keywords" content={article.seoKeywords} />}
-        <meta property="og:type" content="article" />
-        <meta property="og:url" content={typeof window !== 'undefined' ? window.location.href : ''} />
-        <meta property="og:title" content={article.seoTitle || article.title} />
-        <meta property="og:description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
-        <meta property="og:image" content={articleImage?.startsWith('http') ? articleImage : `https://greeniahomes.vn${articleImage?.startsWith('/') ? articleImage : `/${articleImage}`}`} />
-        <link rel="preload" as="image" href={article.imageUrl ? optimizeImageUrl(article.imageUrl, 800) : undefined} />
-        
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={article.seoTitle || article.title} />
-        <meta name="twitter:description" content={article.seoDesc || (article.description || "").replace(/<[^>]*>?/gm, '').substring(0, 160)} />
-        <meta name="twitter:image" content={articleImage?.startsWith('http') ? articleImage : `https://greeniahomes.vn${articleImage?.startsWith('/') ? articleImage : `/${articleImage}`}`} />
-
-        {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
-        <meta name="geo.region" content="VN-SG" />
-        <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
-        <meta name="geo.position" content="10.823099;106.629664" />
-        <meta name="ICBM" content="10.823099, 106.629664" />
-        <script type="application/ld+json">{JSON.stringify(schemaOrgJSONLD)}</script>
-        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
-      </Helmet>
-      
       <div className="mb-[15px]">
         {/* Breadcrumb row */}
         <nav aria-label="breadcrumb" className={`flex flex-col sticky z-[90] bg-bg-surface py-[10px] transition-all duration-300 ${scrollDirection === 'down' ? 'top-0' : 'top-10'}`} id="news-detail-breadcrumb">

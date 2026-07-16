@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
 import { getProductBySlug } from "../../../src/lib/serverContent";
+import { createProductSchemas } from "../../../src/lib/contentSchemas";
+import SchemaMarkup from "../../../src/components/SchemaMarkup";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 const SITE_URL = "https://greeniahomes.vn";
 
@@ -47,6 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    keywords: product.seoKeywords?.trim() || product.metaKeywords?.trim() || undefined,
     alternates: { canonical },
     openGraph: {
       type: "website",
@@ -63,6 +65,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images,
     },
+    other: {
+      "geo.region": "VN-SG",
+      "geo.placename": product.district
+        ? `${product.district}, Hồ Chí Minh`
+        : "Hồ Chí Minh, Việt Nam",
+      ...(product.latitude != null && product.longitude != null
+        ? {
+            "geo.position": `${product.latitude};${product.longitude}`,
+            ICBM: `${product.latitude}, ${product.longitude}`,
+          }
+        : {}),
+    },
   };
 }
 
@@ -72,5 +86,13 @@ export default async function ProductDetailPage({ params }: Props) {
 
   if (!product) notFound();
 
-  return <ClientWrapper slug={slug} initialProduct={product} />;
+  const { listing, breadcrumb } = createProductSchemas(product, slug);
+
+  return (
+    <>
+      <SchemaMarkup schema={listing} />
+      <SchemaMarkup schema={breadcrumb} />
+      <ClientWrapper slug={slug} initialProduct={product} />
+    </>
+  );
 }

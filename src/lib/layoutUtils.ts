@@ -131,7 +131,7 @@ export function sanitizeHomeSections(sects: any[]): any[] {
   });
 
   filtered = filtered.map((s) => {
-    let newS = { ...s };
+    const newS = { ...s };
     return newS;
   });
 

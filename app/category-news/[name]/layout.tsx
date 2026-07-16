@@ -3,7 +3,6 @@ import { generateSlug } from "../../../src/lib/utils";
 import { supabase } from "../../../src/supabase";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 type Props = {
   params: Promise<{ name: string }>;
@@ -19,6 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let canonicalSlug = generateSlug(decodedName);
   let title = `Tin Tức ${decodedName.replace(/-/g, " ")}`;
   let description = `Cập nhật tin tức mới nhất về ${decodedName.replace(/-/g, " ")}.`;
+  let keywords: string | undefined;
 
   const { data, error } = await supabase
     .from("settings")
@@ -41,6 +41,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonicalSlug = generateSlug(category.name);
       title = category.seoTitle || category.name || title;
       description = category.seoDesc || category.description || description;
+      keywords = category.seoKeywords || undefined;
     }
   }
 
@@ -51,6 +52,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    keywords,
     alternates: { canonical },
     openGraph: {
       type: "website",

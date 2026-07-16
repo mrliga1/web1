@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
 import { getProjectBySlug } from "../../../src/lib/serverContent";
+import { createProjectSchemas } from "../../../src/lib/contentSchemas";
+import SchemaMarkup from "../../../src/components/SchemaMarkup";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 const SITE_URL = "https://greeniahomes.vn";
 
@@ -45,6 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    keywords: project.seoKeywords?.trim() || project.metaKeywords?.trim() || undefined,
     alternates: { canonical },
     openGraph: {
       type: "website",
@@ -61,6 +63,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description,
       images,
     },
+    other: {
+      "geo.region": "VN-SG",
+      "geo.placename": "Hồ Chí Minh, Việt Nam",
+      ...(project.latitude != null && project.longitude != null
+        ? {
+            "geo.position": `${project.latitude};${project.longitude}`,
+            ICBM: `${project.latitude}, ${project.longitude}`,
+          }
+        : {}),
+    },
   };
 }
 
@@ -70,5 +82,13 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   if (!project) notFound();
 
-  return <ClientWrapper slug={slug} initialProject={project} />;
+  const { listing, breadcrumb } = createProjectSchemas(project, slug);
+
+  return (
+    <>
+      <SchemaMarkup schema={listing} />
+      <SchemaMarkup schema={breadcrumb} />
+      <ClientWrapper slug={slug} initialProject={project} />
+    </>
+  );
 }

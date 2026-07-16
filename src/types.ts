@@ -20,11 +20,14 @@ export interface Product {
   floors?: number | string; // Số tầng
   interior?: string;     // Nội thất
   mapHtml?: string;      // Sơ đồ bản đồ iframe
+  latitude?: number;
+  longitude?: number;
   category: string;      // Danh mục sản phẩm (e.g. "Biệt thự", "Nhà phố", "Căn hộ", "Đất nền")
   price?: string;        // Fallback for price property
   location?: string;     // Fallback for location property
   viewsCount: number;    // Lượt xem thực tế
   createdAt: string;     // ISO date
+  updatedAt?: string;
   createdBy: string;     // email / username
   createdByRole: 'admin' | 'editor' | 'member';
   approvalStatus: 'approved' | 'pending' | 'rejected';
@@ -80,6 +83,8 @@ export interface Project {
   qaTab?: string;        // Tab Q&A (Hỏi Đáp) (Rich text)
   qaList?: { question: string; answer: string; }[]; // Câu hỏi / Trả lời
   mapHtml?: string;      // Sơ đồ bản đồ iframe
+  latitude?: number;
+  longitude?: number;
   developer?: string;    // Chủ đầu tư
   scale?: string;        // Quy mô
   productType?: string;  // Loại hình sản phẩm
@@ -96,6 +101,7 @@ export interface Project {
   ownership?: string;    // Hình thức sở hữu
   viewsCount: number;
   createdAt: string;
+  updatedAt?: string;
   createdBy?: string;
   metaTitle?: string;
   metaDesc?: string;
@@ -123,6 +129,7 @@ export interface News {
   viewsCount: number;
   author: string;
   createdAt: string;
+  updatedAt?: string;
   createdBy?: string;
   metaTitle?: string;
   metaDesc?: string;

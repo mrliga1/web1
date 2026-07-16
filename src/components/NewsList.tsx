@@ -10,7 +10,6 @@ function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void
 import { collection, getDocs, getDoc, doc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { Calendar, Eye, Compass, Search, User, ChevronRight, BadgeDollarSign, MapPin, Sparkles, Heart, Bookmark, Layers, Bath, Building2 } from 'lucide-react';
-import { Helmet } from 'react-helmet-async';
 import AdBanner from './AdBanner';
 import ProductCard from './ProductCard';
 import { EditableText, EditableImage } from './EditableComponent';
@@ -206,17 +205,6 @@ export default function NewsList({
 
   return (    <>
     <div className="relative min-h-screen">
-      {categoryName && currentCategoryExt && (
-        <Helmet>
-          <title>{currentCategoryExt.name} | Tin tức Greenia Homes</title>
-          <meta name="description" content={currentCategoryExt.description || `Tin tức bất động sản chuyên mục ${currentCategoryExt.name} trên Greenia Homes`} />
-          <meta property="og:title" content={`${currentCategoryExt.name} | Tin tức Greenia Homes`} />
-          <meta property="og:description" content={currentCategoryExt.description || `Tin tức bất động sản chuyên mục ${currentCategoryExt.name} trên Greenia Homes`} />
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={`${currentCategoryExt.name} | Tin tức Greenia Homes`} />
-          <meta name="twitter:description" content={currentCategoryExt.description || `Tin tức bất động sản chuyên mục ${currentCategoryExt.name} trên Greenia Homes`} />
-        </Helmet>
-      )}
       <div className="space-y-4 pb-0 font-sans" id="news-catalog-root-wrapper">
         {sections.map((section, idx) => {
           if (!section) return null;

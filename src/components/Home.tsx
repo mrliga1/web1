@@ -12,8 +12,6 @@ import {
 import CustomSectionRenderer from './CustomSectionRenderer';
 import { EditableText, EditableImage } from './EditableComponent';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
-import { Helmet } from 'react-helmet-async';
-import SchemaMarkup from './SchemaMarkup';
 import { useInView } from 'react-intersection-observer';
 
 const LazySection = ({ children, sectionId, isEditMode }: { children: React.ReactNode, sectionId: string, isEditMode: boolean }) => {

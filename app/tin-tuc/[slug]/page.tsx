@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
 import { getNewsBySlug } from "../../../src/lib/serverContent";
+import { createNewsSchemas } from "../../../src/lib/contentSchemas";
+import SchemaMarkup from "../../../src/components/SchemaMarkup";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
 const SITE_URL = "https://greeniahomes.vn";
 
@@ -48,6 +49,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title,
     description,
+    keywords: article.seoKeywords?.trim() || article.metaKeywords?.trim() || undefined,
     alternates: { canonical },
     openGraph: {
       type: "article",
@@ -73,5 +75,13 @@ export default async function NewsDetailPage({ params }: Props) {
 
   if (!article) notFound();
 
-  return <ClientWrapper slug={slug} initialArticle={article} />;
+  const { article: articleSchema, breadcrumb } = createNewsSchemas(article, slug);
+
+  return (
+    <>
+      <SchemaMarkup schema={articleSchema} />
+      <SchemaMarkup schema={breadcrumb} />
+      <ClientWrapper slug={slug} initialArticle={article} />
+    </>
+  );
 }

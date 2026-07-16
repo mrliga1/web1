@@ -31,13 +31,10 @@ import {
   Link as LinkIcon,
   MessageCircle,
 } from "lucide-react";
-import { Helmet } from "react-helmet-async";
 import { optimizeImageUrl, generateSrcSet } from '../lib/utils';
-import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
 import StarRatingInteractive from "./StarRatingInteractive";
-import SchemaMarkup from "./SchemaMarkup";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
 
@@ -47,7 +44,6 @@ interface ProjectDetailProps {
   initialProject?: Project;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: "success" | "error") => void;
-  logoUrl?: string;
 }
 
 import { notifyAdminEmail } from "../lib/email";
@@ -58,7 +54,6 @@ export default function ProjectDetail({
   slug,
   onNavigate,
   onShowNotification,
-  logoUrl,
   initialProject,
 }: ProjectDetailProps) {
   const [project, setProject] = useState<Project | null>(() => {
@@ -603,11 +598,6 @@ export default function ProjectDetail({
   const safeLocationTab = sanitizeRichHtml(project?.locationTab);
   const safeAmenityTab = sanitizeRichHtml(project?.amenityTab);
   const qaList = project?.qaList || [];
-  const pageTitle = project
-    ? resolveItemTitle(project, "Greenia Homes")
-    : "Đang tải... | Greenia Homes";
-
-
   if (loading) {
     return (
       <>
@@ -638,141 +628,8 @@ export default function ProjectDetail({
           "/no-image.svg",
         ];
 
-  const rawBaseRating = project.baseRating || 5;
-  const rawBaseCount = project.baseReviewCount || 0;
-  const computedTotalStars =
-    rawBaseRating * rawBaseCount + (project.userTotalRating || 0);
-  const computedTotalCount = rawBaseCount + (project.userReviewCount || 0);
-  const currentAvg =
-    computedTotalCount === 0
-      ? rawBaseRating
-      : computedTotalStars / computedTotalCount;
-
-  const canonicalUrl = `https://greeniahomes.vn/du-an/${slug || generateSlug(project.title)}`;
-  const schemaOrgJSONLD: any = {
-    "@context": "https://schema.org",
-    "@type": "RealEstateListing",
-    name: project.title,
-    image: galleryImages,
-    description: (project.description || "")
-      .replace(/<[^>]*>?/gm, "")
-      .substring(0, 160),
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: project.location || undefined,
-      addressLocality: undefined,
-      addressRegion: "Hồ Chí Minh",
-      addressCountry: "VN"
-    },
-  };
-
-  if (Number.isFinite(project.priceVal) && project.priceVal > 0) {
-    schemaOrgJSONLD.offers = {
-      "@type": "Offer",
-      url: canonicalUrl,
-      priceCurrency: "VND",
-      price: project.priceVal,
-      availability: "https://schema.org/InStock",
-      seller: {
-        "@type": "Organization",
-        name: "Greenia Homes",
-      },
-    };
-  }
-
-  if (computedTotalCount > 0) {
-    schemaOrgJSONLD.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: currentAvg.toFixed(1),
-      reviewCount: computedTotalCount,
-    };
-  }
-
-  // @ts-ignore
-  if (project.latitude && project.longitude) {
-    schemaOrgJSONLD.geo = {
-      "@type": "GeoCoordinates",
-      // @ts-ignore
-      latitude: project.latitude,
-      // @ts-ignore
-      longitude: project.longitude
-    };
-  }
-
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Trang chủ",
-        item: "https://greeniahomes.vn"
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Dự án",
-        item: "https://greeniahomes.vn/du-an"
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: project.title,
-        item: canonicalUrl
-      }
-    ]
-  };
-
   return (
     <article className="pb-10 animate-in fade-in" id="project-detail-view-root">
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta
-          name="description"
-          content={
-            project.seoDesc ||
-            (project.description || "")
-              .replace(/<[^>]*>?/gm, "")
-              .substring(0, 160)
-          }
-        />
-        {project.seoKeywords && (
-          <meta name="keywords" content={project.seoKeywords} />
-        )}
-        <meta property="og:type" content="article" />
-        <meta
-          property="og:url"
-          content={typeof window !== "undefined" ? window.location.href : ""}
-        />
-        <meta property="og:title" content={project.seoTitle || project.title} />
-        <meta
-          property="og:description"
-          content={
-            project.seoDesc ||
-            (project.description || "")
-              .replace(/<[^>]*>?/gm, "")
-              .substring(0, 160)
-          }
-        />
-        <meta property="og:image" content={galleryImages[0]?.startsWith('http') ? galleryImages[0] : `https://greeniahomes.vn${galleryImages[0]?.startsWith('/') ? galleryImages[0] : `/${galleryImages[0]}`}`} />
-        
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={project.seoTitle || project.title} />
-        <meta name="twitter:description" content={project.seoDesc || (project.description || "").replace(/<[^>]*>?/gm, "").substring(0, 160)} />
-        <meta name="twitter:image" content={galleryImages[0]?.startsWith('http') ? galleryImages[0] : `https://greeniahomes.vn${galleryImages[0]?.startsWith('/') ? galleryImages[0] : `/${galleryImages[0]}`}`} />
-
-        {/* Geo Meta Tags for Local SEO - Ho Chi Minh City */}
-        <meta name="geo.region" content="VN-SG" />
-        <meta name="geo.placename" content="Hồ Chí Minh, Việt Nam" />
-        {/* @ts-ignore */}
-        <meta name="geo.position" content={project.latitude && project.longitude ? `${project.latitude};${project.longitude}` : "10.733852;106.715344"} />
-        {/* @ts-ignore */}
-        <meta name="ICBM" content={project.latitude && project.longitude ? `${project.latitude}, ${project.longitude}` : "10.733852, 106.715344"} />
-        <script type="application/ld+json">{JSON.stringify(schemaOrgJSONLD)}</script>
-        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
-      </Helmet>
-
       {/* Top Banner (Photo Gallery/Slider) */}
       <figure
         className="relative w-full h-[50vh] sm:h-[60vh] md:h-[75vh] lg:h-[85vh] bg-slate-900 border-t border-border-color overflow-hidden group"

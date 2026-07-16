@@ -1,11 +1,10 @@
 "use client";
 
-import React from 'react';
 import { getRouteUrl } from '../../../src/lib/utils';
 
 import { useRouter } from 'next/navigation';
 import ProjectDetail from '../../../src/components/ProjectDetail';
-import type { Project } from '../../../src/types';
+import type { Project, RouteState } from '../../../src/types';
 
 interface ClientWrapperProps {
   slug: string;
@@ -13,24 +12,13 @@ interface ClientWrapperProps {
 }
 
 export default function ClientWrapper({ slug, initialProject }: ClientWrapperProps) {
-  const [logoUrl, setLogoUrl] = React.useState<string>('');
-
-  React.useEffect(() => {
-    const savedLogo = localStorage.getItem('greenia_logoUrl');
-    if (savedLogo) {
-      setLogoUrl(savedLogo);
-    }
-  }, []);
-
   const router = useRouter();
 
-  const handleNavigate = (route: any) => {
+  const handleNavigate = (route: RouteState) => {
     router.push(getRouteUrl(route));
   };
 
-  const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // alert removed;
-  };
+  const handleShowNotification = () => {};
 
   return (
     <ProjectDetail 
@@ -38,7 +26,6 @@ export default function ClientWrapper({ slug, initialProject }: ClientWrapperPro
       projectId=""
       onNavigate={handleNavigate}
       onShowNotification={handleShowNotification}
-      logoUrl={logoUrl}
       initialProject={initialProject}
     />
   );

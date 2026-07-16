@@ -1308,7 +1308,7 @@ export default function AdminPanel({
     try {
       setLoading(true);
       let successCount = 0;
-      let successfullyDeletedUrls: string[] = [];
+      const successfullyDeletedUrls: string[] = [];
       for (const imgUrl of selectedGalleryImages) {
         try {
           await deleteImageFromStorage(imgUrl);
@@ -1329,7 +1329,7 @@ export default function AdminPanel({
 
         setProducts(prev => prev.map(p => {
           let modified = false;
-          let newP = { ...p };
+          const newP = { ...p };
           if (successfullyDeletedUrls.includes(newP.imageUrl || "")) { newP.imageUrl = ""; modified = true; }
           if (newP.imageUrls) {
              const newArr = newP.imageUrls.filter((u: string) => !successfullyDeletedUrls.includes(u));
@@ -1340,7 +1340,7 @@ export default function AdminPanel({
 
         setProjects(prev => prev.map(p => {
           let modified = false;
-          let newP = { ...p };
+          const newP = { ...p };
           if (successfullyDeletedUrls.includes(newP.imageUrl || "")) { newP.imageUrl = ""; modified = true; }
           if (newP.imageUrls) {
              const newArr = newP.imageUrls.filter((u: string) => !successfullyDeletedUrls.includes(u));
@@ -1351,7 +1351,7 @@ export default function AdminPanel({
 
         setNews(prev => prev.map(n => {
           let modified = false;
-          let newN = { ...n };
+          const newN = { ...n };
           if (successfullyDeletedUrls.includes(newN.imageUrl || "")) { newN.imageUrl = ""; modified = true; }
           if (successfullyDeletedUrls.includes(newN.thumbnail || "")) { newN.thumbnail = ""; modified = true; }
           if (newN.imageUrls) {

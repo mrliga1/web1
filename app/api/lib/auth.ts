@@ -1,38 +1,46 @@
 import { createClient } from '@supabase/supabase-js';
 import { NextRequest } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
-
 export async function verifyAdmin(req: NextRequest) {
   const authHeader = req.headers.get('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return { authorized: false, error: 'Missing or invalid authorization header' };
+  if (!authHeader?.startsWith('Bearer ')) {
+    return { authorized: false, error: 'Thiếu hoặc sai thông tin xác thực' };
   }
 
-  const token = authHeader.split(' ')[1];
-  
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return { authorized: false, error: 'Máy chủ chưa được cấu hình Supabase' };
+  }
+
+  const token = authHeader.slice('Bearer '.length).trim();
+  if (!token) {
+    return { authorized: false, error: 'Thiếu mã xác thực' };
+  }
+
   try {
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
     if (error || !user) {
-      return { authorized: false, error: 'Invalid token' };
+      return { authorized: false, error: 'Mã xác thực không hợp lệ' };
     }
 
-    const { data: profile, error: profileError } = await supabaseAdmin
+    const { data: profile, error: profileError } = await supabase
       .from('users')
       .select('role')
       .eq('uid', user.id)
       .single();
 
-    if (profileError || !profile || profile.role !== 'admin') {
-      return { authorized: false, error: 'Unauthorized: Admin access required' };
+    if (profileError || profile?.role !== 'admin') {
+      return { authorized: false, error: 'Chỉ quản trị viên được phép thực hiện thao tác này' };
     }
 
     return { authorized: true, user };
-  } catch (err) {
-    return { authorized: false, error: 'Server error during authentication' };
+  } catch {
+    return { authorized: false, error: 'Không thể xác thực quản trị viên' };
   }
 }

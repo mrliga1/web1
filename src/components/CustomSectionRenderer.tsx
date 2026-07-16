@@ -190,7 +190,7 @@ export default function CustomSectionRenderer({
                   sectionId={section.id} 
                   field="extraData"
                   subField="email"
-                  value={section.extraData?.email || 'sales@greeniahomes.vn'} 
+                  value={section.extraData?.email || 'sales.greeniahomes@gmail.com'}
                   isEditMode={isEditMode} 
                   sections={sections} 
                   onUpdateSections={onUpdateSections}

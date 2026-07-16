@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { db, doc, getDoc, setDoc } from '../firebase';
-import { serializeSectionsForFirestore, deserializeSectionsFromFirestore, sanitizeHomeSections } from '../lib/layoutUtils';
+import { serializeSectionsForDatabase, deserializeSectionsFromDatabase, sanitizeHomeSections } from '../lib/layoutUtils';
 import { getPageDefaultSections } from '../lib/layouts';
 import { optimizeImageUrl } from '../lib/utils';
 
@@ -54,17 +54,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data && data.sections) {
-          let loaded = deserializeSectionsFromFirestore(data.sections);
+          let loaded = deserializeSectionsFromDatabase(data.sections);
           if (loaded.length === 0) {
             let defaults = getPageDefaultSections(docName);
             if (docName === "home") defaults = sanitizeHomeSections(defaults);
-            setDoc(docRef, { sections: serializeSectionsForFirestore(defaults) }).catch(console.error);
+            setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
             setSectionsState(defaults);
           } else {
             if (docName === "home") {
               const sanitized = sanitizeHomeSections(loaded);
               if (sanitized.length !== loaded.length) {
-                setDoc(docRef, { sections: serializeSectionsForFirestore(sanitized) }).catch(console.error);
+                setDoc(docRef, { sections: serializeSectionsForDatabase(sanitized) }).catch(console.error);
               }
               loaded = sanitized;
             }
@@ -73,13 +73,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } else {
           let defaults = getPageDefaultSections(docName);
           if (docName === "home") defaults = sanitizeHomeSections(defaults);
-          setDoc(docRef, { sections: serializeSectionsForFirestore(defaults) }).catch(console.error);
+          setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
           setSectionsState(defaults);
         }
       } else {
         let defaults = getPageDefaultSections(docName);
         if (docName === "home") defaults = sanitizeHomeSections(defaults);
-        setDoc(docRef, { sections: serializeSectionsForFirestore(defaults) }).catch(console.error);
+        setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
         setSectionsState(defaults);
       }
     }).catch((e) => {
@@ -106,11 +106,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       try {
         const docRef = doc(db, 'layouts', docName);
         await setDoc(docRef, {
-          sections: serializeSectionsForFirestore(sanitized),
+          sections: serializeSectionsForDatabase(sanitized),
         });
       } catch (e) {
         console.error("Lỗi cập nhật cấu trúc trang:", e);
-        alert("Không thể tự động lưu sửa đổi vào Firestore. Vui lòng kiểm tra quyền.");
+        alert("Không thể tự động lưu sửa đổi vào Supabase. Vui lòng kiểm tra quyền.");
       }
     }
   };
@@ -127,7 +127,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem("greenia_meta_title", data.metaTitle);
         }
 
-        // Dynamically insert/update tracking codes
+        const loadTrackingScripts = () => {
+        // Chỉ chèn mã theo dõi sau khi đã đáp ứng lựa chọn cookie.
         const analyticsId = (data.googleAnalyticsId || "").trim();
         const tagManagerId = (data.googleTagId || "").trim();
         const adsId = (data.googleAdsId || "").trim();
@@ -249,6 +250,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           `;
           }
         }, 2000);
+        };
+
+        const requiresConsent = data.cookieConsentEnabled === true;
+        if (!requiresConsent || localStorage.getItem('cookie_consent') === 'accepted') {
+          loadTrackingScripts();
+        } else {
+          const handleConsent = (event: Event) => {
+            const consentEvent = event as CustomEvent<{ status?: string }>;
+            if (consentEvent.detail?.status === 'accepted') {
+              loadTrackingScripts();
+            }
+            window.removeEventListener('cookie_consent_changed', handleConsent);
+          };
+          window.addEventListener('cookie_consent_changed', handleConsent);
+        }
 
       }
     }).catch(console.error);

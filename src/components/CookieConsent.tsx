@@ -1,26 +1,40 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { Cookie } from "lucide-react";
+import { db, doc, getDoc } from "../firebase";
 
 export default function CookieConsent() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // Check if the user has already consented
-    const consent = localStorage.getItem("cookie_consent");
-    if (!consent) {
-        // Show after a delay to prevent blocking initial render and LCP
-      const timer = setTimeout(() => setShow(true), 6000);
-      return () => clearTimeout(timer);
-    }
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let cancelled = false;
+
+    getDoc(doc(db, "settings", "general"))
+      .then((snapshot) => {
+        if (cancelled || snapshot.data()?.cookieConsentEnabled !== true) return;
+        if (!localStorage.getItem("cookie_consent")) {
+          timer = setTimeout(() => setShow(true), 6000);
+        }
+      })
+      .catch((error) => console.error("Không thể tải cấu hình cookie:", error));
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const acceptCookies = () => {
     localStorage.setItem("cookie_consent", "accepted");
+    window.dispatchEvent(new CustomEvent("cookie_consent_changed", { detail: { status: "accepted" } }));
     setShow(false);
   };
 
   const declineCookies = () => {
     localStorage.setItem("cookie_consent", "declined");
+    window.dispatchEvent(new CustomEvent("cookie_consent_changed", { detail: { status: "declined" } }));
     setShow(false);
   };
 

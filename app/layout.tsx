@@ -64,16 +64,12 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <head>
-        {/* Preconnect cho Google Fonts và Firebase */}
+        {/* Kết nối sớm tới máy chủ Google Fonts. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
-        />
-        <link
-          rel="preconnect"
-          href="https://firestore.googleapis.com"
         />
         {/* Font loading không block render */}
         <link
@@ -113,7 +109,7 @@ export default function RootLayout({
           "image": "https://greeniahomes.vn/og-image.jpg",
           "description": "Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
           "telephone": "0932966700",
-          "email": "cskh@greeniahomes.vn",
+          "email": "sales.greeniahomes@gmail.com",
           "sameAs": [
             "https://www.facebook.com/GreeniaHomes",
             "https://www.tiktok.com/@greeniahomes",
@@ -122,16 +118,11 @@ export default function RootLayout({
           ],
           "address": {
             "@type": "PostalAddress",
-            "streetAddress": "67 Võ Văn Kiệt, Phường An Lạc",
-            "addressLocality": "Quận Bình Tân",
-            "addressRegion": "Hồ Chí Minh",
+            "streetAddress": "Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng",
+            "addressLocality": "Quận 7",
+            "addressRegion": "TP.HCM",
             "postalCode": "700000",
             "addressCountry": "VN"
-          },
-          "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": 10.733852,
-            "longitude": 106.715344
           },
           "priceRange": "$$$"
         }} />

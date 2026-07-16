@@ -16,13 +16,13 @@ export default function Footer() {
                 <li className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                   <span className="text-text-inverse">
-                    <strong className="text-text-inverse">Trụ sở:</strong> 67 Võ Văn Kiệt, P. An Lạc, Quận Bình Tân, TP.HCM.
+                    <strong className="text-text-inverse">Trụ sở:</strong> Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng, Quận 7, TP.HCM.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Building2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                   <span className="text-text-inverse">
-                    <strong className="text-text-inverse">Văn phòng:</strong> 520 Võ Văn Kiệt, Quận Bình Tân, TP.HCM.
+                    <strong className="text-text-inverse">Văn phòng:</strong> Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng, Quận 7, TP.HCM.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -34,7 +34,7 @@ export default function Footer() {
                 <li className="flex items-start gap-3">
                   <Mail className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                   <span className="text-text-inverse">
-                    <strong className="text-text-inverse">Email:</strong> <a href="mailto:cskh@greeniahomes.vn" className="hover:text-accent transition-colors">cskh@greeniahomes.vn</a>
+                    <strong className="text-text-inverse">Email:</strong> <a href="mailto:sales.greeniahomes@gmail.com" className="hover:text-accent transition-colors">sales.greeniahomes@gmail.com</a>
                   </span>
                 </li>
               </ul>

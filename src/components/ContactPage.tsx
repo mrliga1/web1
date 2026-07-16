@@ -218,7 +218,7 @@ export default function ContactPage({
                           <MapPin className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                           <div>
                             <p className="font-semibold text-text-primary">Địa chỉ chính:</p>
-                            <p className="text-text-secondary mt-0.5">Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng, Quận 7, TP. HCM.</p>
+                            <p className="text-text-secondary mt-0.5">Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng, Quận 7, TP.HCM</p>
                           </div>
                         </div>
 
@@ -234,7 +234,7 @@ export default function ContactPage({
                           <Mail className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                           <div>
                             <p className="font-semibold text-text-primary">Thư tương tác thư ký:</p>
-                            <p className="text-primary mt-0.5">sales@greeniahomes.vn</p>
+                            <p className="text-primary mt-0.5">sales.greeniahomes@gmail.com</p>
                           </div>
                         </div>
                       </div>

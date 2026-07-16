@@ -2,6 +2,7 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 const analyzer = withBundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
 const nextConfig = {
   reactStrictMode: true,
+  serverExternalPackages: ['nodemailer'],
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
@@ -17,10 +18,9 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: false },
   eslint: { ignoreDuringBuilds: false },
   experimental: {
-    serverComponentsExternalPackages: ['nodemailer'],
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js']
   },
-  // Security headers - bảo vệ chống XSS, clickjacking, MIME sniffing
+  // Header bảo mật dùng chung cho toàn bộ ứng dụng.
   async headers() {
     return [
       {

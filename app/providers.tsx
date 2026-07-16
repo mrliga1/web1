@@ -2,21 +2,10 @@
 
 import React, { Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ErrorBoundary } from "../src/ErrorBoundary";
 import { AppProvider } from "../src/contexts/AppContext";
 import { AuthProvider } from "../src/contexts/AuthContext";
-
-/* Tạo QueryClient 1 lần duy nhất */
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 60 * 1000,
-      retry: 1,
-    },
-  },
-});
+import CookieConsent from "../src/components/CookieConsent";
 
 /**
  * Providers bọc toàn bộ app ở phía client.
@@ -25,17 +14,16 @@ const queryClient = new QueryClient({
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <HelmetProvider context={{}}>
-          <Suspense fallback={null}>
-            <AuthProvider>
-              <AppProvider>
-                {children}
-              </AppProvider>
-            </AuthProvider>
-          </Suspense>
-        </HelmetProvider>
-      </QueryClientProvider>
+      <HelmetProvider context={{}}>
+        <Suspense fallback={null}>
+          <AuthProvider>
+            <AppProvider>
+              {children}
+              <CookieConsent />
+            </AppProvider>
+          </AuthProvider>
+        </Suspense>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

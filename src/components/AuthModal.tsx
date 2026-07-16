@@ -96,17 +96,12 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
       
-      let initialRole = 'user';
-      if (user.email === 'thuankdbds@gmail.com' || user.email === 'Nguyenthanhthuan091095@gmail.com') {
-        initialRole = 'admin';
-      }
-
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         email: user.email,
         username,
         phone,
-        role: initialRole,
+        role: 'user',
         createdAt: new Date().toISOString()
       });
       
@@ -122,13 +117,13 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
         setMode('login');
         setOtp('');
       } else if (errCode === 'auth/operation-not-allowed' || errMsg.includes('operation-not-allowed')) {
-        onShowNotification('Phương thức đăng nhập bằng Email/Mật khẩu chưa được bật trong Firebase Console.', 'error');
+        onShowNotification('Phương thức đăng nhập bằng Email/Mật khẩu chưa được bật trong Supabase Auth.', 'error');
       } else if (errCode === 'auth/weak-password' || errMsg.includes('weak-password')) {
         onShowNotification('Mật khẩu quá yếu. Vui lòng sử dụng ít nhất 6 ký tự.', 'error');
       } else if (errCode === 'auth/invalid-email' || errMsg.includes('invalid-email')) {
         onShowNotification('Địa chỉ email không hợp lệ.', 'error');
       } else {
-        onShowNotification('Đăng ký không thành công: ' + (errMsg || 'Lỗi Firebase'), 'error');
+        onShowNotification('Đăng ký không thành công: ' + (errMsg || 'Lỗi xác thực'), 'error');
       }
     } finally {
       setLoading(false);
@@ -151,7 +146,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
     } catch (err: any) {
       console.error(err);
       if (err.code === 'auth/operation-not-allowed') {
-        onShowNotification('Phương thức đăng nhập bằng Email/Mật khẩu chưa được bật trong Firebase Console.', 'error');
+        onShowNotification('Phương thức đăng nhập bằng Email/Mật khẩu chưa được bật trong Supabase Auth.', 'error');
       } else {
         onShowNotification('Email hoặc mật khẩu không chính xác.', 'error');
       }
@@ -203,9 +198,9 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
       if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
         // Ignore user closing popup
       } else if (err.code === 'auth/unauthorized-domain') {
-        onShowNotification('Lỗi tên miền. Vui lòng bấm hình vuông mũi tên góc trên bên phải để MỞ APP Ở TAB MỚI, hoặc thêm aistudio.google.com vào Firebase.', 'error');
+        onShowNotification('Tên miền hiện tại chưa được cho phép trong cấu hình Supabase Auth.', 'error');
       } else if (err.code === 'auth/operation-not-allowed') {
-        onShowNotification('Đăng nhập Google chưa được bật. Vui lòng vào Firebase > Authentication > Sign-in method để bật Google.', 'error');
+        onShowNotification('Đăng nhập Google chưa được bật trong Supabase Auth Providers.', 'error');
       } else {
         onShowNotification('Đăng nhập Google thất bại.', 'error');
       }
@@ -227,17 +222,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
         throw new Error('Chưa đăng nhập Google');
       }
       
-      let initialRole = 'user';
-      if (user.email === 'thuankdbds@gmail.com' || user.email === 'Nguyenthanhthuan091095@gmail.com') {
-        initialRole = 'admin';
-      }
-
       await setDoc(doc(db, 'users', user.uid), {
         uid: user.uid,
         email: user.email,
         username,
         phone,
-        role: initialRole,
         createdAt: new Date().toISOString()
       }, { merge: true });
       

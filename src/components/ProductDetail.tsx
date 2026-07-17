@@ -994,7 +994,7 @@ export default function ProductDetail({
             COLUMN 2 (Middle/Right): Sticky Consultation Box + Sidebar
             ========================================================= */}
         <section
-          className={`lg:col-span-3 space-y-6 lg:sticky self-start transition-all duration-300 ${scrollDirection === 'down' ? 'lg:top-[10px]' : 'lg:top-[50px]'}`}
+          className={`lg:col-span-3 space-y-6 lg:sticky self-start transition-all duration-300 ${scrollDirection === 'down' ? 'lg:top-[56px]' : 'lg:top-[96px]'}`}
           id="detail-pane-right"
         >
           <div className="bg-bg-surface border border-primary/40 p-4 sm:p-6 rounded-lg space-y-3 relative text-left h-auto min-h-[300px]">
@@ -1080,7 +1080,7 @@ export default function ProductDetail({
             COLUMN 3 (Right): Covers 3 grid column widths (lg:col-span-3 - STICKY)
             ========================================================= */}
         <section
-          className={`lg:col-span-3 space-y-6 lg:sticky self-start transition-all duration-300 ${scrollDirection === 'down' ? 'lg:top-[10px]' : 'lg:top-[50px]'}`}
+          className={`lg:col-span-3 space-y-6 lg:sticky self-start transition-all duration-300 ${scrollDirection === 'down' ? 'lg:top-[56px]' : 'lg:top-[96px]'}`}
           id="detail-pane-far-right"
         >
           {/* Categories with real-time uploading counts */}

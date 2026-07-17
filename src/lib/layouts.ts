@@ -353,7 +353,7 @@ export const GENERIC_CUSTOM_SECTIONS: (Omit<VisualSection, "id"> & {
       "Chúng tôi cam kết bảo mật rạch ròi lý lịch gia chủ, đẩy mạnh liên kết cùng đội ngũ môi giới túc trực chốt cọc siêu tốc biệt thự ven sông trong vòng 3 tuần lễ.",
     extraData: {
       hotline: "Hotline ưu tiên: 0932 966 700",
-      email: "sales@greeniahomes.vn",
+      email: "sales.greeniahomes@gmail.com",
       ctaText: "Gặp gỡ Chuyên viên thẩm định pháp lý miễn phí cực chuẩn!",
     },
   },

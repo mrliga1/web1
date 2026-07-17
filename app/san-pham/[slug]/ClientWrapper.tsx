@@ -1,29 +1,23 @@
 "use client";
 
-import React from 'react';
 import { useRouter } from 'next/navigation';
 import { getRouteUrl } from '../../../src/lib/utils';
 import ProductDetail from '../../../src/components/ProductDetail';
+import type { Product, RouteState } from '../../../src/types';
 
-export default function ClientWrapper({ slug }: { slug: string }) {
-  const [logoUrl, setLogoUrl] = React.useState<string>('');
+interface ClientWrapperProps {
+  slug: string;
+  initialProduct: Product;
+}
 
-  React.useEffect(() => {
-    const savedLogo = localStorage.getItem('greenia_logoUrl');
-    if (savedLogo) {
-      setLogoUrl(savedLogo);
-    }
-  }, []);
-
+export default function ClientWrapper({ slug, initialProduct }: ClientWrapperProps) {
   const router = useRouter();
 
-  const handleNavigate = (route: any) => {
+  const handleNavigate = (route: RouteState) => {
     router.push(getRouteUrl(route));
   };
 
-  const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // alert removed;
-  };
+  const handleShowNotification = () => {};
 
   return (
     <ProductDetail 
@@ -31,7 +25,7 @@ export default function ClientWrapper({ slug }: { slug: string }) {
       productId=""
       onNavigate={handleNavigate}
       onShowNotification={handleShowNotification}
-      logoUrl={logoUrl}
+      initialProduct={initialProduct}
     />
   );
 }

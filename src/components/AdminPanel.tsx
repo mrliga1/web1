@@ -3,14 +3,12 @@ import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
 import {
   collection,
-  getDocs,
   addDoc,
   doc,
   getDoc,
   updateDoc,
   deleteDoc,
   db,
-  auth,
   setDoc,
 } from "../firebase";
 import {
@@ -19,7 +17,6 @@ import {
   dbRealtime,
   onSnapshot,
 } from "../firebase-realtime";
-import { onAuthStateChanged } from '../firebase';
 import { authFetch } from '../lib/authFetch';
 import {
   PlusCircle,
@@ -98,13 +95,6 @@ import { useAuth } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
 import FiltersConfigTab from "./FiltersConfigTab";
 import { allLocationsList } from "../lib/locationMapping";
-import {
-  GITHUB_DEFAULTS,
-  GithubFirestoreConfig,
-  buildGithubAuthHeader,
-  resolveGithubUploadSettings,
-  testGithubConnection,
-} from "../lib/githubConfig";
 
 interface AdminPanelProps {
   onShowNotification: (message: string, type: "success" | "error") => void;
@@ -140,8 +130,6 @@ export default function AdminPanel({
   const [categories, setCategories] = useState<string[]>([]);
   const [newsCategories, setNewsCategories] = useState<string[]>([]);
   const [blockedIps, setBlockedIps] = useState<string[]>([]);
-  const [serviceAccountJson, setServiceAccountJson] = useState("");
-  const [firebaseAdminStatus, setFirebaseAdminStatus] = useState<boolean | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
   const [bulkAssignee, setBulkAssignee] = useState("");
   const [newBlockedIp, setNewBlockedIp] = useState("");
@@ -258,16 +246,6 @@ export default function AdminPanel({
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
-  const [githubStatus, setGithubStatus] = useState<any>(null);
-  const [checkingGithub, setCheckingGithub] = useState(false);
-  const [showGithubConfigModal, setShowGithubConfigModal] = useState(false);
-  const [configToken, setConfigToken] = useState("");
-  const [configOwner, setConfigOwner] = useState("");
-  const [configRepo, setConfigRepo] = useState("");
-  const [configBranch, setConfigBranch] = useState("main");
-  const [savingConfig, setSavingConfig] = useState(false);
-  const [githubFirestoreConfig, setGithubFirestoreConfig] =
-    useState<GithubFirestoreConfig | null>(null);
 
   // Selection editor formatting helper
   const formatSelectedText = (tagOpen: string, tagClose: string) => {
@@ -350,41 +328,12 @@ export default function AdminPanel({
           uploadFileName = nameWithoutExt + ".webp";
         }
 
-        const githubSettings = resolveGithubUploadSettings(githubFirestoreConfig);
-        if ("error" in githubSettings) {
-          console.error("[AdminPanel] GitHub config:", githubSettings.error);
-          throw new Error(githubSettings.error);
-        }
+        setUploadStatus(files.length > 1 ? `Đang tải ảnh ${i + 1}/${files.length} lên R2...` : "Đang tải ảnh lên R2...");
 
-        const { owner, repo, branch, token: realToken } = githubSettings;
-
-        const uniqueFileName = uploadFileName.replace(
-          /(\.[^.]+)$/,
-          `-${Date.now()}$1`,
-        );
-
-        setUploadStatus(files.length > 1 ? `Đang tải ảnh ${i + 1}/${files.length} lên GitHub...` : "Đang tải ảnh lên GitHub...");
-
-        const pureBase64 = base64.includes(",") ? base64.split(",")[1] : base64;
-        if (!pureBase64) {
-          throw new Error("Không thể đọc dữ liệu ảnh Base64.");
-        }
-
-        const githubApiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/public/uploads/${uniqueFileName}`;
-
-        const response = await fetch(githubApiUrl, {
-          method: "PUT",
-          headers: {
-            Authorization: buildGithubAuthHeader(realToken),
-            Accept: "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            message: `Upload ảnh ${uniqueFileName} từ Admin`,
-            content: pureBase64,
-            branch,
-          }),
+        const response = await authFetch("/api/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: uploadFileName, base64 }),
         });
 
         if (!response.ok) {
@@ -392,15 +341,13 @@ export default function AdminPanel({
           const message =
             errorData.message ||
             errorData.error ||
-            `GitHub API trả về lỗi ${response.status}.`;
+            `Máy chủ tải ảnh trả về lỗi ${response.status}.`;
           throw new Error(message);
         }
 
         const responseData = await response.json();
-        const relativeUrl = `https://cdn.jsdelivr.net/gh/${owner}/${repo}@${branch}/public/uploads/${uniqueFileName}`;
-
-        if (relativeUrl) {
-          uploadedUrls.push(relativeUrl);
+        if (responseData.url) {
+          uploadedUrls.push(responseData.url);
         }
       }
 
@@ -1011,166 +958,10 @@ export default function AdminPanel({
     );
   }, [products, projects, news, uploadedLibraryImages]);
 
-  const openGithubConfigModal = () => {
-    setConfigOwner(
-      githubFirestoreConfig?.owner?.trim() || GITHUB_DEFAULTS.owner,
-    );
-    setConfigRepo(githubFirestoreConfig?.repo?.trim() || GITHUB_DEFAULTS.repo);
-    setConfigBranch(
-      githubFirestoreConfig?.branch?.trim() || GITHUB_DEFAULTS.branch,
-    );
-    setConfigToken("");
-    setShowGithubConfigModal(true);
-  };
-
-  const checkGithubConnection = async (
-    configOverride?: GithubFirestoreConfig | null,
-  ) => {
-    try {
-      setCheckingGithub(true);
-      const activeConfig =
-        configOverride !== undefined ? configOverride : githubFirestoreConfig;
-
-      try {
-        const res = await fetch("/api/github-status");
-        if (res.ok) {
-          const data = await res.json();
-          setGithubStatus(data);
-          return;
-        }
-      } catch {
-        // Firebase Hosting không có server – kiểm tra trực tiếp qua GitHub API
-      }
-
-      const settings = resolveGithubUploadSettings(activeConfig);
-      const status = await testGithubConnection(settings);
-      setGithubStatus(status);
-    } catch (err: any) {
-      setGithubStatus({
-        configured: true,
-        status: "LỖI HỆ THỐNG",
-        message: err.message || String(err),
-      });
-    } finally {
-      setCheckingGithub(false);
-    }
-  };
-
-  const handleSaveGithubConfig = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!configToken.trim() || !configOwner.trim() || !configRepo.trim()) {
-      onShowNotification(
-        "Vui lòng nhập đầy đủ Token, Chủ sở hữu và Tên Kho lưu trữ!",
-        "error",
-      );
-      return;
-    }
-
-    try {
-      setSavingConfig(true);
-
-      const tokenEncoded = `base64:${btoa(configToken.trim())}`;
-      const firestorePayload: GithubFirestoreConfig = {
-        tokenEncoded,
-        owner: configOwner.trim(),
-        repo: configRepo.trim(),
-        branch: configBranch.trim() || GITHUB_DEFAULTS.branch,
-      };
-
-      await setDoc(doc(db, "settings", "github"), firestorePayload, {
-        merge: true,
-      });
-      setGithubFirestoreConfig(firestorePayload);
-
-      try {
-        const res = await authFetch("/api/github-config", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            token: configToken,
-            owner: configOwner,
-            repo: configRepo,
-            branch: configBranch,
-          }),
-        });
-        if (res.ok) {
-          const data = await res.json();
-          onShowNotification(
-            data.message ||
-              "Lưu cấu hình GitHub thành công (Firestore + máy chủ cục bộ)!",
-            "success",
-          );
-        } else {
-          onShowNotification(
-            "Đã lưu cấu hình GitHub vào Firestore. Upload ảnh trên web đã sẵn sàng!",
-            "success",
-          );
-        }
-      } catch {
-        onShowNotification(
-          "Đã lưu cấu hình GitHub vào Firestore. Upload ảnh trên web đã sẵn sàng!",
-          "success",
-        );
-      }
-
-      setShowGithubConfigModal(false);
-      setConfigToken("");
-      await checkGithubConnection(firestorePayload);
-    } catch (err: any) {
-      console.error(err);
-      onShowNotification(`Lỗi cập nhật: ${err.message || err}`, "error");
-    } finally {
-      setSavingConfig(false);
-    }
-  };
-
-  // Load GitHub config from Firestore and check connection on login
-  useEffect(() => {
-    if (!isLoggedIn) return;
-
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const snap = await getDoc(doc(db, "settings", "github"));
-        const config = snap.exists()
-          ? (snap.data() as GithubFirestoreConfig)
-          : null;
-        if (!cancelled) {
-          setGithubFirestoreConfig(config);
-          const settings = resolveGithubUploadSettings(config);
-          const status = await testGithubConnection(settings);
-          if (!cancelled) setGithubStatus(status);
-        }
-      } catch (err: any) {
-        if (!cancelled) {
-          setGithubStatus({
-            configured: false,
-            status: "LỖI HỆ THỐNG",
-            message: err.message || String(err),
-          });
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isLoggedIn]);
-
   // Add IPs management logic
   useEffect(() => {
     if (activeTab === ("blocked_ips" as any)) {
       fetchBlockedIps();
-    }
-  }, [activeTab]);
-
-  useEffect(() => {
-    if (activeTab === ("firebase_admin" as any)) {
-      fetch("/api/firebase-admin-status")
-        .then(r => r.json())
-        .then(d => setFirebaseAdminStatus(d.configured))
-        .catch(() => setFirebaseAdminStatus(false));
     }
   }, [activeTab]);
 
@@ -1226,15 +1017,6 @@ export default function AdminPanel({
     saveBlockedIps(blockedIps.filter((i) => i !== ip));
   };
 
-  // Prefill configuration inputs with current status values
-  useEffect(() => {
-    if (githubStatus) {
-      if (githubStatus.owner) setConfigOwner(githubStatus.owner);
-      if (githubStatus.repo) setConfigRepo(githubStatus.repo);
-      if (githubStatus.branch) setConfigBranch(githubStatus.branch);
-    }
-  }, [githubStatus]);
-
   // Load static SEO from memory on start
   useEffect(() => {
     setSeoTitle(seoConfig.metaTitle);
@@ -1252,7 +1034,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "products"),
       (snap) => {
         const items: Product[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() } as Product);
         });
         items.sort(
@@ -1271,7 +1053,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "projects"),
       (snap) => {
         const items: Project[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() } as Project);
         });
         items.sort(
@@ -1290,7 +1072,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "news"),
       (snap) => {
         const items: News[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() } as News);
         });
         items.sort(
@@ -1309,7 +1091,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "consultations"),
       (snap) => {
         const items: any[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() });
         });
         items.sort(
@@ -1381,7 +1163,7 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "users"),
       (snap) => {
         const items: any[] = [];
-        snap.forEach((d) => {
+        snap.forEach((d: any) => {
           items.push({ id: d.id, ...d.data() });
         });
         items.sort(
@@ -1462,7 +1244,7 @@ export default function AdminPanel({
             await updateDoc(pRef, updateData);
         }
       }
-      
+
       const projectsToUpdate = projects.filter(p => urlsToDelete.includes(p.imageUrl || "") || p.imageUrls?.some(u => urlsToDelete.includes(u)));
       for (const p of projectsToUpdate) {
         const pRef = doc(db, "projects", p.id);
@@ -1480,103 +1262,36 @@ export default function AdminPanel({
 
       const newsToUpdate = news.filter(n => urlsToDelete.includes(n.thumbnail || ""));
       for (const n of newsToUpdate) {
-        await updateDoc(doc(db, "articles", n.id), { thumbnail: "" });
+        await updateDoc(doc(db, "news", n.id), { thumbnail: "" });
       }
     } catch (e) {
       console.error("Lỗi khi xóa ảnh khỏi database:", e);
     }
   };
 
-    const deleteImageFromGithub = async (imgUrl: string) => {
-    const githubSettings = resolveGithubUploadSettings(githubFirestoreConfig);
-    if ("error" in githubSettings) {
-      throw new Error(githubSettings.error);
+  const deleteImageFromStorage = async (imgUrl: string) => {
+    const response = await authFetch("/api/delete-image", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url: imgUrl }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || "Không thể xóa ảnh khỏi kho lưu trữ");
     }
-    const { owner, repo, branch, token: realToken } = githubSettings;
+    return true;
 
-    let filePath = "";
-    try {
-      const urlObj = new URL(imgUrl);
-      if (urlObj.hostname === 'raw.githubusercontent.com') {
-        const parts = urlObj.pathname.split('/');
-        filePath = parts.slice(4).join('/');
-      } else if (urlObj.hostname === 'cdn.jsdelivr.net') {
-        const parts = urlObj.pathname.split('/');
-        filePath = parts.slice(4).join('/');
-      } else {
-        filePath = `uploads/${imgUrl.split('/').pop()}`;
-      }
-    } catch(e) {
-      filePath = `uploads/${imgUrl.split('/').pop()}`;
-    }
-
-    if (!filePath) {
-       throw new Error("Không thể xác định đường dẫn file.");
-    }
-
-    const githubApiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`;
-    
-    let retries = 3;
-    while (retries > 0) {
-      // 1. Get SHA
-      const getRes = await fetch(githubApiUrl, {
-        method: "GET",
-        headers: {
-          Authorization: buildGithubAuthHeader(realToken),
-          Accept: "application/vnd.github+json",
-          "X-GitHub-Api-Version": "2022-11-28",
-        }
-      });
-
-      if (!getRes.ok) {
-         if (getRes.status === 404) return true; // Already deleted or not found on GitHub
-         throw new Error("Lỗi khi lấy thông tin file từ GitHub");
-      }
-
-      const fileData = await getRes.json();
-      const sha = fileData.sha;
-
-      // 2. Delete
-      const delRes = await fetch(githubApiUrl, {
-        method: "DELETE",
-        headers: {
-          Authorization: buildGithubAuthHeader(realToken),
-          Accept: "application/vnd.github+json",
-          "X-GitHub-Api-Version": "2022-11-28",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: `Xóa ảnh ${filePath} từ Admin`,
-          sha: sha,
-          branch: branch,
-        })
-      });
-
-      if (delRes.ok) {
-        return true;
-      }
-      
-      // If conflict (409) or rate limited (403), retry
-      if (delRes.status === 409 || delRes.status === 403) {
-        retries--;
-        await new Promise(r => setTimeout(r, 1500)); // wait 1.5 seconds and retry
-        continue;
-      }
-
-      throw new Error("Lỗi khi gửi yêu cầu xóa lên GitHub");
-    }
-    return false;
   };
 
   const handleDeleteSingleImage = async (imgUrl: string) => {
     if (!window.confirm("Bạn có chắc chắn muốn xóa ảnh này khỏi hệ thống?")) return;
     try {
       setLoading(true);
-      await deleteImageFromGithub(imgUrl);
-      
+      await deleteImageFromStorage(imgUrl);
+
       await purgeImageUrlsFromDB([imgUrl]);
       setUploadedLibraryImages(prev => prev.filter(u => u !== imgUrl));
-      
+
       setSelectedGalleryImages(prev => prev.filter(u => u !== imgUrl));
       onShowNotification("Đã xóa ảnh thành công!", "success");
     } catch (error: any) {
@@ -1593,31 +1308,28 @@ export default function AdminPanel({
     try {
       setLoading(true);
       let successCount = 0;
-      let successfullyDeletedUrls: string[] = [];
+      const successfullyDeletedUrls: string[] = [];
       for (const imgUrl of selectedGalleryImages) {
         try {
-          await deleteImageFromGithub(imgUrl);
-          // Wait briefly to prevent GitHub API rate limit and tree lock conflicts
-          await new Promise(r => setTimeout(r, 800));
+          await deleteImageFromStorage(imgUrl);
         } catch(e) {
-          console.error("Lỗi xóa ảnh GitHub (vẫn tiến hành gỡ khỏi dữ liệu):", imgUrl, e);
+          console.error("Lỗi xóa ảnh khỏi kho lưu trữ (vẫn tiến hành gỡ khỏi dữ liệu):", imgUrl, e);
         }
-        // Always push to successfullyDeletedUrls so it gets purged from the DB/UI
-        // even if GitHub API throws an error (e.g. 409 conflict, rate limit).
+        // Luôn gỡ URL khỏi dữ liệu và giao diện, kể cả khi tệp vật lý không còn tồn tại.
         successCount++;
         successfullyDeletedUrls.push(imgUrl);
       }
-      
+
       if (successfullyDeletedUrls.length > 0) {
-        // 1. Purge from Firebase/Supabase Database
+        // 1. Gỡ tham chiếu khỏi cơ sở dữ liệu Supabase.
         await purgeImageUrlsFromDB(successfullyDeletedUrls);
-        
+
         // 2. Instantly update UI states (fallback in case Supabase Realtime is disabled)
         setUploadedLibraryImages(prev => prev.filter(u => !successfullyDeletedUrls.includes(u)));
-        
+
         setProducts(prev => prev.map(p => {
           let modified = false;
-          let newP = { ...p };
+          const newP = { ...p };
           if (successfullyDeletedUrls.includes(newP.imageUrl || "")) { newP.imageUrl = ""; modified = true; }
           if (newP.imageUrls) {
              const newArr = newP.imageUrls.filter((u: string) => !successfullyDeletedUrls.includes(u));
@@ -1628,7 +1340,7 @@ export default function AdminPanel({
 
         setProjects(prev => prev.map(p => {
           let modified = false;
-          let newP = { ...p };
+          const newP = { ...p };
           if (successfullyDeletedUrls.includes(newP.imageUrl || "")) { newP.imageUrl = ""; modified = true; }
           if (newP.imageUrls) {
              const newArr = newP.imageUrls.filter((u: string) => !successfullyDeletedUrls.includes(u));
@@ -1639,7 +1351,7 @@ export default function AdminPanel({
 
         setNews(prev => prev.map(n => {
           let modified = false;
-          let newN = { ...n };
+          const newN = { ...n };
           if (successfullyDeletedUrls.includes(newN.imageUrl || "")) { newN.imageUrl = ""; modified = true; }
           if (successfullyDeletedUrls.includes(newN.thumbnail || "")) { newN.thumbnail = ""; modified = true; }
           if (newN.imageUrls) {
@@ -1649,7 +1361,7 @@ export default function AdminPanel({
           return modified ? newN : n;
         }));
       }
-      
+
       setSelectedGalleryImages([]);
       onShowNotification(`Đã xóa ${successCount} ảnh thành công!`, "success");
     } catch (error: any) {
@@ -2730,8 +2442,8 @@ export default function AdminPanel({
         if (!fetchRes.ok) {
           if (resData.error && resData.error.includes('no user record')) {
             console.log("Ignored missing auth user.");
-          } else if (resData.error && resData.error.includes('Chưa cấu hình Firebase Admin')) {
-            throw new Error("Xóa thất bại: Chưa cấu hình Firebase Admin SDK. Vui lòng cấu hình tại 'Cài đặt hệ thống' > 'Cấu hình Firebase Admin'.");
+          } else if (resData.error && resData.error.includes('service role')) {
+            throw new Error("Xóa thất bại: Máy chủ chưa được cấu hình Supabase service-role.");
           } else {
             throw new Error(`Xóa Auth thất bại: ${resData.error || 'Unknown error'}`);
           }
@@ -2745,13 +2457,13 @@ export default function AdminPanel({
         throw new Error("Không thể kết nối đến server để xóa Auth: " + e.message);
       }
 
-      // Xóa trong Firestore
+      // Xóa hồ sơ người dùng trong Supabase.
       await deleteDoc(doc(db, "users", userId));
 
       onShowNotification("Đã xóa người dùng thành công khỏi hệ thống." + authWarning, "success");
     } catch (err: any) {
       console.error(err);
-      onShowNotification("Không thể xóa người dùng: " + (err.message || 'Lỗi Firebase'), "error");
+      onShowNotification("Không thể xóa người dùng: " + (err.message || 'Lỗi Supabase'), "error");
     } finally {
       setLoading(false);
     }
@@ -3031,28 +2743,6 @@ export default function AdminPanel({
 
                 <button
                   onClick={() => {
-                    openGithubConfigModal();
-                    setSidebarOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${
-                    showGithubConfigModal
-                      ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
-                      : githubStatus?.status === "HOẠT ĐỘNG"
-                        ? "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
-                        : "text-rose-300 hover:text-rose-200 hover:bg-rose-500/10 border-l-[3px] border-rose-500/40"
-                  }`}
-                >
-                  <Share2 className="w-4 h-4 shrink-0 text-primary" />
-                  <span>Cấu Hình GitHub / PAT</span>
-                  {githubStatus?.status !== "HOẠT ĐỘNG" && (
-                    <span className="ml-auto text-[8px] bg-rose-500/20 text-rose-400 px-1.5 py-0.5 rounded font-mono">
-                      !
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  onClick={() => {
                     setActiveTab("gallery" as any);
                     setSidebarOpen(false);
                   }}
@@ -3220,51 +2910,6 @@ export default function AdminPanel({
           </div>
 
           <div className="flex items-center gap-3.5">
-            {/* GitHub Connection Status Badge */}
-            {currentUserRole === "admin" && (
-              <button
-                onClick={() => {
-                  if (
-                    !githubStatus ||
-                    githubStatus.status === "THIẾU CẤU HÌNH" ||
-                    (githubStatus.status &&
-                      githubStatus.status !== "HOẠT ĐỘNG" &&
-                      !checkingGithub)
-                  ) {
-                    openGithubConfigModal();
-                  } else {
-                    checkGithubConnection();
-                  }
-                }}
-                disabled={checkingGithub}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[10px] font-bold font-mono transition-all border shrink-0 cursor-pointer ${checkingGithub
-                    ? "bg-zinc-900 border-zinc-800 text-slate-600"
-                    : !githubStatus
-                      ? "bg-primary/10 border-primary/20 text-primary-light hover:bg-primary/25"
-                      : githubStatus.status === "HOẠT ĐỘNG"
-                        ? "bg-primary/10 border-primary/25 text-primary-light"
-                        : "bg-rose-500/10 border-rose-500/25 text-rose-500 hover:bg-rose-500/20"
-                  }`}
-                title={
-                  githubStatus?.status === "HOẠT ĐỘNG"
-                    ? githubStatus.message
-                    : "Nhấn để cấu hình GitHub PAT"
-                }
-              >
-                <RefreshCw
-                  className={`w-3 h-3 ${checkingGithub ? "animate-spin" : ""}`}
-                />
-                <span>
-                  GITHUB:{" "}
-                  {checkingGithub
-                    ? "ĐANG ĐỐI CHIẾU..."
-                    : !githubStatus
-                      ? "KIỂM TRA..."
-                      : githubStatus.status}
-                </span>
-              </button>
-            )}
-
             <div className="w-px h-6 bg-slate-100 hidden sm:block" />
 
             <div className="flex items-center gap-2">
@@ -4152,7 +3797,7 @@ export default function AdminPanel({
                                   )}
                                 </div>
                               </div>
-                              
+
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => {
@@ -4274,7 +3919,7 @@ export default function AdminPanel({
                                   )}
                                 </div>
                               </div>
-                              
+
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => {
@@ -5460,7 +5105,7 @@ export default function AdminPanel({
                         </div>
                         <span className="text-sm font-semibold text-slate-700">Đã chọn</span>
                       </div>
-                      
+
                       <div className="flex items-center gap-2">
                         <button
                           onClick={handleBulkDeleteImages}
@@ -6418,7 +6063,7 @@ export default function AdminPanel({
                 <div className="flex items-center justify-between">
                   <button
                     onClick={() => {
-                      if (editingItemId) setEditingItemId(null);
+                      if (editingItemId) setEditingItemId("");
                       if (createType === "product") setActiveTab("listings");
                       else if (createType === "project") setActiveTab("projects");
                       else setActiveTab("articles");
@@ -6431,7 +6076,7 @@ export default function AdminPanel({
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
-                        if (editingItemId) setEditingItemId(null);
+                        if (editingItemId) setEditingItemId("");
                         setActiveTab("listings");
                       }}
                       className={`px-3 py-1.5 text-[10px] font-bold rounded transition-colors ${createType === "product" ? "bg-primary text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
@@ -6442,7 +6087,7 @@ export default function AdminPanel({
                       currentUserRole === "editor") && (
                         <button
                           onClick={() => {
-                            if (editingItemId) setEditingItemId(null);
+                            if (editingItemId) setEditingItemId("");
                             setActiveTab("projects");
                           }}
                           className={`px-3 py-1.5 text-[10px] font-bold rounded transition-colors ${createType === "project" ? "bg-primary text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
@@ -6452,7 +6097,7 @@ export default function AdminPanel({
                       )}
                     <button
                       onClick={() => {
-                        if (editingItemId) setEditingItemId(null);
+                        if (editingItemId) setEditingItemId("");
                         setActiveTab("articles");
                       }}
                       className={`px-3 py-1.5 text-[10px] font-bold rounded transition-colors ${createType === "article" ? "bg-primary text-white" : "bg-slate-200 text-slate-700 hover:bg-slate-300"}`}
@@ -8569,7 +8214,7 @@ export default function AdminPanel({
                             key={idx}
                             onClick={() => {
                               if (libraryTargetField === "album" || libraryTargetField === "floorPlanAlbum" || libraryTargetField === "amenityAlbum") {
-                                setSelectedLibraryImages(prev => 
+                                setSelectedLibraryImages(prev =>
                                   prev.includes(imgUrl) ? prev.filter(url => url !== imgUrl) : [...prev, imgUrl]
                                 );
                               } else {
@@ -8787,133 +8432,6 @@ export default function AdminPanel({
         </main>
       </div>
 
-      {/* GitHub Configuration Modal – luôn hiển thị trên mọi tab */}
-      {showGithubConfigModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-300">
-          <div className="bg-slate-50 border border-slate-200 rounded-lg w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <Settings className="w-5 h-5 text-primary-light" />
-                <h3 className="font-bold text-xs text-slate-800 tracking-widest font-mono">
-                  Cấu hình đồng bộ GitHub
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowGithubConfigModal(false);
-                  setConfigToken("");
-                }}
-                className="text-slate-700 hover:text-slate-900 p-1 rounded-lg hover:bg-slate-200 transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveGithubConfig} className="p-6 space-y-4">
-              <div className="bg-amber-950/20 border border-primary/15 p-3.5 rounded-lg text-left space-y-1">
-                <span className="text-[10px] font-mono font-bold text-primary-light">
-                  Lưu vào Firestore
-                </span>
-                <p className="text-[11px] text-slate-800 leading-relaxed font-sans">
-                  Token PAT được mã hóa Base64 trước khi lưu vào Firestore.
-                  Sau khi lưu, bạn có thể tải ảnh WebP lên GitHub ngay trên web
-                  production.
-                </p>
-              </div>
-
-              <div className="space-y-1.5 text-left">
-                <label className="text-[10px] text-slate-700 font-bold block">
-                  GitHub Personal Access Token (PAT){" "}
-                  <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={configToken}
-                  onChange={(e) => setConfigToken(e.target.value)}
-                  placeholder="github_pat_... hoặc ghp_..."
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-[10px] text-[10px] text-slate-800 outline-none focus:border-primary transition-colors placeholder:text-slate-500"
-                />
-                <span className="text-[10px] text-slate-700 block mt-1 leading-normal font-sans">
-                  Quyền <code>repo</code> hoặc <code>public_repo</code>.{" "}
-                  <a
-                    href="https://github.com/settings/tokens"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-amber-500 hover:underline inline"
-                  >
-                    Tạo PAT mới
-                  </a>
-                </span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5 text-left">
-                  <label className="text-[10px] text-slate-700 font-bold block">
-                    Owner <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={configOwner}
-                    onChange={(e) => setConfigOwner(e.target.value)}
-                    placeholder="mrliga1"
-                    className="w-full bg-white border border-slate-200 rounded-lg px-3 min-h-[32px] py-1.5 text-[10px] text-slate-800 outline-none focus:border-primary transition-colors"
-                  />
-                </div>
-                <div className="space-y-1.5 text-left">
-                  <label className="text-[10px] text-slate-700 font-bold block">
-                    Repository <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={configRepo}
-                    onChange={(e) => setConfigRepo(e.target.value)}
-                    placeholder="web1"
-                    className="w-full bg-white border border-slate-200 rounded-lg px-3 min-h-[32px] py-1.5 text-[10px] text-slate-800 outline-none focus:border-primary transition-colors"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5 text-left">
-                <label className="text-[10px] text-slate-700 font-bold block">
-                  Branch
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={configBranch}
-                  onChange={(e) => setConfigBranch(e.target.value)}
-                  placeholder="main"
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 min-h-[32px] py-1.5 text-[10px] text-slate-800 outline-none focus:border-primary transition-colors"
-                />
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowGithubConfigModal(false);
-                    setConfigToken("");
-                  }}
-                  className="bg-white hover:bg-slate-200 border border-slate-200 text-slate-700 text-xs font-semibold px-4.5 py-2.5 rounded-lg transition-colors cursor-pointer"
-                >
-                  Đóng lại
-                </button>
-                <button
-                  type="submit"
-                  disabled={savingConfig}
-                  className={`bg-primary hover:bg-amber-600 active:scale-95 text-black font-bold text-xs py-2.5 px-5 rounded-lg transition-all flex items-center gap-2 ${savingConfig ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
-                >
-                  {savingConfig ? "ĐANG LƯU..." : "LƯU CẤU HÌNH"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

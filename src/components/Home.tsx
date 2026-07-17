@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { SEO } from './SEO';
 import { collection as collectionLite, getDocs } from '../firebase';
 import { dbLite, addDoc, collection, db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
@@ -13,8 +12,6 @@ import {
 import CustomSectionRenderer from './CustomSectionRenderer';
 import { EditableText, EditableImage } from './EditableComponent';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
-import { Helmet } from 'react-helmet-async';
-import SchemaMarkup from './SchemaMarkup';
 import { useInView } from 'react-intersection-observer';
 
 const LazySection = ({ children, sectionId, isEditMode }: { children: React.ReactNode, sectionId: string, isEditMode: boolean }) => {
@@ -72,7 +69,7 @@ export default function Home({
 
         const prodSnap = await getDocs(collectionLite(dbLite, 'products'));
         const prodList: Product[] = [];
-        prodSnap.forEach((doc) => {
+        prodSnap.forEach((doc: any) => {
           const data = doc.data();
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
             prodList.push({ id: doc.id, ...data } as Product);
@@ -84,7 +81,7 @@ export default function Home({
         const projCol = collectionLite(dbLite, 'projects');
         const projSnap = await getDocs(projCol);
         const projList: Project[] = [];
-        projSnap.forEach((doc) => {
+        projSnap.forEach((doc: any) => {
           const data = doc.data();
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
             projList.push({ id: doc.id, ...data } as Project);
@@ -94,7 +91,7 @@ export default function Home({
 
         const newsSnap = await getDocs(collectionLite(dbLite, 'news'));
         const newsList: News[] = [];
-        newsSnap.forEach((doc) => {
+        newsSnap.forEach((doc: any) => {
           const data = doc.data();
           if ((!data.approvalStatus || data.approvalStatus === 'approved') && data.title?.trim()) {
             newsList.push({ id: doc.id, ...data } as News);

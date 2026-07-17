@@ -16,13 +16,13 @@ export default function Footer() {
                 <li className="flex items-start gap-3">
                   <MapPin className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                   <span className="text-text-inverse">
-                    <strong className="text-text-inverse">Trụ sở:</strong> 67 Võ Văn Kiệt, P. An Lạc, Quận Bình Tân, TP.HCM.
+                    <strong className="text-text-inverse">Trụ sở:</strong> Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng, Quận 7, TP.HCM.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
                   <Building2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                   <span className="text-text-inverse">
-                    <strong className="text-text-inverse">Văn phòng:</strong> 520 Võ Văn Kiệt, Quận Bình Tân, TP.HCM.
+                    <strong className="text-text-inverse">Văn phòng:</strong> Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng, Quận 7, TP.HCM.
                   </span>
                 </li>
                 <li className="flex items-start gap-3">
@@ -34,7 +34,7 @@ export default function Footer() {
                 <li className="flex items-start gap-3">
                   <Mail className="w-4 h-4 text-accent shrink-0 mt-0.5" />
                   <span className="text-text-inverse">
-                    <strong className="text-text-inverse">Email:</strong> <a href="mailto:cskh@greeniahomes.vn" className="hover:text-accent transition-colors">cskh@greeniahomes.vn</a>
+                    <strong className="text-text-inverse">Email:</strong> <a href="mailto:sales.greeniahomes@gmail.com" className="hover:text-accent transition-colors">sales.greeniahomes@gmail.com</a>
                   </span>
                 </li>
               </ul>
@@ -45,7 +45,7 @@ export default function Footer() {
             <ul className="space-y-3 text-[13px] text-white/70">
               <li><Link href="/" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Giới Thiệu</Link></li>
               <li><Link href="/du-an" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Dự Án</Link></li>
-              <li><Link href="/category-product/Chuyển Nhượng" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chuyển Nhượng</Link></li>
+              <li><Link href="/category-product/chuyen-nhuong" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chuyển Nhượng</Link></li>
               <li><Link href="/tin-tuc" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Tin Tức & Sự Kiện</Link></li>
               <li className="pb-4 border-b border-white/10"><Link href="/lien-he" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Liên Hệ</Link></li>
               <li className="pt-2"><Link href="/chinh-sach-bao-mat" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chính sách bảo mật</Link></li>
@@ -55,10 +55,10 @@ export default function Footer() {
             <h3 className="font-display font-bold text-text-inverse text-sm uppercase tracking-wider relative pb-3 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-10 after:h-0.5 after:bg-accent">Sản Phẩm</h3>
             <ul className="space-y-3 text-[13px] text-white/70">
               <li><Link href="/san-pham" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Tất Cả Sản Phẩm</Link></li>
-              <li><Link href="/category-product/Chuyển Nhượng" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chuyển Nhượng</Link></li>
-              <li><Link href="/category-product/Cho thuê" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Cho thuê</Link></li>
-              <li><Link href="/category-product/Căn Hộ" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Căn Hộ</Link></li>
-              <li className="pb-4 border-b border-white/10"><Link href="/category-product/Nhà Phố - Biệt Thự" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Nhà Phố - Biệt Thự</Link></li>
+              <li><Link href="/category-product/chuyen-nhuong" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chuyển Nhượng</Link></li>
+              <li><Link href="/category-product/cho-thue" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Cho thuê</Link></li>
+              <li><Link href="/category-product/can-ho" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Căn Hộ</Link></li>
+              <li className="pb-4 border-b border-white/10"><Link href="/category-product/nha-pho-biet-thu" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Nhà Phố - Biệt Thự</Link></li>
               <li className="pt-2"><Link href="/dieu-khoan-su-dung" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Điều khoản sử dụng</Link></li>
             </ul>
           </div>

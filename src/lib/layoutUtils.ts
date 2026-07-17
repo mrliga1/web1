@@ -1,4 +1,4 @@
-export function serializeSectionsForFirestore(sects: any[]): any[] {
+export function serializeSectionsForDatabase(sects: any[]): any[] {
   if (!Array.isArray(sects)) return [];
   return sects.map((sect) => {
     if (!sect) return sect;
@@ -28,7 +28,7 @@ export function serializeSectionsForFirestore(sects: any[]): any[] {
   });
 }
 
-export function deserializeSectionsFromFirestore(sects: any[]): any[] {
+export function deserializeSectionsFromDatabase(sects: any[]): any[] {
   if (!Array.isArray(sects)) return [];
   return sects.map((sect) => {
     if (!sect) return sect;
@@ -131,7 +131,7 @@ export function sanitizeHomeSections(sects: any[]): any[] {
   });
 
   filtered = filtered.map((s) => {
-    let newS = { ...s };
+    const newS = { ...s };
     return newS;
   });
 

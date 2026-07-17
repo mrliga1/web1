@@ -6,6 +6,7 @@ import "../src/index.css";
 
 /* Metadata mặc định cho toàn bộ site */
 export const metadata: Metadata = {
+  metadataBase: new URL("https://greeniahomes.vn"),
   title: {
     default: "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu",
     template: "%s | Greenia Homes",
@@ -15,7 +16,13 @@ export const metadata: Metadata = {
   keywords:
     "greenia homes, biet thu chateau, phu my hung, vinhomes, can ho hang sang, phong thuy bat dong san",
   authors: [{ name: "Greenia Homes" }],
-  robots: "index, follow",
+  alternates: {
+    canonical: "/",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
   icons: {
     icon: "/favicon.webp",
     apple: "/favicon.webp",
@@ -24,6 +31,18 @@ export const metadata: Metadata = {
     type: "website",
     locale: "vi_VN",
     siteName: "Greenia Homes",
+    title: "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu",
+    description:
+      "Chào mừng đến với Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
+    url: "/",
+    images: [{ url: "/og-image.jpg", alt: "Greenia Homes" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu",
+    description:
+      "Chào mừng đến với Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
+    images: ["/og-image.jpg"],
   },
   other: {
     "geo.region": "VN",
@@ -45,16 +64,12 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <head>
-        {/* Preconnect cho Google Fonts và Firebase */}
+        {/* Kết nối sớm tới máy chủ Google Fonts. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
-        />
-        <link
-          rel="preconnect"
-          href="https://firestore.googleapis.com"
         />
         {/* Font loading không block render */}
         <link
@@ -84,22 +99,17 @@ export default function RootLayout({
           "name": "Greenia Homes",
           "url": "https://greeniahomes.vn",
           "description": "Cố vấn đầu tư bất động sản chuyên sâu, uy tín tại Việt Nam.",
-          "potentialAction": {
-            "@type": "SearchAction",
-            "target": "https://greeniahomes.vn/?q={search_term_string}",
-            "query-input": "required name=search_term_string"
-          }
         }} />
         <SchemaMarkup schema={{
           "@context": "https://schema.org",
           "@type": "RealEstateAgent",
           "name": "Greenia Homes",
           "url": "https://greeniahomes.vn",
-          "logo": "https://greeniahomes.vn/logo.png",
-          "image": "https://greeniahomes.vn/default-share.jpg",
+          "logo": "https://greeniahomes.vn/favicon.webp",
+          "image": "https://greeniahomes.vn/og-image.jpg",
           "description": "Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
           "telephone": "0932966700",
-          "email": "cskh@greeniahomes.vn",
+          "email": "sales.greeniahomes@gmail.com",
           "sameAs": [
             "https://www.facebook.com/GreeniaHomes",
             "https://www.tiktok.com/@greeniahomes",
@@ -108,16 +118,11 @@ export default function RootLayout({
           ],
           "address": {
             "@type": "PostalAddress",
-            "streetAddress": "67 Võ Văn Kiệt, Phường An Lạc",
-            "addressLocality": "Quận Bình Tân",
-            "addressRegion": "Hồ Chí Minh",
+            "streetAddress": "Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng",
+            "addressLocality": "Quận 7",
+            "addressRegion": "TP.HCM",
             "postalCode": "700000",
             "addressCountry": "VN"
-          },
-          "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": 10.733852,
-            "longitude": 106.715344
           },
           "priceRange": "$$$"
         }} />

@@ -4,6 +4,4 @@ coverage/
 *.log
 .env*
 !.env.example
-dist/
-dist-ssr/
 .next/

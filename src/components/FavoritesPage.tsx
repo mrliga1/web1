@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RouteState, Product } from '../types';
 import { db, collection, getDocs } from '../firebase';
-import { Helmet } from 'react-helmet-async';
 import { Heart, Compass } from 'lucide-react';
 import ProductCard from './ProductCard';
 
@@ -23,7 +22,7 @@ export default function FavoritesPage({ onNavigate }: { onNavigate: (route: Rout
         const prodSnap = await getDocs(prodCol);
         const fetchedFavs: Product[] = [];
         
-        prodSnap.forEach(doc => {
+        prodSnap.forEach((doc: any) => {
           if (favIds.includes(doc.id)) {
             const data = doc.data();
             if (!data.approvalStatus || data.approvalStatus === 'approved') {
@@ -49,10 +48,6 @@ export default function FavoritesPage({ onNavigate }: { onNavigate: (route: Rout
 
   return (
     <div className="max-w-7xl mx-auto px-[20px] py-[30px] animate-in fade-in select-none">
-      <Helmet>
-        <title>Tin đã lưu | Greenia Homes</title>
-      </Helmet>
-
       <div className="flex items-center gap-3 mb-8 pb-[5px] h-[35px] border-b border-border-color">
         <Heart className="w-6 h-6 text-primary fill-current" />
         <h1 className="text-xl sm:text-2xl font-display font-medium text-text-primary tracking-tight leading-normal m-0 p-0">

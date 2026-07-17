@@ -78,8 +78,6 @@ export const deleteDoc = async (docRef: { path: string, id: string }) => {
   if (error) throw error;
 }
 
-export const increment = (value: number) => value;
-
 export const dbLite = db;
 
 /* Stub auth object - tương thích API cũ */

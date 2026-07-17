@@ -184,7 +184,7 @@ export default function VisualDragCanvas({
   const bgGradient = section.extraData?.bgGradient || 'linear-gradient(to bottom, #020617, #0f172a)';
   const bgImageUrl = section.extraData?.bgImageUrl || '';
 
-  // Real Local state for elements to prevent Firestore async rate limit flickering & rollback during mouse drag move
+  // Giữ trạng thái cục bộ để tránh nhấp nháy khi đồng bộ Supabase trong lúc kéo thả.
   const [localElements, setLocalElements] = useState<CanvasElement[]>(() => {
     return section.extraData?.elements || [
       {
@@ -550,7 +550,7 @@ export default function VisualDragCanvas({
     if (isDragging) {
       setIsDragging(false);
       dragInfo.current = null;
-      // Persist coordinate modification back to Firestore once release drag click
+      // Lưu tọa độ mới vào Supabase sau khi kết thúc kéo thả.
       saveElements(elementsRef.current);
     }
   };

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { verifyAdmin } from '../../lib/auth';
 
-/* API xoá user qua Supabase Admin */
+/* API xóa người dùng qua Supabase Admin. */
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ uid: string }> }) {
   try {
     const authResult = await verifyAdmin(req);
@@ -15,7 +15,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ u
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
     if (!serviceRoleKey || !supabaseUrl) {
-      return NextResponse.json({ error: 'Supabase service role not configured' }, { status: 500 });
+      return NextResponse.json({ error: 'Supabase service role chưa được cấu hình' }, { status: 503 });
     }
 
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey, {
@@ -26,7 +26,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ u
     if (error) throw error;
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Không thể xóa người dùng';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

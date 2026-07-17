@@ -40,38 +40,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .single();
 
       if (data) {
-        let profile = data as UserProfile;
-        const emailLower = user.email?.toLowerCase() || '';
-        
-        const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
-          .split(',')
-          .map(e => e.trim().toLowerCase())
-          .filter(Boolean);
-          
-        const isAdmin = adminEmails.includes(emailLower);
-        if (isAdmin && profile.role !== 'admin') {
-          profile.role = 'admin';
-          await supabase.from('users').update({ role: 'admin' }).eq('uid', user.id);
-        }
-        setUserProfile(profile);
+        setUserProfile(data as UserProfile);
       } else if (error && error.code === 'PGRST116') {
-        // Record not found
-        let role: UserRole = 'user';
         const email = user.email || '';
-        const emailLower = email.toLowerCase();
-        
-        const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAILS || '')
-          .split(',')
-          .map(e => e.trim().toLowerCase())
-          .filter(Boolean);
-          
-        if (adminEmails.includes(emailLower)) {
-          role = 'admin';
-        }
         const newProfile: UserProfile = {
           uid: user.id,
           email: email,
-          role,
+          role: 'user',
           username: user.user_metadata?.full_name || email.split('@')[0],
         };
         await supabase.from('users').insert([newProfile]);

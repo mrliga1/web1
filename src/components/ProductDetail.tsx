@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import SchemaMarkup from "./SchemaMarkup";
 import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
 import { parseLocation, formatLocationName } from "../lib/locationMapping";
-import { doc, getDoc, collection, getDocs, addDoc, db, updateDoc } from "../firebase";
+import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
+import { recordContentEngagement } from "../lib/engagement";
+import { doc, getDoc, collection, getDocs, addDoc, db } from "../firebase";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import { Product, Project, RouteState } from "../types";
 import { useScrollDirection } from "../hooks/useScrollDirection";
@@ -33,8 +34,6 @@ import {
   ChevronDown,
 } from "lucide-react";
 
-import { Helmet } from "react-helmet-async";
-import { parseSlugTitleFromPath, resolveItemTitle } from "../lib/documentHead";
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
 import StarRatingInteractive from "./StarRatingInteractive";
@@ -42,9 +41,9 @@ import StarRatingInteractive from "./StarRatingInteractive";
 interface ProductDetailProps {
   productId: string;
   slug?: string;
+  initialProduct?: Product;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: "success" | "error") => void;
-  logoUrl?: string;
 }
 
 const MapViewer = React.memo(
@@ -60,7 +59,7 @@ const MapViewer = React.memo(
       return (
         <div
           className="w-full h-[300px] rounded-lg overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
-          dangerouslySetInnerHTML={{ __html: cleanHtml }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(cleanHtml) }}
         />
       );
     }
@@ -95,9 +94,11 @@ export default function ProductDetail({
   slug,
   onNavigate,
   onShowNotification,
-  logoUrl,
+  initialProduct,
 }: ProductDetailProps) {
   const [product, setProduct] = useState<Product | null>(() => {
+    if (initialProduct) return initialProduct;
+
     if (
       typeof window !== "undefined" &&
       (window.__SERVER_DATA__?.product?.id === productId || 
@@ -126,7 +127,9 @@ export default function ProductDetail({
   };
 
   // Left column variables
-  const [selectedImage, setSelectedImage] = useState(() => {
+  const [selectedImage, setSelectedImage] = useState<string>(() => {
+    if (initialProduct) return initialProduct.imageUrl || "";
+
     if (
       typeof window !== "undefined" &&
       (window.__SERVER_DATA__?.product?.id === productId || 
@@ -221,15 +224,15 @@ export default function ProductDetail({
         if (!product) setLoading(true);
 
         let activeProd: Product | null = product;
-        let finalProductId = productId;
+        let finalProductId = productId || activeProd?.id || "";
 
-        if (finalProductId) {
+        if (!activeProd && finalProductId) {
           const docRef = doc(db, "products", finalProductId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
             activeProd = { id: docSnap.id, ...docSnap.data() } as Product;
           }
-        } else if (slug) {
+        } else if (!activeProd && slug) {
           const prodCol = collection(db, "products");
           const prodSnap = await getDocs(prodCol);
           for (const doc of prodSnap.docs) {
@@ -263,7 +266,19 @@ export default function ProductDetail({
           const newViews = (activeProd.viewsCount || 0) + 1;
           activeProd.viewsCount = newViews;
           if (finalProductId) {
-            updateDoc(doc(db, "products", finalProductId), { viewsCount: newViews }).catch(console.error);
+            void recordContentEngagement({
+              table: "products",
+              id: finalProductId,
+              action: "view",
+            })
+              .then((result) => {
+                setProduct((current) =>
+                  current?.id === finalProductId
+                    ? { ...current, viewsCount: result.viewsCount }
+                    : current,
+                );
+              })
+              .catch((error) => console.error("Không thể tăng lượt xem sản phẩm:", error));
           }
         } else {
           setLoading(false);
@@ -276,7 +291,7 @@ export default function ProductDetail({
         const prodCol = collection(db, "products");
         const prodSnap = await getDocs(prodCol);
         const allProds: Product[] = [];
-        prodSnap.forEach((doc) => {
+        prodSnap.forEach((doc: any) => {
           const data = doc.data();
           if (!data.approvalStatus || data.approvalStatus === "approved") {
             allProds.push({ id: doc.id, ...data } as Product);
@@ -288,7 +303,7 @@ export default function ProductDetail({
         const projCol = collection(db, "projects");
         const projSnap = await getDocs(projCol);
         const projList: Project[] = [];
-        projSnap.forEach((doc) => {
+        projSnap.forEach((doc: any) => {
           projList.push({ id: doc.id, ...doc.data() } as Project);
         });
         setProjects(projList);
@@ -388,10 +403,6 @@ export default function ProductDetail({
       setIsSubmitting(false);
     }
   };
-
-  const pageTitle = product
-    ? resolveItemTitle(product, "Greenia Homes")
-    : "Đang tải... | Greenia Homes";
 
   if (loading) {
     return (
@@ -502,158 +513,13 @@ export default function ProductDetail({
     .filter((p) => p.type === "rent" && p.id !== product.id && !relatedIds.has(p.id))
     .slice(0, 8);
 
-  const productImages =
-    product.imageUrls && product.imageUrls.length > 0
-      ? product.imageUrls
-      : [
-          product.imageUrl ||
-            "/no-image.svg",
-        ];
-
-  const rawBaseRating = product.baseRating || 5;
-  const rawBaseCount = product.baseReviewCount || 0;
-  const computedTotalStars =
-    rawBaseRating * rawBaseCount + (product.userTotalRating || 0);
-  const computedTotalCount = rawBaseCount + (product.userReviewCount || 0);
-  const currentAvg =
-    computedTotalCount === 0
-      ? rawBaseRating
-      : computedTotalStars / computedTotalCount;
-
-  const socialDescription = [
-    product.district ? `📍 ${product.street ? product.street + ', ' : ''}${formatLocationName(product.district)}` : null,
-    product.priceText ? `💰 ${product.priceText}` : null,
-    product.area ? `📐 ${product.area} m²` : null,
-    product.bedrooms ? `🛏️ ${product.bedrooms} PN` : null,
-    product.toilets ? `🛁 ${product.toilets} WC` : null
-  ].filter(Boolean).join(" | ") + (product.description ? ` - ${(product.description || "").replace(/<[^>]*>?/gm, "").substring(0, 100)}...` : "");
-
-  const schemaOrgJSONLD: any = {
-    "@context": "https://schema.org",
-    "@type": "RealEstateListing",
-    name: product.title,
-    image: productImages,
-    description: (product.description || "")
-      .replace(/<[^>]*>?/gm, "")
-      .substring(0, 160),
-    datePosted: product.createdAt,
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: product.street || undefined,
-      addressLocality: product.district || undefined,
-      addressRegion: "Hồ Chí Minh",
-      addressCountry: "VN"
-    },
-    numberOfRooms: product.bedrooms || undefined,
-    numberOfBedrooms: product.bedrooms || undefined,
-    numberOfBathroomsTotal: product.toilets || undefined,
-    floorSize: product.area ? {
-      "@type": "QuantitativeValue",
-      value: product.area,
-      unitCode: "MTK"
-    } : undefined,
-    offers: {
-      "@type": "Offer",
-      url: typeof window !== "undefined" ? window.location.href : "",
-      priceCurrency: "VND",
-      price: (product.price || "").replace(/\D.*$/, "") || "1000000000",
-      availability: "https://schema.org/InStock",
-      seller: {
-        "@type": "Organization",
-        name: "Greenia Homes",
-      },
-    },
-  };
-
-  if (computedTotalCount > 0) {
-    schemaOrgJSONLD.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: currentAvg.toFixed(1),
-      reviewCount: computedTotalCount,
-    };
-  }
-
-  // Nếu có tọa độ, thêm vào schema
-  // @ts-ignore (latitude/longitude có thể không có trong mọi model cũ)
-  if (product.latitude && product.longitude) {
-    schemaOrgJSONLD.geo = {
-      "@type": "GeoCoordinates",
-      // @ts-ignore
-      latitude: product.latitude,
-      // @ts-ignore
-      longitude: product.longitude
-    };
-  }
-
-  const breadcrumbSchema = {
-    "@context": "https://schema.org",
-    "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Trang chủ",
-        item: "https://greeniahomes.vn"
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: product.type === "rent" ? "Cho Thuê" : "Mua Bán",
-        item: `https://greeniahomes.vn/danh-sach?type=${product.type}`
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: product.title,
-        item: typeof window !== "undefined" ? window.location.href : ""
-      }
-    ]
-  };
-
   return (
     <article
       className="max-w-7xl mx-auto px-[20px] pt-[15px] !pb-0 space-y-6 animate-in fade-in"
       id={`product-detail-viewport-${product.id}`}
     >
-      <Helmet>
-        <title>{pageTitle}</title>
-        <meta
-          name="description"
-          content={(product.description || "")
-            .replace(/<[^>]*>?/gm, "")
-            .substring(0, 160)}
-        />
-        <meta property="og:type" content="website" />
-        <meta
-          property="og:url"
-          content={typeof window !== "undefined" ? window.location.href : ""}
-        />
-        <meta property="og:title" content={product.title} />
-        <meta
-          property="og:description"
-          content={socialDescription}
-        />
-        <meta property="og:image" content={productImages[0]?.startsWith('http') ? productImages[0] : `https://greeniahomes.vn${productImages[0]?.startsWith('/') ? productImages[0] : `/${productImages[0]}`}`} />
-        
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={product.title} />
-        <meta name="twitter:description" content={socialDescription} />
-        <meta name="twitter:image" content={productImages[0]?.startsWith('http') ? productImages[0] : `https://greeniahomes.vn${productImages[0]?.startsWith('/') ? productImages[0] : `/${productImages[0]}`}`} />
-
-        {/* Geo Meta Tags for Local SEO */}
-        <meta name="geo.region" content="VN-SG" />
-        <meta name="geo.placename" content={product.district ? `${product.district}, Hồ Chí Minh` : "Hồ Chí Minh, Việt Nam"} />
-        {/* @ts-ignore */}
-        <meta name="geo.position" content={product.latitude && product.longitude ? `${product.latitude};${product.longitude}` : "10.733852;106.715344"} />
-        {/* @ts-ignore */}
-        <meta name="ICBM" content={product.latitude && product.longitude ? `${product.latitude}, ${product.longitude}` : "10.733852, 106.715344"} />
-        
-        <script type="application/ld+json">{JSON.stringify(schemaOrgJSONLD)}</script>
-        <script type="application/ld+json">{JSON.stringify(breadcrumbSchema)}</script>
-      </Helmet>
-
       {/* 9.2.1. Breadcrumb Navigation */}
-      <nav className={`flex flex-col sticky z-[90] bg-bg-surface -mx-[20px] px-[20px] py-[10px] transition-all duration-300 ${scrollDirection === 'down' ? 'top-0' : 'top-10'}`}>
+      <nav aria-label="Đường dẫn sản phẩm" className={`flex flex-col sticky z-[90] bg-bg-surface -mx-[20px] px-[20px] py-[10px] transition-all duration-300 ${scrollDirection === 'down' ? 'top-0' : 'top-10'}`}>
         <div
           className="flex items-center justify-between text-xs text-text-secondary border-b border-border-color pb-[5px]"
           id="detail-breadcrumb"
@@ -795,9 +661,9 @@ export default function ProductDetail({
           {/* Main info & Product details combined */}
           <section className="bg-bg-surface pt-[10px] pb-4 px-[10px] sm:px-[15px] !mb-[5px] rounded-lg border border-border-color text-left">
             <div className="space-y-3 pb-1 border-b border-border-color/60">
-              <h2 className="text-[18px] sm:text-[20px] font-playfair font-bold text-text-primary flex items-center gap-2">
+              <h1 className="text-[18px] sm:text-[20px] font-playfair font-bold text-text-primary flex items-center gap-2">
                 {product.title}
-              </h2>
+              </h1>
 
               <div className="flex items-center justify-between pb-0">
                 <p className="text-xs text-text-secondary flex items-center gap-1.5">
@@ -1066,7 +932,7 @@ export default function ProductDetail({
                 {product.description ? (
                   <div
                     className="prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-x-auto leading-relaxed whitespace-pre-wrap"
-                    dangerouslySetInnerHTML={{ __html: product.description }}
+                    dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(product.description) }}
                   />
                 ) : (
                   <p className="text-text-secondary text-xs italic">

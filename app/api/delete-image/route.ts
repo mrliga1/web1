@@ -1,5 +1,5 @@
+import { DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { NextRequest, NextResponse } from 'next/server';
-import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { verifyAdmin } from '../lib/auth';
 
 export async function POST(req: NextRequest) {
@@ -10,45 +10,38 @@ export async function POST(req: NextRequest) {
     }
 
     const { url } = await req.json();
-    if (!url) return NextResponse.json({ error: 'Thiếu đường dẫn ảnh (url)' }, { status: 400 });
-
-    const publicUrl = process.env.NEXT_PUBLIC_R2_PUBLIC_URL || '';
-    const bucketName = process.env.NEXT_PUBLIC_R2_BUCKET_NAME || '';
-
-    // Extract filename from URL
-    let filename = url;
-    if (url.startsWith(publicUrl)) {
-      filename = url.replace(publicUrl + '/', '');
-    } else {
-      // In case the URL is a relative path or another format, try to get the last segment
-      try {
-        const urlObj = new URL(url);
-        filename = urlObj.pathname.split('/').pop() || '';
-      } catch (e) {
-        filename = url.split('/').pop() || '';
-      }
+    if (typeof url !== 'string' || !url.trim()) {
+      return NextResponse.json({ error: 'Thiếu đường dẫn ảnh' }, { status: 400 });
     }
 
-    if (!filename) {
-      return NextResponse.json({ error: 'Không thể trích xuất tên file từ URL' }, { status: 400 });
+    const accountId = process.env.R2_ACCOUNT_ID;
+    const accessKeyId = process.env.R2_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY;
+    const bucketName = process.env.R2_BUCKET_NAME || process.env.NEXT_PUBLIC_R2_BUCKET_NAME;
+    const publicUrl = (process.env.R2_PUBLIC_URL || process.env.NEXT_PUBLIC_R2_PUBLIC_URL || '').replace(/\/$/, '');
+    if (!accountId || !accessKeyId || !secretAccessKey || !bucketName || !publicUrl) {
+      return NextResponse.json({ error: 'Máy chủ chưa được cấu hình Cloudflare R2' }, { status: 503 });
     }
 
-    const S3 = new S3Client({
+    if (!url.startsWith(`${publicUrl}/`)) {
+      return NextResponse.json({ success: true, skipped: true, message: 'Ảnh không thuộc Cloudflare R2 hiện tại' });
+    }
+
+    const filename = decodeURIComponent(url.slice(publicUrl.length + 1));
+    if (!filename || filename.includes('..') || filename.startsWith('/') || filename.includes('\\')) {
+      return NextResponse.json({ error: 'Đường dẫn ảnh không hợp lệ' }, { status: 400 });
+    }
+
+    const s3 = new S3Client({
       region: 'auto',
-      endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-      credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY || '',
-      },
+      endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      credentials: { accessKeyId, secretAccessKey },
     });
+    await s3.send(new DeleteObjectCommand({ Bucket: bucketName, Key: filename }));
 
-    await S3.send(new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: filename,
-    }));
-
-    return NextResponse.json({ success: true, message: `Đã xóa file ${filename} thành công.` });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, message: `Đã xóa file ${filename}` });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Không thể xóa ảnh';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

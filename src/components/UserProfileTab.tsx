@@ -78,7 +78,7 @@ export default function UserProfileTab({ onShowNotification }: { onShowNotificat
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-text-secondary">UID Định Danh (Firebase)</label>
+                <label className="text-xs font-bold uppercase tracking-wider text-text-secondary">UID Định Danh (Supabase)</label>
                 <input
                   type="text"
                   value={userProfile.uid}

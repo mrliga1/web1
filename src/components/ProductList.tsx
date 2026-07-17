@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateSlug, optimizeImageUrl, getRouteUrl } from '../lib/utils';
 import { useRouter } from 'next/navigation';
-import { SEO } from './SEO';
 import { collection, getDocs, getDoc, doc, db } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { Product, Project, RouteState } from '../types';
@@ -163,7 +162,7 @@ export default function ProductList({
         // Fetch projects in the background since they are only used below the fold
         getDocs(collection(db, 'projects')).then(projSnap => {
           const projList: Project[] = [];
-          projSnap.forEach((doc) => {
+          projSnap.forEach((doc: any) => {
             projList.push({ id: doc.id, ...doc.data() } as Project);
           });
           if (isMounted.current) {
@@ -200,7 +199,7 @@ export default function ProductList({
         const list: Product[] = [];
         const uniqueDistricts = new Set<string>();
 
-        prodSnap.forEach((doc) => {
+        prodSnap.forEach((doc: any) => {
           const data = doc.data();
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
             const p = { id: doc.id, ...data } as Product;
@@ -418,7 +417,7 @@ export default function ProductList({
     "itemListElement": filteredProducts.slice(0, mainGridLimit).map((product, index) => ({
       "@type": "ListItem",
       "position": index + 1,
-      "url": `https://greeniahomes.vn/san-pham/${generateSlug(product.title)}-${product.id}`
+      "url": `https://greeniahomes.vn/san-pham/${generateSlug(product.title)}`
     }))
   };
 
@@ -564,6 +563,7 @@ export default function ProductList({
                       <div className="relative w-[150px] inline-block h-[26px]">
                         <input 
                           type="text" 
+                          aria-label="Tìm kiếm sản phẩm"
                           value={searchQuery}
                           onChange={e => setSearchQuery(e.target.value)}
                           placeholder="Tìm dự án, khu vực..." 
@@ -794,6 +794,7 @@ export default function ProductList({
                       <div className="relative w-full h-[32px]">
                         <input 
                           type="text" 
+                          aria-label="Tìm kiếm sản phẩm"
                           value={searchQuery}
                           onChange={e => setSearchQuery(e.target.value)}
                           placeholder="Tìm dự án, khu vực, danh mục..." 

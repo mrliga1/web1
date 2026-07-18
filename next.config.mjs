@@ -18,7 +18,8 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: false },
   eslint: { ignoreDuringBuilds: false },
   experimental: {
-    optimizePackageImports: ['lucide-react', '@supabase/supabase-js']
+    optimizePackageImports: ['lucide-react', '@supabase/supabase-js'],
+    inlineCss: true,
   },
   // Header bảo mật dùng chung cho toàn bộ ứng dụng.
   async headers() {

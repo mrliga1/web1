@@ -311,11 +311,11 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             <div className="flex flex-wrap items-center gap-8 opacity-70">
               <div className="flex items-center gap-2">
                 <Building2 className="w-6 h-6 text-primary" />
-                <span className="font-display text-[15px] font-bold text-primary tracking-widest uppercase">VINHOMES</span>
+                <span className="font-display text-[15px] font-bold text-primary-dark tracking-widest uppercase">VINHOMES</span>
               </div>
               <div className="flex items-center gap-2">
                 <Layers className="w-6 h-6 text-primary" />
-                <span className="font-display text-[15px] font-bold text-primary tracking-widest uppercase">MASTERISE</span>
+                <span className="font-display text-[15px] font-bold text-primary-dark tracking-widest uppercase">MASTERISE</span>
               </div>
             </div>
           </div>

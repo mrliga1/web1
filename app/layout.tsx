@@ -8,22 +8,22 @@ import "../src/index.css";
 
 const inter = Inter({
   subsets: ["latin", "vietnamese"],
-  display: "swap",
+  display: "optional",
   variable: "--font-inter",
   preload: true,
 });
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin", "vietnamese"],
-  display: "swap",
+  display: "optional",
   variable: "--font-space-grotesk",
-  preload: true,
+  preload: false,
 });
 
 const playfairDisplay = Playfair_Display({
   subsets: ["latin", "vietnamese"],
   style: ["normal", "italic"],
-  display: "swap",
+  display: "optional",
   variable: "--font-playfair",
   preload: false,
 });

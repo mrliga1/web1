@@ -34,12 +34,17 @@ export default function HomePageClient({
   );
 
   useEffect(() => {
-    if (appliedSectionsSignature.current === initialSectionsSignature) return;
+    if (
+      !isEditMode ||
+      appliedSectionsSignature.current === initialSectionsSignature
+    ) {
+      return;
+    }
 
     appliedSectionsSignature.current = initialSectionsSignature;
     setSections(initialSections);
     setHasSyncedInitialSections(true);
-  }, [initialSections, initialSectionsSignature, setSections]);
+  }, [initialSections, initialSectionsSignature, isEditMode, setSections]);
 
   const handleNavigate = (route: RouteState) => {
     router.push(getRouteUrl(route));

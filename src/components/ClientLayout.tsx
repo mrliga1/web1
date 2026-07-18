@@ -7,17 +7,36 @@ import { usePathname } from 'next/navigation';
 
 import FloatingActionButtons from './FloatingActionButtons';
 
-export default function ClientLayout({ children }: { children: React.ReactNode }) {
+interface ClientLayoutProps {
+  children: React.ReactNode;
+  initialLogoUrl?: string;
+  initialSettingsLoaded?: boolean;
+}
+
+export default function ClientLayout({
+  children,
+  initialLogoUrl = '',
+  initialSettingsLoaded = false,
+}: ClientLayoutProps) {
   const [notification, setNotification] = useState<{message: string, type: 'success'|'error'} | null>(null);
-  const [logoUrl, setLogoUrl] = useState<string>('');
+  const [logoUrl, setLogoUrl] = useState<string>(initialLogoUrl);
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(
+    initialSettingsLoaded || Boolean(initialLogoUrl),
+  );
   const pathname = usePathname();
   
   useEffect(() => {
+    if (initialLogoUrl) {
+      setIsSettingsLoaded(true);
+      return;
+    }
+
     const savedLogo = localStorage.getItem('greenia_logoUrl');
     if (savedLogo) {
       setLogoUrl(savedLogo);
     }
-  }, []);
+    setIsSettingsLoaded(true);
+  }, [initialLogoUrl]);
 
   const triggerNotification = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -35,6 +54,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         onNavigate={() => {}} // Dummy, replaced by router in Navbar itself
         onShowNotification={triggerNotification}
         logoUrl={logoUrl}
+        isSettingsLoaded={isSettingsLoaded}
       />
       
       <main id="main-content" className="flex-1 w-full bg-bg-surface">

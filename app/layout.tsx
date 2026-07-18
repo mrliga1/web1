@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Providers from "./providers";
 import ClientLayout from "../src/components/ClientLayout";
 import SchemaMarkup from "../src/components/SchemaMarkup";
+import { getInitialSiteSettings } from "../src/lib/serverData";
 import "../src/index.css";
 
 /* Metadata mặc định cho toàn bộ site */
@@ -56,11 +57,13 @@ export const metadata: Metadata = {
  * Root Layout - Server Component.
  * Bao bọc toàn bộ app với HTML, font, và providers.
  */
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const initialSiteSettings = await getInitialSiteSettings();
+
   return (
     <html lang="vi">
       <head>
@@ -136,7 +139,12 @@ export default function RootLayout({
         }}
       >
         <Providers>
-          <ClientLayout>{children}</ClientLayout>
+          <ClientLayout
+            initialLogoUrl={initialSiteSettings.logoUrl}
+            initialSettingsLoaded={initialSiteSettings.loaded}
+          >
+            {children}
+          </ClientLayout>
         </Providers>
         <script
           dangerouslySetInnerHTML={{

@@ -12,23 +12,13 @@ import {
 import CustomSectionRenderer from './CustomSectionRenderer';
 import { EditableText, EditableImage } from './EditableComponent';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
-import { useInView } from 'react-intersection-observer';
 
 const LazySection = ({ children, sectionId, isEditMode }: { children: React.ReactNode, sectionId: string, isEditMode: boolean }) => {
-  const { ref, inView } = useInView({
-    triggerOnce: true,
-    rootMargin: '400px 0px', // Pre-render slightly before it comes into view
-  });
-
   if (sectionId === 'hero' || isEditMode) {
     return <>{children}</>;
   }
 
-  return (
-    <div ref={ref} className={inView ? "" : "min-h-[400px]"}>
-      {inView ? children : null}
-    </div>
-  );
+  return <div>{children}</div>;
 };
 
 interface HomeProps {
@@ -39,6 +29,10 @@ interface HomeProps {
   onUpdateSections: (sections: any[]) => void;
   selectedSectionId: string | null;
   setSelectedSectionId: (id: string | null) => void;
+  initialProducts?: Product[];
+  initialProjects?: Project[];
+  initialNews?: News[];
+  refreshOnMount?: boolean;
 }
 
 
@@ -50,12 +44,20 @@ export default function Home({
   sections,
   onUpdateSections,
   selectedSectionId,
-  setSelectedSectionId
+  setSelectedSectionId,
+  initialProducts,
+  initialProjects,
+  initialNews,
+  refreshOnMount = false,
 }: HomeProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [news, setNews] = useState<News[]>([]);
-  const [loading, setLoading] = useState(true);
+  const hasInitialData =
+    initialProducts !== undefined &&
+    initialProjects !== undefined &&
+    initialNews !== undefined;
+  const [products, setProducts] = useState<Product[]>(initialProducts ?? []);
+  const [projects, setProjects] = useState<Project[]>(initialProjects ?? []);
+  const [news, setNews] = useState<News[]>(initialNews ?? []);
+  const [loading, setLoading] = useState(!hasInitialData);
 
   // See More Click Counter for Product Listings Grid
   const [productClickCount, setProductClickCount] = useState(0);
@@ -63,11 +65,18 @@ export default function Home({
 
 
   useEffect(() => {
+    if (hasInitialData && !refreshOnMount) return;
+
     async function loadHomepageData() {
       try {
-        setLoading(true);
+        if (!hasInitialData) setLoading(true);
 
-        const prodSnap = await getDocs(collectionLite(dbLite, 'products'));
+        const [prodSnap, projSnap, newsSnap] = await Promise.all([
+          getDocs(collectionLite(dbLite, 'products')),
+          getDocs(collectionLite(dbLite, 'projects')),
+          getDocs(collectionLite(dbLite, 'news')),
+        ]);
+
         const prodList: Product[] = [];
         prodSnap.forEach((doc: any) => {
           const data = doc.data();
@@ -78,8 +87,6 @@ export default function Home({
         prodList.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
         setProducts(prodList);
 
-        const projCol = collectionLite(dbLite, 'projects');
-        const projSnap = await getDocs(projCol);
         const projList: Project[] = [];
         projSnap.forEach((doc: any) => {
           const data = doc.data();
@@ -89,7 +96,6 @@ export default function Home({
         });
         setProjects(projList);
 
-        const newsSnap = await getDocs(collectionLite(dbLite, 'news'));
         const newsList: News[] = [];
         newsSnap.forEach((doc: any) => {
           const data = doc.data();
@@ -108,7 +114,7 @@ export default function Home({
     }
 
     loadHomepageData();
-  }, []);
+  }, [hasInitialData, refreshOnMount]);
 
 
 

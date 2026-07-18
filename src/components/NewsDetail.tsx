@@ -335,21 +335,21 @@ export default function NewsDetail({
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-0 space-y-6 animate-in fade-in" id="news-detail-root-container">
-      <div className="mb-[15px]">
-        {/* Breadcrumb row */}
-        <nav aria-label="breadcrumb" className={`flex flex-col sticky z-[90] bg-bg-surface py-[10px] transition-all duration-300 ${scrollDirection === 'down' ? 'top-0' : 'top-10'}`} id="news-detail-breadcrumb">
-          <div className="flex items-center text-xs text-text-secondary border-b border-border-color pb-[5px]">
-            <div className="flex items-center gap-2 text-text-secondary font-mono">
-              <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary truncate max-w-[100px] cursor-pointer">Tin tức</button>
-              <span>/</span>
-              <span role="link" tabIndex={0} className="hover:text-primary truncate max-w-[150px] cursor-pointer" onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })} onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'category-news', categoryName: article.category }))}>{article.category}</span>
-              <span>/</span>
-              <span className="text-primary font-bold truncate max-w-[200px]" title={article.title}>{article.title}</span>
-            </div>
+      {/* Dòng điều hướng breadcrumb */}
+      <nav aria-label="breadcrumb" className={`flex flex-col sticky z-[90] bg-bg-surface py-[10px] transition-all duration-300 ${scrollDirection === 'down' ? 'top-0' : 'top-10'}`} id="news-detail-breadcrumb">
+        <div className="flex items-center text-xs text-text-secondary border-b border-border-color pb-[5px]">
+          <div className="flex items-center gap-2 text-text-secondary font-mono">
+            <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary truncate max-w-[100px] cursor-pointer">Tin tức</button>
+            <span>/</span>
+            <span role="link" tabIndex={0} className="hover:text-primary truncate max-w-[150px] cursor-pointer" onClick={() => onNavigate({ screen: 'category-news', categoryName: article.category })} onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'category-news', categoryName: article.category }))}>{article.category}</span>
+            <span>/</span>
+            <span className="text-primary font-bold truncate max-w-[200px]" title={article.title}>{article.title}</span>
           </div>
-        </nav>
+        </div>
+      </nav>
 
-        {/* Header Info Banner: Title, published date, author */}
+      <div className="!mt-0 mb-[15px]">
+        {/* Thông tin tiêu đề, ngày đăng và tác giả */}
         <div className="text-left max-w-4xl" id="news-detail-briefing">
 
           <h1 className="mt-[15px] mb-[10px] text-2xl sm:text-3.5xl font-display font-medium text-text-primary tracking-tight leading-snug">

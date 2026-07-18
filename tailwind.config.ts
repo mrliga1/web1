@@ -31,9 +31,9 @@ const config: Config = {
         'info': 'var(--color-info)',
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'Segoe UI', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['var(--font-space-grotesk)', 'var(--font-inter)', 'sans-serif'],
-        serif: ['var(--font-playfair)', 'ui-serif', 'Georgia', 'serif'],
+        sans: ['var(--font-sans)'],
+        display: ['var(--font-display)'],
+        serif: ['var(--font-serif)'],
       }
     },
   },

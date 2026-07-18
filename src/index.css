@@ -24,9 +24,9 @@
   --color-warning: #B45309;
   --color-error: #B91C1C;
   --color-info: #0369A1;
-  --font-sans: var(--font-inter), "Segoe UI", Arial, sans-serif;
-  --font-display: var(--font-space-grotesk), var(--font-sans);
-  --font-serif: var(--font-playfair), Georgia, serif;
+  --font-sans: "Segoe UI Variable Text", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --font-serif: Georgia, "Times New Roman", ui-serif, serif;
   --shadow-soft: 0 8px 24px rgba(11, 31, 22, 0.08);
   --shadow-elevation: 0 14px 36px rgba(11, 31, 22, 0.12);
   --motion-fast: 160ms;

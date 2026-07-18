@@ -1,32 +1,9 @@
 import type { Metadata } from "next";
-import { Inter, Playfair_Display, Space_Grotesk } from "next/font/google";
 import Providers from "./providers";
 import ClientLayout from "../src/components/ClientLayout";
 import SchemaMarkup from "../src/components/SchemaMarkup";
 import { getInitialSiteSettings } from "../src/lib/serverData";
 import "../src/index.css";
-
-const inter = Inter({
-  subsets: ["latin", "vietnamese"],
-  display: "optional",
-  variable: "--font-inter",
-  preload: true,
-});
-
-const spaceGrotesk = Space_Grotesk({
-  subsets: ["latin", "vietnamese"],
-  display: "optional",
-  variable: "--font-space-grotesk",
-  preload: false,
-});
-
-const playfairDisplay = Playfair_Display({
-  subsets: ["latin", "vietnamese"],
-  style: ["normal", "italic"],
-  display: "optional",
-  variable: "--font-playfair",
-  preload: false,
-});
 
 /* Metadata mặc định cho toàn bộ site */
 export const metadata: Metadata = {
@@ -88,10 +65,7 @@ export default async function RootLayout({
   const initialSiteSettings = await getInitialSiteSettings();
 
   return (
-    <html
-      lang="vi"
-      className={`${inter.variable} ${spaceGrotesk.variable} ${playfairDisplay.variable}`}
-    >
+    <html lang="vi">
       <head>
         {/* PWA Tags */}
         <link rel="manifest" href="/manifest.json" />

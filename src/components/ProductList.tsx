@@ -1085,21 +1085,9 @@ export default function ProductList({
                   </div>
 
                   <div className="relative overflow-hidden py-4 w-full" id="featured-projects-slider">
-                    <style>{`
-                      @keyframes productSliderScroll {
-                        0% { transform: translateX(0); }
-                        100% { transform: translateX(calc(-16.666666%)); }
-                      }
-                      .animate-product-slider {
-                        animation: productSliderScroll 15s linear infinite;
-                      }
-                      .animate-product-sliding-container:hover .animate-product-slider {
-                        animation-play-state: paused;
-                      }
-                    `}</style>
                     <div className="animate-product-sliding-container flex w-max">
                       <div className="flex w-max animate-product-slider">
-                        {[...Array(6)].flatMap(() => projects.slice(0, 5)).map((proj, idx) => {
+                        {[...Array(2)].flatMap(() => projects.slice(0, 5)).map((proj, idx) => {
                           let statusText = 'Đang mở bán';
                           if (proj.status === 'handed_over') statusText = 'Đã bàn giao';
                           if (proj.status === 'coming_soon') statusText = 'Sắp ra mắt';
@@ -1107,14 +1095,15 @@ export default function ProductList({
                           return (
                             <div
                               key={`${proj.id}-${idx}`}
+                              aria-hidden={idx >= projects.slice(0, 5).length}
                               onClick={() => router.push(getRouteUrl({ screen: 'project-detail', projectId: proj.id, slug: generateSlug(proj.title) }))}
-                              className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
+                              className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                             >
                               <div className="relative aspect-[16/10] overflow-hidden">
                                 <img 
-                                  loading={idx < 2 ? "eager" : "lazy"} 
+                                  loading="lazy"
                                   decoding="async"
-                                  fetchPriority={idx < 2 ? "high" : "auto"}
+                                  fetchPriority="low"
                                   src={optimizeImageUrl(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                                   alt={proj.title}
                                   width="800"
@@ -1123,16 +1112,16 @@ export default function ProductList({
                                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
                                   onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
                                 />
-                                <div className="absolute top-0 left-0 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
+                                <div className="absolute top-0 left-0 px-2.5 py-1 bg-success text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
                                   {statusText}
                                 </div>
                               </div>
     
                               <div className="p-4 flex-1 flex flex-col justify-between text-left">
                                 <div>
-                                  <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
+                                  <h3 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
                                     {proj.title}
-                                  </h4>
+                                  </h3>
                                   <div className="flex items-center justify-between text-xs mb-3 w-full">
                                     <span className="text-text-secondary">Giá từ:</span>
                                     <span className="text-primary font-bold text-[13px]">{proj.priceText || "Đang cập nhật"}</span>

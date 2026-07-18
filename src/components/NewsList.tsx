@@ -365,7 +365,7 @@ export default function NewsList({
                           height="400"
                           referrerPolicy="no-referrer"
                           onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="motion-media w-full h-full object-cover group-hover:scale-105"
                         />
                       </div>
 
@@ -619,21 +619,9 @@ export default function NewsList({
                       </button>
                     </div>
                     <div className="relative overflow-hidden py-4 w-full">
-                      <style>{`
-                        @keyframes sliderScrollNewsList {
-                          0% { transform: translateX(0); }
-                          100% { transform: translateX(calc(-16.666666%)); }
-                        }
-                        .animate-news-list-slider {
-                          animation: sliderScrollNewsList 15s linear infinite;
-                        }
-                        .animate-news-list-sliding-container:hover .animate-news-list-slider {
-                          animation-play-state: paused;
-                        }
-                      `}</style>
                       <div className="animate-news-list-sliding-container flex w-max">
                         <div className="flex w-max animate-news-list-slider">
-                          {[...Array(6)].flatMap(() => featuredProjects.slice(0, 5)).map((p, idx) => {
+                          {[...Array(2)].flatMap(() => featuredProjects.slice(0, 5)).map((p, idx) => {
                             let statusText = 'Đang mở bán';
                             if (p.status === 'handed-over') statusText = 'Đã bàn giao';
                             if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
@@ -641,8 +629,9 @@ export default function NewsList({
                             return (
                               <div
                                 key={`${p.id}-${idx}`}
+                                aria-hidden={idx >= featuredProjects.slice(0, 5).length}
                                 onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
-                                className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
+                                className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                               >
                                 <div className="relative aspect-[16/10] overflow-hidden">
                                   <img loading="lazy" decoding="async"
@@ -651,19 +640,19 @@ export default function NewsList({
                                     width="800"
                                     height="500"
                                     referrerPolicy="no-referrer"
-                                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+                                    className="motion-media w-full h-full object-cover group-hover:scale-105 block"
                                     onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
                                   />
-                                  <div className="absolute top-0 left-0 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
+                                  <div className="absolute top-0 left-0 px-2.5 py-1 bg-success text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
                                     {statusText}
                                   </div>
                                 </div>
       
                                 <div className="p-4 flex-1 flex flex-col justify-between text-left">
                                   <div>
-                                    <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
+                                    <h3 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
                                       {p.title}
-                                    </h4>
+                                    </h3>
                                     <div className="flex items-center justify-between text-xs mb-3 w-full">
                                       <span className="text-text-secondary">Giá từ:</span>
                                       <span className="text-primary font-bold text-[13px]">{p.priceText || "Đang cập nhật"}</span>

@@ -1,9 +1,32 @@
 import type { Metadata } from "next";
+import { Inter, Playfair_Display, Space_Grotesk } from "next/font/google";
 import Providers from "./providers";
 import ClientLayout from "../src/components/ClientLayout";
 import SchemaMarkup from "../src/components/SchemaMarkup";
 import { getInitialSiteSettings } from "../src/lib/serverData";
 import "../src/index.css";
+
+const inter = Inter({
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
+  variable: "--font-inter",
+  preload: true,
+});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin", "vietnamese"],
+  display: "swap",
+  variable: "--font-space-grotesk",
+  preload: true,
+});
+
+const playfairDisplay = Playfair_Display({
+  subsets: ["latin", "vietnamese"],
+  style: ["normal", "italic"],
+  display: "swap",
+  variable: "--font-playfair",
+  preload: false,
+});
 
 /* Metadata mặc định cho toàn bộ site */
 export const metadata: Metadata = {
@@ -65,37 +88,14 @@ export default async function RootLayout({
   const initialSiteSettings = await getInitialSiteSettings();
 
   return (
-    <html lang="vi">
+    <html
+      lang="vi"
+      className={`${inter.variable} ${spaceGrotesk.variable} ${playfairDisplay.variable}`}
+    >
       <head>
-        {/* Kết nối sớm tới máy chủ Google Fonts. */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        {/* Font loading không block render */}
-        <link
-          rel="preload"
-          as="style"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..800;1,400..800&display=swap"
-        />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..800;1,400..800&display=swap"
-          media="print"
-          // @ts-ignore
-          onLoad="this.media='all'"
-        />
-        <noscript>
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..800;1,400..800&display=swap"
-          />
-        </noscript>
         {/* PWA Tags */}
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#05080f" />
+        <meta name="theme-color" content="#04352A" />
         <SchemaMarkup schema={{
           "@context": "https://schema.org",
           "@type": "WebSite",
@@ -130,14 +130,7 @@ export default async function RootLayout({
           "priceRange": "$$$"
         }} />
       </head>
-      <body
-        style={{
-          backgroundColor: "#ffffff",
-          margin: 0,
-          padding: 0,
-          fontFamily: '"Inter", sans-serif',
-        }}
-      >
+      <body className="min-h-screen bg-bg-base text-text-primary antialiased">
         <Providers>
           <ClientLayout
             initialLogoUrl={initialSiteSettings.logoUrl}

@@ -1,10 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { collection as collectionLite, getDocs } from '../firebase';
-import { dbLite, addDoc, collection, db } from '../firebase';
-import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { Product, Project, News, RouteState } from '../types';
 import AdBanner from './AdBanner';
-import { generateSlug, optimizeImageUrl } from '../lib/utils';
 import { 
   HeroSectionBody, CorporateIntroBody, ReasonsBody, 
   FeaturedListingsBody, ProjectsBody, NewsBody 
@@ -71,40 +67,24 @@ export default function Home({
       try {
         if (!hasInitialData) setLoading(true);
 
-        const [prodSnap, projSnap, newsSnap] = await Promise.all([
-          getDocs(collectionLite(dbLite, 'products')),
-          getDocs(collectionLite(dbLite, 'projects')),
-          getDocs(collectionLite(dbLite, 'news')),
-        ]);
+        const response = await fetch('/api/home-data', { cache: 'no-store' });
+        if (!response.ok) {
+          throw new Error(`Không thể làm mới dữ liệu trang chủ (${response.status}).`);
+        }
 
-        const prodList: Product[] = [];
-        prodSnap.forEach((doc: any) => {
-          const data = doc.data();
-          if (!data.approvalStatus || data.approvalStatus === 'approved') {
-            prodList.push({ id: doc.id, ...data } as Product);
-          }
-        });
-        prodList.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
-        setProducts(prodList);
+        const payload = await response.json() as {
+          products?: Product[];
+          projects?: Project[];
+          news?: News[];
+        };
 
-        const projList: Project[] = [];
-        projSnap.forEach((doc: any) => {
-          const data = doc.data();
-          if (!data.approvalStatus || data.approvalStatus === 'approved') {
-            projList.push({ id: doc.id, ...data } as Project);
-          }
-        });
-        setProjects(projList);
+        if (!Array.isArray(payload.products) || !Array.isArray(payload.projects) || !Array.isArray(payload.news)) {
+          throw new Error('Dữ liệu làm mới trang chủ không đúng định dạng.');
+        }
 
-        const newsList: News[] = [];
-        newsSnap.forEach((doc: any) => {
-          const data = doc.data();
-          if ((!data.approvalStatus || data.approvalStatus === 'approved') && data.title?.trim()) {
-            newsList.push({ id: doc.id, ...data } as News);
-          }
-        });
-        newsList.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
-        setNews(newsList);
+        setProducts(payload.products);
+        setProjects(payload.projects);
+        setNews(payload.news);
 
       } catch (err) {
         console.error("Lỗi khi tải dữ liệu trang chủ:", err);

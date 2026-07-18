@@ -336,7 +336,7 @@ export default function ProjectList({
                             tabIndex={0}
                             onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
                             onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) }))}
-                            className="bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
+                            className="motion-card bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                           >
                             <div className="relative aspect-[16/10] overflow-hidden">
                               <img loading="lazy" decoding="async"
@@ -348,16 +348,16 @@ export default function ProjectList({
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
                                 onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
                               />
-                              <div className="absolute top-0 left-0 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
+                              <div className="absolute top-0 left-0 px-2.5 py-1 bg-success text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
                                 {statusText}
                               </div>
                             </div>
   
                             <div className="p-4 flex-1 flex flex-col justify-between">
                               <div>
-                                <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary">
+                                <h3 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary">
                                   {p.title}
-                                </h4>
+                                </h3>
                                 <div className="flex items-center justify-between text-xs mb-3">
                                   <span className="text-text-secondary">Giá từ:</span>
                                   <span className="text-primary font-bold text-[13px]">{p.priceText || "Đang cập nhật"}</span>

@@ -1,18 +1,16 @@
 import React, { useState } from 'react';
-import { optimizeImageUrl, generateSrcSet, generateSlug } from '../lib/utils';
-import { db, collection, addDoc } from '../firebase';
+import { optimizeImageUrl, generateSlug } from '../lib/utils';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { fetchClientIp } from '../lib/ip';
 import { notifyAdminEmail } from '../lib/email';
 import { 
-  Sparkles, ArrowRight, User, Phone, CheckCircle2, 
+  ArrowRight, Phone, CheckCircle2,
   MapPin, ChevronRight, Compass, Shield, Award, Calendar,
   Building2, Layers
 } from 'lucide-react';
 import { Product, Project, News, RouteState, VisualSection } from '../types';
-import { EditableText, EditableImage } from './EditableComponent';
+import { EditableText } from './EditableComponent';
 import ProductCard from './ProductCard';
-import { motion } from 'framer-motion';
 
 interface SectionRendererProps {
   sec: VisualSection;
@@ -55,6 +53,7 @@ const HeroConsultationForm: React.FC<{
 
     setIsSubmitting(true);
     try {
+      const { db, collection, addDoc } = await import('../firebase');
       const clientIp = await fetchClientIp();
       let friendlyUrl = "";
       if (window.location.hostname.includes('aistudio')) {
@@ -106,7 +105,7 @@ const HeroConsultationForm: React.FC<{
         Tư vấn nhanh
       </div>
 
-      <h3 className="font-display text-xl font-bold text-primary mb-1">Yêu Cầu Tư Vấn Chuyên Sâu</h3>
+      <h2 className="font-display text-xl font-bold text-primary mb-1">Yêu Cầu Tư Vấn Chuyên Sâu</h2>
       <p className="text-text-secondary text-xs mb-[15px] font-light">Chủ đầu tư sẽ trực tiếp liên hệ và gửi trọn bộ thông tin pháp lý của các biệt thự cao cấp trong vòng 5 phút.</p>
 
       {formSubmitted ? (
@@ -115,7 +114,7 @@ const HeroConsultationForm: React.FC<{
             <CheckCircle2 className="w-6 h-6" />
           </div>
           <div>
-            <h5 className="font-medium text-[15px] text-primary">Đăng ký thành công!</h5>
+            <h3 className="font-medium text-[15px] text-primary">Đăng ký thành công!</h3>
             <p className="text-[11px] text-text-secondary mt-1.5 leading-relaxed">Bộ phận chăm sóc giới tinh hoa sẽ gọi đến cho quý khách trong vài phút tới qua Hotline hoặc số điện thoại {clientPhone}.</p>
           </div>
           <button
@@ -216,7 +215,7 @@ const HeroConsultationForm: React.FC<{
           <button
             type="submit"
             disabled={isSubmitting || !agreeTerms || !agreePrivacy}
-            className="w-full my-0 mt-[14px] bg-primary hover:bg-primary-light shadow-[var(--shadow-elevation)] disabled:opacity-50 text-text-inverse font-semibold py-[5px] px-4 rounded-lg text-[13px] md:text-sm transition-all cursor-pointer text-center border-none"
+            className="motion-button w-full my-0 mt-[14px] bg-primary hover:bg-primary-light shadow-[var(--shadow-elevation)] disabled:opacity-50 text-text-inverse font-semibold py-[5px] px-4 rounded-lg text-[13px] md:text-sm cursor-pointer text-center border-none"
           >
             {isSubmitting ? "Đang gửi thông tin..." : "Nhận tư vấn ngay"}
           </button>
@@ -290,7 +289,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
           <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-6 w-full">
             <button
               onClick={() => onNavigate({ screen: 'san-pham' })}
-              className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-light text-white font-bold px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] shadow-lg transition-all border-none cursor-pointer"
+              className="motion-button flex items-center justify-center gap-2 bg-primary hover:bg-primary-light text-white font-bold px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] shadow-lg border-none cursor-pointer"
             >
               <span>Xem Sản Phẩm</span>
               <ArrowRight className="w-4 h-4" />
@@ -298,7 +297,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             
             <a 
               href="tel:0932966700"
-              className="flex items-center justify-center gap-2 text-primary bg-white border border-primary/30 rounded-full px-4 py-2 sm:px-6 sm:py-2.5 hover:bg-primary/5 transition-all font-bold text-[12px] sm:text-[13px] shadow-sm cursor-pointer"
+              className="motion-button flex items-center justify-center gap-2 text-primary bg-white border border-primary/30 rounded-full px-4 py-2 sm:px-6 sm:py-2.5 hover:bg-primary/5 font-bold text-[12px] sm:text-[13px] shadow-sm cursor-pointer"
             >
               <div className="bg-primary/10 p-1 rounded-full">
                 <Phone className="w-3.5 h-3.5 text-primary" />
@@ -372,7 +371,7 @@ export const CorporateIntroBody: React.FC<SectionRendererProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left">
           {/* Vision */}
-          <div className="bg-bg-surface border border-border-color p-[12px] rounded-xl hover:border-emerald-500/30 hover:bg-bg-surface shadow-xl transition-all group relative overflow-hidden">
+          <div className="motion-card bg-bg-surface border border-border-color p-[12px] rounded-xl hover:border-primary/30 hover:bg-bg-surface shadow-xl group relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <Compass className="w-24 h-24" />
             </div>
@@ -405,7 +404,7 @@ export const CorporateIntroBody: React.FC<SectionRendererProps> = ({
           </div>
 
           {/* Strategy */}
-          <div className="bg-bg-surface border border-border-color p-[12px] rounded-xl hover:border-emerald-500/30 hover:bg-bg-surface shadow-xl transition-all group relative overflow-hidden">
+          <div className="motion-card bg-bg-surface border border-border-color p-[12px] rounded-xl hover:border-primary/30 hover:bg-bg-surface shadow-xl group relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <Shield className="w-24 h-24" />
             </div>
@@ -438,7 +437,7 @@ export const CorporateIntroBody: React.FC<SectionRendererProps> = ({
           </div>
 
           {/* Working Process */}
-          <div className="bg-bg-surface border border-border-color pt-[12px] pl-[11px] pr-[12px] pb-[10px] rounded-xl hover:border-emerald-500/30 hover:bg-bg-surface shadow-xl transition-all group relative overflow-hidden">
+          <div className="motion-card bg-bg-surface border border-border-color pt-[12px] pl-[11px] pr-[12px] pb-[10px] rounded-xl hover:border-primary/30 hover:bg-bg-surface shadow-xl group relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
               <Award className="w-24 h-24" />
             </div>
@@ -521,7 +520,7 @@ export const ReasonsBody: React.FC<SectionRendererProps> = ({
                   sections={sections}
                   onUpdateSections={onUpdateSections}
                   className="text-primary text-base font-medium tracking-wide" 
-                  tag="h4" 
+                  tag="h3"
                 />
                 <EditableText 
                   sectionId="reasons" 
@@ -550,7 +549,7 @@ export const ReasonsBody: React.FC<SectionRendererProps> = ({
                   sections={sections}
                   onUpdateSections={onUpdateSections}
                   className="text-primary text-base font-medium tracking-wide" 
-                  tag="h4" 
+                  tag="h3"
                 />
                 <EditableText 
                   sectionId="reasons" 
@@ -579,7 +578,7 @@ export const ReasonsBody: React.FC<SectionRendererProps> = ({
                   sections={sections}
                   onUpdateSections={onUpdateSections}
                   className="text-primary text-base font-medium tracking-wide" 
-                  tag="h4" 
+                  tag="h3"
                 />
                 <EditableText 
                   sectionId="reasons" 
@@ -794,7 +793,7 @@ export const FeaturedListingsBody: React.FC<ListingsProps> = ({
               <button
                 type="button"
                 onClick={handleProductSeeMore}
-                className="inline-flex items-center gap-2 bg-bg-surface hover:bg-bg-surface text-text-secondary hover:text-primary border border-border-color shadow-sm px-6 py-3 rounded-full transition-all text-xs font-semibold cursor-pointer border-solid"
+                className="motion-button inline-flex items-center gap-2 bg-bg-surface hover:bg-bg-surface text-text-secondary hover:text-primary border border-border-color shadow-sm px-6 py-3 rounded-full text-xs font-semibold cursor-pointer border-solid"
               >
                 <span>{productClickCount === 0 ? "Xem thêm biệt thự cao cấp (Click Lần 1)" : "Xem Toàn Bộ Kho Căn Hộ (Click Lần 2)"}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -863,29 +862,19 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
           <div className="text-white/70 text-xs py-6 text-center">Chưa có dự án nào được cập nhật.</div>
         ) : (
           <div className="relative overflow-hidden py-4 w-full">
-            <style>{`
-              @keyframes sliderScrollProjects {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(calc(-16.666666%)); }
-              }
-              .animate-slider-projects {
-                animation: sliderScrollProjects 15s linear infinite;
-              }
-              .animate-sliding-container:hover .animate-slider-projects {
-                animation-play-state: paused;
-              }
-            `}</style>
             <div className="animate-sliding-container flex w-max">
               <div className="flex w-max animate-slider-projects">
-                {[...Array(6)].flatMap(() => projects.slice(0, 5)).map((proj, idx) => (
+                {[...Array(2)].flatMap(() => projects.slice(0, 5)).map((proj, idx) => (
                   <a
                     key={`${proj.id}-${idx}`}
+                    aria-hidden={idx >= projects.slice(0, 5).length}
+                    tabIndex={idx >= projects.slice(0, 5).length ? -1 : undefined}
                     href={`/du-an/${generateSlug(proj.title)}`}
                     onClick={(e) => {
                       e.preventDefault();
                       onNavigate({ screen: 'project-detail', projectId: proj.id, slug: generateSlug(proj.title) });
                     }}
-                    className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-emerald-500/30 shadow-md rounded-lg overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer flex flex-col justify-between block"
+                    className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-primary/30 shadow-md rounded-lg overflow-hidden group cursor-pointer flex flex-col justify-between block"
                   >
                     <div className="relative aspect-[16/10] overflow-hidden">
                       <img loading="lazy" decoding="async"
@@ -894,18 +883,18 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
                         width="800"
                         height="500"
                         referrerPolicy="no-referrer"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="motion-media w-full h-full object-cover group-hover:scale-105"
                       />
-                      <div className="absolute top-0 left-0 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
+                      <div className="absolute top-0 left-0 px-2.5 py-1 bg-success text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
                         {proj.status === 'handed_over' ? 'Đã bàn giao' : proj.status === 'coming_soon' ? 'Sắp ra mắt' : 'Đang mở bán'}
                       </div>
                     </div>
 
                     <div className="p-4 flex-1 flex flex-col justify-between">
                       <div>
-                        <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary">
+                        <h3 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary">
                           {proj.title}
-                        </h4>
+                        </h3>
                         <div className="flex items-center justify-between text-xs mb-3">
                           <span className="text-text-secondary">Giá từ:</span>
                           <span className="text-primary font-bold text-[13px]">{proj.priceText || "Đang cập nhật"}</span>
@@ -995,29 +984,19 @@ export const NewsBody: React.FC<NewsProps> = ({
         <div className="text-white/70 text-xs py-6 text-center">Chưa có tin tức nào được cập nhật.</div>
       ) : (
         <div className="relative overflow-hidden py-4 w-full">
-          <style>{`
-            @keyframes sliderScrollNews {
-              0% { transform: translateX(0); }
-              100% { transform: translateX(calc(-16.666666%)); }
-            }
-            .animate-slider-news {
-              animation: sliderScrollNews 25s linear infinite;
-            }
-            .animate-sliding-container:hover .animate-slider-news {
-              animation-play-state: paused;
-            }
-          `}</style>
           <div className="animate-sliding-container flex w-max">
             <div className="flex w-max animate-slider-news">
-              {[...Array(6)].flatMap(() => news.slice(0, 5)).map((article, idx) => (
+              {[...Array(2)].flatMap(() => news.slice(0, 5)).map((article, idx) => (
                 <a
                   key={`${article.id}-${idx}`}
+                  aria-hidden={idx >= news.slice(0, 5).length}
+                  tabIndex={idx >= news.slice(0, 5).length ? -1 : undefined}
                   href={`/tin-tuc/${generateSlug(article.title)}`}
                   onClick={(e) => {
                     e.preventDefault();
                     onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) });
                   }}
-                  className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-emerald-500/30 shadow-md rounded-lg overflow-hidden group hover:scale-[1.01] transition-all cursor-pointer flex flex-col justify-between block"
+                  className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-primary/30 shadow-md rounded-lg overflow-hidden group cursor-pointer flex flex-col justify-between block"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <img loading="lazy" decoding="async"
@@ -1026,7 +1005,7 @@ export const NewsBody: React.FC<NewsProps> = ({
                       width="800"
                       height="500"
                       referrerPolicy="no-referrer"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="motion-media w-full h-full object-cover group-hover:scale-105"
                     />
                   </div>
 

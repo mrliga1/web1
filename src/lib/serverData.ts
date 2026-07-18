@@ -2,6 +2,7 @@ import "server-only";
 
 import { cache } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { unstable_cache } from "next/cache";
 import { DEFAULT_HOME_SECTIONS } from "./layouts";
 import {
   deserializeSectionsFromDatabase,
@@ -67,6 +68,45 @@ function getCreatedAtTimestamp(value: unknown): number {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
+function toHomeProduct(product: Product): Product {
+  return {
+    id: product.id,
+    title: product.title,
+    priceText: product.priceText,
+    type: product.type,
+    district: product.district,
+    street: product.street,
+    imageUrl: product.imageUrl,
+    imageUrls: product.imageUrls?.slice(0, 1),
+    area: product.area,
+    bedrooms: product.bedrooms,
+    toilets: product.toilets,
+  } as Product;
+}
+
+function toHomeProject(project: Project): Project {
+  return {
+    id: project.id,
+    title: project.title,
+    priceText: project.priceText,
+    location: project.location,
+    units: project.units,
+    imageUrl: project.imageUrl,
+    status: project.status,
+    scale: project.scale,
+  } as Project;
+}
+
+function toHomeNews(article: News): News {
+  return {
+    id: article.id,
+    title: article.title,
+    description: article.description,
+    imageUrl: article.imageUrl,
+    createdAt: article.createdAt,
+  } as News;
+}
+
 function reportReadError(resource: string, error: unknown) {
   let message: string;
 
@@ -85,7 +125,7 @@ function reportReadError(resource: string, error: unknown) {
   console.error(`Không thể tải ${resource} khi render phía server: ${message}`);
 }
 
-export async function getHomePageInitialData(): Promise<HomePageInitialData> {
+export async function loadHomePageInitialData(): Promise<HomePageInitialData> {
   const fallback: HomePageInitialData = {
     sections: getDefaultHomeSections(),
     products: [],
@@ -125,11 +165,13 @@ export async function getHomePageInitialData(): Promise<HomePageInitialData> {
       .sort(
         (left, right) =>
           getCreatedAtTimestamp(right.createdAt) - getCreatedAtTimestamp(left.createdAt),
-      );
+      )
+      .slice(0, 15)
+      .map(toHomeProduct);
 
     const projects = unwrapRows<Project>(projectsResult.data).filter(
       (project) => !project.approvalStatus || project.approvalStatus === "approved",
-    );
+    ).slice(0, 5).map(toHomeProject);
 
     const news = unwrapRows<News>(newsResult.data)
       .filter(
@@ -140,7 +182,9 @@ export async function getHomePageInitialData(): Promise<HomePageInitialData> {
       .sort(
         (left, right) =>
           getCreatedAtTimestamp(right.createdAt) - getCreatedAtTimestamp(left.createdAt),
-      );
+      )
+      .slice(0, 5)
+      .map(toHomeNews);
 
     return {
       sections,
@@ -159,6 +203,15 @@ export async function getHomePageInitialData(): Promise<HomePageInitialData> {
     return fallback;
   }
 }
+
+export const getHomePageInitialData = unstable_cache(
+  loadHomePageInitialData,
+  ["home-page-initial-data-v1"],
+  {
+    revalidate: 60,
+    tags: ["home-page-data"],
+  },
+);
 
 async function loadInitialSiteSettings(): Promise<InitialSiteSettings> {
   try {
@@ -187,4 +240,13 @@ async function loadInitialSiteSettings(): Promise<InitialSiteSettings> {
   }
 }
 
-export const getInitialSiteSettings = cache(loadInitialSiteSettings);
+const getCachedInitialSiteSettings = unstable_cache(
+  loadInitialSiteSettings,
+  ["initial-site-settings-v1"],
+  {
+    revalidate: 300,
+    tags: ["site-settings"],
+  },
+);
+
+export const getInitialSiteSettings = cache(getCachedInitialSiteSettings);

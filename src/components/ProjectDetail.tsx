@@ -1123,7 +1123,7 @@ export default function ProjectDetail({
                           >
                             <div className="relative w-full aspect-[16/9] overflow-hidden bg-bg-surface">
                               {card.status && (
-                                <div className="absolute top-0 left-0 z-10 bg-[#0f9b0f] text-white text-[11px] font-bold px-2.5 py-1 rounded-none rounded-br-lg shadow-sm tracking-wide">
+                                <div className="absolute top-0 left-0 z-10 bg-success text-white text-[11px] font-bold px-2.5 py-1 rounded-none rounded-br-lg shadow-sm tracking-wide">
                                   {card.status}
                                 </div>
                               )}
@@ -1131,7 +1131,7 @@ export default function ProjectDetail({
                                 loading="lazy"
                                 decoding="async"
                                 src={card.imageUrl || undefined}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                className="motion-media w-full h-full object-cover group-hover:scale-105"
                                 alt={card.name}
                                 referrerPolicy="no-referrer"
                               />
@@ -1892,7 +1892,7 @@ export default function ProjectDetail({
                           loading="lazy"
                           decoding="async"
                           src={news.imageUrl || undefined}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="motion-media w-full h-full object-cover group-hover:scale-105"
                           alt={news.title}
                           onError={(e) => {
                             e.currentTarget.onerror = null;
@@ -1902,9 +1902,9 @@ export default function ProjectDetail({
                         />
                       </div>
                       <div className="px-5 py-2.5 flex-1 flex flex-col">
-                        <h4 className="text-base font-bold text-text-primary line-clamp-2 group-hover:text-primary transition-colors mb-2">
+                        <h3 className="text-base font-bold text-text-primary line-clamp-2 group-hover:text-primary transition-colors mb-2">
                           {news.title}
-                        </h4>
+                        </h3>
                         <span className="text-xs text-text-secondary font-medium">
                           {news.createdAt
                             ? new Date(news.createdAt).toLocaleDateString(
@@ -2167,23 +2167,12 @@ export default function ProjectDetail({
               </button>
             </div>
             <div className="relative overflow-hidden py-4 w-full">
-              <style>{`
-                @keyframes sliderScrollProjectDetail {
-                  0% { transform: translateX(0); }
-                  100% { transform: translateX(calc(-16.666666%)); }
-                }
-                .animate-project-detail-slider {
-                  animation: sliderScrollProjectDetail 15s linear infinite;
-                }
-                .animate-project-detail-sliding-container:hover .animate-project-detail-slider {
-                  animation-play-state: paused;
-                }
-              `}</style>
               <div className="animate-project-detail-sliding-container flex w-max">
                 <div className="flex w-max animate-project-detail-slider">
-                  {[...Array(6)].flatMap(() => relatedProjects).map((proj, idx) => (
+                  {[...Array(2)].flatMap(() => relatedProjects).map((proj, idx) => (
                     <div
                       key={`${proj.id}-${idx}`}
+                      aria-hidden={idx >= relatedProjects.length}
                       onClick={() =>
                         onNavigate({
                           screen: "project-detail",
@@ -2191,14 +2180,14 @@ export default function ProjectDetail({
                           slug: generateSlug(proj.title),
                         })
                       }
-                      className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-border-color rounded-xl overflow-hidden cursor-pointer group hover:border-primary/50 transition-colors flex flex-col justify-between shadow-sm"
+                      className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-border-color rounded-xl overflow-hidden cursor-pointer group hover:border-primary/50 flex flex-col justify-between shadow-sm"
                     >
                       <div className="relative aspect-[4/3] overflow-hidden">
                         <img
                           loading="lazy"
                           decoding="async"
                           src={optimizeImageUrl(proj.images?.[0] || proj.imageUrl, 400) || undefined}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="motion-media w-full h-full object-cover group-hover:scale-105"
                           alt={proj.title}
                           onError={(e) => {
                             e.currentTarget.onerror = null;
@@ -2206,15 +2195,15 @@ export default function ProjectDetail({
                               "/no-image.svg";
                           }}
                         />
-                        <div className="absolute top-0 left-0 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
+                        <div className="absolute top-0 left-0 px-2.5 py-1 bg-success text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
                           {proj.status === 'handed-over' ? 'Đã bàn giao' : proj.status === 'coming_soon' ? 'Sắp ra mắt' : 'Đang mở bán'}
                         </div>
                       </div>
                       <div className="p-4 flex-1 flex flex-col justify-between">
                         <div>
-                          <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary">
+                          <h3 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary">
                             {proj.title}
-                          </h4>
+                          </h3>
                           <div className="flex items-center justify-between text-xs mb-3">
                             <span className="text-text-secondary">Giá từ:</span>
                             <span className="text-primary font-bold text-[13px]">{proj.priceText || "Đang cập nhật"}</span>

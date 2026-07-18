@@ -17,7 +17,7 @@ interface NavbarProps {
   isSettingsLoaded?: boolean;
 }
 
-export default function Navbar({ currentRoute, onNavigate, onShowNotification, logoUrl, isSettingsLoaded = false }: NavbarProps) {
+export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSettingsLoaded = false }: NavbarProps) {
   const { currentUser, userProfile, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -36,12 +36,10 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
       onShowNotification('Bạn đã đăng xuất tài khoản.', 'success');
       handleNavigate({ screen: 'home' });
       setUserDropdownOpen(false);
-    } catch (error) {
+    } catch {
       onShowNotification('Lỗi đăng xuất khỏi hệ thống.', 'error');
     }
   };
-
-  const isAdmin = userProfile?.role === 'admin' || userProfile?.role === 'editor';
 
 
   const menuItems = [
@@ -73,9 +71,8 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
               <img loading="eager" decoding="async" 
                 src={(logoUrl) || undefined} 
                 alt="Greenia Homes" 
-                // @ts-ignore
                 fetchPriority="high"
-                className="h-7 md:h-8 max-h-9 w-auto object-contain shrink-0 group-hover:scale-105 transition-all duration-300"
+                className="motion-media h-7 md:h-8 max-h-9 w-auto object-contain shrink-0 group-hover:scale-105"
                 referrerPolicy="no-referrer"
                 width={120}
                 height={32}
@@ -84,7 +81,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
               <div className="w-[120px] h-8 bg-zinc-100/20 rounded-md animate-pulse"></div>
             ) : (
               <>
-                <div className="bg-[#059669] text-white p-1.5 rounded-lg shadow-md group-hover:scale-105 transition-all duration-300">
+                <div className="motion-media bg-primary-light text-white p-1.5 rounded-lg shadow-md group-hover:scale-105">
                   <Building2 className="w-4 h-4" />
                 </div>
                 <div className="text-left font-display">
@@ -113,7 +110,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                       handleNavigate({ screen: item.screen });
                       setMobileMenuOpen(false);
                     }}
-                    className={`relative px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold transition-all cursor-pointer ${
+                    className={`motion-button relative px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold cursor-pointer ${
                       active 
                         ? theme === 'dark'
                           ? 'text-accent font-bold' 
@@ -138,7 +135,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
 
               <button
                 onClick={() => handleNavigate({ screen: 'favorites' })}
-                className={`p-1.5 rounded-full transition-all cursor-pointer border ${theme === 'dark' ? 'border-yellow-500/20 text-accent hover:bg-accent/20' : 'border-accent/50 text-accent hover:bg-accent/10'}`}
+                className={`motion-button p-1.5 rounded-full cursor-pointer border ${theme === 'dark' ? 'border-yellow-500/20 text-accent hover:bg-accent/20' : 'border-accent/50 text-accent hover:bg-accent/10'}`}
                 title="Danh sách Yêu thích"
                 aria-label="Danh sách Yêu thích"
               >
@@ -150,7 +147,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
               {/* 0932 966 700 Hotline Trigger with Icon */}
               <a 
                 href="tel:0932966700" 
-                className="flex items-center gap-1 bg-primary hover:bg-primary-light text-text-inverse font-extrabold px-3.5 py-1.5 rounded-full text-[11px] transition-colors cursor-pointer shadow-lg shadow-primary/10 hover:scale-[1.01]"
+                className="motion-button flex items-center gap-1 bg-primary hover:bg-primary-light text-text-inverse font-extrabold px-3.5 py-1.5 rounded-full text-[11px] cursor-pointer shadow-lg shadow-primary/10"
               >
                 <Phone className="w-3 h-3 fill-white shrink-0" />
                 <span>0932 966 700</span>
@@ -167,7 +164,7 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
                     id="user-menu-btn"
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
                     aria-label="Tài khoản người dùng"
-                    className={`flex items-center justify-center border p-0.5 rounded-full transition-all cursor-pointer select-none ${
+                    className={`motion-button flex items-center justify-center border p-0.5 rounded-full cursor-pointer select-none ${
                       theme === 'dark'
                         ? 'bg-bg-inverse border-border-inverse hover:border-yellow-500/50'
                         : 'bg-slate-100 border-zinc-100 hover:border-border-color'
@@ -353,12 +350,14 @@ export default function Navbar({ currentRoute, onNavigate, onShowNotification, l
           </nav>
       )}
 
-      <AuthModal 
-        isOpen={authModalOpen} 
-        onClose={() => setAuthModalOpen(false)} 
-        onShowNotification={onShowNotification} 
-        onLoginSuccess={() => handleNavigate({ screen: 'admin' })}
-      />
+      {authModalOpen && (
+        <AuthModal
+          isOpen
+          onClose={() => setAuthModalOpen(false)}
+          onShowNotification={onShowNotification}
+          onLoginSuccess={() => handleNavigate({ screen: 'admin' })}
+        />
+      )}
     </header>
     </>
   );

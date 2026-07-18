@@ -1,6 +1,6 @@
 import "server-only";
 
-import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { supabase } from "../supabase";
 import type { News, Product, Project } from "../types";
 import { generateSlug } from "./utils";
@@ -13,18 +13,25 @@ interface ContentRow<T extends PublicContent> {
   data: T;
 }
 
-const getContentRows = cache(async <T extends PublicContent>(table: ContentTable) => {
-  const { data, error } = await supabase.from(table).select("id,data");
+const getContentRows = unstable_cache(
+  async (table: ContentTable): Promise<ContentRow<PublicContent>[]> => {
+    const { data, error } = await supabase.from(table).select("id,data");
 
-  if (error) {
+    if (error) {
     console.error(`Không thể tải dữ liệu công khai từ bảng ${table}:`, error);
-    return [] as ContentRow<T>[];
-  }
+      return [];
+    }
 
-  return (data || []).filter((row): row is ContentRow<T> => {
-    return Boolean(row?.id && row?.data);
-  });
-});
+    return (data || []).filter((row): row is ContentRow<PublicContent> => {
+      return Boolean(row?.id && row?.data);
+    });
+  },
+  ["public-content-rows-v1"],
+  {
+    revalidate: 60,
+    tags: ["public-content"],
+  },
+);
 
 export function isPublishedContent(item: Pick<PublicContent, "approvalStatus">) {
   return !item.approvalStatus || item.approvalStatus === "approved";
@@ -34,7 +41,7 @@ async function getPublishedBySlug<T extends PublicContent>(
   table: ContentTable,
   slug: string,
 ) {
-  const rows = await getContentRows<T>(table);
+  const rows = (await getContentRows(table)) as ContentRow<T>[];
   const matchedRow = rows.find((row) => {
     return (
       isPublishedContent(row.data) &&
@@ -46,7 +53,7 @@ async function getPublishedBySlug<T extends PublicContent>(
 }
 
 async function getPublishedRows<T extends PublicContent>(table: ContentTable) {
-  const rows = await getContentRows<T>(table);
+  const rows = (await getContentRows(table)) as ContentRow<T>[];
   return rows.filter((row) => isPublishedContent(row.data));
 }
 

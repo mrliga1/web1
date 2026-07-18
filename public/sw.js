@@ -1,15 +1,7 @@
-const CACHE_NAME = 'greeniahomes-v1';
-const URLS_TO_CACHE = ['/'];
+const CACHE_NAME = 'greeniahomes-v2';
 
 self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        // Suppress failure if / fails (e.g. offline dev)
-        return cache.addAll(URLS_TO_CACHE).catch(err => console.log('Cache addAll error:', err));
-      })
-      .then(() => self.skipWaiting())
-  );
+  event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', event => {
@@ -25,7 +17,21 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/'))
+      fetch(event.request)
+        .then(response => {
+          if (response.ok) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then(cache => cache.put(event.request, responseToCache))
+              .catch(error => console.warn('Không thể lưu trang vào bộ nhớ ngoại tuyến:', error));
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cachedPage = await caches.match(event.request);
+          const cachedHomepage = await caches.match('/');
+          return cachedPage || cachedHomepage || Response.error();
+        })
     );
   }
 });

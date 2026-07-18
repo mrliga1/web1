@@ -58,7 +58,7 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
   
   // Use wsrv.nl image proxy and force WebP for other external images
   if (finalUrl.startsWith('http') && !finalUrl.endsWith('.svg')) {
-     let optimized = `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&output=webp&q=75`;
+     let optimized = `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&output=webp&q=70`;
      if (width) {
        optimized += `&w=${width}`;
      }
@@ -70,7 +70,7 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
 
 export function generateSrcSet(url: string | undefined | null): string | undefined {
   if (!url) return undefined;
-  return `${optimizeImageUrl(url, 400)} 400w, ${optimizeImageUrl(url, 800)} 800w, ${optimizeImageUrl(url, 1200)} 1200w, ${optimizeImageUrl(url, 1600)} 1600w`;
+  return `${optimizeImageUrl(url, 200)} 200w, ${optimizeImageUrl(url, 400)} 400w, ${optimizeImageUrl(url, 600)} 600w, ${optimizeImageUrl(url, 800)} 800w, ${optimizeImageUrl(url, 1200)} 1200w, ${optimizeImageUrl(url, 1600)} 1600w`;
 }
 
 export function getRouteUrl(route: import('../types').RouteState): string {
@@ -106,4 +106,3 @@ export function getRouteUrl(route: import('../types').RouteState): string {
   if (route.screen === "favorites") return "/yeu-thich";
   return "/";
 }
-

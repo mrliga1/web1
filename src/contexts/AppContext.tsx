@@ -17,6 +17,10 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+function usesServerProvidedLayout(docName: string | null) {
+  return docName === 'home';
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
@@ -49,43 +53,36 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    if (usesServerProvidedLayout(docName)) {
+      return;
+    }
+
     const docRef = doc(db, 'layouts', docName);
     getDoc(docRef).then((snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.data();
         if (data && data.sections) {
-          let loaded = deserializeSectionsFromDatabase(data.sections);
+          const loaded = deserializeSectionsFromDatabase(data.sections);
           if (loaded.length === 0) {
-            let defaults = getPageDefaultSections(docName);
-            if (docName === "home") defaults = sanitizeHomeSections(defaults);
+            const defaults = getPageDefaultSections(docName);
             setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
             setSectionsState(defaults);
           } else {
-            if (docName === "home") {
-              const sanitized = sanitizeHomeSections(loaded);
-              if (sanitized.length !== loaded.length) {
-                setDoc(docRef, { sections: serializeSectionsForDatabase(sanitized) }).catch(console.error);
-              }
-              loaded = sanitized;
-            }
             setSectionsState(loaded);
           }
         } else {
-          let defaults = getPageDefaultSections(docName);
-          if (docName === "home") defaults = sanitizeHomeSections(defaults);
+          const defaults = getPageDefaultSections(docName);
           setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
           setSectionsState(defaults);
         }
       } else {
-        let defaults = getPageDefaultSections(docName);
-        if (docName === "home") defaults = sanitizeHomeSections(defaults);
+        const defaults = getPageDefaultSections(docName);
         setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
         setSectionsState(defaults);
       }
     }).catch((e) => {
       console.error("Lỗi tải layout:", e);
-      let defaults = getPageDefaultSections(docName);
-      if (docName === "home") defaults = sanitizeHomeSections(defaults);
+      const defaults = getPageDefaultSections(docName);
       setSectionsState(defaults);
     });
   }, [pathname]);

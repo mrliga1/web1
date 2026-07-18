@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { optimizeImageUrl, generateSlug, generateSrcSet } from '../lib/utils';
+import { optimizeImageUrl, generateSlug } from '../lib/utils';
 import { recordContentEngagement } from '../lib/engagement';
 import { doc, getDoc, collection, getDocs, addDoc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
-import { ChevronLeft, Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, ShieldCheck, Tag, Building, Maximize, BedDouble, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown, Pause, Play } from 'lucide-react';
+import { Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, Tag, Building, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown, Pause, Play } from 'lucide-react';
 import AdBanner from './AdBanner';
 import ProductCard from './ProductCard';
 import StarRatingInteractive from './StarRatingInteractive';
@@ -104,8 +104,8 @@ export default function NewsDetail({
                 fetchedArticle = { id: docSnap.id, ...docSnap.data() } as News;
                 finalNewsId = docSnap.id;
               }
-            } catch (e) {
-              // Ignore invalid ID errors
+            } catch {
+              // Bỏ qua lỗi khi slug không phải mã tài liệu hợp lệ.
             }
           }
         }
@@ -382,8 +382,7 @@ export default function NewsDetail({
           {/* Main big cover photo */}
           <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-border-color bg-bg-surface">
             <img loading="eager" decoding="async" src={article.imageUrl ? optimizeImageUrl(article.imageUrl, 800) : undefined} alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
-              // @ts-ignore
-              fetchpriority="high" />
+              fetchPriority="high" />
           </div>
 
           {/* HTML rendered prose */}
@@ -404,10 +403,10 @@ export default function NewsDetail({
           <div className="bg-bg-surface/40 border border-border-color p-6 rounded-lg space-y-4 overflow-hidden" id="article-related-links">
             <div className="border-b border-border-color pb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h4 className="text-text-primary text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                <h3 className="text-text-primary text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
                   <Bookmark className="w-4 h-4 text-primary" />
                   <span>Tin Cùng Danh Mục</span>
-                </h4>
+                </h3>
                 <button
                   type="button"
                   onClick={() => setIsMarqueePaused(!isMarqueePaused)}
@@ -903,21 +902,9 @@ export default function NewsDetail({
           </div>
 
           <div className="relative overflow-hidden py-4 w-full">
-            <style>{`
-              @keyframes sliderScrollNewsDetail {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(calc(-16.666666%)); }
-              }
-              .animate-news-detail-slider {
-                animation: sliderScrollNewsDetail 15s linear infinite;
-              }
-              .animate-news-detail-sliding-container:hover .animate-news-detail-slider {
-                animation-play-state: paused;
-              }
-            `}</style>
             <div className="animate-news-detail-sliding-container flex w-max">
               <div className="flex w-max animate-news-detail-slider">
-                {[...Array(6)].flatMap(() => featuredProjectsList.slice(0, 5)).map((p, idx) => {
+                {[...Array(2)].flatMap(() => featuredProjectsList.slice(0, 5)).map((p, idx) => {
                   let statusText = 'Đang mở bán';
                   if (p.status === 'handed-over') statusText = 'Đã bàn giao';
                   if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
@@ -925,27 +912,28 @@ export default function NewsDetail({
                   return (
                     <div
                       key={`${p.id}-${idx}`}
+                      aria-hidden={idx >= featuredProjectsList.slice(0, 5).length}
                       onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
-                      className="w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full transition-all duration-300 hover:scale-[1.01] hover:border-emerald-500/30 hover:shadow-md cursor-pointer no-underline group shadow-sm justify-between"
+                      className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                     >
                       <div className="relative aspect-[16/10] overflow-hidden">
                         <img loading="lazy" decoding="async"
                           src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                           alt={p.title}
                           referrerPolicy="no-referrer"
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
+                          className="motion-media w-full h-full object-cover group-hover:scale-105 block"
                           onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
                         />
-                        <div className="absolute top-0 left-0 px-2.5 py-1 bg-[#0f9b0f] text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
+                        <div className="absolute top-0 left-0 px-2.5 py-1 bg-success text-white text-[11px] font-bold rounded-none rounded-br-lg shadow-sm z-10">
                           {statusText}
                         </div>
                       </div>
 
                       <div className="p-4 flex-1 flex flex-col justify-between text-left">
                         <div>
-                          <h4 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
+                          <h3 className="text-[13px] sm:text-[15px] font-bold text-text-primary mb-2 line-clamp-2 transition-colors group-hover:text-primary w-full text-left">
                             {p.title}
-                          </h4>
+                          </h3>
                           <div className="flex items-center justify-between text-xs mb-3 w-full">
                             <span className="text-text-secondary">Giá từ:</span>
                             <span className="text-primary font-bold text-[13px]">{p.priceText || "Đang cập nhật"}</span>

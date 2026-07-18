@@ -3,27 +3,36 @@
 @tailwind utilities;
 
 :root {
-  --color-bg-base: #EAECE8;
+  --color-bg-base: #F3F5F2;
   --color-bg-surface: #FFFFFF;
-  --color-bg-surface-alt: #E2E5E0;
+  --color-bg-surface-alt: #E9EEEA;
   --color-bg-inverse: #0B1F16;
   --color-bg-inverse-alt: #123024;
   --color-primary: #064E3B;
-  --color-primary-light: #0E7C5A;
+  --color-primary-light: #0B6B50;
   --color-primary-dark: #04352A;
-  --color-accent: #D4AF37;
-  --color-accent-hover: #B8962A;
-  --color-accent-soft: #F4E8C1;
-  --color-text-primary: #16211C;
-  --color-text-secondary: #4B5A52;
+  --color-accent: #C59A31;
+  --color-accent-hover: #A77D1F;
+  --color-accent-soft: #F5E9C8;
+  --color-text-primary: #17241D;
+  --color-text-secondary: #526159;
   --color-text-inverse: #FFFFFF;
-  --color-border: #DDE3DC;
+  --color-border: #D8E0DA;
   --color-border-inverse: rgba(255,255,255,0.12);
   --color-overlay-dark: rgba(6,20,14,0.72);
-  --color-success: #15803D;
+  --color-success: #087443;
   --color-warning: #B45309;
   --color-error: #B91C1C;
   --color-info: #0369A1;
+  --font-sans: var(--font-inter), "Segoe UI", Arial, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-sans);
+  --font-serif: var(--font-playfair), Georgia, serif;
+  --shadow-soft: 0 8px 24px rgba(11, 31, 22, 0.08);
+  --shadow-elevation: 0 14px 36px rgba(11, 31, 22, 0.12);
+  --motion-fast: 160ms;
+  --motion-base: 240ms;
+  --motion-slow: 420ms;
+  --motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* React Quill overrides */
@@ -92,7 +101,12 @@ html, body {
 body {
   font-family: var(--font-sans);
   background-color: var(--color-bg-base);
+  background-image:
+    radial-gradient(circle at 8% 2%, rgba(197, 154, 49, 0.06), transparent 24rem),
+    radial-gradient(circle at 94% 18%, rgba(6, 78, 59, 0.055), transparent 28rem);
   color: var(--color-text-primary);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
 }
 
 /* Focus ring tùy chỉnh - hỗ trợ keyboard navigation (WCAG 2.4.7) */
@@ -342,4 +356,121 @@ div#app-workspace-flow:nth-of-type(2) > main#main-viewport:nth-of-type(1) > div:
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(20px); }
   to   { opacity: 1; transform: translateX(0); }
+}
+
+/* =========================================================
+   MOTION & INTERACTION SYSTEM
+   ========================================================= */
+@keyframes sliderScrollLoop {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
+}
+
+@keyframes softFloat {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -3px, 0); }
+}
+
+.animate-slider-projects,
+.animate-slider-news,
+.animate-news-detail-slider,
+.animate-news-list-slider,
+.animate-product-slider,
+.animate-product-detail-slider,
+.animate-project-detail-slider {
+  backface-visibility: hidden;
+  will-change: transform;
+  animation: sliderScrollLoop 15s linear infinite;
+}
+
+.animate-slider-news {
+  animation-duration: 25s;
+}
+
+.animate-sliding-container:hover .animate-slider-projects,
+.animate-sliding-container:hover .animate-slider-news,
+.animate-sliding-container:focus-within .animate-slider-projects,
+.animate-sliding-container:focus-within .animate-slider-news,
+.animate-news-detail-sliding-container:hover .animate-news-detail-slider,
+.animate-news-detail-sliding-container:focus-within .animate-news-detail-slider,
+.animate-news-list-sliding-container:hover .animate-news-list-slider,
+.animate-news-list-sliding-container:focus-within .animate-news-list-slider,
+.animate-product-sliding-container:hover .animate-product-slider,
+.animate-product-sliding-container:focus-within .animate-product-slider,
+.animate-product-detail-sliding-container:hover .animate-product-detail-slider,
+.animate-product-detail-sliding-container:focus-within .animate-product-detail-slider,
+.animate-project-detail-sliding-container:hover .animate-project-detail-slider,
+.animate-project-detail-sliding-container:focus-within .animate-project-detail-slider {
+  animation-play-state: paused;
+}
+
+.motion-card {
+  transition-property: transform, box-shadow, border-color, background-color;
+  transition-duration: var(--motion-base);
+  transition-timing-function: var(--motion-ease);
+}
+
+.motion-button {
+  transition-property: transform, box-shadow, color, background-color, border-color, opacity;
+  transition-duration: var(--motion-fast);
+  transition-timing-function: var(--motion-ease);
+}
+
+.motion-media {
+  transition: transform var(--motion-slow) var(--motion-ease);
+}
+
+.motion-float {
+  animation: softFloat 3.4s var(--motion-ease) infinite;
+}
+
+.motion-delay-1 {
+  animation-delay: 450ms;
+}
+
+.motion-delay-2 {
+  animation-delay: 900ms;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .motion-card:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: var(--shadow-elevation);
+  }
+
+  .motion-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .motion-button:active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .animate-slider-projects,
+  .animate-slider-news,
+  .animate-news-detail-slider,
+  .animate-news-list-slider,
+  .animate-product-slider,
+  .animate-product-detail-slider,
+  .animate-project-detail-slider,
+  .animate-marquee,
+  .motion-float {
+    animation: none !important;
+    transform: none !important;
+  }
 }

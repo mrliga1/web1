@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Product, RouteState } from '../types';
-import { MapPin, Tag, Layers, Bookmark, Bath, Heart } from 'lucide-react';
+import { MapPin, Layers, Bookmark, Bath, Heart } from 'lucide-react';
 import { formatLocationName } from '../lib/locationMapping';
 import { generateSlug, optimizeImageUrl, generateSrcSet } from '../lib/utils';
 
@@ -56,20 +56,20 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
         e.preventDefault();
         onNavigate({ screen: 'product-detail', productId: item.id, slug: generateSlug(item.title) });
       }}
-      className="w-full shrink-0 bg-bg-surface hover:bg-bg-base border border-border-color hover:border-primary/30 rounded-lg overflow-hidden group hover:-translate-y-1 hover:shadow-lg transition-all duration-300 cursor-pointer flex flex-row sm:flex-col block"
+      className="motion-card w-full shrink-0 bg-bg-surface hover:bg-bg-base border border-border-color hover:border-primary/30 rounded-lg overflow-hidden group cursor-pointer flex flex-row sm:flex-col block"
     >
       <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] overflow-hidden bg-bg-base flex items-center justify-center">
         <img 
           src={safeImageUrl || undefined}
           srcSet={generateSrcSet(item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : null))}
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 400px"
+          sizes="(max-width: 640px) 90px, (max-width: 1024px) 50vw, 400px"
           alt={item.title || 'Product'} 
           width="400"
           height="300"
           loading={priority ? "eager" : "lazy"}
           decoding="async"
           fetchPriority={priority ? "high" : "auto"}
-          className={`w-full h-full sm:h-full object-cover transition-transform duration-700 ease-in-out group-hover:scale-[1.03] group-hover:rotate-1 ${priority ? '' : 'animate-fade-in duration-700'}`}
+          className={`motion-media w-full h-full sm:h-full object-cover group-hover:scale-[1.03] ${priority ? '' : 'animate-fade-in'}`}
           referrerPolicy="no-referrer" 
           onError={(e) => { e.currentTarget.onerror = null;
             (e.target as HTMLImageElement).src = '/no-image.svg';
@@ -81,13 +81,13 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
         <button
           onClick={toggleFavorite}
           aria-label={isFavorite ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
-          className={`absolute top-1 right-1 sm:top-2 sm:right-2 z-20 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full border transition-colors shadow-sm ${isFavorite ? 'bg-primary text-text-inverse border-primary' : 'bg-white/90 text-text-secondary border-transparent hover:text-rose-600 hover:bg-white'}`}
+          className={`motion-button absolute top-1 right-1 sm:top-2 sm:right-2 z-20 w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-full border shadow-sm ${isFavorite ? 'bg-primary text-text-inverse border-primary' : 'bg-white/90 text-text-secondary border-transparent hover:text-rose-600 hover:bg-white'}`}
         >
           <Heart className={`w-[11px] h-[11px] sm:w-[13px] sm:h-[13px] ${isFavorite ? 'fill-current' : ''}`} />
         </button>
       </div>
       <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-        <h3 className="font-semibold text-[13px] sm:text-[14px] text-text-primary group-hover:text-primary line-clamp-2 leading-[1.4] transition-colors pt-[2px] sm:pt-0 mb-[2px] sm:mb-[10px] sm:min-h-[40px] font-playfair tracking-wide">
+        <h3 className="font-semibold text-[13px] sm:text-[14px] text-text-primary group-hover:text-primary line-clamp-2 leading-[1.4] transition-colors pt-[2px] sm:pt-0 mb-[2px] sm:mb-[10px] sm:min-h-[40px] font-serif tracking-wide">
           {item.title}
         </h3>
         <div className="flex items-center gap-[5px] text-[12px] text-text-secondary mb-[4px] sm:mb-[2px]">

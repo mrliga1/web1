@@ -3,6 +3,7 @@ const BLOCKED_STANDALONE_TAGS = /<\s*\/?\s*(script|object|embed|base|meta|link)\
 const EVENT_HANDLER_ATTRIBUTES = /\s+on[a-z][\w:-]*\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
 const SRCDOC_ATTRIBUTE = /\s+srcdoc\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
 const URI_ATTRIBUTE = /\s+(href|src|xlink:href|formaction)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi;
+const IMAGE_WITHOUT_ALT_ATTRIBUTE = /<img\b(?![^>]*\balt\s*=)([^>]*)>/gi;
 
 function isUnsafeUri(rawValue: string) {
   const value = rawValue.replace(/^['"]|['"]$/g, "").trim();
@@ -26,6 +27,7 @@ export function sanitizeRichHtml(value: unknown) {
     .replace(URI_ATTRIBUTE, (attribute, name: string, uri: string) => {
       return isUnsafeUri(uri) ? "" : ` ${name}=${uri}`;
     })
+    .replace(IMAGE_WITHOUT_ALT_ATTRIBUTE, '<img alt=""$1>')
     // Giữ nguyên kiểu hiển thị H1 nhưng hạ cấp trong cây trợ năng của nội dung nhúng.
     .replace(/<h1(?![^>]*\baria-level\s*=)/gi, '<h1 aria-level="2"');
 }

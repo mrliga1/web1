@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Phone, MessageSquare, Mail, X, CheckCircle2 } from 'lucide-react';
-import { db, addDoc, collection } from '../firebase';
+import { Phone, Mail, X, CheckCircle2 } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 
 export default function FloatingActionButtons() {
@@ -18,6 +17,7 @@ export default function FloatingActionButtons() {
     
     setIsSubmitting(true);
     try {
+      const { db, addDoc, collection } = await import('../firebase');
       await addDoc(collection(db, 'consultations'), {
         name: quoteName,
         phone: quotePhone,
@@ -56,7 +56,7 @@ export default function FloatingActionButtons() {
           aria-label="Gọi ngay hotline 0932 966 700"
           className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-bg-surface border-none md:border md:border-primary/20 md:hover:border-primary md:hover:bg-primary text-text-primary p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(16,185,129,0.3)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
         >
-          <div className="bg-primary md:group-hover:bg-bg-surface text-[14px] text-white md:group-hover:text-primary w-[40px] h-[40px] flex items-center justify-center rounded-full animate-bounce shrink-0 transition-colors duration-300 shadow-md shadow-primary/50">
+          <div className="motion-float bg-primary md:group-hover:bg-bg-surface text-[14px] text-white md:group-hover:text-primary w-[40px] h-[40px] flex items-center justify-center rounded-full shrink-0 transition-colors duration-300 shadow-md shadow-primary/50">
             <Phone className="w-[15px] h-[15px] md:w-5 md:h-5" />
           </div>
           <span className="text-[10px] md:text-[14px] font-medium md:font-bold capitalize md:normal-case tracking-wide text-text-primary md:text-text-primary md:group-hover:text-text-inverse transition-all duration-300 whitespace-nowrap overflow-hidden md:max-w-0 md:opacity-0 md:group-hover:max-w-[200px] md:group-hover:opacity-100">
@@ -79,7 +79,7 @@ export default function FloatingActionButtons() {
           }}
           className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-bg-surface border-none md:border md:border-blue-500/20 md:hover:border-blue-500 md:hover:bg-blue-500 text-text-primary p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(37,99,235,0.3)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
         >
-          <div className="bg-white w-[40px] h-[40px] rounded-full shrink-0 flex items-center justify-center transition-colors duration-300 shadow-md shadow-blue-500/50 animate-pulse">
+          <div className="motion-float motion-delay-1 bg-white w-[40px] h-[40px] rounded-full shrink-0 flex items-center justify-center transition-colors duration-300 shadow-md shadow-blue-500/50">
             <img 
               loading="lazy" 
               decoding="async" 
@@ -99,7 +99,7 @@ export default function FloatingActionButtons() {
           aria-label="Đăng ký tư vấn"
           className="flex flex-col md:flex-row flex-1 md:flex-none items-center justify-center md:justify-start gap-1 md:gap-0 md:hover:gap-[12px] bg-transparent md:bg-bg-surface border-none md:border md:border-accent/20 md:hover:border-accent md:hover:bg-accent text-text-primary p-0 md:hover:pr-[24px] rounded-none md:rounded-full shadow-none md:shadow-lg md:hover:shadow-[0_0_15px_rgba(245,158,11,0.3)] md:hover:-translate-y-1 transition-all duration-300 pointer-events-auto group"
         >
-          <div className="bg-accent md:group-hover:bg-bg-surface text-white md:group-hover:text-accent p-0 w-[40px] h-[40px] rounded-full shrink-0 flex items-center justify-center transition-colors duration-300 shadow-md shadow-accent/50 animate-bounce">
+          <div className="motion-float motion-delay-2 bg-accent md:group-hover:bg-bg-surface text-white md:group-hover:text-accent p-0 w-[40px] h-[40px] rounded-full shrink-0 flex items-center justify-center transition-colors duration-300 shadow-md shadow-accent/50">
             <Mail className="w-[15px] h-[15px] md:w-5 md:h-5" />
           </div>
           <span className="text-[10px] md:text-[14px] font-medium md:font-bold capitalize md:normal-case tracking-wide text-text-primary md:text-text-primary md:group-hover:text-text-inverse transition-all duration-300 whitespace-nowrap overflow-hidden md:max-w-0 md:opacity-0 md:group-hover:max-w-[200px] md:group-hover:opacity-100">

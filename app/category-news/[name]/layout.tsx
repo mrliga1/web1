@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { generateSlug } from "../../../src/lib/utils";
 import { supabase } from "../../../src/supabase";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type Props = {
   params: Promise<{ name: string }>;

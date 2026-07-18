@@ -4,7 +4,7 @@ import { permanentRedirect } from "next/navigation";
 import { generateSlug } from '../../../src/lib/utils';
 import { supabase } from '../../../src/supabase';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 60;
 
 export default async function CategoryProductPage({ params }: { params: Promise<{ name: string }> }) {
   const { name } = await params;

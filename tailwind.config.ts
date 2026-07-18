@@ -31,9 +31,9 @@ const config: Config = {
         'info': 'var(--color-info)',
       },
       fontFamily: {
-        sans: ['Inter', 'Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'Manrope', 'sans-serif'],
-        serif: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
+        sans: ['var(--font-inter)', 'Segoe UI', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-space-grotesk)', 'var(--font-inter)', 'sans-serif'],
+        serif: ['var(--font-playfair)', 'ui-serif', 'Georgia', 'serif'],
       }
     },
   },

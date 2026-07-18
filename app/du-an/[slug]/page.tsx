@@ -5,7 +5,7 @@ import { getProjectBySlug } from "../../../src/lib/serverContent";
 import { createProjectSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 const SITE_URL = "https://greeniahomes.vn";
 

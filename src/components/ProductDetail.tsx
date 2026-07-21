@@ -588,6 +588,7 @@ export default function ProductDetail({
 
         <button
           onClick={() => onNavigate({ screen: "san-pham" })}
+          aria-label="Trở lại danh sách sản phẩm"
           className="inline-flex items-center gap-1 hover:text-primary font-semibold cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />

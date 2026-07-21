@@ -340,7 +340,7 @@ export default function ProjectList({
                   <div className="space-y-10">
                     <h2 className="sr-only">Danh sách dự án</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                      {filteredProjects.slice(0, limitCount).map((p) => {
+                      {filteredProjects.slice(0, limitCount).map((p, projectIndex) => {
                         let statusText = 'Đang mở bán';
                         if (p.status === 'handed-over') statusText = 'Đã bàn giao';
                         if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
@@ -355,7 +355,8 @@ export default function ProjectList({
                             className="motion-card bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                           >
                             <div className="relative aspect-[16/10] overflow-hidden">
-                              <img loading="lazy" decoding="async"
+                              <img loading={projectIndex === 0 ? "eager" : "lazy"} decoding="async"
+                                fetchPriority={projectIndex === 0 ? "high" : "auto"}
                                 src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                                 alt={p.title}
                                 width="800"

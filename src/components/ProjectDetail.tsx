@@ -630,7 +630,9 @@ export default function ProjectDetail({
 
   const galleryImages =
     project.imageUrls && project.imageUrls.length > 0
-      ? project.imageUrls
+      ? project.imageUrl
+        ? [project.imageUrl, ...project.imageUrls.filter((image) => image !== project.imageUrl)]
+        : project.imageUrls
       : [
           project.imageUrl ||
             "/no-image.svg",

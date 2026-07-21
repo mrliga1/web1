@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { formatVietnamDate, generateSlug } from "../lib/utils";
-import { doc, getDoc, getDocs, collection, addDoc, db } from "../firebase";
-import { Project, RouteState } from "../types";
+import { News, Product, Project, RouteState } from "../types";
 import {
   X,
   ChevronLeft,
@@ -42,6 +41,9 @@ interface ProjectDetailProps {
   projectId: string;
   slug?: string;
   initialProject?: Project;
+  initialNews?: News[];
+  initialProducts?: Product[];
+  initialProjects?: Project[];
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: "success" | "error") => void;
 }
@@ -55,6 +57,9 @@ export default function ProjectDetail({
   onNavigate,
   onShowNotification,
   initialProject,
+  initialNews = [],
+  initialProducts = [],
+  initialProjects = [],
 }: ProjectDetailProps) {
   const [project, setProject] = useState<Project | null>(() => {
     if (initialProject) return initialProject;
@@ -68,12 +73,12 @@ export default function ProjectDetail({
     }
     return null;
   });
-  const [relatedProjects, setRelatedProjects] = useState<Project[]>([]);
-  const [relatedProducts, setRelatedProducts] = useState<any[]>([]);
-  const [relatedNews, setRelatedNews] = useState<any[]>([]);
-  const [targetNewsCategory, setTargetNewsCategory] = useState<string>("");
+  const [relatedProjects, setRelatedProjects] = useState<Project[]>(initialProjects.slice(0, 5));
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>(initialProducts.slice(0, 5));
+  const [relatedNews, setRelatedNews] = useState<News[]>(initialNews.slice(0, 6));
+  const [targetNewsCategory, setTargetNewsCategory] = useState<string>(initialProject?.newsCategoryUrl?.trim() || "");
   const [targetProductCategory, setTargetProductCategory] =
-    useState<string>("");
+    useState<string>(initialProject?.productCategoryUrl?.trim() || "");
   const [loading, setLoading] = useState(!project);
   const [activeTab, setActiveTab] = useState<
     | "overview"
@@ -97,7 +102,7 @@ export default function ProjectDetail({
   const [currentAmenityImageIndex, setCurrentAmenityImageIndex] = useState(0);
   const [currentFloorPlanTabId, setCurrentFloorPlanTabId] = useState<
     string | null
-  >(null);
+  >(initialProject?.floorPlanTabs?.[0]?.id || null);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const scrollDirection = useScrollDirection();
 
@@ -299,6 +304,12 @@ export default function ProjectDetail({
   useEffect(() => {
     async function loadProject() {
       try {
+        if (initialProject) {
+          setLoading(false);
+          return;
+        }
+
+        const { doc, getDoc, getDocs, collection, db } = await import("../firebase");
         if (!project) setLoading(true);
         let fetchedProject: Project | null = project;
         let finalProjectId = projectId || fetchedProject?.id || "";
@@ -457,7 +468,7 @@ export default function ProjectDetail({
     }
 
     loadProject();
-  }, [projectId, slug]);
+  }, [initialProject, projectId, slug]);
 
   const handleConsultSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -471,6 +482,7 @@ export default function ProjectDetail({
 
     setIsSubmitting(true);
     try {
+      const { addDoc, collection, db } = await import("../firebase");
       const clientIp = await fetchClientIp();
       let friendlyUrl = "";
       if (window.location.hostname.includes('aistudio')) {
@@ -731,6 +743,8 @@ export default function ProjectDetail({
             {galleryImages.map((img, idx) => (
               <button
                 key={idx}
+                aria-label={`Xem ảnh tổng quan ${idx + 1} của ${project.title}`}
+                aria-current={idx === currentImageIndex ? "true" : undefined}
                 onClick={(e) => {
                   setCurrentImageIndex(idx);
                   setIsGalleryAutoplayPaused(true);
@@ -895,9 +909,9 @@ export default function ProjectDetail({
 
               {/* Thông tin chi tiết */}
               <div className="bg-bg-surface border border-border-color rounded-xl pr-[9px] md:pr-8 space-y-6 pt-[0px] pb-[10px] pl-[10px] md:pl-[32px] mb-[10px]">
-                <h3 className="text-[15px] font-bold text-text-primary mb-[5px] h-[37px] pb-[16px] pt-[9px] border-b border-border-color">
+                <h2 className="text-[15px] font-bold text-text-primary mb-[5px] h-[37px] pb-[16px] pt-[9px] border-b border-border-color">
                   Thông tin chi tiết
-                </h3>
+                </h2>
                 <div className="grid grid-cols-2 gap-x-4 sm:gap-x-12 gap-y-4 relative">
                   <div className="absolute left-1/2 top-0 bottom-0 w-px bg-bg-base hidden sm:block"></div>
 
@@ -1385,6 +1399,8 @@ export default function ProjectDetail({
                         {project.amenityImages.map((img, idx) => (
                           <button
                             key={idx}
+                            aria-label={`Xem ảnh tiện ích ${idx + 1} của ${project.title}`}
+                            aria-current={idx === currentAmenityImageIndex ? "true" : undefined}
                             onClick={() => {
                               setCurrentAmenityImageIndex(idx);
                               setIsAmenityAutoplayPaused(true);
@@ -1625,6 +1641,8 @@ export default function ProjectDetail({
                                 {tab.images.map((img, idx) => (
                                   <button
                                     key={idx}
+                                    aria-label={`Xem ảnh ${idx + 1} trong ${tab.name}`}
+                                    aria-current={idx === currentFloorPlanImageIndex ? "true" : undefined}
                                     onClick={() => {
                                       setCurrentFloorPlanImageIndex(idx);
                                       setIsFloorPlanAutoplayPaused(true);
@@ -2302,6 +2320,8 @@ export default function ProjectDetail({
             {galleryImages.map((img, idx) => (
               <button
                 key={idx}
+                aria-label={`Mở ảnh ${idx + 1} trong thư viện ${project.title}`}
+                aria-current={idx === lightboxIndex ? "true" : undefined}
                 onClick={() => setLightboxIndex(idx)}
                 className={`relative h-16 sm:h-20 aspect-video rounded-md overflow-hidden shrink-0 transition-all cursor-pointer ${
                   idx === lightboxIndex ? "ring-2 ring-white scale-105" : "opacity-50 hover:opacity-100"

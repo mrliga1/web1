@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
-import { getProjectBySlug } from "../../../src/lib/serverContent";
+import {
+  getProjectBySlug,
+  getPublishedNews,
+  getPublishedProducts,
+  getPublishedProjects,
+} from "../../../src/lib/serverContent";
 import { createProjectSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { getSocialImageUrl } from "../../../src/lib/utils";
@@ -13,6 +18,19 @@ const SITE_URL = "https://greeniahomes.vn";
 type Props = {
   params: Promise<{ slug: string }>;
 };
+
+function getCategoryTarget(value?: string) {
+  if (!value) return "";
+  const trimmedValue = value.trim();
+  const categoryMatch = trimmedValue.match(/[?&]categoryName=([^&]+)/);
+  if (!categoryMatch) return trimmedValue;
+
+  try {
+    return decodeURIComponent(categoryMatch[1].replace(/\+/g, " ")).trim();
+  } catch {
+    return categoryMatch[1].trim();
+  }
+}
 
 function removeTrailingBrand(title: string) {
   return title.replace(/\s*[|–-]\s*Greenia Homes\s*$/i, "").trim();
@@ -80,9 +98,29 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProjectDetailPage({ params }: Props) {
   const { slug } = await params;
-  const project = await getProjectBySlug(slug);
+  const [project, newsRows, productRows, projectRows] = await Promise.all([
+    getProjectBySlug(slug),
+    getPublishedNews(),
+    getPublishedProducts(),
+    getPublishedProjects(),
+  ]);
 
   if (!project) notFound();
+
+  const newsCategoryTarget = getCategoryTarget(project.newsCategoryUrl).toLowerCase();
+  const productCategoryTarget = getCategoryTarget(project.productCategoryUrl).toLowerCase();
+  const news = newsRows.map(({ id, data }) => ({ ...data, id }));
+  const products = productRows.map(({ id, data }) => ({ ...data, id }));
+  const relatedNews = (
+    newsCategoryTarget
+      ? news.filter((item) => item.category?.trim().toLowerCase() === newsCategoryTarget)
+      : news
+  ).slice(0, 6);
+  const relatedProducts = (
+    productCategoryTarget
+      ? products.filter((item) => item.category?.trim().toLowerCase() === productCategoryTarget)
+      : products
+  ).slice(0, 5);
 
   const { listing, breadcrumb } = createProjectSchemas(project, slug);
 
@@ -90,7 +128,13 @@ export default async function ProjectDetailPage({ params }: Props) {
     <>
       <SchemaMarkup schema={listing} />
       <SchemaMarkup schema={breadcrumb} />
-      <ClientWrapper slug={slug} initialProject={project} />
+      <ClientWrapper
+        slug={slug}
+        initialProject={project}
+        initialNews={relatedNews}
+        initialProducts={relatedProducts}
+        initialProjects={projectRows.slice(0, 5).map(({ id, data }) => ({ ...data, id }))}
+      />
     </>
   );
 }

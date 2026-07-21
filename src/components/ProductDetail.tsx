@@ -4,7 +4,6 @@ import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
 import { parseLocation, formatLocationName } from "../lib/locationMapping";
 import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
 import { recordContentEngagement } from "../lib/engagement";
-import { doc, getDoc, collection, getDocs, addDoc, db } from "../firebase";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import { Product, Project, RouteState } from "../types";
 import { useScrollDirection } from "../hooks/useScrollDirection";
@@ -42,6 +41,9 @@ interface ProductDetailProps {
   productId: string;
   slug?: string;
   initialProduct?: Product;
+  initialProducts?: Product[];
+  initialProjects?: Project[];
+  initialGeneralSettings?: Record<string, any>;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: "success" | "error") => void;
 }
@@ -53,7 +55,7 @@ const MapViewer = React.memo(
       (mapHtml.startsWith("<iframe") || mapHtml.includes("google.com/maps"))
     ) {
       const cleanHtml = mapHtml.includes("iframe")
-        ? mapHtml.replace(/loading=["']lazy["']/g, "")
+        ? mapHtml
         : `<iframe title="Bản đồ ${address}" src="${mapHtml}" width="100%" height="100%" style="border:0;" allowfullscreen referrerPolicy="no-referrer-when-downgrade"></iframe>`;
         
       return (
@@ -95,6 +97,9 @@ export default function ProductDetail({
   onNavigate,
   onShowNotification,
   initialProduct,
+  initialProducts = [],
+  initialProjects = [],
+  initialGeneralSettings = {},
 }: ProductDetailProps) {
   const [product, setProduct] = useState<Product | null>(() => {
     if (initialProduct) return initialProduct;
@@ -108,10 +113,10 @@ export default function ProductDetail({
     }
     return null;
   });
-  const [products, setProducts] = useState<Product[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
-  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
+  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>(initialGeneralSettings.productCategoriesExt || []);
   const [loading, setLoading] = useState(!product);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [expandedLocations, setExpandedLocations] = useState<Record<string, boolean>>({});
@@ -141,7 +146,7 @@ export default function ProductDetail({
   });
   const [activeTab, setActiveTab] = useState<"desc" | "map">("desc");
   const [showShareMenu, setShowShareMenu] = useState(false);
-  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false);
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(true);
   const scrollDirection = useScrollDirection();
 
   // Auto-scroll main image slider
@@ -221,6 +226,30 @@ export default function ProductDetail({
     async function loadProductData() {
       if (!productId && !slug) return;
       try {
+        if (initialProduct) {
+          const finalProductId = initialProduct.id;
+          if (finalProductId) {
+            void recordContentEngagement({
+              table: "products",
+              id: finalProductId,
+              action: "view",
+            }).catch((error) => console.error("Không thể tăng lượt xem sản phẩm:", error));
+          }
+
+          const viewedIds: string[] = JSON.parse(localStorage.getItem("recentlyViewed") || "[]");
+          const updatedList = viewedIds.filter((id) => id !== finalProductId);
+          if (finalProductId) updatedList.unshift(finalProductId);
+          localStorage.setItem("recentlyViewed", JSON.stringify(updatedList.slice(0, 30)));
+          setRecentlyViewed(
+            initialProducts
+              .filter((item) => updatedList.includes(item.id))
+              .sort((a, b) => updatedList.indexOf(a.id) - updatedList.indexOf(b.id)),
+          );
+          setLoading(false);
+          return;
+        }
+
+        const { doc, getDoc, collection, getDocs, db } = await import("../firebase");
         if (!product) setLoading(true);
 
         let activeProd: Product | null = product;
@@ -341,7 +370,7 @@ export default function ProductDetail({
     }
 
     loadProductData();
-  }, [productId, slug]);
+  }, [initialProduct, initialProducts, productId, slug]);
 
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -352,6 +381,7 @@ export default function ProductDetail({
 
     setIsSubmitting(true);
     try {
+      const { addDoc, collection, db } = await import("../firebase");
       const clientIp = await fetchClientIp();
       let friendlyUrl = "";
       if (window.location.hostname.includes('aistudio')) {
@@ -630,9 +660,11 @@ export default function ProductDetail({
                     ...sampleThumbs.slice(1),
                   ]
               ).map((imgUrl, thumbIdx) => (
-                <button
-                  key={thumbIdx}
-                  onClick={(e) => {
+              <button
+                key={thumbIdx}
+                aria-label={`Xem ảnh ${thumbIdx + 1} của ${product.title}`}
+                aria-current={selectedImage === imgUrl ? "true" : undefined}
+                onClick={(e) => {
                     setSelectedImage(imgUrl);
                     setIsAutoplayPaused(true);
                     const parent = e.currentTarget.parentElement;

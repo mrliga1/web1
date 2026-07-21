@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
-import { getNewsBySlug } from "../../../src/lib/serverContent";
+import {
+  getNewsBySlug,
+  getPublicSettings,
+  getPublishedNews,
+  getPublishedProducts,
+  getPublishedProjects,
+} from "../../../src/lib/serverContent";
 import { createNewsSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { getSocialImageUrl } from "../../../src/lib/utils";
@@ -73,7 +79,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function NewsDetailPage({ params }: Props) {
   const { slug } = await params;
-  const article = await getNewsBySlug(slug);
+  const [article, newsRows, productRows, projectRows, generalSettings] = await Promise.all([
+    getNewsBySlug(slug),
+    getPublishedNews(),
+    getPublishedProducts(),
+    getPublishedProjects(),
+    getPublicSettings("general"),
+  ]);
 
   if (!article) notFound();
 
@@ -83,7 +95,14 @@ export default async function NewsDetailPage({ params }: Props) {
     <>
       <SchemaMarkup schema={articleSchema} />
       <SchemaMarkup schema={breadcrumb} />
-      <ClientWrapper slug={slug} initialArticle={article} />
+      <ClientWrapper
+        slug={slug}
+        initialArticle={article}
+        initialNews={newsRows.map(({ id, data }) => ({ ...data, id }))}
+        initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
+        initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+        initialGeneralSettings={generalSettings}
+      />
     </>
   );
 }

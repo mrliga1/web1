@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
-import { getProductBySlug } from "../../../src/lib/serverContent";
+import {
+  getProductBySlug,
+  getPublicSettings,
+  getPublishedProducts,
+  getPublishedProjects,
+} from "../../../src/lib/serverContent";
 import { createProductSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { getSocialImageUrl } from "../../../src/lib/utils";
@@ -84,7 +89,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
-  const product = await getProductBySlug(slug);
+  const [product, productRows, projectRows, generalSettings] = await Promise.all([
+    getProductBySlug(slug),
+    getPublishedProducts(),
+    getPublishedProjects(),
+    getPublicSettings("general"),
+  ]);
 
   if (!product) notFound();
 
@@ -94,7 +104,13 @@ export default async function ProductDetailPage({ params }: Props) {
     <>
       <SchemaMarkup schema={listing} />
       <SchemaMarkup schema={breadcrumb} />
-      <ClientWrapper slug={slug} initialProduct={product} />
+      <ClientWrapper
+        slug={slug}
+        initialProduct={product}
+        initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
+        initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+        initialGeneralSettings={generalSettings}
+      />
     </>
   );
 }

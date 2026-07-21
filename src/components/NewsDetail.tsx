@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 import { recordContentEngagement } from '../lib/engagement';
-import { doc, getDoc, collection, getDocs, addDoc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, Tag, Building, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown, Pause, Play } from 'lucide-react';
 import AdBanner from './AdBanner';
@@ -21,6 +20,10 @@ interface NewsDetailProps {
   newsId: string;
   slug?: string;
   initialArticle?: News;
+  initialNews?: News[];
+  initialProducts?: Product[];
+  initialProjects?: Project[];
+  initialGeneralSettings?: Record<string, any>;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
 }
@@ -32,6 +35,10 @@ export default function NewsDetail({
   newsId,
   slug,
   initialArticle,
+  initialNews = [],
+  initialProducts = [],
+  initialProjects = [],
+  initialGeneralSettings = {},
   onNavigate,
   onShowNotification,
 }: NewsDetailProps) {
@@ -43,15 +50,30 @@ export default function NewsDetail({
     }
     return null;
   });
-  const [allNews, setAllNews] = useState<News[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const initialProductCategoriesExt = initialGeneralSettings.productCategoriesExt || [];
+  const [allNews, setAllNews] = useState<News[]>(initialNews);
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [loading, setLoading] = useState(!article);
   const scrollDirection = useScrollDirection();
 
   // Categories count map
-  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
-  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>(() => {
+    const counts: Record<string, number> = {};
+    initialProductCategoriesExt.forEach((category: any) => {
+      counts[category.name] = 0;
+    });
+    initialProducts.forEach((product) => {
+      const category = (product.category || "Chưa phân loại").trim();
+      const configuredCategory = initialProductCategoriesExt.find(
+        (item: any) => item.name.trim().toLowerCase() === category.toLowerCase(),
+      );
+      const finalCategoryName = configuredCategory ? configuredCategory.name : category;
+      counts[finalCategoryName] = (counts[finalCategoryName] || 0) + 1;
+    });
+    return counts;
+  });
+  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>(initialProductCategoriesExt);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   const toggleCategory = (catName: string, e: React.MouseEvent) => {
@@ -74,6 +96,20 @@ export default function NewsDetail({
   useEffect(() => {
     async function loadArticleData() {
       try {
+        if (initialArticle) {
+          if (!sessionStorage.getItem(`viewed_news_${initialArticle.id}`)) {
+            void recordContentEngagement({
+              table: "news",
+              id: initialArticle.id,
+              action: "view",
+            }).catch((error) => console.error("Không thể tăng lượt xem tin tức:", error));
+            sessionStorage.setItem(`viewed_news_${initialArticle.id}`, "true");
+          }
+          setLoading(false);
+          return;
+        }
+
+        const { doc, getDoc, collection, getDocs, db } = await import('../firebase');
         if (!article) setLoading(true);
 
         let fetchedArticle: News | null = article;
@@ -205,7 +241,7 @@ export default function NewsDetail({
     }
 
     loadArticleData();
-  }, [newsId, slug]);
+  }, [initialArticle, newsId, slug]);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,6 +252,7 @@ export default function NewsDetail({
 
     setIsSubmitting(true);
     try {
+      const { addDoc, collection, db } = await import('../firebase');
       const clientIp = await fetchClientIp();
       
       let friendlyUrl = "";

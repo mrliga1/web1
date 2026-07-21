@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
+import { optimizeImageUrl, generateSrcSet, generateSlug, formatVietnamDate } from '../lib/utils';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
   if (event.key === "Enter" || event.key === " ") {
@@ -7,7 +7,6 @@ function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void
     action();
   }
 }
-import { collection, getDocs, getDoc, doc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
 import { Calendar, Eye, Compass, Search, User, ChevronRight, BadgeDollarSign, MapPin, Sparkles, Heart, Bookmark, Layers, Bath, Building2 } from 'lucide-react';
 import AdBanner from './AdBanner';
@@ -85,6 +84,7 @@ export default function NewsList({
     async function loadNewsData() {
       try {
         setLoading(true);
+        const { collection, getDocs, getDoc, doc, db } = await import('../firebase');
 
         const docSnap = await getDoc(doc(db, 'settings', 'general'));
         if (docSnap.exists() && docSnap.data().newsCategoriesExt) {
@@ -370,13 +370,15 @@ export default function NewsList({
                   <div className="text-center py-10 text-text-secondary text-sm">Không tìm thấy bài viết nào.</div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-10 lg:grid-cols-12 gap-6 items-start text-left">
+                    <h2 className="sr-only">Danh sách bài viết</h2>
                     {/* Cover highlight */}
                     <div className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors">
                       <div className="h-[260px] overflow-hidden relative">
                         <img loading="eager" decoding="async"
-                          // @ts-ignore
-                          fetchpriority="high"
-                          src={(displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600") || undefined}
+                          fetchPriority="high"
+                          src={optimizeImageUrl(displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600", 800) || undefined}
+                          srcSet={generateSrcSet(displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600")}
+                          sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 520px"
                           alt={displayArticle?.title}
                           width="600"
                           height="400"

@@ -6,6 +6,10 @@ const EVENT_HANDLER_ATTRIBUTES = /\s+on[a-z][\w:-]*\s*=\s*(?:"[^"]*"|'[^']*'|[^\
 const SRCDOC_ATTRIBUTE = /\s+srcdoc\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi;
 const URI_ATTRIBUTE = /\s+(href|src|xlink:href|formaction)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi;
 const IMAGE_WITHOUT_ALT_ATTRIBUTE = /<img\b(?![^>]*\balt\s*=)([^>]*)>/gi;
+const IMAGE_WITHOUT_LOADING_ATTRIBUTE = /<img\b(?![^>]*\bloading\s*=)([^>]*)>/gi;
+const IMAGE_WITHOUT_DECODING_ATTRIBUTE = /<img\b(?![^>]*\bdecoding\s*=)([^>]*)>/gi;
+const IMAGE_WITHOUT_WIDTH_ATTRIBUTE = /<img\b(?![^>]*\bwidth\s*=)([^>]*)>/gi;
+const IMAGE_WITHOUT_HEIGHT_ATTRIBUTE = /<img\b(?![^>]*\bheight\s*=)([^>]*)>/gi;
 const IFRAME_WITHOUT_TITLE_ATTRIBUTE = /<iframe\b(?![^>]*\btitle\s*=)([^>]*)>/gi;
 const IFRAME_WITHOUT_LOADING_ATTRIBUTE = /<iframe\b(?![^>]*\bloading\s*=)([^>]*)>/gi;
 const IMAGE_SRC_ATTRIBUTE = /(<img\b[^>]*\bsrc\s*=\s*)(["'])([^"']+)\2/gi;
@@ -63,6 +67,10 @@ export function sanitizeRichHtml(value: unknown) {
     .replace(IMAGE_WITHOUT_ALT_ATTRIBUTE, (_tag, attributes: string) => {
       return `<img alt="${getAltFromImageAttributes(attributes)}"${attributes}>`;
     })
+    .replace(IMAGE_WITHOUT_LOADING_ATTRIBUTE, '<img loading="lazy"$1>')
+    .replace(IMAGE_WITHOUT_DECODING_ATTRIBUTE, '<img decoding="async"$1>')
+    .replace(IMAGE_WITHOUT_WIDTH_ATTRIBUTE, '<img width="1200"$1>')
+    .replace(IMAGE_WITHOUT_HEIGHT_ATTRIBUTE, '<img height="675"$1>')
     .replace(IFRAME_WITHOUT_TITLE_ATTRIBUTE, '<iframe title="Bản đồ và nội dung nhúng"$1>')
     .replace(IFRAME_WITHOUT_LOADING_ATTRIBUTE, '<iframe loading="lazy"$1>')
     // Giữ nguyên kiểu hiển thị H1 nhưng hạ cấp trong cây trợ năng của nội dung nhúng.

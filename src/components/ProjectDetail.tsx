@@ -649,7 +649,7 @@ export default function ProjectDetail({
       >
         {/* Background blur for active image */}
         <div
-          className="absolute inset-0 bg-cover bg-center blur-2xl opacity-70 transition-all duration-700"
+          className="absolute inset-0 hidden md:block bg-cover bg-center blur-2xl opacity-70 transition-all duration-700"
           style={{
             backgroundImage: `url(${optimizeImageUrl(galleryImages[currentImageIndex], 1600)})`,
           }}
@@ -2101,7 +2101,7 @@ export default function ProjectDetail({
                           type="checkbox"
                           checked={agreeTerms}
                           onChange={(e) => setAgreeTerms(e.target.checked)}
-                          className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
+                          className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-6 w-6 shrink-0 cursor-pointer"
                         />
                         <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
                           Tôi đã đọc và đồng ý với{" "}
@@ -2122,7 +2122,7 @@ export default function ProjectDetail({
                           type="checkbox"
                           checked={agreePrivacy}
                           onChange={(e) => setAgreePrivacy(e.target.checked)}
-                          className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
+                          className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-6 w-6 shrink-0 cursor-pointer"
                         />
                         <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
                           Tôi đã đọc và đồng ý với{" "}

@@ -267,6 +267,7 @@ export default function ProjectList({
                         </div>
                         <button
                           onClick={() => setIsSearchOpen(true)}
+                          aria-label="Mở tìm kiếm dự án"
                           className="md:hidden ml-2 px-[8px] py-[6px] border border-primary/30 text-primary shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer bg-bg-surface hover:bg-[#064E3B]/10 flex items-center justify-center h-full"
                         >
                           <Search className="w-3.5 h-3.5" />
@@ -291,12 +292,13 @@ export default function ProjectList({
                           className="w-full bg-bg-surface border border-primary/30 pl-3 pr-8 py-[4px] rounded-lg text-text-primary outline-none text-[11px] transition-colors focus:border-primary h-[26px]"
                           autoFocus={isSearchOpen}
                         />
-                        <button type="submit" className={`absolute ${isSearchOpen ? 'right-[34px]' : 'right-2'} md:right-2 top-1/2 -translate-y-1/2 text-primary p-1 hover:text-primary bg-transparent border-none cursor-pointer flex items-center justify-center`}>
+                        <button type="submit" aria-label="Tìm kiếm dự án" className={`absolute ${isSearchOpen ? 'right-[34px]' : 'right-2'} md:right-2 top-1/2 -translate-y-1/2 text-primary p-1 hover:text-primary bg-transparent border-none cursor-pointer flex items-center justify-center`}>
                           <Search className="w-3.5 h-3.5" />
                         </button>
                         {isSearchOpen && (
                           <button 
                             type="button" 
+                            aria-label="Đóng tìm kiếm dự án"
                             onClick={() => {
                               setIsSearchOpen(false);
                             }}
@@ -336,6 +338,7 @@ export default function ProjectList({
                   <div className="text-center py-10 text-white/70 text-sm col-span-full">Không tìm thấy dự án phù hợp.</div>
                 ) : (
                   <div className="space-y-10">
+                    <h2 className="sr-only">Danh sách dự án</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                       {filteredProjects.slice(0, limitCount).map((p) => {
                         let statusText = 'Đang mở bán';

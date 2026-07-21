@@ -5,10 +5,11 @@ import { db, doc, getDoc, setDoc } from '../firebase';
 import { serializeSectionsForDatabase, deserializeSectionsFromDatabase, sanitizeHomeSections } from '../lib/layoutUtils';
 import { getPageDefaultSections } from '../lib/layouts';
 import { optimizeImageUrl } from '../lib/utils';
+import type { VisualSection } from '../types';
 
 interface AppContextType {
-  sections: any;
-  setSections: (newSections: any[]) => void; // Intercept setSections
+  sections: VisualSection[];
+  setSections: (newSections: VisualSection[] | ((prev: VisualSection[]) => VisualSection[])) => void; // Chặn cập nhật sections để đồng bộ dữ liệu.
   isEditMode: boolean;
   setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>;
   isQuotePopupOpen: boolean;
@@ -17,41 +18,61 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+type LayoutDocName = 'home' | 'san-pham' | 'du-an' | 'tin-tuc' | 'lien-he' | null;
+
+interface LayoutState {
+  docName: LayoutDocName;
+  sections: VisualSection[];
+}
+
+const EMPTY_SECTIONS: VisualSection[] = [];
+
+function getLayoutDocName(path: string): LayoutDocName {
+  if (path === '/') return 'home';
+  if (path.startsWith('/san-pham') || path.startsWith('/category-product') || path === '/latest-sales' || path === '/latest-rents') return 'san-pham';
+  if (path.startsWith('/du-an')) return 'du-an';
+  if (path.startsWith('/tin-tuc') || path.startsWith('/category-news')) return 'tin-tuc';
+  if (path.startsWith('/lien-he')) return 'lien-he';
+  return null;
+}
+
+function getDefaultSections(docName: LayoutDocName) {
+  if (!docName) return EMPTY_SECTIONS;
+
+  const defaults = getPageDefaultSections(docName);
+  return docName === 'home' ? sanitizeHomeSections(defaults) : defaults;
+}
+
 function usesServerProvidedLayout(docName: string | null) {
   return docName === 'home';
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-
-  const getLayoutDocName = (path: string) => {
-    if (path === '/') return 'home';
-    if (path.startsWith('/san-pham') || path.startsWith('/category-product') || path === '/latest-sales' || path === '/latest-rents') return 'san-pham';
-    if (path.startsWith('/du-an')) return 'du-an';
-    if (path.startsWith('/tin-tuc') || path.startsWith('/category-news')) return 'tin-tuc';
-    if (path.startsWith('/lien-he')) return 'lien-he';
-    return null;
-  };
-
-  const [sections, setSectionsState] = useState<any[]>(() => {
-    const docName = getLayoutDocName(pathname || '');
-    if (docName) {
-      let defaults = getPageDefaultSections(docName);
-      if (docName === "home") defaults = sanitizeHomeSections(defaults);
-      return defaults;
-    }
-    return [];
-  });
+  const layoutDocName = getLayoutDocName(pathname || '');
+  const [layoutState, setLayoutState] = useState<LayoutState>(() => ({
+    docName: layoutDocName,
+    sections: getDefaultSections(layoutDocName),
+  }));
+  // Không truyền sections của trang cũ cho trang mới trong lúc chờ dữ liệu từ máy chủ.
+  const sections = layoutState.docName === layoutDocName
+    ? layoutState.sections
+    : getDefaultSections(layoutDocName);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isQuotePopupOpen, setIsQuotePopupOpen] = useState(false);
 
 
   useEffect(() => {
-    const docName = getLayoutDocName(pathname || '');
+    const docName = layoutDocName;
+    let cancelled = false;
+
     if (!docName) {
-      setSectionsState([]);
+      setLayoutState({ docName: null, sections: EMPTY_SECTIONS });
       return;
     }
+
+    const defaults = getDefaultSections(docName);
+    setLayoutState({ docName, sections: defaults });
 
     if (usesServerProvidedLayout(docName)) {
       return;
@@ -64,40 +85,44 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         if (data && data.sections) {
           const loaded = deserializeSectionsFromDatabase(data.sections);
           if (loaded.length === 0) {
-            const defaults = getPageDefaultSections(docName);
             setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
-            setSectionsState(defaults);
-          } else {
-            setSectionsState(loaded);
+            if (!cancelled) setLayoutState({ docName, sections: defaults });
+          } else if (!cancelled) {
+            setLayoutState({ docName, sections: loaded });
           }
         } else {
-          const defaults = getPageDefaultSections(docName);
           setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
-          setSectionsState(defaults);
+          if (!cancelled) setLayoutState({ docName, sections: defaults });
         }
       } else {
-        const defaults = getPageDefaultSections(docName);
         setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
-        setSectionsState(defaults);
+        if (!cancelled) setLayoutState({ docName, sections: defaults });
       }
     }).catch((e) => {
+      if (cancelled) return;
       console.error("Lỗi tải layout:", e);
-      const defaults = getPageDefaultSections(docName);
-      setSectionsState(defaults);
+      setLayoutState({ docName, sections: defaults });
     });
-  }, [pathname]);
 
-  const setSections = async (newSections: any[] | ((prev: any[]) => any[])) => {
+    return () => {
+      cancelled = true;
+    };
+  }, [layoutDocName]);
+
+  const setSections = async (newSections: VisualSection[] | ((prev: VisualSection[]) => VisualSection[])) => {
     // Resolve updater function if used
-    const updated = typeof newSections === 'function' ? newSections(sections) : newSections;
+    const currentSections = layoutState.docName === layoutDocName
+      ? layoutState.sections
+      : getDefaultSections(layoutDocName);
+    const updated = typeof newSections === 'function' ? newSections(currentSections) : newSections;
     
     let sanitized = updated;
-    const docName = getLayoutDocName(pathname || '');
+    const docName = layoutDocName;
     if (docName === "home") {
       sanitized = sanitizeHomeSections(sanitized);
     }
     
-    setSectionsState(sanitized);
+    setLayoutState({ docName, sections: sanitized });
 
     if (isEditMode && docName) {
       try {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { generateSlug } from "../lib/utils";
+import { formatVietnamDate, generateSlug } from "../lib/utils";
 import { doc, getDoc, getDocs, collection, addDoc, db } from "../firebase";
 import { Project, RouteState } from "../types";
 import {
@@ -1906,11 +1906,7 @@ export default function ProjectDetail({
                           {news.title}
                         </h3>
                         <span className="text-xs text-text-secondary font-medium">
-                          {news.createdAt
-                            ? new Date(news.createdAt).toLocaleDateString(
-                                "vi-VN",
-                              )
-                            : ""}
+                          {formatVietnamDate(news.createdAt)}
                         </span>
                         <div className="w-full h-px bg-bg-base/60 mt-0 mb-3"></div>
                         <p className="text-[13px] font-light md:text-[13px] font-light md:text-[13px] font-light md:text-[13px] font-light md:text-[13px] font-light md:text-[13px] font-light md:text-[13px] font-light md:text-[13px] font-light md:text-sm text-text-secondary line-clamp-3 mb-4 flex-1">

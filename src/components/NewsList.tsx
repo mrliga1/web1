@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { optimizeImageUrl, generateSlug } from '../lib/utils';
+import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
   if (event.key === "Enter" || event.key === " ") {
@@ -381,7 +381,7 @@ export default function NewsList({
                         </p>
                         <div className="text-[11px] text-primary font-semibold mt-2.5 flex items-center gap-1.5">
                           <Calendar className="w-3 h-3" />
-                          {displayArticle ? new Date(displayArticle.createdAt).toLocaleDateString('vi-VN') : ''}
+                          {displayArticle ? formatVietnamDate(displayArticle.createdAt) : ''}
                         </div>
                       </div>
                     </div>
@@ -432,7 +432,7 @@ export default function NewsList({
                               </h4>
                               <div className="flex items-center text-[10px] text-[#888] gap-1">
                                 <Calendar className="w-2.5 h-2.5" />
-                                <span>{new Date(article.createdAt).toLocaleDateString('vi-VN')}</span>
+                                <span>{formatVietnamDate(article.createdAt)}</span>
                               </div>
                             </div>
                           </div>
@@ -473,7 +473,7 @@ export default function NewsList({
                             </h4>
                             <div className="text-[11px] text-primary flex items-center gap-1 mt-auto">
                               <Calendar className="w-3 h-3" />
-                              {new Date(article.createdAt).toLocaleDateString('vi-VN')}
+                              {formatVietnamDate(article.createdAt)}
                             </div>
                           </div>
                         </div>

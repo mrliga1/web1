@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { optimizeImageUrl, generateSlug } from '../lib/utils';
+import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { fetchClientIp } from '../lib/ip';
 import { notifyAdminEmail } from '../lib/email';
@@ -1013,7 +1013,7 @@ export const NewsBody: React.FC<NewsProps> = ({
                     <div className="space-y-1.5">
                       <div className="flex items-center gap-1.5 text-[8px] text-slate-505 font-mono">
                         <Calendar className="w-2.5 h-2.5" />
-                        <span>{new Date(article.createdAt).toLocaleDateString('vi-VN')}</span>
+                        <span>{formatVietnamDate(article.createdAt)}</span>
                       </div>
                       <h3 className="font-display font-medium text-xs text-primary group-hover:text-primary transition-colors line-clamp-2 leading-relaxed h-8">
                         {article.title}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { optimizeImageUrl, generateSlug } from '../lib/utils';
+import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 import { recordContentEngagement } from '../lib/engagement';
 import { doc, getDoc, collection, getDocs, addDoc, db } from '../firebase';
 import { News, Product, Project, RouteState } from '../types';
@@ -363,7 +363,7 @@ export default function NewsDetail({
           </span>
           <span className="flex items-center gap-1">
             <Calendar className="w-4 h-4 text-primary" />
-            <span>{new Date(article.createdAt).toLocaleDateString('vi-VN')}</span>
+            <span>{formatVietnamDate(article.createdAt)}</span>
           </span>
           <span className="flex items-center gap-1">
             <Eye className="w-4 h-4 text-primary" />
@@ -444,7 +444,7 @@ export default function NewsDetail({
                     <div className="text-left space-y-1 whitespace-normal">
                       <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
                       <span className="text-[10px] lg:text-[9px] text-text-secondary font-mono block mt-1">
-                        {new Date(n.createdAt).toLocaleDateString('vi-VN')}
+                        {formatVietnamDate(n.createdAt)}
                       </span>
                     </div>
                   </div>
@@ -469,7 +469,7 @@ export default function NewsDetail({
                     <div className="text-left space-y-1 whitespace-normal">
                       <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
                       <span className="text-[10px] lg:text-[9px] text-text-secondary font-mono block mt-1">
-                        {new Date(n.createdAt).toLocaleDateString('vi-VN')}
+                        {formatVietnamDate(n.createdAt)}
                       </span>
                     </div>
                   </div>
@@ -508,7 +508,7 @@ export default function NewsDetail({
                       {n.title}
                     </h5>
                     <span className="text-[9px] text-text-secondary font-mono block">
-                      {new Date(n.createdAt).toLocaleDateString('vi-VN')}
+                      {formatVietnamDate(n.createdAt)}
                     </span>
                   </div>
                 </div>
@@ -819,7 +819,7 @@ export default function NewsDetail({
                 <div className="text-left space-y-1">
                   <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
                   <span className="text-[10px] lg:text-[9px] text-white/70 font-mono block mt-1">
-                    {new Date(n.createdAt).toLocaleDateString('vi-VN')}
+                    {formatVietnamDate(n.createdAt)}
                   </span>
                 </div>
               </div>

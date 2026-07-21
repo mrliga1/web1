@@ -15,6 +15,21 @@ export function generateSlug(text: string): string {
     .replace(/-+$/, '');
 }
 
+const vietnamDateFormatter = new Intl.DateTimeFormat('vi-VN', {
+  timeZone: 'Asia/Ho_Chi_Minh',
+});
+
+export function formatVietnamDate(
+  value: string | number | Date | null | undefined,
+): string {
+  if (value === null || value === undefined || value === '') return '';
+
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+
+  return vietnamDateFormatter.format(date);
+}
+
 export function optimizeImageUrl(url: string | undefined | null, width?: number): string {
   if (!url) return '';
   let finalUrl = url;

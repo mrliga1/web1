@@ -1,34 +1,27 @@
-"use client";
+import ClientWrapper from "./ClientWrapper";
+import {
+  getPublicSettings,
+  getPublishedNews,
+  getPublishedProducts,
+  getPublishedProjects,
+} from "../../src/lib/serverContent";
 
-import React, { useState } from 'react';
-import NewsList from '../../src/components/NewsList';
-import { useAppContext } from '../../src/contexts/AppContext';
-import { useRouter } from 'next/navigation';
-import { getRouteUrl } from '../../src/lib/utils';
+export const revalidate = 60;
 
-export default function TinTucPage() {
-  const { sections, setSections, isEditMode } = useAppContext();
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-
-  const router = useRouter();
-
-  const handleNavigate = (route: any) => {
-    router.push(getRouteUrl(route));
-  };
-
-  const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // alert removed;
-  };
+export default async function TinTucPage() {
+  const [newsRows, productRows, projectRows, generalSettings] = await Promise.all([
+    getPublishedNews(),
+    getPublishedProducts(),
+    getPublishedProjects(),
+    getPublicSettings("general"),
+  ]);
 
   return (
-    <NewsList 
-      onNavigate={handleNavigate}
-      onShowNotification={handleShowNotification}
-      isEditMode={isEditMode}
-      sections={sections}
-      onUpdateSections={setSections}
-      selectedSectionId={selectedSectionId}
-      setSelectedSectionId={setSelectedSectionId}
+    <ClientWrapper
+      initialNews={newsRows.map(({ id, data }) => ({ ...data, id }))}
+      initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
+      initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+      initialGeneralSettings={generalSettings}
     />
   );
 }

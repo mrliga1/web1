@@ -29,6 +29,10 @@ interface ProductListProps {
   initialCategoryTitle?: string;
   initialCategoryDesc?: string;
   initialCategoryName?: string;
+  initialProducts?: Product[];
+  initialProjects?: Project[];
+  initialGeneralSettings?: Record<string, any>;
+  initialFilterSettings?: Record<string, any>;
 }
 
 import ProductCard from './ProductCard';
@@ -48,12 +52,18 @@ export default function ProductList({
   initialAreaRange,
   initialCategoryTitle,
   initialCategoryDesc,
-  initialCategoryName
+  initialCategoryName,
+  initialProducts = [],
+  initialProjects = [],
+  initialGeneralSettings = {},
+  initialFilterSettings = {}
 }: ProductListProps) {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [products, setProducts] = useState<Product[]>(() =>
+    [...initialProducts].sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
+  );
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialProducts.length === 0);
 
   // Filter conditions
   const [searchQuery, setSearchQuery] = useState('');
@@ -140,19 +150,70 @@ export default function ProductList({
   const [mainGridLimit, setMainGridLimit] = useState(typeof window !== 'undefined' && window.innerWidth < 768 ? 4 : 10);
   const [recentGridLimit, setRecentGridLimit] = useState(5);
 
-  const [districts, setDistricts] = useState<string[]>([]);
+  const [districts, setDistricts] = useState<string[]>(() => {
+    const configured = initialFilterSettings.districts || [];
+    if (configured.length > 0) return configured;
+    return Array.from(new Set(initialProducts.map((item) => item.district?.trim()).filter(Boolean) as string[])).sort();
+  });
   const [filteredLocationTree, setFilteredLocationTree] = useState<LocationNode[]>([]);
   const [expandedLocationLevel, setExpandedLocationLevel] = useState<string | null>(null);
 
   
-  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
+  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>(() => initialGeneralSettings.productCategoriesExt || []);
   const [expandedParentCat, setExpandedParentCat] = useState<string | null>(null);
 
-  const [priceSaleConfig, setPriceSaleConfig] = useState<any[]>([]);
-  const [priceRentConfig, setPriceRentConfig] = useState<any[]>([]);
-  const [areaConfig, setAreaConfig] = useState<any[]>([]);
+  const [priceSaleConfig, setPriceSaleConfig] = useState<any[]>(() => initialFilterSettings.priceSale || []);
+  const [priceRentConfig, setPriceRentConfig] = useState<any[]>(() => initialFilterSettings.priceRent || []);
+  const [areaConfig, setAreaConfig] = useState<any[]>(() => initialFilterSettings.areaRanges || []);
 
   useEffect(() => {
+    if (initialProducts.length > 0) {
+      const uniqueDistricts = new Set<string>();
+      initialProducts.forEach((item) => {
+        if (item.district) uniqueDistricts.add(item.district.trim());
+      });
+
+      const activeNodes = new Set<string>();
+      uniqueDistricts.forEach((district) => {
+        const location = parseLocation(district);
+        if (location.province) activeNodes.add(location.province);
+        if (location.district) activeNodes.add(location.district);
+        if (location.ward) activeNodes.add(location.ward);
+      });
+
+      const dynamicTree = locationTree.map((province) => {
+        const formattedProvinceName = formatLocationName(province.name);
+        if (!activeNodes.has(formattedProvinceName) && !activeNodes.has(province.name)) return null;
+        const nextProvince = { ...province, name: formattedProvinceName };
+        if (nextProvince.wards) {
+          nextProvince.wards = nextProvince.wards.filter((ward) => activeNodes.has(ward));
+        }
+        if (nextProvince.districts) {
+          nextProvince.districts = nextProvince.districts
+            .filter((district) => activeNodes.has(district.name))
+            .map((district) => ({
+              ...district,
+              wards: district.wards?.filter((ward) => activeNodes.has(ward)),
+            }));
+        }
+        return nextProvince;
+      }).filter(Boolean) as LocationNode[];
+
+      setFilteredLocationTree(dynamicTree);
+      try {
+        const viewedIds: string[] = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+        setRecentlyViewed(
+          initialProducts
+            .filter((item) => viewedIds.includes(item.id))
+            .sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id))
+        );
+      } catch {
+        setRecentlyViewed([]);
+      }
+      setLoading(false);
+      return;
+    }
+
     async function loadDataAndHistory() {
       try {
         setLoading(true);
@@ -257,7 +318,7 @@ export default function ProductList({
     }
 
     loadDataAndHistory();
-  }, []);
+  }, [initialProducts]);
 
   useEffect(() => {
     // Only run slider auto-scroll if it's explicitly needed and doesn't thrash layout continuously

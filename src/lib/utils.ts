@@ -30,6 +30,30 @@ export function formatVietnamDate(
   return vietnamDateFormatter.format(date);
 }
 
+export function getImageAltFromUrl(url: string | undefined | null, fallback = "Hình ảnh") {
+  if (!url) return fallback;
+  if (/^(data:|blob:)/i.test(url)) return fallback;
+
+  try {
+    let source = url;
+    const parsed = new URL(url, "https://greeniahomes.vn");
+    if (parsed.hostname === "wsrv.nl" && parsed.searchParams.get("url")) {
+      source = parsed.searchParams.get("url") || url;
+    }
+    const pathname = new URL(source, "https://greeniahomes.vn").pathname;
+    const rawName = decodeURIComponent(pathname.split("/").pop() || "")
+      .replace(/\.[a-z0-9]{2,5}$/i, "")
+      .replace(/^\d{10,16}[-_]?/, "")
+      .replace(/[-_ ]\d{10,16}$/, "")
+      .replace(/[-_]+/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+    return rawName || fallback;
+  } catch {
+    return fallback;
+  }
+}
+
 export function optimizeImageUrl(url: string | undefined | null, width?: number): string {
   if (!url) return '';
   let finalUrl = url;
@@ -86,6 +110,22 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
 export function generateSrcSet(url: string | undefined | null): string | undefined {
   if (!url) return undefined;
   return `${optimizeImageUrl(url, 100)} 100w, ${optimizeImageUrl(url, 160)} 160w, ${optimizeImageUrl(url, 200)} 200w, ${optimizeImageUrl(url, 240)} 240w, ${optimizeImageUrl(url, 300)} 300w, ${optimizeImageUrl(url, 400)} 400w, ${optimizeImageUrl(url, 600)} 600w, ${optimizeImageUrl(url, 800)} 800w, ${optimizeImageUrl(url, 1200)} 1200w, ${optimizeImageUrl(url, 1600)} 1600w`;
+}
+
+export function getSocialImageUrl(url: string | undefined | null): string {
+  const fallback = "https://greeniahomes.vn/og-image.jpg";
+  if (!url) return fallback;
+
+  try {
+    let source = new URL(url, "https://greeniahomes.vn").toString();
+    const parsed = new URL(source);
+    if (parsed.hostname === "wsrv.nl" && parsed.searchParams.get("url")) {
+      source = parsed.searchParams.get("url") || source;
+    }
+    return `https://wsrv.nl/?url=${encodeURIComponent(source)}&output=jpg&q=82&w=1200&h=630&fit=cover`;
+  } catch {
+    return fallback;
+  }
 }
 
 export function getRouteUrl(route: import('../types').RouteState): string {

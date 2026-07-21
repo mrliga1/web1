@@ -536,7 +536,7 @@ export default function ProjectDetail({
           dangerouslySetInnerHTML={{
             __html: sanitizeRichHtml(
               project.mapHtml.includes("iframe")
-              ? project.mapHtml.replace(/loading=["']lazy["']/g, "")
+              ? project.mapHtml
               : `<iframe title="Bản đồ ${project.title}" src="${project.mapHtml}"></iframe>`,
             ),
           }}
@@ -639,7 +639,7 @@ export default function ProjectDetail({
         <div
           className="absolute inset-0 bg-cover bg-center blur-2xl opacity-70 transition-all duration-700"
           style={{
-            backgroundImage: `url(${galleryImages[currentImageIndex]})`,
+            backgroundImage: `url(${optimizeImageUrl(galleryImages[currentImageIndex], 1600)})`,
           }}
         />
 
@@ -687,6 +687,8 @@ export default function ProjectDetail({
                   srcSet={img ? generateSrcSet(img) : undefined}
                   sizes="(max-width: 1024px) 100vw, 1200px"
                   alt={`${project.title} - Image ${idx + 1}`}
+                  width={1200}
+                  height={675}
                   referrerPolicy="no-referrer"
                   className={`w-full max-h-[85vh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-700 ${isCenter ? "ring-1 ring-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)]" : "cursor-pointer"}`}
                 />
@@ -695,14 +697,15 @@ export default function ProjectDetail({
           })}
         </div>
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent pointer-events-none z-20" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-transparent pointer-events-none z-20" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent pointer-events-none z-20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-transparent pointer-events-none z-20" />
 
         {/* Navigation Breadcrumb inside banner */}
         <nav aria-label="breadcrumb" className="absolute top-4 sm:top-6 lg:top-8 left-0 right-0 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 z-40 pointer-events-none">
           <div className="flex items-center gap-2 text-[13px] md:text-sm text-white/80 font-medium drop-shadow-md pointer-events-auto">
             <button
               onClick={() => onNavigate({ screen: "du-an" })}
+              aria-label="Quay lại danh sách dự án"
               className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/20 hover:bg-primary hover:text-white text-white transition-colors cursor-pointer mr-2 backdrop-blur-sm"
               title="Quay lại"
             >
@@ -744,6 +747,8 @@ export default function ProjectDetail({
                   loading="lazy"
                   decoding="async"
                   src={img ? optimizeImageUrl(img, 200) : undefined}
+                  width={200}
+                  height={150}
                   alt={`Hình thu nhỏ tổng quan ${project.title} - ${idx + 1}`}
                   className="w-full h-full object-cover"
                 />
@@ -767,6 +772,7 @@ export default function ProjectDetail({
 
         {/* Slider Controls (Mobile/Desktop) */}
         <button
+          aria-label="Xem ảnh trước"
           className="absolute z-40 left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 opacity-0 group-hover:opacity-100 transition-all pointer-events-auto"
           onClick={() =>
             setCurrentImageIndex((prev) =>
@@ -777,6 +783,7 @@ export default function ProjectDetail({
           <ChevronLeft className="w-6 h-6" />
         </button>
         <button
+          aria-label="Xem ảnh tiếp theo"
           className="absolute z-40 right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center backdrop-blur-sm border border-white/20 opacity-0 group-hover:opacity-100 transition-all pointer-events-auto"
           onClick={() =>
             setCurrentImageIndex((prev) =>
@@ -824,20 +831,21 @@ export default function ProjectDetail({
             <div className="relative">
               <button
                 onClick={() => setShowShareMenu(!showShareMenu)}
-                className="flex items-center justify-center bg-transparent border-none p-1"
+                aria-label="Chia sẻ dự án"
+                className="flex items-center justify-center rounded-full border border-primary/25 bg-primary/10 p-2 text-primary transition-colors hover:bg-primary hover:text-white"
                 title="Chia sẻ dự án"
               >
                 <Share2 className="w-5 h-5 hover:text-primary cursor-pointer transition-colors" />
               </button>
               {showShareMenu && (
-                <div className="absolute right-0 top-full mt-2 w-48 bg-bg-base border border-border-inverse rounded-lg shadow-xl py-2 z-50 animate-in fade-in zoom-in duration-200">
+                <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-slate-200 bg-white py-2 text-slate-800 shadow-xl z-50 animate-in fade-in zoom-in duration-200">
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(window.location.href);
                       alert("Đã copy link!");
                       setShowShareMenu(false);
                     }}
-                    className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-slate-700 hover:text-text-primary flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                    className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-emerald-50 hover:text-primary flex items-center gap-2 border-none bg-transparent cursor-pointer"
                   >
                     <LinkIcon className="w-4 h-4" /> Sao chép link
                   </button>
@@ -845,19 +853,19 @@ export default function ProjectDetail({
                     href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-slate-700 hover:text-text-primary flex items-center gap-2 no-underline"
+                    className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-blue-50 hover:text-blue-800 flex items-center gap-2 no-underline"
                     onClick={() => setShowShareMenu(false)}
                   >
-                    <Facebook className="w-4 h-4 text-info" /> Facebook
+                    <Facebook className="w-4 h-4 text-[#1877F2]" /> Facebook
                   </a>
                   <a
                     href={`https://zalo.me/share?url=${encodeURIComponent(window.location.href)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-slate-700 hover:text-text-primary flex items-center gap-2 no-underline"
+                    className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-sky-50 hover:text-sky-800 flex items-center gap-2 no-underline"
                     onClick={() => setShowShareMenu(false)}
                   >
-                    <MessageCircle className="w-4 h-4 text-info" /> Zalo
+                    <MessageCircle className="w-4 h-4 text-[#0068FF]" /> Zalo
                   </a>
                 </div>
               )}
@@ -1327,10 +1335,11 @@ export default function ProjectDetail({
                         <img
                           loading="lazy"
                           decoding="async"
-                          src={
-                            project.amenityImages[currentAmenityImageIndex] ||
-                            undefined
-                          }
+                          src={optimizeImageUrl(project.amenityImages[currentAmenityImageIndex], 1200) || undefined}
+                          srcSet={generateSrcSet(project.amenityImages[currentAmenityImageIndex])}
+                          sizes="(max-width: 1024px) 100vw, 900px"
+                          width={1200}
+                          height={675}
                           alt={`Tiện ích ${project.title} - ảnh ${currentAmenityImageIndex + 1}`}
                           className="w-full h-full object-contain"
                           referrerPolicy="no-referrer"
@@ -1340,6 +1349,7 @@ export default function ProjectDetail({
                       {project.amenityImages.length > 1 && (
                         <>
                           <button
+                            aria-label="Xem ảnh tiện ích trước"
                             className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-bg-inverse/50 hover:bg-bg-inverse/70 text-text-primary rounded-full flex items-center justify-center backdrop-blur-sm border border-border-inverse opacity-0 group-hover:opacity-100 transition-all pointer-events-auto z-10"
                             onClick={() =>
                               setCurrentAmenityImageIndex((prev) =>
@@ -1352,6 +1362,7 @@ export default function ProjectDetail({
                             <ChevronLeft className="w-5 h-5" />
                           </button>
                           <button
+                            aria-label="Xem ảnh tiện ích tiếp theo"
                             className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-bg-inverse/50 hover:bg-bg-inverse/70 text-text-primary rounded-full flex items-center justify-center backdrop-blur-sm border border-border-inverse opacity-0 group-hover:opacity-100 transition-all pointer-events-auto z-10"
                             onClick={() =>
                               setCurrentAmenityImageIndex((prev) =>
@@ -1387,7 +1398,9 @@ export default function ProjectDetail({
                             <img
                               loading="lazy"
                               decoding="async"
-                              src={img || undefined}
+                              src={optimizeImageUrl(img, 240) || undefined}
+                              width={240}
+                              height={135}
                               alt={`Hình thu nhỏ tiện ích ${project.title} - ${idx + 1}`}
                               className="w-full h-full object-cover"
                               referrerPolicy="no-referrer"
@@ -1425,10 +1438,11 @@ export default function ProjectDetail({
                       <img
                         loading="lazy"
                         decoding="async"
-                        src={
-                          project.floorPlanImages[currentFloorPlanImageIndex] ||
-                          undefined
-                        }
+                        src={optimizeImageUrl(project.floorPlanImages[currentFloorPlanImageIndex], 1200) || undefined}
+                        srcSet={generateSrcSet(project.floorPlanImages[currentFloorPlanImageIndex])}
+                        sizes="(max-width: 1024px) 100vw, 900px"
+                        width={1200}
+                        height={675}
                         alt={`Mặt bằng ${project.title} - ảnh ${currentFloorPlanImageIndex + 1}`}
                         className="w-full h-full object-contain"
                         referrerPolicy="no-referrer"
@@ -1438,6 +1452,7 @@ export default function ProjectDetail({
                     {project.floorPlanImages.length > 1 && (
                       <>
                         <button
+                          aria-label="Xem ảnh mặt bằng trước"
                           className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-bg-inverse/50 hover:bg-bg-inverse/70 text-text-primary rounded-full flex items-center justify-center backdrop-blur-sm border border-border-inverse opacity-0 group-hover:opacity-100 transition-all pointer-events-auto z-10"
                           onClick={() => {
                             setCurrentFloorPlanImageIndex((prev) =>
@@ -1451,6 +1466,7 @@ export default function ProjectDetail({
                           <ChevronLeft className="w-5 h-5" />
                         </button>
                         <button
+                          aria-label="Xem ảnh mặt bằng tiếp theo"
                           className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-bg-inverse/50 hover:bg-bg-inverse/70 text-text-primary rounded-full flex items-center justify-center backdrop-blur-sm border border-border-inverse opacity-0 group-hover:opacity-100 transition-all pointer-events-auto z-10"
                           onClick={() => {
                             setCurrentFloorPlanImageIndex((prev) =>
@@ -1467,6 +1483,7 @@ export default function ProjectDetail({
                         <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
                           {project.floorPlanImages.map((_, idx) => (
                             <button
+                              aria-label={`Xem ảnh mặt bằng ${idx + 1}`}
                               key={idx}
                               onClick={() => {
                                 setCurrentFloorPlanImageIndex(idx);
@@ -1554,11 +1571,11 @@ export default function ProjectDetail({
                                 <img
                                   loading="lazy"
                                   decoding="async"
-                                  src={
-                                    tab.images[currentFloorPlanImageIndex] ||
-                                    tab.images[0] ||
-                                    undefined
-                                  }
+                                  src={optimizeImageUrl(tab.images[currentFloorPlanImageIndex] || tab.images[0], 1200) || undefined}
+                                  srcSet={generateSrcSet(tab.images[currentFloorPlanImageIndex] || tab.images[0])}
+                                  sizes="(max-width: 1024px) 100vw, 900px"
+                                  width={1200}
+                                  height={675}
                                   alt={`${tab.name} - ảnh ${currentFloorPlanImageIndex + 1}`}
                                   className="w-full h-full object-contain"
                                   referrerPolicy="no-referrer"
@@ -1568,6 +1585,7 @@ export default function ProjectDetail({
                               {tab.images.length > 1 && (
                                 <>
                                   <button
+                                    aria-label="Xem ảnh trước trong tab"
                                     className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-bg-inverse/50 hover:bg-bg-inverse/70 text-text-primary rounded-full flex items-center justify-center backdrop-blur-sm border border-border-inverse opacity-0 group-hover:opacity-100 transition-all pointer-events-auto z-10"
                                     onClick={() => {
                                       setCurrentFloorPlanImageIndex((prev) =>
@@ -1581,6 +1599,7 @@ export default function ProjectDetail({
                                     <ChevronLeft className="w-5 h-5" />
                                   </button>
                                   <button
+                                    aria-label="Xem ảnh tiếp theo trong tab"
                                     className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-bg-inverse/50 hover:bg-bg-inverse/70 text-text-primary rounded-full flex items-center justify-center backdrop-blur-sm border border-border-inverse opacity-0 group-hover:opacity-100 transition-all pointer-events-auto z-10"
                                     onClick={() => {
                                       setCurrentFloorPlanImageIndex((prev) =>
@@ -1619,7 +1638,9 @@ export default function ProjectDetail({
                                     <img
                                       loading="lazy"
                                       decoding="async"
-                                      src={img || undefined}
+                                      src={optimizeImageUrl(img, 240) || undefined}
+                                      width={240}
+                                      height={135}
                                       alt={`Hình thu nhỏ mặt bằng ${tab.name} - ${idx + 1}`}
                                       className="w-full h-full object-cover"
                                       referrerPolicy="no-referrer"
@@ -2241,6 +2262,7 @@ export default function ProjectDetail({
             </div>
             <button
               onClick={() => setIsLightboxOpen(false)}
+              aria-label="Đóng thư viện ảnh"
               className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 rounded-full p-2 cursor-pointer"
             >
               <X className="w-6 h-6" />
@@ -2248,6 +2270,7 @@ export default function ProjectDetail({
           </div>
           <div className="flex-1 relative flex items-center justify-center overflow-hidden">
             <button
+              aria-label="Xem ảnh trước"
               className="absolute left-4 z-[110] w-12 h-12 flex items-center justify-center text-white/50 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-all cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();
@@ -2265,6 +2288,7 @@ export default function ProjectDetail({
               />
             </div>
             <button
+              aria-label="Xem ảnh tiếp theo"
               className="absolute right-4 z-[110] w-12 h-12 flex items-center justify-center text-white/50 hover:text-white bg-black/50 hover:bg-black/80 rounded-full transition-all cursor-pointer"
               onClick={(e) => {
                 e.stopPropagation();

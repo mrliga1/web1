@@ -25,6 +25,8 @@ interface ProjectListProps {
   onUpdateSections: (sections: any[]) => void;
   selectedSectionId: string | null;
   setSelectedSectionId: (id: string | null) => void;
+  initialProjects?: Project[];
+  initialProducts?: Product[];
 }
 
 export default function ProjectList({ 
@@ -34,12 +36,18 @@ export default function ProjectList({
   sections,
   onUpdateSections,
   selectedSectionId,
-  setSelectedSectionId
+  setSelectedSectionId,
+  initialProjects = [],
+  initialProducts = []
 }: ProjectListProps) {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [projects, setProjects] = useState<Project[]>(() =>
+    [...initialProjects].sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
+  );
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>(() =>
+    [...initialProducts].sort((a, b) => (b.viewsCount || 0) - (a.viewsCount || 0)).slice(0, 10)
+  );
   const scrollDirection = useScrollDirection();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialProjects.length === 0);
 
   // States for filtering
   const [currentStatus, setCurrentStatus] = useState<string>('');
@@ -98,6 +106,11 @@ export default function ProjectList({
   });
 
   useEffect(() => {
+    if (initialProjects.length > 0) {
+      setLoading(false);
+      return;
+    }
+
     async function loadProjectData() {
       try {
         setLoading(true);
@@ -132,7 +145,7 @@ export default function ProjectList({
     }
 
     loadProjectData();
-  }, []);
+  }, [initialProjects.length]);
 
   const getSection = (id: string) => {
     return sections.find(s => s.id === id) || {

@@ -18,6 +18,7 @@ import {
   onSnapshot,
 } from "../firebase-realtime";
 import { authFetch } from '../lib/authFetch';
+import { getImageAltFromUrl } from '../lib/utils';
 import {
   PlusCircle,
   Trash2,
@@ -475,7 +476,7 @@ export default function AdminPanel({
         "success",
       );
     } else if (libraryTargetField === "editor") {
-      const imgTag = `<img loading="lazy" decoding="async" src="${pickedUrl}" alt="Hình ảnh bài viết" />`;
+      const imgTag = `<img loading="lazy" decoding="async" src="${pickedUrl}" alt="${getImageAltFromUrl(pickedUrl, 'Hình ảnh bài viết')}" />`;
       if (editorCursorMatch) {
         const { start, end, text } = editorCursorMatch;
         setHtmlContent(
@@ -492,6 +493,10 @@ export default function AdminPanel({
         const range = editor.getSelection();
         const cursorPosition = range ? range.index : editor.getLength();
         editor.insertEmbed(cursorPosition, "image", pickedUrl);
+        const [leaf] = (editor as any).getLeaf(cursorPosition);
+        if (leaf?.domNode?.tagName === 'IMG') {
+          leaf.domNode.setAttribute('alt', getImageAltFromUrl(pickedUrl, 'Hình ảnh bài viết'));
+        }
         editor.setSelection(cursorPosition + 1, 0);
       }
       onShowNotification("Đã chèn ảnh vào nội dung bài viết!", "success");
@@ -501,6 +506,10 @@ export default function AdminPanel({
         const range = editor.getSelection();
         const cursorPosition = range ? range.index : editor.getLength();
         editor.insertEmbed(cursorPosition, "image", pickedUrl);
+        const [leaf] = (editor as any).getLeaf(cursorPosition);
+        if (leaf?.domNode?.tagName === 'IMG') {
+          leaf.domNode.setAttribute('alt', getImageAltFromUrl(pickedUrl, 'Hình ảnh bài viết'));
+        }
         editor.setSelection(cursorPosition + 1, 0);
       }
       onShowNotification("Đã chèn ảnh vào nội dung bài viết!", "success");

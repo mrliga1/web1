@@ -57,7 +57,7 @@ export default function ClientLayout({
         isSettingsLoaded={isSettingsLoaded}
       />
       
-      <main id="main-content" className="flex-1 w-full bg-bg-surface">
+      <main id="main-content" className="site-decorative-background flex-1 w-full bg-bg-surface">
         {children}
       </main>
       

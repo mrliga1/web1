@@ -4,6 +4,7 @@ import ClientWrapper from "./ClientWrapper";
 import { getProjectBySlug } from "../../../src/lib/serverContent";
 import { createProjectSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
+import { getSocialImageUrl } from "../../../src/lib/utils";
 
 export const revalidate = 60;
 
@@ -41,7 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     project.metaDesc?.trim() ||
     `Vị trí: ${location} | Giá: ${price}. Xem thông tin dự án tại Greenia Homes.`;
   const canonical = `${SITE_URL}/du-an/${slug}`;
-  const images = project.imageUrl ? [project.imageUrl] : [`${SITE_URL}/og-image.jpg`];
+  const socialImage = getSocialImageUrl(project.imageUrl);
+  const images = [{ url: socialImage, width: 1200, height: 630, alt: project.title, type: "image/jpeg" }];
 
   return {
     title,
@@ -61,7 +63,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: brandedTitle,
       description,
-      images,
+      images: [{ url: socialImage, alt: project.title }],
     },
     other: {
       "geo.region": "VN-SG",

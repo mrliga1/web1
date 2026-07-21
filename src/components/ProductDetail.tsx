@@ -593,12 +593,14 @@ export default function ProductDetail({
                 <>
                   <button
                     onClick={handlePrevImage}
+                    aria-label="Xem ảnh sản phẩm trước"
                     className="absolute top-1/2 left-2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all z-20"
                   >
                     <ChevronLeft className="w-5 h-5 md:w-6 md:h-6" />
                   </button>
                   <button
                     onClick={handleNextImage}
+                    aria-label="Xem ảnh sản phẩm tiếp theo"
                     className="absolute top-1/2 right-2 -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 rounded-full bg-black/30 hover:bg-black/50 text-white flex items-center justify-center backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all z-20"
                   >
                     <ChevronRight className="w-5 h-5 md:w-6 md:h-6" />
@@ -673,20 +675,21 @@ export default function ProductDetail({
                 <div className="relative">
                   <button
                     onClick={() => setShowShareMenu(!showShareMenu)}
-                    className="flex items-center justify-center p-2 rounded-full text-text-secondary hover:text-text-primary bg-bg-base/50 hover:bg-slate-700 transition-colors active:scale-95"
+                    aria-label="Chia sẻ sản phẩm"
+                    className="flex items-center justify-center rounded-full border border-primary/25 bg-primary/10 p-2 text-primary transition-colors hover:bg-primary hover:text-white active:scale-95"
                     title="Chia sẻ sản phẩm"
                   >
                     <Share2 className="w-4 h-4" />
                   </button>
                   {showShareMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-bg-base border border-border-inverse rounded-lg shadow-xl py-2 z-50 animate-in fade-in zoom-in duration-200">
+                    <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-slate-200 bg-white py-2 text-slate-800 shadow-xl z-50 animate-in fade-in zoom-in duration-200">
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(window.location.href);
                           alert("Đã copy link!");
                           setShowShareMenu(false);
                         }}
-                        className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-slate-700 hover:text-text-primary flex items-center gap-2 border-none bg-transparent cursor-pointer"
+                        className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-emerald-50 hover:text-primary flex items-center gap-2 border-none bg-transparent cursor-pointer"
                       >
                         <LinkIcon className="w-4 h-4" /> Sao chép link
                       </button>
@@ -694,19 +697,19 @@ export default function ProductDetail({
                         href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-slate-700 hover:text-text-primary flex items-center gap-2 no-underline"
+                        className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-blue-50 hover:text-blue-800 flex items-center gap-2 no-underline"
                         onClick={() => setShowShareMenu(false)}
                       >
-                        <Facebook className="w-4 h-4 text-info" /> Facebook
+                        <Facebook className="w-4 h-4 text-[#1877F2]" /> Facebook
                       </a>
                       <a
                         href={`https://zalo.me/share?url=${encodeURIComponent(window.location.href)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="w-full px-4 py-2 text-left text-sm text-text-secondary hover:bg-slate-700 hover:text-text-primary flex items-center gap-2 no-underline"
+                        className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-sky-50 hover:text-sky-800 flex items-center gap-2 no-underline"
                         onClick={() => setShowShareMenu(false)}
                       >
-                        <MessageCircle className="w-4 h-4 text-info" /> Zalo
+                        <MessageCircle className="w-4 h-4 text-[#0068FF]" /> Zalo
                       </a>
                     </div>
                   )}
@@ -1485,6 +1488,7 @@ export default function ProductDetail({
         <section className="fixed inset-0 bg-black/90 flex flex-col items-center justify-center animate-in fade-in" style={{ zIndex: 99999 }}>
           <button 
             onClick={() => setIsLightboxOpen(false)}
+            aria-label="Đóng thư viện ảnh"
             className="absolute top-4 right-4 z-[210] p-2 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm transition-all"
           >
             <X className="w-6 h-6 md:w-8 md:h-8" />
@@ -1501,12 +1505,14 @@ export default function ProductDetail({
               <>
                 <button
                   onClick={handlePrevImage}
+                  aria-label="Xem ảnh sản phẩm trước"
                   className="absolute left-4 top-1/2 -translate-y-1/2 p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm transition-all"
                 >
                   <ChevronLeft className="w-8 h-8 md:w-12 md:h-12" />
                 </button>
                 <button
                   onClick={handleNextImage}
+                  aria-label="Xem ảnh sản phẩm tiếp theo"
                   className="absolute right-4 top-1/2 -translate-y-1/2 p-3 text-white/70 hover:text-white bg-black/20 hover:bg-black/40 rounded-full backdrop-blur-sm transition-all"
                 >
                   <ChevronRight className="w-8 h-8 md:w-12 md:h-12" />

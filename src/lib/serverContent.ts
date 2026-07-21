@@ -13,6 +13,8 @@ interface ContentRow<T extends PublicContent> {
   data: T;
 }
 
+export type PublicSettingsData = Record<string, unknown>;
+
 const getContentRows = unstable_cache(
   async (table: ContentTable): Promise<ContentRow<PublicContent>[]> => {
     const { data, error } = await supabase.from(table).select("id,data");
@@ -30,6 +32,28 @@ const getContentRows = unstable_cache(
   {
     revalidate: 60,
     tags: ["public-content"],
+  },
+);
+
+const getSettingsRow = unstable_cache(
+  async (id: string): Promise<PublicSettingsData> => {
+    const { data, error } = await supabase
+      .from("settings")
+      .select("data")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`Không thể tải cấu hình công khai ${id}:`, error);
+      return {};
+    }
+
+    return (data?.data || {}) as PublicSettingsData;
+  },
+  ["public-settings-row-v1"],
+  {
+    revalidate: 60,
+    tags: ["public-settings"],
   },
 );
 
@@ -73,3 +97,6 @@ export const getPublishedNews = () => getPublishedRows<News>("news");
 
 export const getPublishedProjects = () =>
   getPublishedRows<Project>("projects");
+
+export const getPublicSettings = (id: "general" | "filters") =>
+  getSettingsRow(id);

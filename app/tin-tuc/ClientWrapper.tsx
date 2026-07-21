@@ -1,21 +1,18 @@
 "use client";
 
-import React, { useState } from 'react';
-import { getRouteUrl } from '../../../src/lib/utils';
-
-import { useRouter } from 'next/navigation';
-import NewsList from '../../../src/components/NewsList';
-import { useAppContext } from '../../../src/contexts/AppContext';
-import type { News, Product, Project } from '../../../src/types';
+import React, { useState } from "react";
+import { useRouter } from "next/navigation";
+import NewsList from "../../src/components/NewsList";
+import { useAppContext } from "../../src/contexts/AppContext";
+import { getRouteUrl } from "../../src/lib/utils";
+import type { News, Product, Project } from "../../src/types";
 
 export default function ClientWrapper({
-  categoryName,
   initialNews,
   initialProducts,
   initialProjects,
   initialGeneralSettings,
 }: {
-  categoryName: string;
   initialNews: News[];
   initialProducts: Product[];
   initialProjects: Project[];
@@ -23,27 +20,17 @@ export default function ClientWrapper({
 }) {
   const { sections, setSections, isEditMode } = useAppContext();
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-
   const router = useRouter();
 
-  const handleNavigate = (route: any) => {
-    router.push(getRouteUrl(route));
-  };
-
-  const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // alert removed;
-  };
-
   return (
-    <NewsList 
-      onNavigate={handleNavigate}
-      onShowNotification={handleShowNotification}
+    <NewsList
+      onNavigate={(route) => router.push(getRouteUrl(route))}
+      onShowNotification={() => undefined}
       isEditMode={isEditMode}
       sections={sections}
       onUpdateSections={setSections}
       selectedSectionId={selectedSectionId}
       setSelectedSectionId={setSelectedSectionId}
-      categoryName={categoryName}
       initialNews={initialNews}
       initialProducts={initialProducts}
       initialProjects={initialProjects}

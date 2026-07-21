@@ -15,6 +15,7 @@ import ProductCard from './ProductCard';
 import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
+import { useScrollDirection } from '../hooks/useScrollDirection';
 
 interface NewsListProps {
   onNavigate: (route: RouteState) => void;
@@ -25,6 +26,10 @@ interface NewsListProps {
   selectedSectionId: string | null;
   setSelectedSectionId: (id: string | null) => void;
   categoryName?: string;
+  initialNews?: News[];
+  initialProducts?: Product[];
+  initialProjects?: Project[];
+  initialGeneralSettings?: Record<string, any>;
 }
 
 export default function NewsList({ 
@@ -35,12 +40,19 @@ export default function NewsList({
   onUpdateSections,
   selectedSectionId,
   setSelectedSectionId,
-  categoryName
+  categoryName,
+  initialNews = [],
+  initialProducts = [],
+  initialProjects = [],
+  initialGeneralSettings = {}
 }: NewsListProps) {
-  const [allNews, setAllNews] = useState<News[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [allNews, setAllNews] = useState<News[]>(() =>
+    [...initialNews].sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
+  );
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [loading, setLoading] = useState(initialNews.length === 0);
+  const scrollDirection = useScrollDirection();
 
   // Filters & Tabs
   const [searchQuery, setSearchQuery] = useState('');
@@ -54,7 +66,7 @@ export default function NewsList({
   }, [searchQuery]);
 
   // React state for Column 1 & Column 2 dynamic hover pairing
-  const [hoveredArticle, setHoveredArticle] = useState<News | null>(null);
+  const [hoveredArticle, setHoveredArticle] = useState<News | null>(() => initialNews[0] || null);
 
   // AJAX loading counts
   const [interestNewsLimit, setInterestNewsLimit] = useState(12);
@@ -62,9 +74,14 @@ export default function NewsList({
   // Product offset cycle for synchronization
   const [productSyncOffset, setProductSyncOffset] = useState(0);
 
-  const [newsCategoriesExt, setNewsCategoriesExt] = useState<any[]>([]);
+  const [newsCategoriesExt, setNewsCategoriesExt] = useState<any[]>(() => initialGeneralSettings.newsCategoriesExt || []);
 
   useEffect(() => {
+    if (initialNews.length > 0) {
+      setLoading(false);
+      return;
+    }
+
     async function loadNewsData() {
       try {
         setLoading(true);
@@ -115,7 +132,7 @@ export default function NewsList({
     }
 
     loadNewsData();
-  }, []);
+  }, [initialNews.length]);
 
   // Context logic for category-news mode
   const currentCategoryExt = newsCategoriesExt.find(c => c.name === categoryName || c.id === categoryName);
@@ -206,6 +223,21 @@ export default function NewsList({
   return (    <>
     <div className="relative min-h-screen">
       <div className="space-y-4 pb-0 font-sans" id="news-catalog-root-wrapper">
+        {categoryName && (
+          <nav aria-label="breadcrumb" className={`sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10'} z-[90] mx-auto flex min-h-10 w-full max-w-7xl items-center gap-2 border-b border-border-color bg-bg-surface/95 px-4 py-2 font-sans text-[13px] text-text-secondary shadow-sm backdrop-blur-md transition-[top] duration-300 sm:px-6 lg:px-8`}>
+            <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary transition-colors font-medium">Tin tức</button>
+            <span className="text-text-secondary">/</span>
+            {parentCategoryExt ? (
+              <>
+                <button onClick={() => onNavigate({ screen: 'category-news', categoryName: parentCategoryExt.name })} className="hover:text-primary transition-colors font-medium">{parentCategoryExt.name}</button>
+                <span className="text-text-secondary">/</span>
+                <span className="text-primary font-medium">{categoryName}</span>
+              </>
+            ) : (
+              <span className="text-primary font-medium">{categoryName}</span>
+            )}
+          </nav>
+        )}
         {sections.map((section, idx) => {
           if (!section) return null;
           if (!section.visible && !isEditMode) return null;
@@ -230,21 +262,6 @@ export default function NewsList({
           } else if (section.id === 'news_header') {
             cardContent = (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-[10px]">
-                {categoryName && (
-                  <div className="mb-4 flex items-center font-sans text-[13px] text-text-secondary gap-2">
-                    <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary transition-colors font-medium">Tin tức</button>
-                    <span className="text-text-secondary">/</span>
-                    {parentCategoryExt ? (
-                      <>
-                        <button onClick={() => onNavigate({ screen: 'category-news', categoryName: parentCategoryExt.name })} className="hover:text-primary transition-colors font-medium">{parentCategoryExt.name}</button>
-                        <span className="text-text-secondary">/</span>
-                        <span className="text-primary font-medium">{categoryName}</span>
-                      </>
-                    ) : (
-                      <span className="text-primary font-medium">{categoryName}</span>
-                    )}
-                  </div>
-                )}
                 <div role="tablist" aria-label="Danh mục tin tức" className="border-b border-border-color mb-[15px] flex items-end overflow-x-auto hide-scrollbar gap-6 pb-1 relative">
                   {availableTabs.map((tab) => {
                     const isParent = newsCategoriesExt.some(c => c.parentId === newsCategoriesExt.find(pc => pc.name === tab)?.id);

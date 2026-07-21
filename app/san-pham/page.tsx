@@ -1,42 +1,35 @@
-"use client";
+import ClientWrapper from "./ClientWrapper";
+import {
+  getPublicSettings,
+  getPublishedProducts,
+  getPublishedProjects,
+} from "../../src/lib/serverContent";
 
-import React, { useState } from 'react';
-import ProductList from '../../src/components/ProductList';
-import { useAppContext } from '../../src/contexts/AppContext';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { getRouteUrl } from '../../src/lib/utils';
+export const revalidate = 60;
 
-export default function SanPhamPage() {
-  const { sections, setSections, isEditMode } = useAppContext();
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
-  const handleNavigate = (route: any) => {
-    router.push(getRouteUrl(route));
-  };
-
-  const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // Giữ callback tương thích với ProductList.
-  };
-  
-  const priceRange = searchParams.get('priceRange') || undefined;
-  const areaRange = searchParams.get('areaRange') || undefined;
-  const location = searchParams.get('location') || undefined;
+export default async function SanPhamPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [params, productRows, projectRows, generalSettings, filterSettings] = await Promise.all([
+    searchParams,
+    getPublishedProducts(),
+    getPublishedProjects(),
+    getPublicSettings("general"),
+    getPublicSettings("filters"),
+  ]);
+  const getParam = (key: string) => typeof params[key] === "string" ? params[key] : undefined;
 
   return (
-    <ProductList 
-      onNavigate={handleNavigate}
-      onShowNotification={handleShowNotification}
-      isEditMode={isEditMode}
-      sections={sections}
-      onUpdateSections={setSections}
-      selectedSectionId={selectedSectionId}
-      setSelectedSectionId={setSelectedSectionId}
-      initialPriceRange={priceRange}
-      initialAreaRange={areaRange}
-      initialLocation={location}
+    <ClientWrapper
+      initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
+      initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+      initialGeneralSettings={generalSettings}
+      initialFilterSettings={filterSettings}
+      initialPriceRange={getParam("priceRange")}
+      initialAreaRange={getParam("areaRange")}
+      initialLocation={getParam("location")}
     />
   );
 }

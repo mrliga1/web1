@@ -1,15 +1,30 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Phone, Mail, X, CheckCircle2 } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
+import { useAppContext } from '../contexts/AppContext';
 
 export default function FloatingActionButtons() {
-  const [showQuotePopup, setShowQuotePopup] = useState(false);
+  const { isQuotePopupOpen: showQuotePopup, setIsQuotePopupOpen: setShowQuotePopup } = useAppContext();
   const [quoteName, setQuoteName] = useState('');
   const [quotePhone, setQuotePhone] = useState('');
   const [quoteEmail, setQuoteEmail] = useState('');
   const [quoteDemand, setQuoteDemand] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (!showQuotePopup) return;
+    const previousOverflow = document.body.style.overflow;
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setShowQuotePopup(false);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', handleEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, [showQuotePopup, setShowQuotePopup]);
 
   const handleQuoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,10 +125,10 @@ export default function FloatingActionButtons() {
 
       {/* Quote Popup */}
       {showQuotePopup && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="relative w-full max-w-[374px] h-auto min-h-[460px] bg-bg-surface border border-border-color rounded-[10px] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center" onMouseDown={() => setShowQuotePopup(false)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="quote-popup-title" className="relative my-auto w-full max-w-[374px] min-h-[460px] max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[10px] border border-border-color bg-bg-surface shadow-2xl animate-in zoom-in-95 duration-200" onMouseDown={(event) => event.stopPropagation()}>
             <div className="flex items-center justify-between pt-3 px-3 pb-[1px] md:pt-4 md:px-4 md:pb-[1px] border-b border-border-color">
-              <h3 className="text-base md:text-lg font-bold text-text-primary font-display">
+              <h3 id="quote-popup-title" className="text-base md:text-lg font-bold text-text-primary font-display">
                 Tư vấn mua nhà chuyên sâu
               </h3>
               <button

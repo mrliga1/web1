@@ -4,6 +4,7 @@ import ClientWrapper from "./ClientWrapper";
 import { getNewsBySlug } from "../../../src/lib/serverContent";
 import { createNewsSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
+import { getSocialImageUrl } from "../../../src/lib/utils";
 
 export const revalidate = 60;
 
@@ -44,7 +45,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     plainText(article.description || article.content || "")
   ).slice(0, 160);
   const canonical = `${SITE_URL}/tin-tuc/${slug}`;
-  const images = article.imageUrl ? [article.imageUrl] : [`${SITE_URL}/og-image.jpg`];
+  const socialImage = getSocialImageUrl(article.imageUrl);
+  const images = [{ url: socialImage, width: 1200, height: 630, alt: article.title, type: "image/jpeg" }];
 
   return {
     title,
@@ -64,7 +66,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: brandedTitle,
       description,
-      images,
+      images: [{ url: socialImage, alt: article.title }],
     },
   };
 }

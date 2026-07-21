@@ -1,7 +1,12 @@
 import { permanentRedirect } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
 import { generateSlug } from "../../../src/lib/utils";
-import { supabase } from "../../../src/supabase";
+import {
+  getPublicSettings,
+  getPublishedNews,
+  getPublishedProducts,
+  getPublishedProjects,
+} from "../../../src/lib/serverContent";
 
 export const revalidate = 60;
 
@@ -21,32 +26,36 @@ export default async function CategoryNewsPage({
   let categoryName = decodedName;
   let canonicalSlug = requestSlug;
 
-  const { data, error } = await supabase
-    .from("settings")
-    .select("data")
-    .eq("id", "general")
-    .maybeSingle();
+  const [generalSettings, newsRows, productRows, projectRows] = await Promise.all([
+    getPublicSettings("general"),
+    getPublishedNews(),
+    getPublishedProducts(),
+    getPublishedProjects(),
+  ]);
+  const categories = (generalSettings.newsCategoriesExt || []) as Array<{ name?: string }>;
+  const category = categories.find((item) => {
+    return (
+      item.name === decodedName ||
+      generateSlug(item.name || "") === generateSlug(decodedName)
+    );
+  });
 
-  if (error) {
-    console.error("Không thể tải danh mục tin tức:", error);
-  } else {
-    const categories = data?.data?.newsCategoriesExt || [];
-    const category = categories.find((item: { name?: string }) => {
-      return (
-        item.name === decodedName ||
-        generateSlug(item.name || "") === generateSlug(decodedName)
-      );
-    });
-
-    if (category?.name) {
-      categoryName = category.name;
-      canonicalSlug = generateSlug(category.name);
-    }
+  if (category?.name) {
+    categoryName = category.name;
+    canonicalSlug = generateSlug(category.name);
   }
 
   if (name !== canonicalSlug) {
     permanentRedirect(`/category-news/${canonicalSlug}`);
   }
 
-  return <ClientWrapper categoryName={categoryName} />;
+  return (
+    <ClientWrapper
+      categoryName={categoryName}
+      initialNews={newsRows.map(({ id, data }) => ({ ...data, id }))}
+      initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
+      initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+      initialGeneralSettings={generalSettings}
+    />
+  );
 }

@@ -381,7 +381,7 @@ export default function NewsDetail({
           
           {/* Main big cover photo */}
           <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-border-color bg-bg-surface">
-            <img loading="eager" decoding="async" src={article.imageUrl ? optimizeImageUrl(article.imageUrl, 800) : undefined} alt={article.title} className="w-full h-full object-cover" referrerPolicy="no-referrer"
+            <img loading="eager" decoding="async" src={article.imageUrl ? optimizeImageUrl(article.imageUrl, 800) : undefined} alt={article.title} width={1200} height={675} className="w-full h-full object-cover" referrerPolicy="no-referrer"
               fetchPriority="high" />
           </div>
 
@@ -639,7 +639,7 @@ export default function NewsDetail({
           </div>
 
           {/* Yêu cầu tư vấn Form widget */}
-          <div className={`bg-bg-surface border border-border-color px-[16px] py-[8px] rounded-xl space-y-2 shadow-xl sticky ${scrollDirection === 'down' ? 'top-[15px]' : 'top-[55px]'} transition-colors duration-300 text-left`}>
+          <div className={`bg-bg-surface border border-border-color px-[16px] py-[8px] rounded-xl space-y-2 shadow-xl sticky ${scrollDirection === 'down' ? 'top-[58px]' : 'top-[98px]'} transition-[top,colors] duration-300 text-left`}>
             <div className="text-center space-y-1 pb-[2px]">
               <h3 className="text-text-primary font-display font-bold text-base tracking-wide mt-[2px]">
                 Tư vấn mua nhà chuyên sâu

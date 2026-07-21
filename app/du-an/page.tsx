@@ -1,35 +1,21 @@
-"use client";
+import ClientWrapper from "./ClientWrapper";
+import {
+  getPublishedProducts,
+  getPublishedProjects,
+} from "../../src/lib/serverContent";
 
-import React, { useState } from 'react';
-import { getRouteUrl } from '../../src/lib/utils';
+export const revalidate = 60;
 
-import { useRouter } from 'next/navigation';
-import ProjectList from '../../src/components/ProjectList';
-import { useAppContext } from '../../src/contexts/AppContext';
-
-export default function DuAnPage() {
-  const { sections, setSections, isEditMode } = useAppContext();
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-
-  const router = useRouter();
-
-  const handleNavigate = (route: any) => {
-    router.push(getRouteUrl(route));
-  };
-
-  const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // alert removed;
-  };
+export default async function DuAnPage() {
+  const [projectRows, productRows] = await Promise.all([
+    getPublishedProjects(),
+    getPublishedProducts(),
+  ]);
 
   return (
-    <ProjectList 
-      onNavigate={handleNavigate}
-      onShowNotification={handleShowNotification}
-      isEditMode={isEditMode}
-      sections={sections}
-      onUpdateSections={setSections}
-      selectedSectionId={selectedSectionId}
-      setSelectedSectionId={setSelectedSectionId}
+    <ClientWrapper
+      initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+      initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
     />
   );
 }

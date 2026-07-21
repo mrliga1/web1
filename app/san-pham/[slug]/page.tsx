@@ -4,6 +4,7 @@ import ClientWrapper from "./ClientWrapper";
 import { getProductBySlug } from "../../../src/lib/serverContent";
 import { createProductSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
+import { getSocialImageUrl } from "../../../src/lib/utils";
 
 export const revalidate = 60;
 
@@ -43,7 +44,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     product.metaDesc?.trim() ||
     `Vị trí: ${location} | Giá: ${price}${area}${bedrooms}. Xem thông tin chi tiết tại Greenia Homes.`;
   const canonical = `${SITE_URL}/san-pham/${slug}`;
-  const images = product.imageUrl ? [product.imageUrl] : [`${SITE_URL}/og-image.jpg`];
+  const socialImage = getSocialImageUrl(product.imageUrl);
+  const images = [{ url: socialImage, width: 1200, height: 630, alt: product.title, type: "image/jpeg" }];
 
   return {
     title,
@@ -63,7 +65,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: "summary_large_image",
       title: brandedTitle,
       description,
-      images,
+      images: [{ url: socialImage, alt: product.title }],
     },
     other: {
       "geo.region": "VN-SG",

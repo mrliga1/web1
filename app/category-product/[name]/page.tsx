@@ -2,7 +2,11 @@
 import ClientWrapper from "./ClientWrapper";
 import { permanentRedirect } from "next/navigation";
 import { generateSlug } from '../../../src/lib/utils';
-import { supabase } from '../../../src/supabase';
+import {
+  getPublicSettings,
+  getPublishedProducts,
+  getPublishedProjects,
+} from '../../../src/lib/serverContent';
 
 export const revalidate = 60;
 
@@ -20,10 +24,16 @@ export default async function CategoryProductPage({ params }: { params: Promise<
   let initialCategoryName;
   let canonicalSlug = requestSlug;
 
+  const [generalSettings, filterSettings, productRows, projectRows] = await Promise.all([
+    getPublicSettings('general'),
+    getPublicSettings('filters'),
+    getPublishedProducts(),
+    getPublishedProjects(),
+  ]);
+
   try {
-    const { data, error } = await supabase.from('settings').select('*').eq('id', 'general').maybeSingle();
-    if (!error && data && data.data && data.data.productCategoriesExt) {
-      const cats = data.data.productCategoriesExt;
+    if (generalSettings.productCategoriesExt) {
+      const cats = generalSettings.productCategoriesExt as any[];
       const cat = cats.find((c: any) => c.name === decodedName || generateSlug(c.name) === decodedName);
       if (cat) {
         initialCategoryTitle = cat.seoTitle || cat.name;
@@ -46,6 +56,10 @@ export default async function CategoryProductPage({ params }: { params: Promise<
       initialCategoryTitle={initialCategoryTitle}
       initialCategoryDesc={initialCategoryDesc}
       initialCategoryName={initialCategoryName}
+      initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
+      initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+      initialGeneralSettings={generalSettings}
+      initialFilterSettings={filterSettings}
     />
   );
 }

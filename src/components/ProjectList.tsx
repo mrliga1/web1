@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { generateSlug, optimizeImageUrl } from '../lib/utils';
+import NextImage from 'next/image';
+import { generateSlug } from '../lib/utils';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
   if (event.key === "Enter" || event.key === " ") {
@@ -355,12 +356,13 @@ export default function ProjectList({
                             className="motion-card bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                           >
                             <div className="relative aspect-[16/10] overflow-hidden">
-                              <img loading={projectIndex === 0 ? "eager" : "lazy"} decoding="async"
-                                fetchPriority={projectIndex === 0 ? "high" : "auto"}
-                                src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                              <NextImage priority={projectIndex === 0} decoding="async"
+                                src={p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800"}
                                 alt={p.title}
-                                width="800"
-                                height="500"
+                                width={800}
+                                height={500}
+                                quality={60}
+                                sizes="(max-width: 639px) 100vw, (max-width: 1023px) 50vw, 25vw"
                                 referrerPolicy="no-referrer"
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 block"
                                 onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}

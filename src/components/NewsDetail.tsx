@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { optimizeImageUrl, generateSrcSet, generateSlug, formatVietnamDate } from '../lib/utils';
+import NextImage from 'next/image';
+import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 import { recordContentEngagement } from '../lib/engagement';
 import { News, Product, Project, RouteState } from '../types';
 import { Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, Tag, Building, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown, Pause, Play } from 'lucide-react';
@@ -418,8 +419,7 @@ export default function NewsDetail({
           
           {/* Main big cover photo */}
           <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-border-color bg-bg-surface">
-            <img loading="eager" decoding="async" src={article.imageUrl ? optimizeImageUrl(article.imageUrl, 1200) : undefined} srcSet={generateSrcSet(article.imageUrl)} sizes="(max-width: 1024px) 100vw, 800px" alt={article.title} width={1200} height={675} className="w-full h-full object-cover" referrerPolicy="no-referrer"
-              fetchPriority="high" />
+            <NextImage priority decoding="async" src={article.imageUrl || "/no-image.svg"} sizes="(max-width: 1024px) 100vw, 800px" alt={article.title} width={1200} height={675} quality={60} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </div>
 
           {/* HTML rendered prose */}

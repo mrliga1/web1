@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import NextImage from "next/image";
 import { formatVietnamDate, generateSlug } from "../lib/utils";
 import { News, Product, Project, RouteState } from "../types";
 import {
@@ -692,17 +693,15 @@ export default function ProjectDetail({
                   }
                 }}
               >
-                <img
-                  loading={idx === 0 ? "eager" : "lazy"}
+                <NextImage
+                  priority={idx === 0}
                   decoding="async"
-                  // @ts-ignore
-                  fetchpriority={idx === 0 ? "high" : "auto"}
-                  src={img ? optimizeImageUrl(img, 1200) : undefined}
-                  srcSet={img ? generateSrcSet(img) : undefined}
+                  src={img || "/no-image.svg"}
                   sizes="(max-width: 1024px) 100vw, 1200px"
                   alt={`${project.title} - Image ${idx + 1}`}
                   width={1200}
                   height={675}
+                  quality={60}
                   referrerPolicy="no-referrer"
                   className={`w-full max-h-[85vh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-700 ${isCenter ? "ring-1 ring-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)]" : "cursor-pointer"}`}
                 />

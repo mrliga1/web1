@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { generateSlug, optimizeImageUrl, generateSrcSet } from "../lib/utils";
+import NextImage from "next/image";
+import { generateSlug, optimizeImageUrl } from "../lib/utils";
 import { parseLocation, formatLocationName } from "../lib/locationMapping";
 import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
 import { recordContentEngagement } from "../lib/engagement";
@@ -606,13 +607,13 @@ export default function ProductDetail({
           {/* Cover Multi-image Slider */}
           <figure className="space-y-4 !mb-[10px]">
             <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-border-color bg-bg-surface shadow-xl group">
-              <img
-                loading="eager"
+              <NextImage
+                priority
                 decoding="async"
-                // @ts-ignore
-                fetchpriority="high"
-                src={selectedImage ? optimizeImageUrl(selectedImage, 1200) : undefined}
-                srcSet={selectedImage ? generateSrcSet(selectedImage) : undefined}
+                src={selectedImage || "/no-image.svg"}
+                width={1200}
+                height={675}
+                quality={60}
                 sizes="(max-width: 1024px) 100vw, 800px"
                 alt={product.title}
                 referrerPolicy="no-referrer"

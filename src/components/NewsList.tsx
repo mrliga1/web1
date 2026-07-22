@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { optimizeImageUrl, generateSrcSet, generateSlug, formatVietnamDate } from '../lib/utils';
+import NextImage from 'next/image';
+import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
   if (event.key === "Enter" || event.key === " ") {
@@ -374,14 +375,13 @@ export default function NewsList({
                     {/* Cover highlight */}
                     <div className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors">
                       <div className="h-[260px] overflow-hidden relative">
-                        <img loading="eager" decoding="async"
-                          fetchPriority="high"
-                          src={optimizeImageUrl(displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600", 800) || undefined}
-                          srcSet={generateSrcSet(displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600")}
+                        <NextImage priority decoding="async"
+                          src={displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600"}
                           sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 520px"
                           alt={displayArticle?.title}
-                          width="600"
-                          height="400"
+                          width={600}
+                          height={400}
+                          quality={60}
                           referrerPolicy="no-referrer"
                           onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
                           className="motion-media w-full h-full object-cover group-hover:scale-105"

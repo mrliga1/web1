@@ -43,6 +43,17 @@ const matchesRangeConfig = (value: number, cfg: FilterRangeConfig | undefined) =
   return value >= cfg.min && (max === null ? true : value <= max);
 };
 
+const syncRecentlyViewedDocumentState = (count: number) => {
+  if (typeof document === 'undefined') return;
+  if (count > 0) {
+    document.documentElement.setAttribute('data-has-recently-viewed', 'true');
+    document.documentElement.style.setProperty('--recently-viewed-count', String(Math.min(count, 5)));
+    return;
+  }
+  document.documentElement.removeAttribute('data-has-recently-viewed');
+  document.documentElement.style.removeProperty('--recently-viewed-count');
+};
+
 export default function ProductList({ 
   onNavigate, 
   onShowNotification,
@@ -170,13 +181,15 @@ export default function ProductList({
     if (initialProducts.length === 0) return;
     try {
       const viewedIds: string[] = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
-      setRecentlyViewed(
+      const historyList =
         initialProducts
           .filter((item) => viewedIds.includes(item.id))
-          .sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id))
-      );
+          .sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id));
+      setRecentlyViewed(historyList);
+      syncRecentlyViewedDocumentState(historyList.length);
     } catch {
       setRecentlyViewed([]);
+      syncRecentlyViewedDocumentState(0);
     }
   }, [initialProducts]);
 
@@ -312,6 +325,7 @@ export default function ProductList({
           const historyList = list.filter(p => viewedIds.includes(p.id));
           historyList.sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id));
           setRecentlyViewed(historyList);
+          syncRecentlyViewedDocumentState(historyList.length);
         }
 
       } catch (err) {
@@ -961,6 +975,7 @@ export default function ProductList({
                       onClick={() => {
                         localStorage.removeItem('recentlyViewed');
                         setRecentlyViewed([]);
+                        syncRecentlyViewedDocumentState(0);
                         onShowNotification('Đã làm trống lịch sử xem.', 'success');
                       }}
                       className="text-[9px] uppercase font-mono font-bold tracking-wider text-text-secondary hover:text-error transition-colors bg-transparent border-none cursor-pointer"
@@ -1186,7 +1201,11 @@ export default function ProductList({
             );
           }
 
-          if (!cardContent && !isEditMode) return null; // ADD THIS to prevent empty wrappers spacing
+          if (!cardContent && section.id === 'recently_viewed' && !isEditMode) {
+            cardContent = <div className="recently-viewed-reserve" aria-hidden="true" />;
+          }
+
+          if (!cardContent && !isEditMode) return null;
           
           const SectionTag = section.id === 'products_filter' ? 'aside' : 'section';
 
@@ -1209,7 +1228,7 @@ export default function ProductList({
                         : 'border-dashed border-border-color/80 hover:border-primary/50'
                     }` 
                   : ''
-              } ${!section.visible ? 'opacity-40 bg-white/20' : ''} ${!isEditMode && isHeavySection ? 'render-deferred-section' : ''} ${
+              } ${!section.visible ? 'opacity-40 bg-white/20' : ''} ${!isEditMode && isHeavySection ? 'render-deferred-section' : ''} ${!isEditMode && section.id === 'recently_viewed' ? 'recently-viewed-shell' : ''} ${
                 !isEditMode && section.id === 'products_filter' 
                   ? `sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10'} z-40 bg-white/95 shadow-sm transition-colors duration-300` 
                   : 'relative z-10'

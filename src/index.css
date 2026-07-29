@@ -476,6 +476,26 @@ div#app-workspace-flow:nth-of-type(2) > main#main-viewport:nth-of-type(1) > div:
   contain-intrinsic-size: auto 420px;
 }
 
+html:not([data-has-recently-viewed]) .recently-viewed-shell {
+  display: none;
+}
+
+.recently-viewed-reserve {
+  min-height: calc(38px + (var(--recently-viewed-count, 1) * 110px));
+}
+
+@media (min-width: 640px) {
+  .recently-viewed-reserve {
+    min-height: 420px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .recently-viewed-reserve {
+    min-height: 400px;
+  }
+}
+
 #project-detail-view-root h1,
 #project-detail-view-root h2,
 #project-detail-view-root h3 {

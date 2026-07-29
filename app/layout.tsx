@@ -73,6 +73,11 @@ export default async function RootLayout({
   return (
     <html lang="vi">
       <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var recentlyViewedIds=JSON.parse(localStorage.getItem('recentlyViewed')||'[]');if(Array.isArray(recentlyViewedIds)&&recentlyViewedIds.length>0){document.documentElement.setAttribute('data-has-recently-viewed','true');document.documentElement.style.setProperty('--recently-viewed-count',String(Math.min(recentlyViewedIds.length,5)));}}catch(e){}`,
+          }}
+        />
         {/* PWA Tags */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#04352A" />

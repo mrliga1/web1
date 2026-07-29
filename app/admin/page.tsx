@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { getRouteUrl } from '../../src/lib/utils';
+import type { RouteState } from '../../src/types';
 
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -20,12 +21,13 @@ export default function AdminPage() {
 
   const router = useRouter();
 
-  const handleNavigate = (route: any) => {
+  const handleNavigate = (route: RouteState) => {
     router.push(getRouteUrl(route));
   };
 
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // alert removed;
+    void message;
+    void type;
   };
 
   return (

@@ -1,30 +1,25 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import NextImage from "next/image";
 import { generateSlug, optimizeImageUrl } from "../lib/utils";
 import { parseLocation, formatLocationName } from "../lib/locationMapping";
 import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
 import { recordContentEngagement } from "../lib/engagement";
-import { handleFirestoreError, OperationType } from "../firebase-errors";
-import { Product, Project, RouteState } from "../types";
+import { CategoryExt, GeneralSettingsData, News, Product, Project, RouteState } from "../types";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 import {
   MapPin,
   Phone,
   Building2,
   ChevronLeft,
-  ArrowRight,
   ChevronRight,
   X,
   Share2,
-  Heart,
   CheckCircle2,
-  Shield,
   Compass,
   Tag,
   Layers,
   Bookmark,
-  Sparkles,
   MessageCircle,
   Bath,
   Armchair,
@@ -37,6 +32,8 @@ import {
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
 import StarRatingInteractive from "./StarRatingInteractive";
+import { notifyAdminEmail } from "../lib/email";
+import { fetchClientIp } from "../lib/ip";
 
 interface ProductDetailProps {
   productId: string;
@@ -44,7 +41,7 @@ interface ProductDetailProps {
   initialProduct?: Product;
   initialProducts?: Product[];
   initialProjects?: Project[];
-  initialGeneralSettings?: Record<string, any>;
+  initialGeneralSettings?: GeneralSettingsData;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: "success" | "error") => void;
 }
@@ -83,12 +80,22 @@ const MapViewer = React.memo(
   },
 );
 
-import { notifyAdminEmail } from "../lib/email";
-import { fetchClientIp } from "../lib/ip";
+MapViewer.displayName = "MapViewer";
+
+const fallbackProductImages = [
+  "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=800",
+  "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
+];
 
 declare global {
   interface Window {
-    __SERVER_DATA__?: any;
+    __SERVER_DATA__?: {
+      product?: Product;
+      project?: Project;
+      news?: News;
+    };
   }
 }
 
@@ -102,22 +109,24 @@ export default function ProductDetail({
   initialProjects = [],
   initialGeneralSettings = {},
 }: ProductDetailProps) {
+  const readServerProduct = (): Product | null => {
+    if (typeof window === "undefined") return null;
+    const serverProduct = window.__SERVER_DATA__?.product;
+    if (!serverProduct) return null;
+    if (serverProduct.id === productId) return serverProduct;
+    if (slug && generateSlug(serverProduct.title) === slug) return serverProduct;
+    return null;
+  };
+
   const [product, setProduct] = useState<Product | null>(() => {
     if (initialProduct) return initialProduct;
-
-    if (
-      typeof window !== "undefined" &&
-      (window.__SERVER_DATA__?.product?.id === productId || 
-       (slug && generateSlug(window.__SERVER_DATA__?.product?.title) === slug))
-    ) {
-      return window.__SERVER_DATA__.product;
-    }
-    return null;
+    return readServerProduct();
   });
+  const productRef = useRef<Product | null>(product);
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
-  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>(initialGeneralSettings.productCategoriesExt || []);
+  const [productCategoriesExt, setProductCategoriesExt] = useState<CategoryExt[]>(initialGeneralSettings.productCategoriesExt || []);
   const [loading, setLoading] = useState(!product);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [expandedLocations, setExpandedLocations] = useState<Record<string, boolean>>({});
@@ -134,35 +143,25 @@ export default function ProductDetail({
 
   // Left column variables
   const [selectedImage, setSelectedImage] = useState<string>(() => {
-    if (initialProduct) return initialProduct.imageUrl || "";
-
-    if (
-      typeof window !== "undefined" &&
-      (window.__SERVER_DATA__?.product?.id === productId || 
-       (slug && generateSlug(window.__SERVER_DATA__?.product?.title) === slug))
-    ) {
-      return window.__SERVER_DATA__.product.imageUrl || "";
-    }
-    return "";
+    const initial = initialProduct || readServerProduct();
+    return initial?.imageUrl || "";
   });
   const [activeTab, setActiveTab] = useState<"desc" | "map">("desc");
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [isAutoplayPaused, setIsAutoplayPaused] = useState(true);
   const scrollDirection = useScrollDirection();
 
+  useEffect(() => {
+    productRef.current = product;
+  }, [product]);
+
   // Auto-scroll main image slider
   useEffect(() => {
     if (!product || isAutoplayPaused) return;
-    const sampleThumbs = [
-      "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1600607687931-cece5ce21408?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1600607687644-aac4c3eac7f4?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
-    ];
     const imgs =
       product.imageUrls && product.imageUrls.length > 0
         ? product.imageUrls
-        : [product.imageUrl || sampleThumbs[0], ...sampleThumbs.slice(1)];
+        : [product.imageUrl || fallbackProductImages[0], ...fallbackProductImages.slice(1)];
 
     if (imgs.length <= 1) return;
 
@@ -177,31 +176,20 @@ export default function ProductDetail({
     return () => clearInterval(timer);
   }, [product, isAutoplayPaused]);
 
-  // Booking Consultation form state
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [clientDemand, setClientDemand] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isBooked, setIsBooked] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(true);
-  const [agreePrivacy, setAgreePrivacy] = useState(true);
+  const [, setIsSubmitting] = useState(false);
+  const [, setIsBooked] = useState(false);
 
-  // AJAX loading limit for recently viewed history below
+  // Giới hạn tải thêm cho lịch sử đã xem.
   const [recentGridLimit, setRecentGridLimit] = useState(10);
-
-  // Sample thumbs gallery images for rich visual slider experience
-  const sampleThumbs = [
-    "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
-  ];
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const currentImages = product?.imageUrls && product.imageUrls.length > 0 
     ? product.imageUrls 
-    : [product?.imageUrl || sampleThumbs[0], ...sampleThumbs.slice(1)];
+    : [product?.imageUrl || fallbackProductImages[0], ...fallbackProductImages.slice(1)];
 
   const handlePrevImage = (e?: React.MouseEvent) => {
     e?.stopPropagation();
@@ -251,24 +239,24 @@ export default function ProductDetail({
         }
 
         const { doc, getDoc, collection, getDocs, db } = await import("../firebase");
-        if (!product) setLoading(true);
+        if (!productRef.current) setLoading(true);
 
-        let activeProd: Product | null = product;
+        let activeProd: Product | null = productRef.current;
         let finalProductId = productId || activeProd?.id || "";
 
         if (!activeProd && finalProductId) {
           const docRef = doc(db, "products", finalProductId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            activeProd = { id: docSnap.id, ...docSnap.data() } as Product;
+            activeProd = { ...((docSnap.data() || {}) as Omit<Product, 'id'>), id: docSnap.id } as Product;
           }
         } else if (!activeProd && slug) {
           const prodCol = collection(db, "products");
           const prodSnap = await getDocs(prodCol);
           for (const doc of prodSnap.docs) {
-            const data = doc.data();
-            if (generateSlug(data.title) === slug && (!data.approvalStatus || data.approvalStatus === "approved")) {
-              activeProd = { id: doc.id, ...data } as Product;
+            const data = (doc.data() || {}) as Partial<Product>;
+            if (data.title && generateSlug(data.title) === slug && (!data.approvalStatus || data.approvalStatus === "approved")) {
+              activeProd = { ...(data as Omit<Product, 'id'>), id: doc.id } as Product;
               finalProductId = doc.id;
               break;
             }
@@ -278,19 +266,18 @@ export default function ProductDetail({
               const docRef = doc(db, "products", slug);
               const docSnap = await getDoc(docRef);
               if (docSnap.exists()) {
-                activeProd = { id: docSnap.id, ...docSnap.data() } as Product;
+                activeProd = { ...((docSnap.data() || {}) as Omit<Product, 'id'>), id: docSnap.id } as Product;
                 finalProductId = docSnap.id;
               }
-            } catch (e) {
-              // Ignore invalid ID errors
+            } catch {
+              // Bỏ qua lỗi khi slug không phải mã tài liệu hợp lệ.
             }
           }
         }
 
         if (activeProd) {
           setProduct(activeProd);
-          if (!selectedImage)
-            setSelectedImage(activeProd.imageUrl || sampleThumbs[0]);
+          setSelectedImage((current) => current || activeProd?.imageUrl || fallbackProductImages[0]);
 
           // Tăng lượt xem thực tế
           const newViews = (activeProd.viewsCount || 0) + 1;
@@ -321,10 +308,10 @@ export default function ProductDetail({
         const prodCol = collection(db, "products");
         const prodSnap = await getDocs(prodCol);
         const allProds: Product[] = [];
-        prodSnap.forEach((doc: any) => {
-          const data = doc.data();
+        prodSnap.forEach((doc) => {
+          const data = doc.data() as Product;
           if (!data.approvalStatus || data.approvalStatus === "approved") {
-            allProds.push({ id: doc.id, ...data } as Product);
+            allProds.push({ ...data, id: doc.id } as Product);
           }
         });
         setProducts(allProds);
@@ -333,15 +320,16 @@ export default function ProductDetail({
         const projCol = collection(db, "projects");
         const projSnap = await getDocs(projCol);
         const projList: Project[] = [];
-        projSnap.forEach((doc: any) => {
-          projList.push({ id: doc.id, ...doc.data() } as Project);
+        projSnap.forEach((doc) => {
+          projList.push({ ...(doc.data() as Omit<Project, 'id'>), id: doc.id } as Project);
         });
         setProjects(projList);
 
         // 3.5 Fetch Categories Config
         const genSnap = await getDoc(doc(db, 'settings', 'general'));
-        if (genSnap.exists() && genSnap.data().productCategoriesExt) {
-          setProductCategoriesExt(genSnap.data().productCategoriesExt);
+        const generalData = genSnap.data() as GeneralSettingsData | undefined;
+        if (genSnap.exists() && generalData?.productCategoriesExt) {
+          setProductCategoriesExt(generalData.productCategoriesExt);
         }
 
         // 4. Save viewed ID to localStorage History
@@ -371,7 +359,7 @@ export default function ProductDetail({
     }
 
     loadProductData();
-  }, [initialProduct, initialProducts, productId, slug]);
+  }, [initialProduct, initialProducts, productId, slug, onNavigate]);
 
   const handleInquirySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -434,6 +422,8 @@ export default function ProductDetail({
       setIsSubmitting(false);
     }
   };
+
+  void handleInquirySubmit;
 
   if (loading) {
     return (
@@ -658,8 +648,8 @@ export default function ProductDetail({
               {(product.imageUrls && product.imageUrls.length > 0
                 ? product.imageUrls
                 : [
-                    product.imageUrl || sampleThumbs[0],
-                    ...sampleThumbs.slice(1),
+                    product.imageUrl || fallbackProductImages[0],
+                    ...fallbackProductImages.slice(1),
                   ]
               ).map((imgUrl, thumbIdx) => (
               <button
@@ -878,14 +868,14 @@ export default function ProductDetail({
                     </span>
                   </div>
                 )}
-                {(product as any).frontage && (
+                {product.frontage && (
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
                     <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
                       <MapPin className="w-4 h-4 text-primary" />
                       <span className="text-[11px] sm:text-[13px]">Mặt tiền</span>
                     </div>
                     <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1">
-                      {(product as any).frontage}m
+                      {product.frontage}m
                     </span>
                   </div>
                 )}
@@ -900,14 +890,14 @@ export default function ProductDetail({
                     </span>
                   </div>
                 )}
-                {(product as any).interior && (
+                {product.interior && (
                   <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between sm:justify-start sm:gap-6 border-b border-border-color/30 pb-1 sm:pb-[2px]">
                     <div className="flex items-center gap-1.5 text-text-secondary w-full sm:w-24 shrink-0 mb-1 sm:mb-0">
                       <Armchair className="w-4 h-4 text-primary" />
                       <span className="text-[11px] sm:text-[13px]">Nội thất</span>
                     </div>
-                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1" title={(product as any).interior}>
-                      {(product as any).interior}
+                    <span className="text-text-primary font-semibold text-left text-xs sm:text-[13px] line-clamp-1" title={product.interior}>
+                      {product.interior}
                     </span>
                   </div>
                 )}

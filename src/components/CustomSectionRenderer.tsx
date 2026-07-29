@@ -1,17 +1,19 @@
 import React from 'react';
-import { Sparkles, Phone, Mail, CheckCircle, ShieldCheck, Star } from 'lucide-react';
-import { VisualSection } from '../types';
+import { Phone, Mail, ShieldCheck, Star } from 'lucide-react';
+import { RouteState, VisualSection } from '../types';
 import dynamic from 'next/dynamic';
 const VisualDragCanvas = dynamic(() => import('./VisualDragCanvas'));
+
+type EditableComponent = React.ElementType;
 
 interface CustomSectionRendererProps {
   section: VisualSection;
   isEditMode: boolean;
-  EditableText: any;
-  EditableImage: any;
-  onNavigate: (route: any) => void;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  EditableText: EditableComponent;
+  EditableImage: EditableComponent;
+  onNavigate: (route: RouteState) => void;
+  sections: VisualSection[];
+  onUpdateSections: (sections: VisualSection[]) => void;
   onShowNotification?: (message: string, type: 'success' | 'error') => void;
 }
 
@@ -25,7 +27,10 @@ export default function CustomSectionRenderer({
   onUpdateSections,
   onShowNotification
 }: CustomSectionRendererProps) {
-  // If this is a free-form visual drag canvas
+  void onNavigate;
+  void EditableImage;
+
+  // Hiển thị canvas kéo thả tự do.
   if (section.id.startsWith('custom_free_canvas_')) {
     return (
       <VisualDragCanvas
@@ -38,7 +43,7 @@ export default function CustomSectionRenderer({
     );
   }
 
-  // Determine template based on section ID prefix
+  // Chọn template theo tiền tố ID của section.
   if (section.id.startsWith('custom_banner_promo')) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8" id={section.id}>

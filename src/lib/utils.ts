@@ -58,7 +58,7 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
   if (!url) return '';
   let finalUrl = url;
   
-  // Extract original URL if it's already wrapped in wsrv.nl
+  // Lấy URL gốc nếu ảnh đã được bọc qua wsrv.nl.
   if (finalUrl.includes('wsrv.nl')) {
     try {
       const urlObj = new URL(finalUrl);
@@ -66,8 +66,8 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
       if (innerUrl) {
         finalUrl = innerUrl;
       }
-    } catch (e) {
-      // Ignore parse errors
+    } catch {
+      // Bỏ qua lỗi parse URL.
     }
   }
   
@@ -79,23 +79,22 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
     }
   }
   
-  // Handle Unsplash natively for much faster LCP and auto WebP/AVIF
+  // Xử lý Unsplash trực tiếp để cải thiện LCP và tự động nén ảnh.
   if (finalUrl.includes('unsplash.com')) {
-    // If it already has query params, we append, otherwise create new
     try {
       const urlObj = new URL(finalUrl);
       urlObj.searchParams.set('auto', 'format,compress');
       urlObj.searchParams.set('q', '75');
       if (width) urlObj.searchParams.set('w', width.toString());
       return urlObj.toString();
-    } catch (e) {
-      // Fallback if URL parsing fails
+    } catch {
+      // Dự phòng khi URL không parse được.
       const separator = finalUrl.includes('?') ? '&' : '?';
       return `${finalUrl}${separator}auto=format,compress&q=75${width ? `&w=${width}` : ''}`;
     }
   }
   
-  // Use wsrv.nl image proxy and force WebP for other external images
+  // Dùng proxy ảnh wsrv.nl và ép WebP cho ảnh ngoài.
   if (finalUrl.startsWith('http') && !finalUrl.endsWith('.svg')) {
      let optimized = `https://wsrv.nl/?url=${encodeURIComponent(finalUrl)}&output=webp&q=65`;
      if (width) {

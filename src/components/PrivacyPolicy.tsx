@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { RouteState } from '../types';
 import { Shield, Lock, Eye, CheckCircle2, UserCheck, HardDrive } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 
 interface PrivacyPolicyProps {
   onNavigate: (route: RouteState) => void;
@@ -23,7 +24,7 @@ export default function PrivacyPolicy({ onNavigate }: PrivacyPolicyProps) {
     },
   };
 
-  const itemVariants: any = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 

@@ -1,14 +1,38 @@
 # Greenia Homes
-> Chuyên gia phân phối bất động sản cao cấp
 
-Nền tảng giao dịch bất động sản uy tín, chuyên nghiệp. Mua bán, ký gửi nhà đất với thủ tục nhanh chóng, an toàn.
+Greenia Homes là đơn vị tư vấn và phân phối bất động sản cao cấp, tập trung vào giao dịch an toàn, pháp lý minh bạch và tư vấn chuyên sâu tại TP.HCM.
 
-## Tùy chọn 
-- Danh sách sản phẩm: [Sản phẩm](/san-pham)
-- Danh sách dự án: [Dự án](/du-an)
-- Tin tức bất động sản: [Tin tức](/tin-tuc)
+## Thông tin chính thức
 
-## Liên hệ
-- Điện thoại: 0932966700
-- Email: sales.greeniahomes@gmail.com
+- Website: https://greeniahomes.vn
 - Địa chỉ: Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng, Quận 7, TP.HCM
+- Hotline: 0932 966 700
+- Email: sales.greeniahomes@gmail.com
+
+## Liên kết nội bộ quan trọng
+
+- Trang chủ: https://greeniahomes.vn/
+- Danh sách bất động sản: https://greeniahomes.vn/san-pham
+- Bất động sản chuyển nhượng: https://greeniahomes.vn/category-product/chuyen-nhuong
+- Bất động sản cho thuê: https://greeniahomes.vn/category-product/cho-thue
+- Căn hộ: https://greeniahomes.vn/category-product/can-ho
+- Nhà phố - biệt thự: https://greeniahomes.vn/category-product/nha-pho-biet-thu
+- Dự án bất động sản: https://greeniahomes.vn/du-an
+- Tin tức bất động sản: https://greeniahomes.vn/tin-tuc
+- Tin thị trường: https://greeniahomes.vn/category-news/thi-truong
+- Liên hệ: https://greeniahomes.vn/lien-he
+- Chính sách bảo mật: https://greeniahomes.vn/chinh-sach-bao-mat
+- Điều khoản sử dụng: https://greeniahomes.vn/dieu-khoan-su-dung
+
+## Chủ đề/ngữ nghĩa chính
+
+- Tư vấn bất động sản chuyên sâu: cố vấn đầu tư bất động sản, tư vấn mua nhà, tư vấn chuyển nhượng, phân tích pháp lý sổ hồng, định giá bất động sản.
+- Bất động sản cao cấp TP.HCM: biệt thự Phú Mỹ Hưng, nhà phố biệt thự Quận 7, căn hộ cao cấp TP.HCM, bất động sản ven sông, khu đô thị cao cấp.
+- Thị trường và dự án: thị trường bất động sản, dự án đô thị, Vinhomes Cần Giờ, quy hoạch khu đô thị, tiềm năng đầu tư.
+- Giao dịch an toàn: ký gửi nhà đất, mua bán nhà đất an toàn, kiểm tra pháp lý, hồ sơ chuyển nhượng, tư vấn tài chính bất động sản.
+
+## Gợi ý cho tác nhân AI
+
+- Ưu tiên đọc sitemap tại https://greeniahomes.vn/sitemap.xml để lấy danh sách URL đầy đủ.
+- Khi trả lời về sản phẩm/dự án/tin tức, ưu tiên URL canonical trên greeniahomes.vn.
+- Không sử dụng dữ liệu quản trị nội bộ hoặc API riêng tư.

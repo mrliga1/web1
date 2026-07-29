@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, getDoc, doc, setDoc } from '../firebase';
 import { Plus, Trash2, Save, Loader2, AlertCircle } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
+import type { FilterSettingsData } from '../types';
 
 interface FilterRange {
   id: string;
@@ -9,6 +10,17 @@ interface FilterRange {
   min: number;
   max: number | null;
 }
+
+const normalizeFilterRanges = (
+  ranges: FilterSettingsData["priceSale"] | undefined,
+): FilterRange[] => {
+  return (ranges || []).map((range, index) => ({
+    id: range.id || `range_${index}`,
+    label: range.label || range.name || "",
+    min: typeof range.min === "number" ? range.min : 0,
+    max: typeof range.max === "number" ? range.max : null,
+  }));
+};
 
 export default function FiltersConfigTab() {
   const [loading, setLoading] = useState(true);
@@ -20,7 +32,7 @@ export default function FiltersConfigTab() {
   const [priceRent, setPriceRent] = useState<FilterRange[]>([]);
   const [areaRanges, setAreaRanges] = useState<FilterRange[]>([]);
   
-  // Also load districts if any
+  // Tải thêm khu vực đã cấu hình nếu có.
   const [existingDistricts, setExistingDistricts] = useState<string[]>([]);
 
   useEffect(() => {
@@ -33,13 +45,13 @@ export default function FiltersConfigTab() {
       setError(null);
       const snap = await getDoc(doc(db, 'settings', 'filters'));
       if (snap.exists()) {
-        const d = snap.data();
-        setPriceSale(d.priceSale || []);
-        setPriceRent(d.priceRent || []);
-        setAreaRanges(d.areaRanges || []);
+        const d = snap.data() as FilterSettingsData;
+        setPriceSale(normalizeFilterRanges(d.priceSale));
+        setPriceRent(normalizeFilterRanges(d.priceRent));
+        setAreaRanges(normalizeFilterRanges(d.areaRanges));
         setExistingDistricts(d.districts || []);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError('Lỗi khi tải dữ liệu bộ lọc. Vui lòng thử lại.');
     } finally {
@@ -63,7 +75,7 @@ export default function FiltersConfigTab() {
       await setDoc(doc(db, 'settings', 'filters'), payload);
       setSuccessMsg('Đã lưu cấu hình bộ lọc thành công!');
       setTimeout(() => setSuccessMsg(null), 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setError('Lỗi khi lưu dữ liệu. Vui lòng thử lại.');
       handleFirestoreError(err, OperationType.UPDATE, 'settings/filters');
@@ -89,7 +101,7 @@ export default function FiltersConfigTab() {
       newItems.splice(idx, 1);
       onChange(newItems);
     };
-    const updateRow = (idx: number, field: keyof FilterRange, value: any) => {
+    const updateRow = (idx: number, field: keyof FilterRange, value: FilterRange[keyof FilterRange]) => {
       const newItems = [...items];
       newItems[idx] = { ...newItems[idx], [field]: value };
       onChange(newItems);

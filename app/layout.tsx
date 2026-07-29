@@ -2,20 +2,26 @@ import type { Metadata } from "next";
 import Providers from "./providers";
 import ClientLayout from "../src/components/ClientLayout";
 import SchemaMarkup from "../src/components/SchemaMarkup";
+import {
+  createSiteNavigationSchema,
+  getSemanticKeywords,
+  SITE_URL,
+} from "../src/lib/internalLinks";
 import { getInitialSiteSettings } from "../src/lib/serverData";
 import "../src/index.css";
 
+const semanticKeywords = getSemanticKeywords();
+
 /* Metadata mặc định cho toàn bộ site */
 export const metadata: Metadata = {
-  metadataBase: new URL("https://greeniahomes.vn"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu",
     template: "%s | Greenia Homes",
   },
   description:
     "Chào mừng đến với Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
-  keywords:
-    "greenia homes, biet thu chateau, phu my hung, vinhomes, can ho hang sang, phong thuy bat dong san",
+  keywords: semanticKeywords,
   authors: [{ name: "Greenia Homes" }],
   alternates: {
     canonical: "/",
@@ -74,19 +80,23 @@ export default async function RootLayout({
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": "Greenia Homes",
-          "url": "https://greeniahomes.vn",
+          "url": SITE_URL,
           "description": "Cố vấn đầu tư bất động sản chuyên sâu, uy tín tại Việt Nam.",
+          "about": semanticKeywords.slice(0, 12),
         }} />
+        <SchemaMarkup schema={createSiteNavigationSchema()} />
         <SchemaMarkup schema={{
           "@context": "https://schema.org",
           "@type": "RealEstateAgent",
           "name": "Greenia Homes",
-          "url": "https://greeniahomes.vn",
+          "url": SITE_URL,
           "logo": "https://greeniahomes.vn/favicon.webp",
           "image": "https://greeniahomes.vn/og-image.jpg",
           "description": "Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
           "telephone": "0932966700",
           "email": "sales.greeniahomes@gmail.com",
+          "knowsAbout": semanticKeywords.slice(0, 24),
+          "areaServed": ["TP.HCM", "Quận 7", "Phú Mỹ Hưng", "Việt Nam"],
           "sameAs": [
             "https://www.facebook.com/GreeniaHomes",
             "https://www.tiktok.com/@greeniahomes",

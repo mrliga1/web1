@@ -4,10 +4,9 @@ import {
   getPublishedProducts,
   getPublishedProjects,
 } from "../src/lib/serverContent";
+import { createCoreSitemapRoutes, SITE_URL } from "../src/lib/internalLinks";
 import { generateSlug } from "../src/lib/utils";
 import { supabase } from "../src/supabase";
-
-const BASE_URL = "https://greeniahomes.vn";
 
 function getLastModified(item: { createdAt?: string; updatedAt?: string }) {
   const source = item.updatedAt || item.createdAt;
@@ -25,7 +24,7 @@ function createContentRoute(
   const lastModified = getLastModified(item);
 
   return {
-    url: `${BASE_URL}${path}`,
+    url: `${SITE_URL}${path}`,
     ...(lastModified ? { lastModified } : {}),
     changeFrequency: "weekly",
     priority,
@@ -33,17 +32,7 @@ function createContentRoute(
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticRoutes: MetadataRoute.Sitemap = [
-    { url: BASE_URL, changeFrequency: "daily", priority: 1 },
-    { url: `${BASE_URL}/san-pham`, changeFrequency: "daily", priority: 0.9 },
-    { url: `${BASE_URL}/du-an`, changeFrequency: "weekly", priority: 0.8 },
-    { url: `${BASE_URL}/tin-tuc`, changeFrequency: "daily", priority: 0.8 },
-    { url: `${BASE_URL}/lien-he`, changeFrequency: "monthly", priority: 0.5 },
-    { url: `${BASE_URL}/latest-sales`, changeFrequency: "daily", priority: 0.7 },
-    { url: `${BASE_URL}/latest-rents`, changeFrequency: "daily", priority: 0.7 },
-    { url: `${BASE_URL}/chinh-sach-bao-mat`, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${BASE_URL}/dieu-khoan-su-dung`, changeFrequency: "yearly", priority: 0.3 },
-  ];
+  const staticRoutes: MetadataRoute.Sitemap = createCoreSitemapRoutes();
 
   const [products, news, projects] = await Promise.all([
     getPublishedProducts(),
@@ -91,7 +80,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     productCategories.forEach((category: { name?: string }) => {
       if (!category.name?.trim()) return;
       categoryRoutes.push({
-        url: `${BASE_URL}/category-product/${generateSlug(category.name)}`,
+        url: `${SITE_URL}/category-product/${generateSlug(category.name)}`,
         changeFrequency: "weekly",
         priority: 0.6,
       });
@@ -100,18 +89,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     newsCategories.forEach((category: { name?: string }) => {
       if (!category.name?.trim()) return;
       categoryRoutes.push({
-        url: `${BASE_URL}/category-news/${generateSlug(category.name)}`,
+        url: `${SITE_URL}/category-news/${generateSlug(category.name)}`,
         changeFrequency: "weekly",
         priority: 0.6,
       });
     });
   }
 
-  return [
+  const allRoutes = [
     ...staticRoutes,
     ...productRoutes,
     ...newsRoutes,
     ...projectRoutes,
     ...categoryRoutes,
   ];
+
+  const seenUrls = new Set<string>();
+  return allRoutes.filter((route) => {
+    if (seenUrls.has(route.url)) return false;
+    seenUrls.add(route.url);
+    return true;
+  });
 }

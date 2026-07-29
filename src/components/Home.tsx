@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Product, Project, News, RouteState } from '../types';
+import { Product, Project, News, RouteState, VisualSection } from '../types';
 import AdBanner from './AdBanner';
 import { 
   HeroSectionBody, CorporateIntroBody, ReasonsBody, 
@@ -21,8 +21,8 @@ interface HomeProps {
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   isEditMode: boolean;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  sections: VisualSection[];
+  onUpdateSections: (sections: VisualSection[]) => void;
   selectedSectionId: string | null;
   setSelectedSectionId: (id: string | null) => void;
   initialProducts?: Product[];
@@ -55,7 +55,7 @@ export default function Home({
   const [news, setNews] = useState<News[]>(initialNews ?? []);
   const [loading, setLoading] = useState(!hasInitialData);
 
-  // See More Click Counter for Product Listings Grid
+  // Bộ đếm xem thêm cho lưới sản phẩm.
   const [productClickCount, setProductClickCount] = useState(0);
 
 

@@ -16,11 +16,11 @@ interface SectionRendererProps {
   sec: VisualSection;
   isEditMode: boolean;
   onNavigate: (route: RouteState) => void;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  sections: VisualSection[];
+  onUpdateSections: (sections: VisualSection[]) => void;
 }
 
-// 1. HERO BANNER
+// Khối banner chính.
 interface HeroProps extends SectionRendererProps {
   onShowNotification: (message: string, type: 'success' | 'error') => void;
 }
@@ -252,11 +252,7 @@ const HeroConsultationForm: React.FC<{
 };
 
 export const HeroSectionBody: React.FC<HeroProps> = ({
-  sec,
-  isEditMode,
   onNavigate,
-  sections,
-  onUpdateSections,
   onShowNotification
 }) => {
   return (
@@ -266,7 +262,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
     >
       <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10 pt-[20px] pb-10">
         
-        {/* Left Column: Text & CTAs */}
+        {/* Cột trái: nội dung và CTA. */}
         <div className="lg:col-span-7 space-y-6 text-left w-full" id="banner-intro-txt">
           <div className="mb-6">
             <h1 className="text-primary font-display text-4xl sm:text-5xl font-bold tracking-tight mb-2">

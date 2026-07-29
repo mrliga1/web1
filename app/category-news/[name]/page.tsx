@@ -10,6 +10,26 @@ import {
 
 export const revalidate = 60;
 
+export async function generateStaticParams() {
+  const [generalSettings, newsRows] = await Promise.all([
+    getPublicSettings("general"),
+    getPublishedNews(),
+  ]);
+  const configuredCategories = (generalSettings.newsCategoriesExt || []) as Array<{ name?: string }>;
+  const categoryNames = new Set<string>();
+
+  configuredCategories.forEach((category) => {
+    if (category.name?.trim()) categoryNames.add(category.name.trim());
+  });
+  newsRows.forEach(({ data }) => {
+    if (data.category?.trim()) categoryNames.add(data.category.trim());
+  });
+
+  return Array.from(categoryNames).map((categoryName) => ({
+    name: generateSlug(categoryName),
+  }));
+}
+
 export default async function CategoryNewsPage({
   params,
 }: {

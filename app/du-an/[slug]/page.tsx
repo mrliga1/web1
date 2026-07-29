@@ -9,7 +9,7 @@ import {
 } from "../../../src/lib/serverContent";
 import { createProjectSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
-import { getSocialImageUrl } from "../../../src/lib/utils";
+import { generateSlug, getSocialImageUrl } from "../../../src/lib/utils";
 
 export const revalidate = 60;
 
@@ -18,6 +18,13 @@ const SITE_URL = "https://greeniahomes.vn";
 type Props = {
   params: Promise<{ slug: string }>;
 };
+
+export async function generateStaticParams() {
+  const rows = await getPublishedProjects();
+  return rows
+    .filter(({ data }) => data.title?.trim())
+    .map(({ data }) => ({ slug: generateSlug(data.title) }));
+}
 
 function getCategoryTarget(value?: string) {
   if (!value) return "";

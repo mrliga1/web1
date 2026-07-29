@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Heart } from 'lucide-react';
 import { dbLite } from '../firebase';
 import { doc as docLite, getDoc as getDocLite } from '../firebase';
+import type { GeneralSettingsData } from '../types';
 
 interface AdBannerProps {
   slot?: string;
@@ -15,12 +15,9 @@ export default function AdBanner({ slot = "default-ad-slot", className = "", con
   useEffect(() => {
     getDocLite(docLite(dbLite, 'settings', 'general')).then((snapshot) => {
       if (snapshot.exists()) {
-        const data = snapshot.data();
-        if (data.googleAdSenseCode) {
-          setGoogleAdSenseCode(data.googleAdSenseCode);
-        } else {
-          setGoogleAdSenseCode('');
-        }
+        const data = snapshot.data() as GeneralSettingsData;
+        const adCode = typeof data.googleAdSenseCode === 'string' ? data.googleAdSenseCode : '';
+        setGoogleAdSenseCode(adCode);
       }
       setLoading(false);
     }).catch(err => {
@@ -33,11 +30,11 @@ export default function AdBanner({ slot = "default-ad-slot", className = "", con
 
   useEffect(() => {
     if (!loading && googleAdSenseCode.trim() && containerRef.current) {
-      // Find all script tags that were inserted via dangerouslySetInnerHTML
+      // Tìm và kích hoạt lại script được chèn qua dangerouslySetInnerHTML.
       const scripts = containerRef.current.querySelectorAll('script');
       scripts.forEach(oldScript => {
         const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach((attr: any) => {
+        Array.from(oldScript.attributes).forEach((attr: Attr) => {
           newScript.setAttribute(attr.name, attr.value);
         });
         newScript.appendChild(document.createTextNode(oldScript.innerHTML));
@@ -46,7 +43,7 @@ export default function AdBanner({ slot = "default-ad-slot", className = "", con
     }
   }, [loading, googleAdSenseCode]);
 
-  // If Google AdSense code is defined, display it instead of the default placeholder
+  // Hiển thị AdSense khi đã có mã cấu hình.
   if (!loading && googleAdSenseCode.trim()) {
     return (
       <div className={containerClassName}>
@@ -67,6 +64,6 @@ export default function AdBanner({ slot = "default-ad-slot", className = "", con
     );
   }
 
-  // Hide completely when no Google AdSense is set, as requested by the user
+  // Ẩn hoàn toàn khi chưa cấu hình Google AdSense.
   return null;
 }

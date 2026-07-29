@@ -1,17 +1,26 @@
 import React from 'react';
 
-export class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean; error: Error | null}> {
-  public state = { hasError: false, error: null as Error | null };
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+}
 
-  constructor(props: {children: React.ReactNode}) {
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  public state: ErrorBoundaryState = { hasError: false, error: null };
+
+  constructor(props: ErrorBoundaryProps) {
     super(props);
   }
 
-  static getDerivedStateFromError(error: any) {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: any, errorInfo: any) {
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("ErrorBoundary caught an error", error, errorInfo);
   }
 
@@ -19,6 +28,6 @@ export class ErrorBoundary extends React.Component<{children: React.ReactNode}, 
     if (this.state.hasError) {
       return <div style={{color:"red", background:"black", padding: "20px"}}>{this.state.error?.message} - {this.state.error?.stack}</div>;
     }
-    return (this as any).props.children;
+    return this.props.children;
   }
 }

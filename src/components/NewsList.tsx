@@ -8,8 +8,8 @@ function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void
     action();
   }
 }
-import { News, Product, Project, RouteState } from '../types';
-import { Calendar, Eye, Compass, Search, User, ChevronRight, BadgeDollarSign, MapPin, Sparkles, Heart, Bookmark, Layers, Bath, Building2 } from 'lucide-react';
+import { CategoryExt, GeneralSettingsData, News, Product, Project, RouteState, VisualSection } from '../types';
+import { Calendar, Search, MapPin, Bookmark, Layers, Bath, Building2 } from 'lucide-react';
 import AdBanner from './AdBanner';
 import ProductCard from './ProductCard';
 import { EditableText, EditableImage } from './EditableComponent';
@@ -21,15 +21,15 @@ interface NewsListProps {
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   isEditMode: boolean;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  sections: VisualSection[];
+  onUpdateSections: (sections: VisualSection[]) => void;
   selectedSectionId: string | null;
   setSelectedSectionId: (id: string | null) => void;
   categoryName?: string;
   initialNews?: News[];
   initialProducts?: Product[];
   initialProjects?: Project[];
-  initialGeneralSettings?: Record<string, any>;
+  initialGeneralSettings?: GeneralSettingsData;
 }
 
 export default function NewsList({ 
@@ -54,7 +54,7 @@ export default function NewsList({
   const [loading, setLoading] = useState(initialNews.length === 0);
   const scrollDirection = useScrollDirection();
 
-  // Filters & Tabs
+  // Bộ lọc và tab.
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Tất cả');
 
@@ -65,16 +65,16 @@ export default function NewsList({
     }
   }, [searchQuery]);
 
-  // React state for Column 1 & Column 2 dynamic hover pairing
+  // Trạng thái đồng bộ hover giữa các cột.
   const [hoveredArticle, setHoveredArticle] = useState<News | null>(() => initialNews[0] || null);
 
-  // AJAX loading counts
+  // Số lượng tin tải thêm.
   const [interestNewsLimit, setInterestNewsLimit] = useState(12);
 
-  // Product offset cycle for synchronization
+  // Vòng xoay sản phẩm đồng bộ khi tải thêm tin.
   const [productSyncOffset, setProductSyncOffset] = useState(0);
 
-  const [newsCategoriesExt, setNewsCategoriesExt] = useState<any[]>(() => initialGeneralSettings.newsCategoriesExt || []);
+  const [newsCategoriesExt, setNewsCategoriesExt] = useState<CategoryExt[]>(() => initialGeneralSettings.newsCategoriesExt || []);
 
   useEffect(() => {
     if (initialNews.length > 0) {
@@ -88,16 +88,17 @@ export default function NewsList({
         const { collection, getDocs, getDoc, doc, db } = await import('../firebase');
 
         const docSnap = await getDoc(doc(db, 'settings', 'general'));
-        if (docSnap.exists() && docSnap.data().newsCategoriesExt) {
-          setNewsCategoriesExt(docSnap.data().newsCategoriesExt);
+        const generalData = docSnap.data() as GeneralSettingsData | undefined;
+        if (docSnap.exists() && generalData?.newsCategoriesExt) {
+          setNewsCategoriesExt(generalData.newsCategoriesExt);
         }
 
         const newsSnap = await getDocs(collection(db, 'news'));
         const nList: News[] = [];
-        newsSnap.forEach((doc: any) => {
-          const data = doc.data();
+        newsSnap.forEach((doc) => {
+          const data = doc.data() as News;
           if ((!data.approvalStatus || data.approvalStatus === 'approved') && data.title?.trim()) {
-            nList.push({ id: doc.id, ...data } as News);
+            nList.push({ ...data, id: doc.id } as News);
           }
         });
         
@@ -110,18 +111,18 @@ export default function NewsList({
 
         const prodSnap = await getDocs(collection(db, 'products'));
         const pList: Product[] = [];
-        prodSnap.forEach((doc: any) => {
-          const data = doc.data();
+        prodSnap.forEach((doc) => {
+          const data = doc.data() as Product;
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
-            pList.push({ id: doc.id, ...data } as Product);
+            pList.push({ ...data, id: doc.id } as Product);
           }
         });
         setProducts(pList);
 
         const projSnap = await getDocs(collection(db, 'projects'));
         const projList: Project[] = [];
-        projSnap.forEach((doc: any) => {
-          projList.push({ id: doc.id, ...doc.data() } as Project);
+        projSnap.forEach((doc) => {
+          projList.push({ ...(doc.data() as Omit<Project, 'id'>), id: doc.id } as Project);
         });
         setProjects(projList);
 
@@ -184,9 +185,13 @@ export default function NewsList({
   const interestNewsFull = filteredNews.filter(n => !middleGridIds.has(n.id) && !trendingIds.has(n.id));
   const interestNews = interestNewsFull.slice(0, interestNewsLimit);
 
-  const displayedSyncProducts = [...products]
+  const sortedSyncProducts = [...products]
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
-    .slice(0, 5);
+  const productOffset = sortedSyncProducts.length > 0 ? productSyncOffset % sortedSyncProducts.length : 0;
+  const displayedSyncProducts = [
+    ...sortedSyncProducts.slice(productOffset),
+    ...sortedSyncProducts.slice(0, productOffset),
+  ].slice(0, 5);
   
   const latestSales = [...products]
     .filter(p => !p.type || p.type !== 'rent')
@@ -525,13 +530,13 @@ export default function NewsList({
                           </div>
                           
                           <div className="flex flex-col gap-[15px]">
-                            {sec.items.map((p: any) => (
+                            {sec.items.map((p) => (
                               <div
                                 key={p.id}
                                 role="link"
                                 tabIndex={0}
-                                onClick={() => onNavigate({ screen: sec.type === 'project' ? 'project-detail' : 'product-detail', [sec.type === 'project' ? 'projectId' : 'productId']: p.id, slug: generateSlug(p.title) } as any)}
-                                onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: sec.type === 'project' ? 'project-detail' : 'product-detail', [sec.type === 'project' ? 'projectId' : 'productId']: p.id, slug: generateSlug(p.title) } as any))}
+                                onClick={() => onNavigate({ screen: 'product-detail', productId: p.id, slug: generateSlug(p.title) })}
+                                onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'product-detail', productId: p.id, slug: generateSlug(p.title) }))}
                                 className="flex gap-3 pb-[15px] border-b border-white/5 transition-colors cursor-pointer group"
                               >
                                 <div className="w-[100px] h-[85px] shrink-0 rounded overflow-hidden border border-border-color relative">

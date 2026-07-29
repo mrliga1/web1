@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-// motion removed
+// Đã bỏ motion trong modal này để giảm chi phí hiển thị.
 import { X, Mail, Phone, User as UserIcon, Lock, Key, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { 
@@ -19,6 +19,18 @@ interface AuthModalProps {
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   onLoginSuccess?: () => void;
 }
+
+type AuthError = Error & { code?: string };
+type UserProfileSnapshot = {
+  role?: string;
+  phone?: string;
+  username?: string;
+};
+
+const toAuthError = (err: unknown): AuthError => {
+  if (err instanceof Error) return err as AuthError;
+  return new Error(String(err)) as AuthError;
+};
 
 export default function AuthModal({ isOpen, onClose, onShowNotification, onLoginSuccess }: AuthModalProps) {
   const [mounted, setMounted] = useState(false);
@@ -51,9 +63,8 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
           setLoading(false);
           return;
         }
-      } catch (checkErr) {
-        // Ignore check error if email enumeration protection is enabled
-        console.warn('Check email error:', checkErr);
+      } catch {
+        // Bỏ qua lỗi kiểm tra nếu Supabase bật bảo vệ email enumeration.
       }
 
       // MOCK sending OTP via email instead of SMS as real SMS requires provider setup
@@ -77,7 +88,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
       } else {
         onShowNotification('Lỗi khi gửi OTP: ' + data.error, 'error');
       }
-    } catch (err) {
+    } catch {
       onShowNotification('Sự cố đường truyền.', 'error');
     } finally {
       setLoading(false);
@@ -108,10 +119,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
       onShowNotification('Đăng ký thành công! Bạn có thể bắt đầu sử dụng hệ thống.', 'success');
       onClose();
       if (onLoginSuccess) onLoginSuccess();
-    } catch (err: any) {
-      console.error(err);
-      const errCode = err?.code || '';
-      const errMsg = err?.message || '';
+    } catch (err: unknown) {
+      const authError = toAuthError(err);
+      console.error(authError);
+      const errCode = authError.code || '';
+      const errMsg = authError.message || '';
       if (errCode === 'auth/email-already-in-use' || errMsg.includes('email-already-in-use')) {
         onShowNotification('Email này đã được sử dụng. Vui lòng đăng nhập.', 'error');
         setMode('login');
@@ -143,9 +155,10 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
       onShowNotification('Đăng nhập thành công!', 'success');
       onClose();
       if (onLoginSuccess) onLoginSuccess();
-    } catch (err: any) {
-      console.error(err);
-      if (err.code === 'auth/operation-not-allowed') {
+    } catch (err: unknown) {
+      const authError = toAuthError(err);
+      console.error(authError);
+      if (authError.code === 'auth/operation-not-allowed') {
         onShowNotification('Phương thức đăng nhập bằng Email/Mật khẩu chưa được bật trong Supabase Auth.', 'error');
       } else {
         onShowNotification('Email hoặc mật khẩu không chính xác.', 'error');
@@ -167,13 +180,13 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
         email?: string | null;
         displayName?: string | null;
       } | null;
-      if (!user) return; // Supabase OAuth redirects, so user will be null here
+      if (!user) return; // Supabase OAuth sẽ chuyển hướng nên user có thể là null tại đây.
       
       const userDocRef = doc(db, 'users', user.uid);
       const docSnap = await getDoc(userDocRef);
       
       if (docSnap.exists()) {
-        const userData = docSnap.data();
+        const userData = (docSnap.data() || {}) as UserProfileSnapshot;
         if (user.email?.toLowerCase() === 'nguyenthanhthuan091095@gmail.com' || userData.role === 'admin' || (userData.phone && userData.username)) {
           onShowNotification('Đăng nhập thành công!', 'success');
           onClose();
@@ -181,25 +194,26 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
           return;
         }
       } else if (user.email?.toLowerCase() === 'nguyenthanhthuan091095@gmail.com') {
-          // Allow admin to login even if document doesn't exist yet
+          // Cho phép admin đăng nhập cả khi document chưa tồn tại.
           onShowNotification('Đăng nhập thành công!', 'success');
           onClose();
           if (onLoginSuccess) onLoginSuccess();
           return;
       }
 
-      // If document doesn't exist or is missing required profile fields
+      // Nếu document chưa có hoặc thiếu trường hồ sơ bắt buộc.
       setEmail(user.email || '');
       setUsername(user.displayName || '');
       setMode('complete_profile');
 
-    } catch (err: any) {
-      console.error(err);
-      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
-        // Ignore user closing popup
-      } else if (err.code === 'auth/unauthorized-domain') {
+    } catch (err: unknown) {
+      const authError = toAuthError(err);
+      console.error(authError);
+      if (authError.code === 'auth/popup-closed-by-user' || authError.code === 'auth/cancelled-popup-request') {
+        // Bỏ qua khi người dùng tự đóng popup.
+      } else if (authError.code === 'auth/unauthorized-domain') {
         onShowNotification('Tên miền hiện tại chưa được cho phép trong cấu hình Supabase Auth.', 'error');
-      } else if (err.code === 'auth/operation-not-allowed') {
+      } else if (authError.code === 'auth/operation-not-allowed') {
         onShowNotification('Đăng nhập Google chưa được bật trong Supabase Auth Providers.', 'error');
       } else {
         onShowNotification('Đăng nhập Google thất bại.', 'error');
@@ -252,8 +266,8 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
       await sendPasswordResetEmail(auth, email);
       onShowNotification('Email khôi phục mật khẩu đã được gửi!', 'success');
       setMode('login');
-    } catch (err: any) {
-      console.error(err);
+    } catch (err: unknown) {
+      console.error(toAuthError(err));
       onShowNotification('Không thể gửi email khôi phục. Vui lòng kiểm tra lại email.', 'error');
     } finally {
       setLoading(false);

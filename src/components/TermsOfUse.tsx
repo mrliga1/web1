@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { RouteState } from '../types';
 import { FileText, ShieldCheck, Scale, Globe, Copyright, AlertTriangle, RefreshCcw } from 'lucide-react';
 import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 
 interface TermsOfUseProps {
   onNavigate: (route: RouteState) => void;
@@ -23,7 +24,7 @@ export default function TermsOfUse({ onNavigate }: TermsOfUseProps) {
     },
   };
 
-  const itemVariants: any = {
+  const itemVariants: Variants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
       opacity: 1, 

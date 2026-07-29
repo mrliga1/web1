@@ -6,7 +6,7 @@ import { getRouteUrl } from '../../../src/lib/utils';
 import { useRouter } from 'next/navigation';
 import ProductList from '../../../src/components/ProductList';
 import { useAppContext } from '../../../src/contexts/AppContext';
-import type { Product, Project } from '../../../src/types';
+import type { FilterSettingsData, GeneralSettingsData, Product, Project, RouteState } from '../../../src/types';
 
 export default function ClientWrapper({ 
   categoryName,
@@ -24,20 +24,21 @@ export default function ClientWrapper({
   initialCategoryName?: string,
   initialProducts: Product[],
   initialProjects: Project[],
-  initialGeneralSettings: Record<string, unknown>,
-  initialFilterSettings: Record<string, unknown>
+  initialGeneralSettings: GeneralSettingsData,
+  initialFilterSettings: FilterSettingsData
 }) {
   const { sections, setSections, isEditMode } = useAppContext();
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
   const router = useRouter();
 
-  const handleNavigate = (route: any) => {
+  const handleNavigate = (route: RouteState) => {
     router.push(getRouteUrl(route));
   };
 
   const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    // alert removed;
+    void message;
+    void type;
   };
 
   return (

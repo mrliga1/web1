@@ -1,164 +1,245 @@
 import { supabase } from './supabase';
 
-export const db = {};
+type LegacyRecord = Record<string, unknown>;
 
-export const collection = (dbInstance: any, path: string) => {
-  return { path };
+export interface LegacyCollectionRef {
+  path: string;
 }
 
-export const doc = (dbInstance: any, path: string, id?: string) => {
+export interface LegacyDocRef {
+  path: string;
+  id: string;
+}
+
+export interface LegacyDocSnapshot<T = unknown> {
+  id: string;
+  data: () => T | undefined;
+  exists: () => boolean;
+}
+
+export interface LegacyQuerySnapshot<T = unknown> {
+  docs: LegacyDocSnapshot<T>[];
+  empty: boolean;
+  size: number;
+  forEach: (callback: (doc: LegacyDocSnapshot<T>) => void) => void;
+}
+
+export interface SupabaseCompatUser {
+  uid?: string;
+  email?: string;
+  displayName?: string | null;
+  providerData: unknown[];
+}
+
+const isRecord = (value: unknown): value is LegacyRecord => {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+};
+
+const createAuthError = (message: string, code?: string) => {
+  const err = new Error(message) as Error & { code?: string };
+  if (code) err.code = code;
+  return err;
+};
+
+const normalizePayload = (path: string, data: unknown, id?: string) => {
+  if (path === 'users') {
+    const record = isRecord(data) ? data : { data };
+    return id ? { id, ...record } : record;
+  }
+
+  return id ? { id, data } : { data };
+};
+
+export const db: Record<string, never> = {};
+
+export const collection = (_dbInstance: unknown, path: string): LegacyCollectionRef => {
+  void _dbInstance;
+  return { path };
+};
+
+export const doc = (_dbInstance: unknown, path: string, id?: string): LegacyDocRef => {
+  void _dbInstance;
   if (id) return { path, id };
   const parts = path.split('/');
   return { path: parts.slice(0, -1).join('/'), id: parts[parts.length - 1] };
-}
+};
 
-export const getDocs = async (collectionRef: { path: string }) => {
+export const getDocs = async (collectionRef: LegacyCollectionRef): Promise<LegacyQuerySnapshot> => {
   const { data, error } = await supabase.from(collectionRef.path).select('*');
   if (error) throw error;
-  const docs = (data || []).map((row: any) => ({
-    id: row.id,
+
+  const rows = (data || []) as LegacyRecord[];
+  const docs = rows.map((row) => ({
+    id: String(row.id || ''),
     data: () => collectionRef.path === 'users' ? row : row.data,
-    exists: () => true
-  }));
+    exists: () => true,
+  })) as LegacyDocSnapshot[];
+
   return {
     docs,
     empty: docs.length === 0,
     size: docs.length,
-    forEach: (callback: any) => docs.forEach(callback)
+    forEach: (callback: (doc: LegacyDocSnapshot) => void) => docs.forEach(callback),
   };
-}
+};
 
-export const getDoc = async (docRef: { path: string, id: string }) => {
+export const getDoc = async (docRef: LegacyDocRef): Promise<LegacyDocSnapshot> => {
   const { data, error } = await supabase.from(docRef.path).select('*').eq('id', docRef.id).maybeSingle();
   if (error) throw error;
+
   if (!data) {
     return {
       id: docRef.id,
       exists: () => false,
-      data: () => undefined
+      data: () => undefined,
     };
   }
-  return {
-    id: data.id,
-    exists: () => true,
-    data: () => docRef.path === 'users' ? data : data.data
-  };
-}
 
-export const addDoc = async (collectionRef: { path: string }, data: any) => {
-  const payload = collectionRef.path === 'users' ? data : { data };
+  const row = data as LegacyRecord;
+  return {
+    id: String(row.id || docRef.id),
+    exists: () => true,
+    data: () => docRef.path === 'users' ? row : row.data,
+  };
+};
+
+export const addDoc = async (collectionRef: LegacyCollectionRef, data: unknown) => {
+  const payload = normalizePayload(collectionRef.path, data);
   const { data: result, error } = await supabase.from(collectionRef.path).insert(payload).select().single();
   if (error) throw error;
-  return { id: result.id };
-}
+  return { id: (result as LegacyRecord).id };
+};
 
-export const setDoc = async (docRef: { path: string, id: string }, data: any, options?: { merge?: boolean }) => {
+export const setDoc = async (docRef: LegacyDocRef, data: unknown, options?: { merge?: boolean }) => {
+  let nextData = data;
   if (options?.merge) {
     const existing = await getDoc(docRef);
-    if (existing.exists()) {
-      data = { ...existing.data(), ...data };
+    const existingData = existing.data();
+    if (existing.exists() && isRecord(existingData) && isRecord(data)) {
+      nextData = { ...existingData, ...data };
     }
   }
-  const payload = docRef.path === 'users' ? { id: docRef.id, ...data } : { id: docRef.id, data };
+
+  const payload = normalizePayload(docRef.path, nextData, docRef.id);
   const { error } = await supabase.from(docRef.path).upsert(payload);
   if (error) throw error;
-}
+};
 
-export const updateDoc = async (docRef: { path: string, id: string }, data: any) => {
+export const updateDoc = async (docRef: LegacyDocRef, data: unknown) => {
   const existing = await getDoc(docRef);
   if (!existing.exists()) throw new Error("Document not found");
-  const merged = { ...existing.data(), ...data };
-  const payload = docRef.path === 'users' ? merged : { data: merged };
+
+  const existingData = existing.data();
+  const merged = isRecord(existingData) && isRecord(data) ? { ...existingData, ...data } : data;
+  const payload = normalizePayload(docRef.path, merged);
   const { error } = await supabase.from(docRef.path).update(payload).eq('id', docRef.id);
   if (error) throw error;
-}
+};
 
-export const deleteDoc = async (docRef: { path: string, id: string }) => {
+export const deleteDoc = async (docRef: LegacyDocRef) => {
   const { error } = await supabase.from(docRef.path).delete().eq('id', docRef.id);
   if (error) throw error;
-}
+};
 
 export const dbLite = db;
 
-/* Stub auth object - tương thích API cũ */
+/* Đối tượng auth tương thích API cũ. */
 export const auth = {
-  currentUser: null as any,
-  onAuthStateChanged: (_callback: any) => () => {},
+  currentUser: null as SupabaseCompatUser | null,
+  onAuthStateChanged: (_callback: (user: SupabaseCompatUser | null) => void) => {
+    void _callback;
+    return () => {};
+  },
 };
 
-/* Stub app object */
+/* Đối tượng app tương thích API cũ. */
 export const app = {};
 
-/* Stub onAuthStateChanged */
-export const onAuthStateChanged = (_auth: any, callback: (user: any) => void) => {
-  // Trả về hàm unsubscribe
+/* Hàm theo dõi đăng nhập tương thích API cũ. */
+export const onAuthStateChanged = (
+  _auth: unknown,
+  callback: (user: SupabaseCompatUser | null) => void,
+) => {
+  void _auth;
+  void callback;
   return () => {};
 };
 
-/* Stub getFirestore */
-export const getFirestoreRealtime = (_app: any, _dbId?: string) => ({});
+/* Hàm lấy database tương thích API cũ. */
+export const getFirestoreRealtime = (_app: unknown, _dbId?: string) => {
+  void _app;
+  void _dbId;
+  return {};
+};
+
 export const getFirestore = getFirestoreRealtime;
 
-/* === Firebase Auth Compatibility Layer (sử dụng Supabase Auth) === */
-
-/* Đăng ký bằng email/password */
-export const createUserWithEmailAndPassword = async (_auth: any, email: string, password: string) => {
+/* Lớp tương thích Auth cũ, toàn bộ luồng thật dùng Supabase Auth. */
+export const createUserWithEmailAndPassword = async (_auth: unknown, email: string, password: string) => {
+  void _auth;
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) {
-    const err: any = new Error(error.message);
-    if (error.message.includes('already registered')) err.code = 'auth/email-already-in-use';
-    throw err;
+    throw createAuthError(
+      error.message,
+      error.message.includes('already registered') ? 'auth/email-already-in-use' : undefined,
+    );
   }
+
   return {
     user: {
       uid: data.user?.id,
       email: data.user?.email,
       displayName: data.user?.user_metadata?.full_name || null,
       providerData: [],
-    }
+    },
   };
 };
 
-/* Đăng nhập bằng email/password */
-export const signInWithEmailAndPassword = async (_auth: any, email: string, password: string) => {
+export const signInWithEmailAndPassword = async (_auth: unknown, email: string, password: string) => {
+  void _auth;
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
-    const err: any = new Error(error.message);
-    if (error.message.includes('Invalid login')) err.code = 'auth/wrong-password';
-    throw err;
+    throw createAuthError(
+      error.message,
+      error.message.includes('Invalid login') ? 'auth/wrong-password' : undefined,
+    );
   }
+
   return {
     user: {
       uid: data.user?.id,
       email: data.user?.email,
       displayName: data.user?.user_metadata?.full_name || null,
       providerData: [],
-    }
+    },
   };
 };
 
-/* Gửi email reset mật khẩu */
-export const sendPasswordResetEmail = async (_auth: any, email: string) => {
+export const sendPasswordResetEmail = async (_auth: unknown, email: string) => {
+  void _auth;
   const { error } = await supabase.auth.resetPasswordForEmail(email);
   if (error) throw new Error(error.message);
 };
 
-/* Đăng nhập bằng Google (Supabase OAuth) */
-export const signInWithPopup = async (_auth: any, _provider: any) => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
+export const signInWithPopup = async (_auth: unknown, _provider: unknown) => {
+  void _auth;
+  void _provider;
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin }
+    options: { redirectTo: window.location.origin },
   });
   if (error) throw new Error(error.message);
-  return { user: null }; // User sẽ được lấy từ session sau redirect
+
+  // User sẽ được lấy từ session sau khi chuyển hướng.
+  return { user: null };
 };
 
-/* GoogleAuthProvider stub */
 export class GoogleAuthProvider {
   static PROVIDER_ID = 'google.com';
 }
 
-/* Kiểm tra email đã đăng ký chưa - stub */
-export const fetchSignInMethodsForEmail = async (_auth: any, _email: string) => {
-  return []; // Supabase không hỗ trợ API này trực tiếp
+export const fetchSignInMethodsForEmail = async (_auth: unknown, _email: string) => {
+  void _auth;
+  void _email;
+  return [];
 };

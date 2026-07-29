@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, Upload } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { authFetch } from '../lib/authFetch';
+import type { VisualSection } from '../types';
 
 interface EditableTextProps {
   sectionId: string;
@@ -8,11 +9,11 @@ interface EditableTextProps {
   subField?: string;
   value?: string;
   isEditMode: boolean;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  sections: VisualSection[];
+  onUpdateSections: (sections: VisualSection[]) => void;
   isArea?: boolean;
   className?: string;
-  tag?: any;
+  tag?: React.ElementType;
 }
 
 export function EditableText({
@@ -161,8 +162,8 @@ interface EditableImageProps {
   field: string;
   imageUrl: string;
   isEditMode: boolean;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  sections: VisualSection[];
+  onUpdateSections: (sections: VisualSection[]) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   className?: string;
 }

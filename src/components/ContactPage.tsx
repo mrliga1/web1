@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { collection, addDoc, db } from '../firebase';
-import { handleFirestoreError, OperationType } from '../firebase-errors';
-import { RouteState } from '../types';
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle2, AlertCircle, UploadCloud, X } from 'lucide-react';
+import { RouteState, VisualSection } from '../types';
+import { MapPin, Phone, Mail, Send, CheckCircle2, UploadCloud, X } from 'lucide-react';
 import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
@@ -11,8 +10,8 @@ interface ContactPageProps {
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   isEditMode: boolean;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  sections: VisualSection[];
+  onUpdateSections: (sections: VisualSection[]) => void;
   selectedSectionId: string | null;
   setSelectedSectionId: (id: string | null) => void;
 }
@@ -29,7 +28,7 @@ export default function ContactPage({
   selectedSectionId,
   setSelectedSectionId
 }: ContactPageProps) {
-  // Consultation Form State
+  // Trạng thái form tư vấn.
   const [contactName, setContactName] = useState('');
   const [contactPhone, setContactPhone] = useState('');
   const [contactEmail, setContactEmail] = useState('');

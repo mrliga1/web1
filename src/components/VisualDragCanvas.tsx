@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Plus, Trash2, Sliders, Type, Image, Link, Table, Square, 
-  Move, Settings, Maximize2, Palette, Sparkles, ChevronDown, Check, GripVertical, Upload,
-  Copy, ArrowUp, ArrowDown, RotateCcw, Video, Map, List, HelpCircle, CheckCircle, Flame,
-  Home, Phone, Mail, Award, Heart, MapPin, Calendar, DollarSign, Users, Clock, ShieldCheck, Play, Star
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  Trash2, Sliders, Type, Image as ImageIcon, Link, Table, Square,
+  Settings, Maximize2, Palette, Sparkles, ChevronDown, GripVertical, Upload,
+  Copy, ArrowUp, ArrowDown, RotateCcw, Video, Map, List, CheckCircle,
+  Home, Phone, Mail, Award, Heart, MapPin, Calendar, DollarSign, Users, Clock, ShieldCheck, Star
 } from 'lucide-react';
 import { VisualSection } from '../types';
+import { getImageAltFromUrl } from '../lib/utils';
 
 interface CountdownTickerProps {
   targetDate: string;
@@ -124,18 +125,62 @@ function AccordionWidget({ items, color, backgroundColor }: AccordionWidgetProps
 interface VisualDragCanvasProps {
   section: VisualSection;
   isEditMode: boolean;
-  onUpdateSections: (sections: any[]) => void;
-  sections: any[];
+  onUpdateSections: (sections: VisualSection[]) => void;
+  sections: VisualSection[];
   onShowNotification: (message: string, type: 'success' | 'error') => void;
 }
+
+interface VisualCanvasExtraData extends Record<string, unknown> {
+  elements?: CanvasElement[];
+  canvasHeight?: number | string;
+  bgType?: string;
+  bgColor?: string;
+  bgGradient?: string;
+  bgImageUrl?: string;
+  preventCopy?: boolean;
+}
+
+interface VisualLead {
+  id: number;
+  name: string;
+  phone: string;
+  zone: string;
+  time: string;
+  sectionName: string;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value));
+};
+
+const isVisualLead = (value: unknown): value is VisualLead => {
+  if (!isRecord(value)) return false;
+  return (
+    typeof value.id === 'number' &&
+    typeof value.name === 'string' &&
+    typeof value.phone === 'string' &&
+    typeof value.zone === 'string' &&
+    typeof value.time === 'string' &&
+    typeof value.sectionName === 'string'
+  );
+};
+
+const readStoredVisualLeads = () => {
+  try {
+    const parsed = JSON.parse(localStorage.getItem('ladipage_submitted_leads') || '[]');
+    return Array.isArray(parsed) ? parsed.filter(isVisualLead) : [];
+  } catch {
+    return [];
+  }
+};
 
 interface CanvasElement {
   id: string;
   type: 'text' | 'image' | 'button' | 'table' | 'box' | 'icon' | 'form' | 'video' | 'map' | 'line' | 'countdown' | 'html' | 'accordion' | 'list';
-  left: number; // percentage
-  top: number;  // percentage
-  width: number; // percentage
-  content: string; // text content, or icon string, or video url
+  left: number; // Tỷ lệ phần trăm.
+  top: number;  // Tỷ lệ phần trăm.
+  width: number; // Tỷ lệ phần trăm.
+  content: string; // Nội dung chữ, icon hoặc URL video/ảnh.
   style: {
     fontFamily?: string;
     fontSize?: string;
@@ -144,10 +189,10 @@ interface CanvasElement {
     backgroundColor?: string;
     borderRadius?: string;
     padding?: string;
-    borderStyle?: string;
+    borderStyle?: React.CSSProperties['borderStyle'];
     borderWidth?: string;
     borderColor?: string;
-    textAlign?: string;
+    textAlign?: React.CSSProperties['textAlign'];
     zIndex?: string;
     boxShadow?: string;
     opacity?: string;
@@ -163,7 +208,7 @@ interface CanvasElement {
     listItems?: string[];
     accordionItems?: { title: string; content: string }[];
     lineColor?: string;
-    lineStyle?: 'solid' | 'dashed' | 'dotted';
+    lineStyle?: React.CSSProperties['borderTopStyle'];
     lineHeight?: string;
   };
 }
@@ -177,16 +222,21 @@ export default function VisualDragCanvas({
 }: VisualDragCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   
-  // Custom height & Background options
-  const canvasHeight = section.extraData?.canvasHeight || 600;
-  const bgType = section.extraData?.bgType || 'color';
-  const bgColor = section.extraData?.bgColor || '#020617';
-  const bgGradient = section.extraData?.bgGradient || 'linear-gradient(to bottom, #020617, #0f172a)';
-  const bgImageUrl = section.extraData?.bgImageUrl || '';
+  // Tùy chọn chiều cao và nền canvas.
+  const canvasExtraData = section.extraData as VisualCanvasExtraData | undefined;
+  const sectionElements = Array.isArray(canvasExtraData?.elements)
+    ? canvasExtraData.elements
+    : null;
+  const canvasHeight = Number(canvasExtraData?.canvasHeight || 600);
+  const bgType = typeof canvasExtraData?.bgType === 'string' ? canvasExtraData.bgType : 'color';
+  const bgColor = typeof canvasExtraData?.bgColor === 'string' ? canvasExtraData.bgColor : '#020617';
+  const bgGradient = typeof canvasExtraData?.bgGradient === 'string' ? canvasExtraData.bgGradient : 'linear-gradient(to bottom, #020617, #0f172a)';
+  const bgImageUrl = typeof canvasExtraData?.bgImageUrl === 'string' ? canvasExtraData.bgImageUrl : '';
+  const preventCopy = Boolean(canvasExtraData?.preventCopy);
 
   // Giữ trạng thái cục bộ để tránh nhấp nháy khi đồng bộ Supabase trong lúc kéo thả.
   const [localElements, setLocalElements] = useState<CanvasElement[]>(() => {
-    return section.extraData?.elements || [
+    return sectionElements || [
       {
         id: 'title_1',
         type: 'text',
@@ -225,12 +275,12 @@ export default function VisualDragCanvas({
     elementsRef.current = elements;
   }, [elements]);
 
-  // Sync elements when the prop changes (due to page swap or initial data loading)
+  // Đồng bộ phần tử khi đổi trang hoặc khi dữ liệu ban đầu thay đổi.
   useEffect(() => {
-    if (section.extraData?.elements) {
-      setLocalElements(section.extraData.elements);
+    if (sectionElements) {
+      setLocalElements(sectionElements);
     }
-  }, [section.id, section.extraData?.elements]);
+  }, [section.id, sectionElements]);
 
   const [selectedElemId, setSelectedElemId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -239,16 +289,16 @@ export default function VisualDragCanvas({
   const [history, setHistory] = useState<CanvasElement[][]>([]);
   const [historyPointer, setHistoryPointer] = useState<number>(-1);
 
-  // Visitors subscription lead form fields state
+  // Trạng thái form đăng ký của khách truy cập.
   const [formName, setFormName] = useState('');
   const [formPhone, setFormPhone] = useState('');
   const [formZone, setFormZone] = useState('Biệt thự Chateau');
   const [showFormSuccess, setShowFormSuccess] = useState(false);
-  const [formSuccessDetail, setFormSuccessDetail] = useState<any>(null);
+  const [formSuccessDetail, setFormSuccessDetail] = useState<VisualLead | null>(null);
 
-  // Admin Leads management state
+  // Trạng thái quản lý lead cục bộ trong canvas.
   const [showLeadsList, setShowLeadsList] = useState(false);
-  const [loadedLeads, setLoadedLeads] = useState<any[]>([]);
+  const [loadedLeads, setLoadedLeads] = useState<VisualLead[]>([]);
 
   const dragInfo = useRef<{
     elemId: string;
@@ -263,9 +313,9 @@ export default function VisualDragCanvas({
       setHistory([elements]);
       setHistoryPointer(0);
     }
-  }, [section.id]);
+  }, [elements, history.length, section.id]);
 
-  const saveElements = (updatedElements: CanvasElement[], isHistoryAction = false) => {
+  const saveElements = useCallback((updatedElements: CanvasElement[], isHistoryAction = false) => {
     setLocalElements(updatedElements);
     const updated = sections.map(s => {
       if (s.id === section.id) {
@@ -281,7 +331,7 @@ export default function VisualDragCanvas({
       setHistory(nextHist);
       setHistoryPointer(nextHist.length - 1);
     }
-  };
+  }, [history, historyPointer, onUpdateSections, section.id, sections]);
 
   const handleUndo = () => {
     if (historyPointer > 0) {
@@ -356,11 +406,11 @@ export default function VisualDragCanvas({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isEditMode, selectedElemId]);
+  }, [isEditMode, selectedElemId, saveElements]);
 
   // Protect page (disable copy / right click based on vietnamese LadiPage.vn standards)
   useEffect(() => {
-    if (isEditMode || !section.extraData?.preventCopy) return;
+    if (isEditMode || !preventCopy) return;
 
     const preventDefault = (e: Event) => e.preventDefault();
     const preventKeys = (e: KeyboardEvent) => {
@@ -382,9 +432,9 @@ export default function VisualDragCanvas({
       document.removeEventListener('selectstart', preventDefault);
       document.removeEventListener('keydown', preventKeys);
     };
-  }, [isEditMode, section.extraData?.preventCopy]);
+  }, [isEditMode, preventCopy]);
 
-  const handleCanvasOptionChange = (key: string, value: any) => {
+  const handleCanvasOptionChange = (key: string, value: unknown) => {
     const updated = sections.map(s => {
       if (s.id === section.id) {
         return {
@@ -400,9 +450,9 @@ export default function VisualDragCanvas({
     onUpdateSections(updated);
   };
 
-  // Add a new element to the canvas
+  // Thêm một phần tử mới vào canvas.
   const handleAddNewElement = (type: CanvasElement['type']) => {
-    const defaultStyles: Record<string, any> = {
+    const defaultStyles: Record<CanvasElement['type'], CanvasElement['style']> = {
       text: { fontFamily: 'font-sans', fontSize: 'sm', fontWeight: 'normal', color: '#f8fafc', padding: '4px' },
       image: { borderRadius: '12px' },
       button: { fontFamily: 'font-display', fontSize: 'xs', fontWeight: 'bold', color: '#020617', backgroundColor: '#10b981', borderRadius: '12px', padding: '10px', textAlign: 'center' },
@@ -441,7 +491,7 @@ export default function VisualDragCanvas({
         ]
       } : undefined,
       extraConfig: type === 'countdown' ? {
-        countdownTarget: new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 16), // 3 days from now
+        countdownTarget: new Date(Date.now() + 86400000 * 3).toISOString().slice(0, 16), // 3 ngày từ hiện tại.
       } : type === 'html' ? {
         rawHtml: `<div style="padding:20px; text-align:center; background:#1e293b; color:#10b981; border-radius:12px; font-weight:bold;">
   <h3>🎁 ĐẶC QUYỀN VIP</h3>
@@ -473,7 +523,7 @@ export default function VisualDragCanvas({
     onShowNotification(`Đã tạo phần tử "${type.toUpperCase()}"`, 'success');
   };
 
-  // Duplicate active element
+  // Nhân bản phần tử đang chọn.
   const handleDuplicateElement = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const active = elements.find(el => el.id === selectedElemId);
@@ -493,7 +543,7 @@ export default function VisualDragCanvas({
     onShowNotification(`Đã nhân bản phần tử "${active.type.toUpperCase()}"`, 'success');
   };
 
-  // Delete element logic
+  // Xóa phần tử khỏi canvas.
   const handleDeleteElement = (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     const updated = elements.filter(el => el.id !== id);
@@ -502,7 +552,7 @@ export default function VisualDragCanvas({
     onShowNotification('Đã gỡ bỏ thành phần thành công! (Bạn có thể nhấn Lùi thao tác / Undo nếu xóa nhầm)', 'success');
   };
 
-  // Drag handles management
+  // Quản lý thao tác kéo-thả.
   const startDrag = (elemId: string, clientX: number, clientY: number) => {
     if (!isEditMode) return;
     setSelectedElemId(elemId);
@@ -519,7 +569,7 @@ export default function VisualDragCanvas({
     setIsDragging(true);
   };
 
-  const onDrag = (clientX: number, clientY: number) => {
+  const onDrag = useCallback((clientX: number, clientY: number) => {
     if (!isDragging || !dragInfo.current || !canvasRef.current) return;
     const info = dragInfo.current;
     const rect = canvasRef.current.getBoundingClientRect();
@@ -544,16 +594,16 @@ export default function VisualDragCanvas({
         return el;
       });
     });
-  };
+  }, [isDragging]);
 
-  const endDrag = () => {
+  const endDrag = useCallback(() => {
     if (isDragging) {
       setIsDragging(false);
       dragInfo.current = null;
       // Lưu tọa độ mới vào Supabase sau khi kết thúc kéo thả.
       saveElements(elementsRef.current);
     }
-  };
+  }, [isDragging, saveElements]);
 
   useEffect(() => {
     const handleMove = (e: MouseEvent) => onDrag(e.clientX, e.clientY);
@@ -566,7 +616,7 @@ export default function VisualDragCanvas({
       window.removeEventListener('mousemove', handleMove);
       window.removeEventListener('mouseup', handleUp);
     };
-  }, [isDragging]);
+  }, [endDrag, isDragging, onDrag]);
 
   const selectedElem = elements.find(el => el.id === selectedElemId);
 
@@ -614,7 +664,10 @@ export default function VisualDragCanvas({
     saveElements(updated);
   };
 
-  const updateExtraConfig = (key: string, val: any) => {
+  const updateExtraConfig = <K extends keyof NonNullable<CanvasElement['extraConfig']>>(
+    key: K,
+    val: NonNullable<CanvasElement['extraConfig']>[K],
+  ) => {
     if (!selectedElemId) return;
     const updated = elements.map(el => {
       if (el.id === selectedElemId) {
@@ -688,23 +741,8 @@ export default function VisualDragCanvas({
     reader.readAsDataURL(file);
   };
 
-  // Table manipulation helpers
-  const updateTableCell = (rIdx: number, cIdx: number, val: string) => {
-    if (!selectedElem || !selectedElem.tableData) return;
-    const newRows = [...selectedElem.tableData.rows];
-    newRows[rIdx] = [...newRows[rIdx]];
-    newRows[rIdx][cIdx] = val;
-    const updated = elements.map(el => {
-      if (el.id === selectedElemId) {
-        return { ...el, tableData: { ...el.tableData!, rows: newRows } };
-      }
-      return el;
-    });
-    saveElements(updated);
-  };
-
   const loadPresetBocuc = (presetIdx: number) => {
-    const presetsList = [
+    const presetsList: Array<{ name: string; elements: CanvasElement[] }> = [
       {
         name: 'Luxury Hero Banner',
         elements: [
@@ -725,14 +763,14 @@ export default function VisualDragCanvas({
 
     const target = presetsList[presetIdx];
     if (target) {
-      saveElements(target.elements as any);
+      saveElements(target.elements);
       setSelectedElemId(null);
       onShowNotification(`Đã tải bộ bố cục "${target.name}" thành công!`, 'success');
     }
   };
 
   const viewSubmissions = () => {
-    const list = JSON.parse(localStorage.getItem('ladipage_submitted_leads') || '[]');
+    const list = readStoredVisualLeads();
     setLoadedLeads(list);
     setShowLeadsList(true);
   };
@@ -772,7 +810,7 @@ export default function VisualDragCanvas({
                 <Type className="w-3.5 h-3.5 text-yellow-400" /> Chữ
               </button>
               <button onClick={() => handleAddNewElement('image')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
-                <Image className="w-3.5 h-3.5 text-blue-400" /> Ảnh
+                <ImageIcon className="w-3.5 h-3.5 text-blue-400" /> Ảnh
               </button>
               <button onClick={() => handleAddNewElement('button')} className="bg-black text-slate-400 hover:text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 shrink-0 border border-slate-800 cursor-pointer">
                 <Link className="w-3.5 h-3.5 text-yellow-400" /> Nút
@@ -851,7 +889,7 @@ export default function VisualDragCanvas({
             <div className="flex items-center gap-2">
               <span>Chống Copy:</span>
               <select 
-                value={section.extraData?.preventCopy ? "enabled" : "disabled"} 
+                value={preventCopy ? "enabled" : "disabled"}
                 onChange={e => handleCanvasOptionChange('preventCopy', e.target.value === 'enabled')} 
                 className="bg-black text-zinc-100 p-1.5 rounded-lg w-full outline-none text-xs"
               >
@@ -913,7 +951,7 @@ export default function VisualDragCanvas({
                     backgroundColor: el.style.backgroundColor || 'transparent',
                     borderRadius: el.style.borderRadius || '0px',
                     padding: el.style.padding || '0px',
-                    textAlign: (el.style.textAlign || 'left') as any
+                    textAlign: el.style.textAlign || 'left'
                   }}
                   className="w-full break-words whitespace-pre-wrap leading-tight"
                 >
@@ -924,7 +962,7 @@ export default function VisualDragCanvas({
               innerContent = (
                 <div style={{ borderRadius: el.style.borderRadius || '12px', overflow: 'hidden' }} className="w-full aspect-[4/3] bg-zinc-900">
                   {el.content ? (
-                    <img loading="lazy" decoding="async" src={(el.content) || undefined} alt="Visual" className="w-full h-full object-cover select-none" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={(el.content) || undefined} alt={getImageAltFromUrl(el.content, `Ảnh canvas ${el.id}`)} className="w-full h-full object-cover select-none" referrerPolicy="no-referrer" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">Hình ảnh rỗng</div>
                   )}
@@ -996,7 +1034,7 @@ export default function VisualDragCanvas({
                         alert('Quý khách vui lòng điền Số điện thoại!');
                         return;
                       }
-                      const leadObj = {
+                      const leadObj: VisualLead = {
                         id: Date.now(),
                         name: formName || 'Gia chủ ẩn danh',
                         phone: formPhone,
@@ -1004,7 +1042,7 @@ export default function VisualDragCanvas({
                         time: new Date().toLocaleString('vi-VN'),
                         sectionName: section.name || 'LadiPage'
                       };
-                      const saved = JSON.parse(localStorage.getItem('ladipage_submitted_leads') || '[]');
+                      const saved = readStoredVisualLeads();
                       localStorage.setItem('ladipage_submitted_leads', JSON.stringify([leadObj, ...saved]));
                       setFormSuccessDetail(leadObj);
                       setShowFormSuccess(true);
@@ -1072,7 +1110,7 @@ export default function VisualDragCanvas({
                 <div 
                   style={{
                     borderColor: lineColor,
-                    borderTopStyle: lineStyle as any,
+                    borderTopStyle: lineStyle,
                     borderTopWidth: lineHeight,
                     width: '100%',
                     height: '1px',
@@ -1138,7 +1176,7 @@ export default function VisualDragCanvas({
                     backgroundColor: el.style.backgroundColor || 'transparent',
                     borderRadius: el.style.borderRadius || '0px',
                     padding: el.style.padding || '0px',
-                    textAlign: (el.style.textAlign || 'left') as any
+                    textAlign: el.style.textAlign || 'left'
                   }}
                   className="w-full space-y-2 select-none"
                 >
@@ -1327,7 +1365,7 @@ export default function VisualDragCanvas({
                 </div>
                 <div className="space-y-1">
                   <span className="text-[10px] text-zinc-300 block font-bold">HOA VĂN ĐƯỜNG NÉT</span>
-                  <select value={selectedElem.extraConfig?.lineStyle || 'solid'} onChange={e => updateExtraConfig('lineStyle', e.target.value)} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg">
+                  <select value={selectedElem.extraConfig?.lineStyle || 'solid'} onChange={e => updateExtraConfig('lineStyle', e.target.value as React.CSSProperties['borderTopStyle'])} className="w-full bg-black border border-zinc-800 text-zinc-100 outline-none p-2 rounded-lg">
                     <option value="solid">Nét thẳng liền mạch (Solid)</option>
                     <option value="dashed">Nét đứt quãng rộng (Dashed)</option>
                     <option value="dotted">Nhóm các dấu chấm tròn (Dotted)</option>
@@ -1536,7 +1574,7 @@ export default function VisualDragCanvas({
               {loadedLeads.length === 0 ? (
                 <div className="text-center py-12 text-zinc-400 text-xs font-light">Chưa có lượt đăng ký VIP nào từ hệ thống Form.</div>
               ) : (
-                loadedLeads.map((lead: any) => (
+                loadedLeads.map((lead) => (
                   <div key={lead.id} className="bg-black border border-slate-800 p-3 rounded-lg flex items-center justify-between gap-4 text-[11px]">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
@@ -1548,7 +1586,7 @@ export default function VisualDragCanvas({
                     </div>
                     <button
                       onClick={() => {
-                        const updated = loadedLeads.filter((l: any) => l.id !== lead.id);
+                        const updated = loadedLeads.filter((l) => l.id !== lead.id);
                         localStorage.setItem('ladipage_submitted_leads', JSON.stringify(updated));
                         setLoadedLeads(updated);
                         onShowNotification('Đã xóa tệp khách hàng tuyển dụng!', 'success');

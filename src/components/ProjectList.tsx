@@ -9,8 +9,8 @@ function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void
   }
 }
 import { collection, getDocs, db } from '../firebase';
-import { Product, Project, RouteState } from '../types';
-import { MapPin, ArrowRight, Compass, ShieldCheck, Building2, Layers, Search, X } from 'lucide-react';
+import { Product, Project, RouteState, VisualSection } from '../types';
+import { MapPin, Compass, Building2, Layers, Search, X } from 'lucide-react';
 import AdBanner from './AdBanner';
 import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
@@ -22,8 +22,8 @@ interface ProjectListProps {
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   isEditMode: boolean;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  sections: VisualSection[];
+  onUpdateSections: (sections: VisualSection[]) => void;
   selectedSectionId: string | null;
   setSelectedSectionId: (id: string | null) => void;
   initialProjects?: Project[];
@@ -50,13 +50,13 @@ export default function ProjectList({
   const scrollDirection = useScrollDirection();
   const [loading, setLoading] = useState(initialProjects.length === 0);
 
-  // States for filtering
+  // Trạng thái lọc.
   const [currentStatus, setCurrentStatus] = useState<string>('');
   const [keyword, setKeyword] = useState<string>('');
   const [searchInput, setSearchInput] = useState<string>('');
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
 
-  // AJAX limits
+  // Giới hạn tải thêm.
   const [limitCount, setLimitCount] = useState(12);
 
   const initialFilters = React.useRef({
@@ -66,7 +66,7 @@ export default function ProjectList({
   const scrollToGrid = () => {
     const element = document.getElementById('projects-grid-section');
     if (element) {
-      const offset = 140; // Offset for sticky headers
+      const offset = 140; // Bù khoảng cách cho header cố định.
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
       window.scrollTo({
@@ -77,7 +77,7 @@ export default function ProjectList({
   };
 
   useEffect(() => {
-    // Check if any filter actually changed from its initial mount value
+    // Chỉ cuộn khi bộ lọc thay đổi so với trạng thái ban đầu.
     const hasFilterChanged = 
       keyword !== initialFilters.current.keyword ||
       currentStatus !== initialFilters.current.currentStatus;
@@ -119,8 +119,8 @@ export default function ProjectList({
         const projCol = collection(db, 'projects');
         const projSnap = await getDocs(projCol);
         const pList: Project[] = [];
-        projSnap.forEach((doc: any) => {
-          pList.push({ id: doc.id, ...doc.data() } as Project);
+        projSnap.forEach((doc) => {
+          pList.push({ ...(doc.data() as Omit<Project, 'id'>), id: doc.id } as Project);
         });
         
         pList.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
@@ -129,10 +129,10 @@ export default function ProjectList({
         const prodCol = collection(db, 'products');
         const prodSnap = await getDocs(prodCol);
         const prodList: Product[] = [];
-        prodSnap.forEach((doc: any) => {
-          const data = doc.data();
+        prodSnap.forEach((doc) => {
+          const data = doc.data() as Product;
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
-            prodList.push({ id: doc.id, ...data } as Product);
+            prodList.push({ ...data, id: doc.id } as Product);
           }
         });
         prodList.sort((a, b) => (b.viewsCount || 0) - (a.viewsCount || 0));

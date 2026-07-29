@@ -1,16 +1,43 @@
-export function serializeSectionsForDatabase(sects: any[]): any[] {
+type LayoutRecord = Record<string, unknown>;
+
+interface LayoutElement extends LayoutRecord {
+  type?: string;
+  content?: string;
+  tableData?: LayoutRecord & {
+    rows?: unknown[];
+    headers?: unknown[];
+  };
+}
+
+interface LayoutSection extends LayoutRecord {
+  id?: string;
+  name?: string;
+  title?: string;
+  visible?: boolean;
+  extraData?: LayoutRecord & {
+    elements?: LayoutElement[];
+  };
+}
+
+const isRecord = (value: unknown): value is LayoutRecord => {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+};
+
+const getText = (value: unknown) => (typeof value === "string" ? value : "");
+
+export function serializeSectionsForDatabase<T extends object>(sects: T[]): T[] {
   if (!Array.isArray(sects)) return [];
   return sects.map((sect) => {
     if (!sect) return sect;
-    const newSect = { ...sect };
+    const newSect = { ...sect } as LayoutSection;
     if (newSect.extraData) {
       const newExtraData = { ...newSect.extraData };
       if (Array.isArray(newExtraData.elements)) {
-        newExtraData.elements = newExtraData.elements.map((el: any) => {
+        newExtraData.elements = newExtraData.elements.map((el: LayoutElement) => {
           if (el && el.type === "table" && el.tableData) {
             const newTableData = { ...el.tableData };
             if (Array.isArray(newTableData.rows)) {
-              newTableData.rows = newTableData.rows.map((row: any) => {
+              newTableData.rows = newTableData.rows.map((row: unknown) => {
                 if (Array.isArray(row)) {
                   return { cols: row };
                 }
@@ -24,24 +51,24 @@ export function serializeSectionsForDatabase(sects: any[]): any[] {
       }
       newSect.extraData = newExtraData;
     }
-    return newSect;
+    return newSect as T;
   });
 }
 
-export function deserializeSectionsFromDatabase(sects: any[]): any[] {
+export function deserializeSectionsFromDatabase<T extends object>(sects: T[]): T[] {
   if (!Array.isArray(sects)) return [];
   return sects.map((sect) => {
     if (!sect) return sect;
-    const newSect = { ...sect };
+    const newSect = { ...sect } as LayoutSection;
     if (newSect.extraData) {
       const newExtraData = { ...newSect.extraData };
       if (Array.isArray(newExtraData.elements)) {
-        newExtraData.elements = newExtraData.elements.map((el: any) => {
+        newExtraData.elements = newExtraData.elements.map((el: LayoutElement) => {
           if (el && el.type === "table" && el.tableData) {
             const newTableData = { ...el.tableData };
             if (Array.isArray(newTableData.rows)) {
-              newTableData.rows = newTableData.rows.map((row: any) => {
-                if (row && typeof row === "object" && Array.isArray(row.cols)) {
+              newTableData.rows = newTableData.rows.map((row: unknown) => {
+                if (isRecord(row) && Array.isArray(row.cols)) {
                   return row.cols;
                 }
                 return row;
@@ -54,18 +81,18 @@ export function deserializeSectionsFromDatabase(sects: any[]): any[] {
       }
       newSect.extraData = newExtraData;
     }
-    return newSect;
+    return newSect as T;
   });
 }
 
-export function sanitizeHomeSections(sects: any[]): any[] {
+export function sanitizeHomeSections<T extends object>(sects: T[]): T[] {
   if (!Array.isArray(sects)) return [];
-  // 1. Remove custom_testimonials or any testimonial sections, reviews, feedback, or opinions
   let filtered = sects.filter((s) => {
     if (!s) return false;
-    const lowerId = (s.id || "").toLowerCase();
-    const lowerName = (s.name || "").toLowerCase();
-    const lowerTitle = (s.title || "").toLowerCase();
+    const section = s as LayoutSection;
+    const lowerId = getText(section.id).toLowerCase();
+    const lowerName = getText(section.name).toLowerCase();
+    const lowerTitle = getText(section.title).toLowerCase();
 
     if (
       lowerId.includes("testimonial") ||
@@ -90,16 +117,16 @@ export function sanitizeHomeSections(sects: any[]): any[] {
       return false;
     }
 
-    // Check if it's a free-form canvas that contains testimonial or pricing info
+    // Kiểm tra canvas tự do có chứa đánh giá hoặc thông tin báo giá.
     if (
-      s.id &&
-      s.id.startsWith("custom_free_canvas") &&
-      s.extraData &&
-      Array.isArray(s.extraData.elements)
+      section.id &&
+      section.id.startsWith("custom_free_canvas") &&
+      section.extraData &&
+      Array.isArray(section.extraData.elements)
     ) {
-      const hasTestimonialOrPricing = s.extraData.elements.some((el: any) => {
+      const hasTestimonialOrPricing = section.extraData.elements.some((el) => {
         if (!el) return false;
-        const lowerElContent = (el.content || "").toLowerCase();
+        const lowerElContent = getText(el.content).toLowerCase();
         if (
           lowerElContent.includes("ý kiến") ||
           lowerElContent.includes("báo giá") ||
@@ -124,7 +151,7 @@ export function sanitizeHomeSections(sects: any[]): any[] {
         return false;
       });
       if (hasTestimonialOrPricing) {
-        return false; // Remove the entire section!
+        return false;
       }
     }
     return true;
@@ -135,8 +162,12 @@ export function sanitizeHomeSections(sects: any[]): any[] {
     return newS;
   });
 
-  // 2. Ensure news section exists and is visible
-  const hasNews = filtered.some((s) => s && s.id === "news");
+  // Đảm bảo khối tin tức luôn tồn tại và được hiển thị.
+  const hasNews = filtered.some((s) => {
+    const section = s as LayoutSection;
+    return section && section.id === "news";
+  });
+
   if (!hasNews) {
     const newsDefaultObj = {
       id: "news",
@@ -148,12 +179,12 @@ export function sanitizeHomeSections(sects: any[]): any[] {
       subtitle: "Góc nhìn chuyên gia",
       description:
         "Tin nhanh vi mô và phong thủy phong phú cung cấp từ đội ngũ biên soạn Greenia.",
-    };
+    } as T;
     filtered.push(newsDefaultObj);
   } else {
-    // Make sure news is visible
     filtered = filtered.map((s) => {
-      if (s && s.id === "news") {
+      const section = s as LayoutSection;
+      if (section && section.id === "news") {
         return { ...s, visible: true };
       }
       return s;

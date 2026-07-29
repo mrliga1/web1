@@ -22,11 +22,11 @@ export default function FavoritesPage({ onNavigate }: { onNavigate: (route: Rout
         const prodSnap = await getDocs(prodCol);
         const fetchedFavs: Product[] = [];
         
-        prodSnap.forEach((doc: any) => {
+        prodSnap.forEach((doc) => {
           if (favIds.includes(doc.id)) {
-            const data = doc.data();
+            const data = doc.data() as Product;
             if (!data.approvalStatus || data.approvalStatus === 'approved') {
-              fetchedFavs.push({ id: doc.id, ...data } as Product);
+              fetchedFavs.push({ ...data, id: doc.id } as Product);
             }
           }
         });

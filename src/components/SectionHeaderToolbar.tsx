@@ -2,11 +2,32 @@ import React from 'react';
 import { 
   Eye, EyeOff, Trash2, Sparkles, ChevronUp, ChevronDown 
 } from 'lucide-react';
+import type { VisualSection } from '../types';
+
+interface FreeCanvasElement {
+  id: string;
+  type: 'text' | 'image' | 'button';
+  left: number;
+  top: number;
+  width: number;
+  content: unknown;
+  linkUrl?: string;
+  style: Record<string, string>;
+}
+
+type EditableSection = VisualSection & {
+  subtitle?: string;
+  description?: string;
+  imageUrl?: string;
+  extraData?: Record<string, unknown> & {
+    buttonText?: string;
+  };
+};
 
 interface SectionHeaderToolbarProps {
-  section: any;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  section: EditableSection;
+  sections: EditableSection[];
+  onUpdateSections: (sections: EditableSection[]) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   index: number;
   setSelectedSectionId: (id: string | null) => void;
@@ -57,8 +78,8 @@ export default function SectionHeaderToolbar({
   const handleConvertToFreeCanvas = () => {
     const newId = `custom_free_canvas_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
       
-      // Auto-extract content to convert to free-form visual elements
-      const elements: any[] = [];
+      // Tự động chuyển nội dung hiện có thành phần tử canvas tự do.
+      const elements: FreeCanvasElement[] = [];
       let topOffset = 10;
 
       if (section.subtitle) {

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Cookie } from "lucide-react";
 import { db, doc, getDoc } from "../firebase";
+import type { GeneralSettingsData } from "../types";
 
 export default function CookieConsent() {
   const [show, setShow] = useState(false);
@@ -13,7 +14,8 @@ export default function CookieConsent() {
 
     getDoc(doc(db, "settings", "general"))
       .then((snapshot) => {
-        if (cancelled || snapshot.data()?.cookieConsentEnabled !== true) return;
+        const data = (snapshot.data() || {}) as GeneralSettingsData;
+        if (cancelled || data.cookieConsentEnabled !== true) return;
         if (!localStorage.getItem("cookie_consent")) {
           timer = setTimeout(() => setShow(true), 6000);
         }

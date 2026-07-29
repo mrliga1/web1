@@ -25,7 +25,24 @@ interface LayoutState {
   sections: VisualSection[];
 }
 
+interface LayoutDocumentData {
+  sections?: unknown;
+}
+
+interface ClientSettingsData {
+  logoUrl?: string;
+  metaTitle?: string;
+  googleAnalyticsId?: string;
+  googleTagId?: string;
+  googleAdsId?: string;
+  facebookPixelId?: string;
+  tiktokPixelId?: string;
+  cookieConsentEnabled?: boolean;
+}
+
 const EMPTY_SECTIONS: VisualSection[] = [];
+
+const getSettingString = (value: unknown) => (typeof value === 'string' ? value : '');
 
 function getLayoutDocName(path: string): LayoutDocName {
   if (path === '/') return 'home';
@@ -81,9 +98,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const docRef = doc(db, 'layouts', docName);
     getDoc(docRef).then((snapshot) => {
       if (snapshot.exists()) {
-        const data = snapshot.data();
-        if (data && data.sections) {
-          const loaded = deserializeSectionsFromDatabase(data.sections);
+        const data = (snapshot.data() || {}) as LayoutDocumentData;
+        if (Array.isArray(data.sections)) {
+          const loaded = deserializeSectionsFromDatabase<VisualSection>(data.sections as VisualSection[]);
           if (loaded.length === 0) {
             setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
             if (!cancelled) setLayoutState({ docName, sections: defaults });
@@ -141,7 +158,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     getDoc(doc(db, "settings", "general")).then((snapshot) => {
       if (snapshot.exists()) {
-        const data = snapshot.data();
+        const data = (snapshot.data() || {}) as ClientSettingsData;
         if (data.logoUrl) {
           localStorage.setItem('greenia_logoUrl', optimizeImageUrl(data.logoUrl, 100));
         }
@@ -151,12 +168,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         const loadTrackingScripts = () => {
         // Chỉ chèn mã theo dõi sau khi đã đáp ứng lựa chọn cookie.
-        const analyticsId = (data.googleAnalyticsId || "").trim();
-        const tagManagerId = (data.googleTagId || "").trim();
-        const adsId = (data.googleAdsId || "").trim();
+        const analyticsId = getSettingString(data.googleAnalyticsId).trim();
+        const tagManagerId = getSettingString(data.googleTagId).trim();
+        const adsId = getSettingString(data.googleAdsId).trim();
 
-        const fbPixelId = (data.facebookPixelId || "").trim();
-        const tkPixelId = (data.tiktokPixelId || "").trim();
+        const fbPixelId = getSettingString(data.facebookPixelId).trim();
+        const tkPixelId = getSettingString(data.tiktokPixelId).trim();
 
         // 1. Google Analytics integration (G-XXXXXXXX)
         if (analyticsId) {

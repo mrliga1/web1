@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Building2, Compass, Home, MapPin, Search, MessageSquare, ArrowUp, Phone, Mail } from 'lucide-react';
+import { Building2, MapPin, MessageSquare, ArrowUp, Phone, Mail } from 'lucide-react';
 
 export default function Footer() {
   return (

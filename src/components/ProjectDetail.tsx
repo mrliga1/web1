@@ -12,13 +12,9 @@ import {
   MapPin,
   Building2,
   Phone,
-  Calendar,
-  Compass,
-  ShieldCheck,
   Heart,
   Share2,
   Sparkles,
-  AlertCircle,
   CheckCircle2,
   FileText,
   LayoutGrid,
@@ -49,6 +45,17 @@ interface ProjectDetailProps {
   onShowNotification: (message: string, type: "success" | "error") => void;
 }
 
+type ProjectTabId =
+  | "overview"
+  | "subdivision"
+  | "location"
+  | "amenity"
+  | "floor-plan"
+  | "price"
+  | "qa"
+  | "news"
+  | "contact";
+
 import { notifyAdminEmail } from "../lib/email";
 import { fetchClientIp } from "../lib/ip";
 
@@ -62,18 +69,20 @@ export default function ProjectDetail({
   initialProducts = [],
   initialProjects = [],
 }: ProjectDetailProps) {
+  const readServerProject = (): Project | null => {
+    if (typeof window === "undefined") return null;
+    const serverProject = window.__SERVER_DATA__?.project;
+    if (!serverProject) return null;
+    if (serverProject.id === projectId) return serverProject;
+    if (slug && generateSlug(serverProject.title) === slug) return serverProject;
+    return null;
+  };
+
   const [project, setProject] = useState<Project | null>(() => {
     if (initialProject) return initialProject;
-
-    if (
-      typeof window !== "undefined" &&
-      (window.__SERVER_DATA__?.project?.id === projectId ||
-       (slug && generateSlug(window.__SERVER_DATA__?.project?.title) === slug))
-    ) {
-      return window.__SERVER_DATA__.project;
-    }
-    return null;
+    return readServerProject();
   });
+  const projectRef = useRef<Project | null>(project);
   const [relatedProjects, setRelatedProjects] = useState<Project[]>(initialProjects.slice(0, 5));
   const [relatedProducts, setRelatedProducts] = useState<Product[]>(initialProducts.slice(0, 5));
   const [relatedNews, setRelatedNews] = useState<News[]>(initialNews.slice(0, 6));
@@ -81,15 +90,7 @@ export default function ProjectDetail({
   const [targetProductCategory, setTargetProductCategory] =
     useState<string>(initialProject?.productCategoryUrl?.trim() || "");
   const [loading, setLoading] = useState(!project);
-  const [activeTab, setActiveTab] = useState<
-    | "overview"
-    | "location"
-    | "amenity"
-    | "floor-plan"
-    | "price"
-    | "news"
-    | "contact"
-  >("overview");
+  const [activeTab, setActiveTab] = useState<ProjectTabId>("overview");
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [isSubdivisionExpanded, setIsSubdivisionExpanded] = useState(false);
   const [isLocationExpanded, setIsLocationExpanded] = useState(false);
@@ -106,6 +107,10 @@ export default function ProjectDetail({
   >(initialProject?.floorPlanTabs?.[0]?.id || null);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const scrollDirection = useScrollDirection();
+
+  useEffect(() => {
+    projectRef.current = project;
+  }, [project]);
 
   const hasSubdivisionContent = useMemo(() => {
     if (!project) return false;
@@ -127,7 +132,7 @@ export default function ProjectDetail({
   }, [project]);
 
   const TABS = useMemo(() => {
-    const defaultTabs = [
+    const defaultTabs: Array<{ id: ProjectTabId; label: string; icon: typeof FileText }> = [
       { id: "overview", label: "Tổng quan", icon: FileText },
     ];
     if (hasSubdivisionContent) {
@@ -158,17 +163,17 @@ export default function ProjectDetail({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setActiveTab(entry.target.id as any);
+            setActiveTab(entry.target.id as ProjectTabId);
           }
         });
       },
       {
-        rootMargin: "-120px 0px -40% 0px", // Adjusted to catch sections better when scrolling
+        rootMargin: "-120px 0px -40% 0px", // Căn lại vùng nhận diện section khi cuộn.
         threshold: 0,
       },
     );
 
-    // Give it a small delay to ensure DOM layout is complete before observing
+    // Chờ DOM ổn định trước khi quan sát section.
     const timer = setTimeout(() => {
       const validRefs: HTMLDivElement[] = [];
       sectionRefs.current.forEach((ref) => {
@@ -185,8 +190,8 @@ export default function ProjectDetail({
     };
   }, [loading, project]);
 
-  const handleTabClick = (id: string) => {
-    setActiveTab(id as any);
+  const handleTabClick = (id: ProjectTabId) => {
+    setActiveTab(id);
     const element = document.getElementById(id);
     if (element) {
       const headerOffset = 110;
@@ -201,7 +206,7 @@ export default function ProjectDetail({
     }
   };
 
-  // Contact Form State
+  // Trạng thái form liên hệ.
   const [clientName, setClientName] = useState("");
   const [clientPhone, setClientPhone] = useState("");
   const [clientEmail, setClientEmail] = useState("");
@@ -311,23 +316,23 @@ export default function ProjectDetail({
         }
 
         const { doc, getDoc, getDocs, collection, db } = await import("../firebase");
-        if (!project) setLoading(true);
-        let fetchedProject: Project | null = project;
+        if (!projectRef.current) setLoading(true);
+        let fetchedProject: Project | null = projectRef.current;
         let finalProjectId = projectId || fetchedProject?.id || "";
 
         if (!fetchedProject && finalProjectId) {
           const docRef = doc(db, "projects", finalProjectId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            fetchedProject = { id: docSnap.id, ...docSnap.data() } as Project;
+            fetchedProject = { ...((docSnap.data() || {}) as Omit<Project, 'id'>), id: docSnap.id } as Project;
           }
         } else if (!fetchedProject && slug) {
           const projCol = collection(db, "projects");
           const projSnap = await getDocs(projCol);
           for (const doc of projSnap.docs) {
-            const data = doc.data();
-            if (generateSlug(data.title) === slug) {
-              fetchedProject = { id: doc.id, ...data } as Project;
+            const data = (doc.data() || {}) as Partial<Project>;
+            if (data.title && generateSlug(data.title) === slug) {
+              fetchedProject = { ...(data as Omit<Project, 'id'>), id: doc.id } as Project;
               finalProjectId = doc.id;
               break;
             }
@@ -337,11 +342,11 @@ export default function ProjectDetail({
               const docRef = doc(db, "projects", slug);
               const docSnap = await getDoc(docRef);
               if (docSnap.exists()) {
-                fetchedProject = { id: docSnap.id, ...docSnap.data() } as Project;
+                fetchedProject = { ...((docSnap.data() || {}) as Omit<Project, 'id'>), id: docSnap.id } as Project;
                 finalProjectId = docSnap.id;
               }
-            } catch (e) {
-              // Ignore invalid ID errors
+            } catch {
+              // Bỏ qua lỗi khi slug không phải mã tài liệu hợp lệ.
             }
           }
         }
@@ -349,22 +354,18 @@ export default function ProjectDetail({
         if (fetchedProject) {
           window.scrollTo(0, 0);
           setProject(fetchedProject);
-          if (
-            fetchedProject.floorPlanTabs &&
-            fetchedProject.floorPlanTabs.length > 0 &&
-            !currentFloorPlanTabId
-          ) {
-            setCurrentFloorPlanTabId(fetchedProject.floorPlanTabs[0].id);
+          if (fetchedProject.floorPlanTabs && fetchedProject.floorPlanTabs.length > 0) {
+            setCurrentFloorPlanTabId((current) => current || fetchedProject?.floorPlanTabs?.[0]?.id || null);
           }
 
           // Fetch related news (filter by newsCategoryUrl if provided)
           const newsSnap = await getDocs(collection(db, "news"));
-          const newsList: any[] = [];
+          const newsList: News[] = [];
 
           let targetCategory = "";
           if (fetchedProject.newsCategoryUrl) {
             targetCategory = fetchedProject.newsCategoryUrl.trim();
-            // Tries to parse categoryName if it looks like a URL
+            // Tách categoryName nếu giá trị đang là URL.
             try {
               const urlMatch = targetCategory.match(/categoryName=([^&]+)/);
               if (urlMatch && urlMatch[1]) {
@@ -379,8 +380,8 @@ export default function ProjectDetail({
           }
           setTargetNewsCategory(targetCategory);
 
-          newsSnap.forEach((doc: any) => {
-            const data = doc.data();
+          newsSnap.forEach((doc) => {
+            const data = doc.data() as News;
             if (
               data.approvalStatus !== "rejected" &&
               data.title?.trim() &&
@@ -392,11 +393,10 @@ export default function ProjectDetail({
                   data.category &&
                   data.category.toLowerCase() === targetCategory.toLowerCase()
                 ) {
-                  newsList.push({ id: doc.id, ...data });
+                  newsList.push({ ...data, id: doc.id } as News);
                 }
               } else {
-                // Default: add everything
-                newsList.push({ id: doc.id, ...data });
+                newsList.push({ ...data, id: doc.id } as News);
               }
             }
           });
@@ -404,12 +404,12 @@ export default function ProjectDetail({
 
           // Fetch related products (filter by productCategoryUrl if provided)
           const productsSnap = await getDocs(collection(db, "products"));
-          const productsList: any[] = [];
+          const productsList: Product[] = [];
 
           let targetProdCategory = "";
           if (fetchedProject.productCategoryUrl) {
             targetProdCategory = fetchedProject.productCategoryUrl.trim();
-            // Tries to parse categoryName if it looks like a URL
+            // Tách categoryName nếu giá trị đang là URL.
             try {
               const prodUrlMatch =
                 targetProdCategory.match(/categoryName=([^&]+)/);
@@ -425,9 +425,9 @@ export default function ProjectDetail({
           }
           setTargetProductCategory(targetProdCategory);
 
-          productsSnap.forEach((prodDoc: any) => {
-            const data = prodDoc.data();
-            if (data.approvalStatus !== "rejected" && data.name?.trim()) {
+          productsSnap.forEach((prodDoc) => {
+            const data = prodDoc.data() as Product;
+            if (data.approvalStatus !== "rejected" && data.title?.trim()) {
               if (targetProdCategory && targetProdCategory.length > 0) {
                 // Filter by category exactly
                 if (
@@ -435,10 +435,10 @@ export default function ProjectDetail({
                   data.category.toLowerCase() ===
                     targetProdCategory.toLowerCase()
                 ) {
-                  productsList.push({ id: prodDoc.id, ...data });
+                  productsList.push({ ...data, id: prodDoc.id } as Product);
                 }
               } else {
-                productsList.push({ id: prodDoc.id, ...data });
+                productsList.push({ ...data, id: prodDoc.id } as Product);
               }
             }
           });
@@ -447,10 +447,10 @@ export default function ProjectDetail({
           // Fetch related projects
           const projSnap = await getDocs(collection(db, "projects"));
           const projList: Project[] = [];
-          projSnap.forEach((doc: any) => {
-            const data = doc.data();
+          projSnap.forEach((doc) => {
+            const data = doc.data() as Project;
             if (data.approvalStatus !== "rejected") {
-              projList.push({ id: doc.id, ...data } as Project);
+              projList.push({ ...data, id: doc.id } as Project);
             }
           });
           setRelatedProjects(projList.slice(0, 5));
@@ -469,7 +469,7 @@ export default function ProjectDetail({
     }
 
     loadProject();
-  }, [initialProject, projectId, slug]);
+  }, [initialProject, projectId, slug, onNavigate, onShowNotification]);
 
   const handleConsultSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -581,7 +581,7 @@ export default function ProjectDetail({
         </p>
       </div>
     );
-  }, [project?.mapHtml, project?.location]);
+  }, [project]);
 
   const renderCustomSections = (position: string) => {
     if (!project?.customSections) return null;
@@ -964,7 +964,7 @@ export default function ProjectDetail({
                           <div
                             className={`text-text-primary font-medium text-[13px] md:text-sm ${hasList ? "text-left w-full grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1" : "text-left md:text-right min-w-0 break-words"}`}
                           >
-                            {lines.map((line, i, arr) => {
+                            {lines.map((line, i) => {
                               const isListItem = line.trim().startsWith("+");
                               const content = isListItem
                                 ? line.trim().substring(1).trim()

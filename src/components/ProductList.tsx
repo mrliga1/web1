@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { generateSlug, optimizeImageUrl, getRouteUrl } from '../lib/utils';
 import { useRouter } from 'next/navigation';
-import { collection, getDocs, getDoc, doc, db } from '../firebase';
+import { collection, getDocs, getDoc, doc, db, type LegacyDocSnapshot } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
-import { Product, Project, RouteState } from '../types';
-import { Search, MapPin, SlidersHorizontal, RefreshCw, ChevronRight, Compass, Heart, ArrowUpRight, Layers, Building2, ChevronDown, X } from 'lucide-react';
+import { CategoryExt, FilterRangeConfig, FilterSettingsData, GeneralSettingsData, Product, Project, RouteState, VisualSection } from '../types';
+import { Search, MapPin, ArrowUpRight, Layers, Building2, ChevronDown, X } from 'lucide-react';
 import AdBanner from './AdBanner';
 import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
@@ -17,8 +17,8 @@ interface ProductListProps {
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   isEditMode: boolean;
-  sections: any[];
-  onUpdateSections: (sections: any[]) => void;
+  sections: VisualSection[];
+  onUpdateSections: (sections: VisualSection[]) => void;
   selectedSectionId: string | null;
   setSelectedSectionId: (id: string | null) => void;
   initialLocation?: string;
@@ -31,11 +31,17 @@ interface ProductListProps {
   initialCategoryName?: string;
   initialProducts?: Product[];
   initialProjects?: Project[];
-  initialGeneralSettings?: Record<string, any>;
-  initialFilterSettings?: Record<string, any>;
+  initialGeneralSettings?: GeneralSettingsData;
+  initialFilterSettings?: FilterSettingsData;
 }
 
 import ProductCard from './ProductCard';
+
+const matchesRangeConfig = (value: number, cfg: FilterRangeConfig | undefined) => {
+  if (!cfg || typeof cfg.min !== 'number') return false;
+  const max = typeof cfg.max === 'number' ? cfg.max : null;
+  return value >= cfg.min && (max === null ? true : value <= max);
+};
 
 export default function ProductList({ 
   onNavigate, 
@@ -65,7 +71,7 @@ export default function ProductList({
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
   const [loading, setLoading] = useState(initialProducts.length === 0);
 
-  // Filter conditions
+  // Điều kiện lọc.
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedType, setSelectedType] = useState<'all' | 'sale' | 'rent'>(initialType || 'all');
   const [selectedDistrict, setSelectedDistrict] = useState(initialLocation || 'all');
@@ -109,25 +115,19 @@ export default function ProductList({
       
       if (navbarRef.current) {
         const navbarRect = navbarRef.current.getBoundingClientRect();
-        // Calculate center position of target relative to navbar
+        // Tính vị trí tâm của tab so với thanh điều hướng.
         const relativeCenter = targetRect.left - navbarRect.left + (targetRect.width / 2);
         setDropdownPos(relativeCenter);
       }
     }
   };
 
-  // Removed document.addEventListener('click') as we use a backdrop div for outside clicks
-
-  const initialFilters = useRef({
-    searchQuery, selectedPriceRange, selectedAreaRange, selectedDistrict, selectedCategory, selectedType
-  });
-
   const isMounted = useRef(false);
 
   const scrollToGrid = () => {
     const element = document.getElementById('products-grid-section');
     if (element) {
-      const offset = 140; // Offset for sticky headers
+      const offset = 140; // Bù khoảng cách cho header cố định.
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - offset;
       window.scrollTo({
@@ -146,7 +146,7 @@ export default function ProductList({
     scrollToGrid();
   }, [searchQuery, selectedPriceRange, selectedAreaRange, selectedDistrict, selectedCategory, selectedType]);
 
-  // Load limits for Ajax See-Mores - optimize mobile DOM size
+  // Giới hạn số mục tải thêm để giảm DOM trên mobile.
   const [mainGridLimit, setMainGridLimit] = useState(typeof window !== 'undefined' && window.innerWidth < 768 ? 4 : 10);
   const [recentGridLimit, setRecentGridLimit] = useState(5);
 
@@ -159,12 +159,12 @@ export default function ProductList({
   const [expandedLocationLevel, setExpandedLocationLevel] = useState<string | null>(null);
 
   
-  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>(() => initialGeneralSettings.productCategoriesExt || []);
+  const [productCategoriesExt, setProductCategoriesExt] = useState<CategoryExt[]>(() => initialGeneralSettings.productCategoriesExt || []);
   const [expandedParentCat, setExpandedParentCat] = useState<string | null>(null);
 
-  const [priceSaleConfig, setPriceSaleConfig] = useState<any[]>(() => initialFilterSettings.priceSale || []);
-  const [priceRentConfig, setPriceRentConfig] = useState<any[]>(() => initialFilterSettings.priceRent || []);
-  const [areaConfig, setAreaConfig] = useState<any[]>(() => initialFilterSettings.areaRanges || []);
+  const [priceSaleConfig, setPriceSaleConfig] = useState<FilterRangeConfig[]>(() => initialFilterSettings.priceSale || []);
+  const [priceRentConfig, setPriceRentConfig] = useState<FilterRangeConfig[]>(() => initialFilterSettings.priceRent || []);
+  const [areaConfig, setAreaConfig] = useState<FilterRangeConfig[]>(() => initialFilterSettings.areaRanges || []);
 
   useEffect(() => {
     if (initialProducts.length > 0) {
@@ -220,11 +220,11 @@ export default function ProductList({
 
         setLoading(true);
 
-        // Fetch projects in the background since they are only used below the fold
+        // Tải dự án nền vì chỉ dùng ở phần dưới trang.
         getDocs(collection(db, 'projects')).then(projSnap => {
           const projList: Project[] = [];
-          projSnap.forEach((doc: any) => {
-            projList.push({ id: doc.id, ...doc.data() } as Project);
+          projSnap.forEach((doc: LegacyDocSnapshot) => {
+            projList.push({ ...(doc.data() as Omit<Project, 'id'>), id: doc.id } as Project);
           });
           if (isMounted.current) {
             setProjects(projList);
@@ -238,12 +238,13 @@ export default function ProductList({
         ]);
 
         if (generalSnap.exists()) {
-          setProductCategoriesExt(generalSnap.data().productCategoriesExt || []);
+          const generalData = generalSnap.data() as GeneralSettingsData;
+          setProductCategoriesExt(generalData.productCategoriesExt || []);
         }
 
         let adminConfiguredDistricts: string[] = [];
         if (filterSnap.exists()) {
-          const fd = filterSnap.data();
+          const fd = filterSnap.data() as FilterSettingsData;
           setPriceSaleConfig(fd.priceSale || []);
           setPriceRentConfig(fd.priceRent || []);
           setAreaConfig(fd.areaRanges || []);
@@ -260,10 +261,10 @@ export default function ProductList({
         const list: Product[] = [];
         const uniqueDistricts = new Set<string>();
 
-        prodSnap.forEach((doc: any) => {
-          const data = doc.data();
+        prodSnap.forEach((doc: LegacyDocSnapshot) => {
+          const data = doc.data() as Product;
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
-            const p = { id: doc.id, ...data } as Product;
+            const p = { ...data, id: doc.id } as Product;
             list.push(p);
             if (p.district) uniqueDistricts.add(p.district.trim());
           }
@@ -406,7 +407,7 @@ export default function ProductList({
       if (p.type !== 'rent') {
         if (priceSaleConfig.length > 0) {
           const cfg = priceSaleConfig.find(c => c.id === selectedPriceRange);
-          if (cfg) matchesPrice = val >= cfg.min && (cfg.max === null ? true : val <= cfg.max);
+          matchesPrice = matchesRangeConfig(val, cfg);
         } else {
           if (selectedPriceRange === 'under3') matchesPrice = val < 3000000000;
           else if (selectedPriceRange === '3to5') matchesPrice = val >= 3000000000 && val < 5000000000;
@@ -418,7 +419,7 @@ export default function ProductList({
       } else {
         if (priceRentConfig.length > 0) {
           const cfg = priceRentConfig.find(c => c.id === selectedPriceRange);
-          if (cfg) matchesPrice = val >= cfg.min && (cfg.max === null ? true : val <= cfg.max);
+          matchesPrice = matchesRangeConfig(val, cfg);
         } else {
           if (selectedPriceRange === 'under15m') matchesPrice = val < 15000000;
           else if (selectedPriceRange === '15to40m') matchesPrice = val >= 15000000 && val <= 40000000;
@@ -433,7 +434,7 @@ export default function ProductList({
       const area = p.area || 0;
       if (areaConfig.length > 0) {
         const cfg = areaConfig.find(c => c.id === selectedAreaRange);
-        if (cfg) matchesArea = area >= cfg.min && (cfg.max === null ? true : area <= cfg.max);
+        matchesArea = matchesRangeConfig(area, cfg);
       } else {
         if (selectedAreaRange === 'under100') matchesArea = area > 0 && area <= 100;
         else if (selectedAreaRange === '100to300') matchesArea = area > 100 && area <= 300;
@@ -744,7 +745,7 @@ export default function ProductList({
                             }} className={`w-full text-left !px-[10px] !py-[5px] text-[13px] md:text-xs border-none cursor-pointer flex justify-between items-center transition-colors border-b border-border-color/50 ${selectedCategory === 'all' ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-transparent text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>
                               <span>Tất cả Danh mục</span>
                             </button>
-                            {productCategoriesExt.filter(c => !c.parentId).map((parentCat: any) => {
+                            {productCategoriesExt.filter(c => !c.parentId).map((parentCat) => {
                                const childCats = productCategoriesExt.filter(c => c.parentId === parentCat.name);
                                const isParentSelected = selectedCategory === parentCat.name || selectedCategory === generateSlug(parentCat.name);
                                const isExpanded = expandedParentCat === parentCat.name;
@@ -766,7 +767,7 @@ export default function ProductList({
                                        </button>
                                      )}
                                    </div>
-                                   {isExpanded && childCats.map((childCat: any) => {
+                                   {isExpanded && childCats.map((childCat) => {
                                      const isChildSelected = selectedCategory === childCat.name || selectedCategory === generateSlug(childCat.name);
                                      return (
                                        <button
@@ -793,7 +794,7 @@ export default function ProductList({
                                  <>
                                    {priceSaleConfig.length > 0 ? (
                                      priceSaleConfig.map(c => (
-                                       <button key={c.id} onClick={() => { setSelectedPriceRange(c.id); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === c.id ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>{c.label}</button>
+                                       <button key={c.id} onClick={() => { setSelectedPriceRange(c.id || ''); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === c.id ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>{c.label}</button>
                                      ))
                                    ) : (
                                      <>
@@ -811,7 +812,7 @@ export default function ProductList({
                                  <>
                                    {priceRentConfig.length > 0 ? (
                                      priceRentConfig.map(c => (
-                                       <button key={c.id} onClick={() => { setSelectedPriceRange(c.id); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === c.id ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>{c.label}</button>
+                                       <button key={c.id} onClick={() => { setSelectedPriceRange(c.id || ''); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedPriceRange === c.id ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>{c.label}</button>
                                      ))
                                    ) : (
                                      <>
@@ -832,7 +833,7 @@ export default function ProductList({
                              </button>
                              {areaConfig.length > 0 ? (
                                areaConfig.map(c => (
-                                 <button key={c.id} onClick={() => { setSelectedAreaRange(c.id); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedAreaRange === c.id ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>{c.label}</button>
+                                 <button key={c.id} onClick={() => { setSelectedAreaRange(c.id || ''); setOpenDropdown(null); }} className={`w-full text-left px-4 py-2.5 md:py-2 text-[13px] md:text-xs border-none cursor-pointer border-b border-border-color/50 ${selectedAreaRange === c.id ? 'bg-[#064E3B]/10 text-primary font-bold' : 'bg-bg-surface text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:font-bold'}`}>{c.label}</button>
                                ))
                              ) : (
                                <>

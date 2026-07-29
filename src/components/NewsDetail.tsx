@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import NextImage from 'next/image';
 import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 import { recordContentEngagement } from '../lib/engagement';
-import { News, Product, Project, RouteState } from '../types';
+import { CategoryExt, GeneralSettingsData, News, Product, Project, RouteState } from '../types';
 import { Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, Tag, Building, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown, Pause, Play } from 'lucide-react';
 import AdBanner from './AdBanner';
 import ProductCard from './ProductCard';
@@ -24,7 +24,7 @@ interface NewsDetailProps {
   initialNews?: News[];
   initialProducts?: Product[];
   initialProjects?: Project[];
-  initialGeneralSettings?: Record<string, any>;
+  initialGeneralSettings?: GeneralSettingsData;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
 }
@@ -51,6 +51,7 @@ export default function NewsDetail({
     }
     return null;
   });
+  const articleRef = useRef<News | null>(article);
   const initialProductCategoriesExt = initialGeneralSettings.productCategoriesExt || [];
   const [allNews, setAllNews] = useState<News[]>(initialNews);
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -61,20 +62,20 @@ export default function NewsDetail({
   // Categories count map
   const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>(() => {
     const counts: Record<string, number> = {};
-    initialProductCategoriesExt.forEach((category: any) => {
+    initialProductCategoriesExt.forEach((category) => {
       counts[category.name] = 0;
     });
     initialProducts.forEach((product) => {
       const category = (product.category || "Chưa phân loại").trim();
       const configuredCategory = initialProductCategoriesExt.find(
-        (item: any) => item.name.trim().toLowerCase() === category.toLowerCase(),
+        (item) => item.name.trim().toLowerCase() === category.toLowerCase(),
       );
       const finalCategoryName = configuredCategory ? configuredCategory.name : category;
       counts[finalCategoryName] = (counts[finalCategoryName] || 0) + 1;
     });
     return counts;
   });
-  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>(initialProductCategoriesExt);
+  const [productCategoriesExt, setProductCategoriesExt] = useState<CategoryExt[]>(initialProductCategoriesExt);
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   const toggleCategory = (catName: string, e: React.MouseEvent) => {
@@ -95,6 +96,10 @@ export default function NewsDetail({
   const [isMarqueePaused, setIsMarqueePaused] = useState(false);
 
   useEffect(() => {
+    articleRef.current = article;
+  }, [article]);
+
+  useEffect(() => {
     async function loadArticleData() {
       try {
         if (initialArticle) {
@@ -111,24 +116,24 @@ export default function NewsDetail({
         }
 
         const { doc, getDoc, collection, getDocs, db } = await import('../firebase');
-        if (!article) setLoading(true);
+        if (!articleRef.current) setLoading(true);
 
-        let fetchedArticle: News | null = article;
+        let fetchedArticle: News | null = articleRef.current;
         let finalNewsId = newsId || fetchedArticle?.id || '';
 
         if (!fetchedArticle && finalNewsId) {
           const docRef = doc(db, 'news', finalNewsId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            fetchedArticle = { id: docSnap.id, ...docSnap.data() } as News;
+            fetchedArticle = { ...((docSnap.data() || {}) as Omit<News, 'id'>), id: docSnap.id } as News;
           }
         } else if (!fetchedArticle && slug) {
           const newsCol = collection(db, 'news');
           const newsSnap = await getDocs(newsCol);
           for (const doc of newsSnap.docs) {
-            const data = doc.data();
+            const data = doc.data() as News;
             if (generateSlug(data.title) === slug) {
-              fetchedArticle = { id: doc.id, ...data } as News;
+              fetchedArticle = { ...data, id: doc.id } as News;
               finalNewsId = doc.id;
               break;
             }
@@ -138,7 +143,7 @@ export default function NewsDetail({
               const docRef = doc(db, 'news', slug);
               const docSnap = await getDoc(docRef);
               if (docSnap.exists()) {
-                fetchedArticle = { id: docSnap.id, ...docSnap.data() } as News;
+                fetchedArticle = { ...((docSnap.data() || {}) as Omit<News, 'id'>), id: docSnap.id } as News;
                 finalNewsId = docSnap.id;
               }
             } catch {
@@ -178,10 +183,10 @@ export default function NewsDetail({
         const newsCol = collection(db, 'news');
         const newsSnap = await getDocs(newsCol);
         const nList: News[] = [];
-        newsSnap.forEach((d: any) => {
-          const data = d.data();
+        newsSnap.forEach((d) => {
+          const data = d.data() as News;
           if(data.title?.trim()) {
-            nList.push({ id: d.id, ...data } as News);
+            nList.push({ ...data, id: d.id } as News);
           }
         });
         setAllNews(nList);
@@ -191,9 +196,10 @@ export default function NewsDetail({
         const prodSnap = await getDocs(prodCol);
         // Fetch Categories Ext
         const genSnap = await getDoc(doc(db, 'settings', 'general'));
-        let configCategories: any[] = [];
-        if (genSnap.exists() && genSnap.data().productCategoriesExt) {
-          configCategories = genSnap.data().productCategoriesExt;
+        let configCategories: CategoryExt[] = [];
+        const generalData = genSnap.data() as GeneralSettingsData | undefined;
+        if (genSnap.exists() && generalData?.productCategoriesExt) {
+          configCategories = generalData.productCategoriesExt;
           setProductCategoriesExt(configCategories);
         }
 
@@ -206,10 +212,10 @@ export default function NewsDetail({
           });
         }
 
-        prodSnap.forEach((d: any) => {
-          const data = d.data();
+        prodSnap.forEach((d) => {
+          const data = d.data() as Product;
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
-            const prod = { id: d.id, ...data } as Product;
+            const prod = { ...data, id: d.id } as Product;
             pList.push(prod);
             
             // Increment category count
@@ -226,10 +232,10 @@ export default function NewsDetail({
         const projCol = collection(db, 'projects');
         const projSnap = await getDocs(projCol);
         const projList: Project[] = [];
-        projSnap.forEach((d: any) => {
-          const data = d.data();
+        projSnap.forEach((d) => {
+          const data = d.data() as Project;
           if (!data.approvalStatus || data.approvalStatus === 'approved') {
-            projList.push({ id: d.id, ...data } as Project);
+            projList.push({ ...data, id: d.id } as Project);
           }
         });
         setProjects(projList);
@@ -242,7 +248,7 @@ export default function NewsDetail({
     }
 
     loadArticleData();
-  }, [initialArticle, newsId, slug]);
+  }, [initialArticle, newsId, slug, onNavigate, onShowNotification]);
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

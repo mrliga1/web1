@@ -16,6 +16,7 @@ export interface Product {
   toilets?: number;      // Số wc
   direction?: string;    // Hướng nhà
   roadWidth?: string;    // Đường vào m
+  frontage?: number | string;
   legalStatus?: string;  // Pháp lý (e.g. Sổ hồng, Đang chờ sổ)
   floors?: number | string; // Số tầng
   interior?: string;     // Nội thất
@@ -158,6 +159,7 @@ export interface Consultation {
   createdAt: string;
   status: 'new' | 'contacted' | 'negotiating' | 'won' | 'lost' | 'pending' | 'processed';
   source?: string;
+  ipAddress?: string;
   priority?: 'high' | 'medium' | 'low';
   notes?: string;
   careHistory?: { time: number; note: string; author: string }[];
@@ -168,6 +170,7 @@ export interface Consultation {
   propertyTitle?: string;
   message?: string;
   demand?: string;
+  sourceUrl?: string;
   images?: string[];
 }
 
@@ -198,6 +201,38 @@ export interface NewsCategoryExt {
   seoKeywords?: string;
 }
 
+export interface CategoryExt {
+  id: string;
+  name: string;
+  parentId?: string | null;
+  description?: string;
+  seoTitle?: string;
+  seoDesc?: string;
+  seoKeywords?: string;
+}
+
+export interface FilterRangeConfig {
+  id?: string;
+  label?: string;
+  name?: string;
+  value?: string;
+  min?: number;
+  max?: number;
+  unit?: string;
+}
+
+export interface GeneralSettingsData extends Record<string, unknown> {
+  productCategoriesExt?: CategoryExt[];
+  newsCategoriesExt?: CategoryExt[];
+}
+
+export interface FilterSettingsData extends Record<string, unknown> {
+  districts?: string[];
+  priceSale?: FilterRangeConfig[];
+  priceRent?: FilterRangeConfig[];
+  areaRanges?: FilterRangeConfig[];
+}
+
 export interface RouteState {
   screen: ScreenType;
   productId?: string;
@@ -210,6 +245,39 @@ export interface RouteState {
   areaRange?: string;    // filter by area range
 }
 
+export interface VisualSectionExtraData extends Record<string, unknown> {
+  buttonText?: string;
+  client1?: string;
+  client2?: string;
+  ctaText?: string;
+  email?: string;
+  feedback1?: string;
+  feedback2?: string;
+  hotline?: string;
+  linkUrl?: string;
+  item1Desc?: string;
+  item1Title?: string;
+  item2Desc?: string;
+  item2Title?: string;
+  item3Desc?: string;
+  item3Title?: string;
+  processDesc?: string;
+  processTitle?: string;
+  stat1Desc?: string;
+  stat1Label?: string;
+  stat1Val?: string;
+  stat2Desc?: string;
+  stat2Label?: string;
+  stat2Val?: string;
+  stat3Desc?: string;
+  stat3Label?: string;
+  stat3Val?: string;
+  strategyDesc?: string;
+  strategyTitle?: string;
+  visionDesc?: string;
+  visionTitle?: string;
+}
+
 export interface VisualSection {
   id: string;
   name: string;
@@ -220,5 +288,5 @@ export interface VisualSection {
   subtitle?: string;
   description?: string;
   imageUrl?: string;
-  extraData?: Record<string, any>;
+  extraData?: VisualSectionExtraData;
 }

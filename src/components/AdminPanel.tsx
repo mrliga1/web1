@@ -10,6 +10,7 @@ import {
   deleteDoc,
   db,
   setDoc,
+  type LegacyDocSnapshot,
 } from "../firebase";
 import {
   docRealtime,
@@ -25,30 +26,22 @@ import {
   Mail,
   ShieldAlert,
   CheckCircle,
-  Clock,
   Save,
-  Image,
+  Image as ImageIcon,
   MapPin,
-  Phone,
   Building2,
   LayoutGrid,
   Eye,
   Search,
-  Sparkles,
   X,
-  Bold,
   List,
   LogOut,
   FileText,
   Settings,
   UserCheck,
-  Shield,
   ChevronRight,
-  AlertCircle,
   Edit,
   Plus,
-  Sun,
-  Moon,
   Menu,
   Compass,
   RefreshCw,
@@ -60,29 +53,28 @@ import {
   ChevronLeft,
   ArrowLeft,
   Activity,
-  MousePointerClick,
-  DollarSign,
   TrendingUp,
   Users,
-  BarChart2,
-  Target,
-  Kanban,
   MessageSquare,
-  PhoneCall,
-  Award,
-  Ban,
   UserPlus,
   User,
-  MoreVertical,
-  Calendar,
   Filter,
-  AlignJustify,
   Download,
   Share2,
   Zap,
 } from "lucide-react";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
-import { Product, Project, News, RouteState, FloorPlanTab } from "../types";
+import {
+  Consultation,
+  Product,
+  Project,
+  News,
+  RouteState,
+  FloorPlanTab,
+  CategoryExt,
+  CustomSection,
+  GeneralSettingsData,
+} from "../types";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -92,7 +84,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth, type UserProfile } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
 import FiltersConfigTab from "./FiltersConfigTab";
 import { allLocationsList } from "../lib/locationMapping";
@@ -105,12 +97,84 @@ interface AdminPanelProps {
 
 export type UserRole = "admin" | "editor" | "member" | "user";
 
+type AdminTab =
+  | "listings"
+  | "projects"
+  | "articles"
+  | "categories"
+  | "filters"
+  | "general"
+  | "integrations"
+  | "users"
+  | "seo"
+  | "leads"
+  | "blocked_ips"
+  | "gallery"
+  | "new_wizard"
+  | "google"
+  | "profile";
+
+type AdminUser = UserProfile & {
+  id: string;
+  displayName?: string;
+  employeeName?: string;
+  createdAt?: string;
+};
+
+interface QuillLeaf {
+  domNode?: HTMLElement & {
+    src?: string;
+    alt?: string;
+    outerHTML?: string;
+  };
+}
+
+interface QuillEditorInstance {
+  getSelection: () => { index: number; length: number } | null;
+  getLength: () => number;
+  getLeaf: (index: number) => [QuillLeaf | undefined];
+  insertEmbed: (index: number, type: string, value: string, source?: string) => void;
+  setSelection: (index: number, length?: number, source?: string) => void;
+}
+
+interface QuillToolbarContext {
+  quill: QuillEditorInstance;
+}
+
+interface ReactQuillEditorProps {
+  ref?: React.Ref<ReactQuill>;
+  theme: string;
+  value: string;
+  onChange: (value: string) => void;
+  modules: unknown;
+  className?: string;
+}
+
+type RealtimeRow = Record<string, unknown>;
+type RealtimeCollectionSnapshot = {
+  forEach: (callback: (doc: LegacyDocSnapshot<RealtimeRow>) => void) => void;
+};
+type SubdivisionCard = NonNullable<Project["subdivisionsCards"]>[number];
+type CareHistoryItem = NonNullable<Consultation["careHistory"]>[number];
+type CustomSectionPosition = CustomSection["position"];
+
+const getErrorMessage = (error: unknown, fallback = "Lỗi không xác định") => {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return fallback;
+};
+
+const getSettingString = (value: unknown) => (typeof value === "string" ? value : "");
+
+const ASSET_PRESETS: { label: string; url: string }[] = [];
+
 export default function AdminPanel({
   onShowNotification,
   onNavigate,
   logoUrl,
 }: AdminPanelProps) {
-  const { currentUser, userProfile, logout, loading: authLoading } = useAuth();
+  const RichTextEditor = ReactQuill as unknown as React.ComponentType<ReactQuillEditorProps>;
+  const { currentUser, userProfile, logout } = useAuth();
 
   // Authentication, passwords, and security contexts
   const isLoggedIn = !!currentUser;
@@ -121,13 +185,11 @@ export default function AdminPanel({
   const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(false);
   const [isSidebarHovered, setIsSidebarHovered] = useState(false);
   const isSidebarExpanded = desktopSidebarOpen || isSidebarHovered;
-  const theme = "dark";
-
-  // Primary data arrays synced to state
+  // Dữ liệu chính được đồng bộ vào state.
   const [products, setProducts] = useState<Product[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [news, setNews] = useState<News[]>([]);
-  const [consultations, setConsultations] = useState<any[]>([]);
+  const [consultations, setConsultations] = useState<Consultation[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [newsCategories, setNewsCategories] = useState<string[]>([]);
   const [blockedIps, setBlockedIps] = useState<string[]>([]);
@@ -144,27 +206,16 @@ export default function AdminPanel({
 
   const [loading, setLoading] = useState(false);
 
-  // Layout navigation: which sub-manager is currently open
-  const [activeTab, setActiveTab] = useState<
-    | "listings"
-    | "projects"
-    | "articles"
-    | "categories"
-    | "users"
-    | "seo"
-    | "leads"
-
-    | "google"
-    | "profile"
-  >("listings");
-  const [users, setUsers] = useState<any[]>([]);
+  // Điều hướng layout: tab quản trị đang mở.
+  const [activeTab, setActiveTab] = useState<AdminTab>("listings");
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(null);
   const [editingEmployeeName, setEditingEmployeeName] = useState("");
   const [googleServiceTab, setGoogleServiceTab] = useState<
     "ga4" | "gtm" | "ads" | "adsense" | "fb" | "tiktok" | "cookie"
   >("ga4");
-  const [crmSelectedLead, setCrmSelectedLead] = useState<any>(null);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [crmSelectedLead, setCrmSelectedLead] = useState<Consultation | null>(null);
+  const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [dashboardFilter, setDashboardFilter] = useState<
     "all" | "new" | "contacted" | "negotiating" | "won"
@@ -201,7 +252,7 @@ export default function AdminPanel({
     customSections: false,
   });
   const quillRef = useRef<ReactQuill>(null);
-  const activeQuillInstance = useRef<any>(null);
+  const activeQuillInstance = useRef<QuillEditorInstance | null>(null);
 
   const quillModules = useMemo(
     () => ({
@@ -215,7 +266,7 @@ export default function AdminPanel({
           ["clean"],
         ],
         handlers: {
-          image: function (this: any) {
+          image: function (this: QuillToolbarContext) {
             activeQuillInstance.current = this.quill;
             setLibraryTargetField("editor-quill-dynamic");
             setIsLibraryOpen(true);
@@ -405,9 +456,9 @@ export default function AdminPanel({
       } else {
         throw new Error("Không có ảnh nào được tải lên thành công.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      onShowNotification(`Lỗi xử lý file: ${err.message || err}`, "error");
+      onShowNotification(`Lỗi xử lý file: ${getErrorMessage(err)}`, "error");
     } finally {
       setIsUploading(false);
       setUploadStatus("");
@@ -489,11 +540,11 @@ export default function AdminPanel({
       onShowNotification("Đã chèn ảnh vào nội dung bài viết!", "success");
     } else if (libraryTargetField === "editor-quill") {
       if (quillRef.current) {
-        const editor = quillRef.current.getEditor();
+        const editor = quillRef.current.getEditor() as unknown as QuillEditorInstance;
         const range = editor.getSelection();
         const cursorPosition = range ? range.index : editor.getLength();
         editor.insertEmbed(cursorPosition, "image", pickedUrl);
-        const [leaf] = (editor as any).getLeaf(cursorPosition);
+        const [leaf] = editor.getLeaf(cursorPosition);
         if (leaf?.domNode?.tagName === 'IMG') {
           leaf.domNode.setAttribute('alt', getImageAltFromUrl(pickedUrl, 'Hình ảnh bài viết'));
         }
@@ -506,7 +557,7 @@ export default function AdminPanel({
         const range = editor.getSelection();
         const cursorPosition = range ? range.index : editor.getLength();
         editor.insertEmbed(cursorPosition, "image", pickedUrl);
-        const [leaf] = (editor as any).getLeaf(cursorPosition);
+        const [leaf] = editor.getLeaf(cursorPosition);
         if (leaf?.domNode?.tagName === 'IMG') {
           leaf.domNode.setAttribute('alt', getImageAltFromUrl(pickedUrl, 'Hình ảnh bài viết'));
         }
@@ -580,10 +631,10 @@ export default function AdminPanel({
     }
   };
 
-  const handleUpdateFloorPlanTab = (
+  const handleUpdateFloorPlanTab = <K extends keyof FloorPlanTab>(
     id: string,
-    field: keyof FloorPlanTab,
-    value: any,
+    field: K,
+    value: FloorPlanTab[K],
   ) => {
     setFloorPlanTabsList((prev) =>
       prev.map((t) => (t.id === id ? { ...t, [field]: value } : t)),
@@ -636,7 +687,7 @@ export default function AdminPanel({
     setIsEditing(true);
     setEditingItemId(item.id);
     setCreateType("product");
-    setActiveTab("new_wizard" as any);
+    setActiveTab("new_wizard");
   };
 
   const handleStartEditProject = (proj: Project) => {
@@ -697,7 +748,7 @@ export default function AdminPanel({
     setIsEditing(true);
     setEditingItemId(proj.id);
     setCreateType("project");
-    setActiveTab("new_wizard" as any);
+    setActiveTab("new_wizard");
   };
 
   const handleStartEditNews = (n: News) => {
@@ -728,7 +779,7 @@ export default function AdminPanel({
     setIsEditing(true);
     setEditingItemId(n.id);
     setCreateType("article");
-    setActiveTab("new_wizard" as any);
+    setActiveTab("new_wizard");
   };
 
   const handleCancelWizard = () => {
@@ -795,7 +846,7 @@ export default function AdminPanel({
 
   // Subpage tabs for projects
   const [projSubdivisionTab, setProjSubdivisionTab] = useState("");
-  const [subdivisionsCards, setSubdivisionsCards] = useState<any[]>([]);
+  const [subdivisionsCards, setSubdivisionsCards] = useState<SubdivisionCard[]>([]);
   const [projLocationShortDesc, setProjLocationShortDesc] = useState("");
   const [projLocationTab, setProjLocationTab] = useState("");
   const [projAmenityTab, setProjAmenityTab] = useState("");
@@ -815,7 +866,7 @@ export default function AdminPanel({
   const [qaList, setQaList] = useState<{ question: string; answer: string }[]>(
     [],
   );
-  const [customSections, setCustomSections] = useState<any[]>([]);
+  const [customSections, setCustomSections] = useState<CustomSection[]>([]);
   const [projDeveloper, setProjDeveloper] = useState("");
   const [projOwnership, setProjOwnership] = useState("");
   const [projScale, setProjScale] = useState("");
@@ -863,8 +914,8 @@ export default function AdminPanel({
   const [socialTiktok, setSocialTiktok] = useState("");
 
 
-  const [newsCategoriesExt, setNewsCategoriesExt] = useState<any[]>([]);
-  const [productCategoriesExt, setProductCategoriesExt] = useState<any[]>([]);
+  const [newsCategoriesExt, setNewsCategoriesExt] = useState<CategoryExt[]>([]);
+  const [productCategoriesExt, setProductCategoriesExt] = useState<CategoryExt[]>([]);
 
   // Image library/gallery selector states
   const [isLibraryOpen, setIsLibraryOpen] = useState(false);
@@ -933,9 +984,6 @@ export default function AdminPanel({
   const [isInternalLinkModalOpen, setIsInternalLinkModalOpen] = useState(false);
   const [internalLinkSearch, setInternalLinkSearch] = useState("");
 
-  // Premium high-res landscape presets
-  const assetPresets: { label: string; url: string }[] = [];
-
   const libraryImages = React.useMemo(() => {
     const urls = new Set<string>();
 
@@ -943,7 +991,7 @@ export default function AdminPanel({
     uploadedLibraryImages.forEach((u) => urls.add(u));
 
     // Add default presets
-    assetPresets.forEach((p) => urls.add(p.url));
+    ASSET_PRESETS.forEach((p) => urls.add(p.url));
 
     // Reverse products, projects, news so newest are processed first (if array is ordered oldest to newest, though typically reversing helps get latest first if order is chronologically appending)
     [...products].reverse().forEach((p) => {
@@ -969,7 +1017,7 @@ export default function AdminPanel({
 
   // Add IPs management logic
   useEffect(() => {
-    if (activeTab === ("blocked_ips" as any)) {
+    if (activeTab === "blocked_ips") {
       fetchBlockedIps();
     }
   }, [activeTab]);
@@ -1026,14 +1074,14 @@ export default function AdminPanel({
     saveBlockedIps(blockedIps.filter((i) => i !== ip));
   };
 
-  // Load static SEO from memory on start
+  // Nạp cấu hình SEO mặc định từ bộ nhớ state.
   useEffect(() => {
     setSeoTitle(seoConfig.metaTitle);
     setSeoDesc(seoConfig.metaDesc);
     setSeoKeywords(seoConfig.metaKeywords);
-  }, []);
+  }, [seoConfig.metaDesc, seoConfig.metaKeywords, seoConfig.metaTitle]);
 
-  // System background data synchronizations using snapshot channels
+  // Đồng bộ dữ liệu nền qua các kênh snapshot.
   useEffect(() => {
     if (!isLoggedIn) return;
 
@@ -1043,8 +1091,9 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "products"),
       (snap) => {
         const items: Product[] = [];
-        snap.forEach((d: any) => {
-          items.push({ id: d.id, ...d.data() } as Product);
+        const snapshot = snap as RealtimeCollectionSnapshot;
+        snapshot.forEach((d) => {
+          items.push({ ...((d.data() || {}) as Omit<Product, 'id'>), id: d.id } as Product);
         });
         items.sort(
           (a, b) =>
@@ -1062,8 +1111,9 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "projects"),
       (snap) => {
         const items: Project[] = [];
-        snap.forEach((d: any) => {
-          items.push({ id: d.id, ...d.data() } as Project);
+        const snapshot = snap as RealtimeCollectionSnapshot;
+        snapshot.forEach((d) => {
+          items.push({ ...((d.data() || {}) as Omit<Project, 'id'>), id: d.id } as Project);
         });
         items.sort(
           (a, b) =>
@@ -1081,8 +1131,9 @@ export default function AdminPanel({
       collectionRealtime(dbRealtime, "news"),
       (snap) => {
         const items: News[] = [];
-        snap.forEach((d: any) => {
-          items.push({ id: d.id, ...d.data() } as News);
+        const snapshot = snap as RealtimeCollectionSnapshot;
+        snapshot.forEach((d) => {
+          items.push({ ...((d.data() || {}) as Omit<News, 'id'>), id: d.id } as News);
         });
         items.sort(
           (a, b) =>
@@ -1099,9 +1150,10 @@ export default function AdminPanel({
     const unsubConsultations = onSnapshot(
       collectionRealtime(dbRealtime, "consultations"),
       (snap) => {
-        const items: any[] = [];
-        snap.forEach((d: any) => {
-          items.push({ id: d.id, ...d.data() });
+        const items: Consultation[] = [];
+        const snapshot = snap as RealtimeCollectionSnapshot;
+        snapshot.forEach((d) => {
+          items.push({ ...((d.data() || {}) as Omit<Consultation, 'id'>), id: d.id } as Consultation);
         });
         items.sort(
           (a, b) =>
@@ -1119,46 +1171,49 @@ export default function AdminPanel({
     const unsubSettings = onSnapshot(
       docRealtime(dbRealtime, "settings", "general"),
       (snapshot) => {
-        if (snapshot.exists()) {
-          const data = snapshot.data();
-          if (data.metaTitle !== undefined) setSeoTitle(data.metaTitle || "");
-          if (data.metaDesc !== undefined) setSeoDesc(data.metaDesc || "");
+        const settingsSnapshot = snapshot as LegacyDocSnapshot<GeneralSettingsData>;
+        if (settingsSnapshot.exists()) {
+          const data = settingsSnapshot.data() || {};
+          if (data.metaTitle !== undefined) setSeoTitle(getSettingString(data.metaTitle));
+          if (data.metaDesc !== undefined) setSeoDesc(getSettingString(data.metaDesc));
           if (data.metaKeywords !== undefined)
-            setSeoKeywords(data.metaKeywords || "");
+            setSeoKeywords(getSettingString(data.metaKeywords));
           if (data.googleAnalyticsId !== undefined)
-            setGoogleAnalyticsId(data.googleAnalyticsId || "");
+            setGoogleAnalyticsId(getSettingString(data.googleAnalyticsId));
           if (data.googleTagId !== undefined)
-            setGoogleTagId(data.googleTagId || "");
+            setGoogleTagId(getSettingString(data.googleTagId));
           if (data.googleAdsId !== undefined)
-            setGoogleAdsId(data.googleAdsId || "");
+            setGoogleAdsId(getSettingString(data.googleAdsId));
           if (data.googleAdSenseCode !== undefined)
-            setGoogleAdSenseCode(data.googleAdSenseCode || "");
+            setGoogleAdSenseCode(getSettingString(data.googleAdSenseCode));
           if (data.facebookPixelId !== undefined)
-            setFacebookPixelId(data.facebookPixelId || "");
+            setFacebookPixelId(getSettingString(data.facebookPixelId));
           if (data.tiktokPixelId !== undefined)
-            setTiktokPixelId(data.tiktokPixelId || "");
+            setTiktokPixelId(getSettingString(data.tiktokPixelId));
           if (data.cookieConsentEnabled !== undefined)
-            setCookieConsentEnabled(data.cookieConsentEnabled || false);
+            setCookieConsentEnabled(Boolean(data.cookieConsentEnabled));
 
-          if (data.contactHotline !== undefined) setContactHotline(data.contactHotline || "");
-          if (data.contactEmail !== undefined) setContactEmail(data.contactEmail || "");
-          if (data.contactAddress !== undefined) setContactAddress(data.contactAddress || "");
-          if (data.contactWorkingHours !== undefined) setContactWorkingHours(data.contactWorkingHours || "");
-          if (data.socialFacebook !== undefined) setSocialFacebook(data.socialFacebook || "");
-          if (data.socialZalo !== undefined) setSocialZalo(data.socialZalo || "");
-          if (data.socialYoutube !== undefined) setSocialYoutube(data.socialYoutube || "");
-          if (data.socialTiktok !== undefined) setSocialTiktok(data.socialTiktok || "");
+          if (data.contactHotline !== undefined) setContactHotline(getSettingString(data.contactHotline));
+          if (data.contactEmail !== undefined) setContactEmail(getSettingString(data.contactEmail));
+          if (data.contactAddress !== undefined) setContactAddress(getSettingString(data.contactAddress));
+          if (data.contactWorkingHours !== undefined) setContactWorkingHours(getSettingString(data.contactWorkingHours));
+          if (data.socialFacebook !== undefined) setSocialFacebook(getSettingString(data.socialFacebook));
+          if (data.socialZalo !== undefined) setSocialZalo(getSettingString(data.socialZalo));
+          if (data.socialYoutube !== undefined) setSocialYoutube(getSettingString(data.socialYoutube));
+          if (data.socialTiktok !== undefined) setSocialTiktok(getSettingString(data.socialTiktok));
 
           if (data.newsCategoriesExt !== undefined) {
-            setNewsCategoriesExt(data.newsCategoriesExt || []);
-            if (data.newsCategoriesExt.length > 0) {
-              setNewsCategories(data.newsCategoriesExt.map((c: any) => c.name));
+            const newsExt = Array.isArray(data.newsCategoriesExt) ? data.newsCategoriesExt : [];
+            setNewsCategoriesExt(newsExt);
+            if (newsExt.length > 0) {
+              setNewsCategories(newsExt.map((c) => c.name));
             }
           }
           if (data.productCategoriesExt !== undefined) {
-            setProductCategoriesExt(data.productCategoriesExt || []);
-            if (data.productCategoriesExt.length > 0) {
-              setCategories(data.productCategoriesExt.map((c: any) => c.name));
+            const productExt = Array.isArray(data.productCategoriesExt) ? data.productCategoriesExt : [];
+            setProductCategoriesExt(productExt);
+            if (productExt.length > 0) {
+              setCategories(productExt.map((c) => c.name));
             }
           }
         }
@@ -1171,9 +1226,10 @@ export default function AdminPanel({
     const unsubUsers = onSnapshot(
       collectionRealtime(dbRealtime, "users"),
       (snap) => {
-        const items: any[] = [];
-        snap.forEach((d: any) => {
-          items.push({ id: d.id, ...d.data() });
+        const items: AdminUser[] = [];
+        const snapshot = snap as RealtimeCollectionSnapshot;
+        snapshot.forEach((d) => {
+          items.push({ ...((d.data() || {}) as Omit<AdminUser, 'id'>), id: d.id } as AdminUser);
         });
         items.sort(
           (a, b) =>
@@ -1236,7 +1292,7 @@ export default function AdminPanel({
     }
   };
 
-  // Deletion logic (Standard members can delete their own items, Editors blocked, Admins full delete)
+  // Quy trình xóa dữ liệu theo vai trò người dùng.
     const purgeImageUrlsFromDB = async (urlsToDelete: string[]) => {
     try {
       const productsToUpdate = products.filter(p => urlsToDelete.includes(p.imageUrl || "") || p.imageUrls?.some(u => urlsToDelete.includes(u)));
@@ -1244,9 +1300,9 @@ export default function AdminPanel({
         const pRef = doc(db, "products", p.id);
         const pSnap = await getDoc(pRef);
         if (pSnap.exists()) {
-            const data = pSnap.data();
-            const updateData: any = {};
-            if (urlsToDelete.includes(data.imageUrl)) updateData.imageUrl = "";
+            const data = (pSnap.data() || {}) as Partial<Product>;
+            const updateData: Partial<Product> = {};
+            if (urlsToDelete.includes(data.imageUrl || "")) updateData.imageUrl = "";
             if (data.imageUrls) {
                updateData.imageUrls = data.imageUrls.filter((g: string) => !urlsToDelete.includes(g));
             }
@@ -1259,9 +1315,9 @@ export default function AdminPanel({
         const pRef = doc(db, "projects", p.id);
         const pSnap = await getDoc(pRef);
         if (pSnap.exists()) {
-            const data = pSnap.data();
-            const updateData: any = {};
-            if (urlsToDelete.includes(data.imageUrl)) updateData.imageUrl = "";
+            const data = (pSnap.data() || {}) as Partial<Project>;
+            const updateData: Partial<Project> = {};
+            if (urlsToDelete.includes(data.imageUrl || "")) updateData.imageUrl = "";
             if (data.imageUrls) {
                updateData.imageUrls = data.imageUrls.filter((g: string) => !urlsToDelete.includes(g));
             }
@@ -1284,7 +1340,7 @@ export default function AdminPanel({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url: imgUrl }),
     });
-    const data = await response.json().catch(() => ({}));
+    const data = await response.json().catch(() => ({})) as { error?: string };
     if (!response.ok) {
       throw new Error(data.error || "Không thể xóa ảnh khỏi kho lưu trữ");
     }
@@ -1303,9 +1359,9 @@ export default function AdminPanel({
 
       setSelectedGalleryImages(prev => prev.filter(u => u !== imgUrl));
       onShowNotification("Đã xóa ảnh thành công!", "success");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
-      onShowNotification(error.message || "Lỗi khi xóa ảnh", "error");
+      onShowNotification(getErrorMessage(error, "Lỗi khi xóa ảnh"), "error");
     } finally {
       setLoading(false);
     }
@@ -1333,7 +1389,7 @@ export default function AdminPanel({
         // 1. Gỡ tham chiếu khỏi cơ sở dữ liệu Supabase.
         await purgeImageUrlsFromDB(successfullyDeletedUrls);
 
-        // 2. Instantly update UI states (fallback in case Supabase Realtime is disabled)
+        // Cập nhật giao diện ngay, phòng khi Supabase Realtime chưa bật.
         setUploadedLibraryImages(prev => prev.filter(u => !successfullyDeletedUrls.includes(u)));
 
         setProducts(prev => prev.map(p => {
@@ -1373,7 +1429,7 @@ export default function AdminPanel({
 
       setSelectedGalleryImages([]);
       onShowNotification(`Đã xóa ${successCount} ảnh thành công!`, "success");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error);
       onShowNotification("Có lỗi xảy ra khi xóa hàng loạt", "error");
     } finally {
@@ -1440,6 +1496,13 @@ export default function AdminPanel({
     onShowNotification(`Đã chèn ký tự HTML assisted thành công!`, "success");
   };
 
+  void handleAddAlbumUrl;
+  void handleAddFloorPlanAlbumUrl;
+  void handleAddAmenityAlbumUrl;
+  void handleAuthSubmit;
+  void handleToggleApproval;
+  void appendRichHtml;
+
   // Main Creating Content wizard
   const handleCreateContent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1452,7 +1515,7 @@ export default function AdminPanel({
     }
 
     const priceNumerical = Number(priceVal.trim());
-    const finalImage = imageUrl.trim() || assetPresets[0].url;
+    const finalImage = imageUrl.trim() || ASSET_PRESETS[0]?.url || "";
 
     let finalCategory = category;
     if (!finalCategory) {
@@ -2236,7 +2299,7 @@ export default function AdminPanel({
 
   const handleUpdateLeadStatus = async (
     id: string,
-    newStatus: string,
+    newStatus: Consultation["status"],
     name: string,
   ) => {
     try {
@@ -2253,7 +2316,7 @@ export default function AdminPanel({
   const handleUpdateLeadField = async (
     id: string,
     field: string,
-    value: any,
+    value: unknown,
     labelText: string,
   ) => {
     try {
@@ -2270,7 +2333,7 @@ export default function AdminPanel({
   const handleUpdateAssignee = async (
     leadId: string,
     newValue: string,
-    lead: any,
+    lead: Consultation,
   ) => {
     try {
       await updateDoc(doc(db, "consultations", leadId), {
@@ -2278,7 +2341,7 @@ export default function AdminPanel({
       });
       onShowNotification("Đã lưu Người phụ trách", "success");
 
-      // extract email if any
+      // Tách email nếu trường người phụ trách có chứa email.
       const emailMatch = newValue.match(
         /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/,
       );
@@ -2334,11 +2397,11 @@ export default function AdminPanel({
     }
   };
 
-  const handleAddCareHistory = async (lead: any, text: string) => {
+  const handleAddCareHistory = async (lead: Consultation, text: string) => {
     if (!text.trim()) return;
     try {
       const currentUserName = userProfile?.username || currentUser?.email || (currentUserRole === "admin" ? "Admin" : currentUserRole === "editor" ? "Editor" : "Nhân viên");
-      const historyItem = {
+      const historyItem: CareHistoryItem = {
         time: Date.now(),
         note: text.trim(),
         author: currentUserName,
@@ -2409,15 +2472,15 @@ export default function AdminPanel({
       });
       onShowNotification("Đã cập nhật tên người dùng / nhân viên", "success");
       setEditingEmployeeId(null);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Update rename error:", err);
-      onShowNotification("Không thể đổi tên: " + err.message + "\nHãy đảm bảo bạn đã lưu tên mới.", "error");
+      onShowNotification("Không thể đổi tên: " + getErrorMessage(err) + "\nHãy đảm bảo bạn đã lưu tên mới.", "error");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateUserRole = async (userId: string, newRole: string) => {
+  const handleUpdateUserRole = async (userId: string, newRole: UserRole) => {
     setLoading(true);
     try {
       if (currentUserRole !== "admin") {
@@ -2457,22 +2520,23 @@ export default function AdminPanel({
             throw new Error(`Xóa Auth thất bại: ${resData.error || 'Unknown error'}`);
           }
         }
-      } catch (e: any) {
-        if (e.message && e.message.includes('Xóa thất bại')) {
-          throw e; // quăng tiếp để dừng lại
+      } catch (e: unknown) {
+        const message = getErrorMessage(e);
+        if (message.includes('Xóa thất bại')) {
+          throw e; // Ném tiếp để dừng lại.
         }
         console.warn("Lỗi kết nối mạng tới Server khi xóa Auth", e);
         authWarning = " (Cảnh báo: Không thể kết nối đến máy chủ để xóa Auth)";
-        throw new Error("Không thể kết nối đến server để xóa Auth: " + e.message);
+        throw new Error("Không thể kết nối đến server để xóa Auth: " + message);
       }
 
       // Xóa hồ sơ người dùng trong Supabase.
       await deleteDoc(doc(db, "users", userId));
 
       onShowNotification("Đã xóa người dùng thành công khỏi hệ thống." + authWarning, "success");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      onShowNotification("Không thể xóa người dùng: " + (err.message || 'Lỗi Supabase'), "error");
+      onShowNotification("Không thể xóa người dùng: " + getErrorMessage(err, 'Lỗi Supabase'), "error");
     } finally {
       setLoading(false);
     }
@@ -2482,7 +2546,7 @@ export default function AdminPanel({
     if (currentUserRole === "admin" || currentUserRole === "editor")
       return consultations;
     return consultations.filter(
-      (c: any) =>
+      (c: Consultation) =>
         c.assignee &&
         c.assignee.toLowerCase().includes(currentMemberEmail.toLowerCase()),
     );
@@ -2516,7 +2580,7 @@ export default function AdminPanel({
   }
 
   // Helper to resolve email to display name
-  const getAssigneeName = (email: string) => {
+  const getAssigneeName = (email?: string) => {
     if (!email) return "-";
     const user = users.find((u) => u.email === email);
     return user ? user.username || user.displayName || user.email : email;
@@ -2667,10 +2731,10 @@ export default function AdminPanel({
 
                 <button
                   onClick={() => {
-                    setActiveTab("filters" as any);
+                    setActiveTab("filters");
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "filters" as any
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "filters"
                       ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
                       : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
                     }`}
@@ -2682,10 +2746,10 @@ export default function AdminPanel({
 
                 <button
                   onClick={() => {
-                    setActiveTab("general" as any);
+                    setActiveTab("general");
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "general" as any
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "general"
                       ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
                       : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
                     }`}
@@ -2696,10 +2760,10 @@ export default function AdminPanel({
 
                 <button
                   onClick={() => {
-                    setActiveTab("integrations" as any);
+                    setActiveTab("integrations");
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "integrations" as any
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "integrations"
                       ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
                       : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
                     }`}
@@ -2738,10 +2802,10 @@ export default function AdminPanel({
 
                 <button
                   onClick={() => {
-                    setActiveTab("blocked_ips" as any);
+                    setActiveTab("blocked_ips");
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === ("blocked_ips" as any)
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "blocked_ips"
                       ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
                       : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
                     }`}
@@ -2752,15 +2816,15 @@ export default function AdminPanel({
 
                 <button
                   onClick={() => {
-                    setActiveTab("gallery" as any);
+                    setActiveTab("gallery");
                     setSidebarOpen(false);
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === ("gallery" as any)
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "gallery"
                       ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
                       : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
                     }`}
                 >
-                  <Image className="w-4 h-4 shrink-0 text-primary" />
+                  <ImageIcon className="w-4 h-4 shrink-0 text-primary" />
                   <span>Kho Hình Ảnh</span>
                   <span className="ml-auto text-[9px] bg-white px-2 py-0.5 rounded-full text-slate-500 font-mono">
                     {libraryImages.length}
@@ -2816,10 +2880,10 @@ export default function AdminPanel({
             <button
               onClick={() => {
                 setCreateType("product");
-                setActiveTab("new_wizard" as any);
+                setActiveTab("new_wizard");
                 setSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === ("new_wizard" as any)
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "new_wizard"
                   ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
                   : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
                 }`}
@@ -3039,7 +3103,7 @@ export default function AdminPanel({
                 <button
                   onClick={() => {
                     setCreateType("product");
-                    setActiveTab("new_wizard" as any);
+                    setActiveTab("new_wizard");
                   }}
                   className="inline-flex items-center gap-1.5 bg-primary text-white font-bold text-xs py-2 px-4 h-[43.5px] rounded-lg cursor-pointer w-full xl:w-auto justify-center"
                 >
@@ -3194,7 +3258,7 @@ export default function AdminPanel({
                   <button
                     onClick={() => {
                       setCreateType("project");
-                      setActiveTab("new_wizard" as any);
+                      setActiveTab("new_wizard");
                     }}
                     className="inline-flex items-center gap-1 bg-primary text-white font-bold text-xs py-[5px] px-4 rounded-lg cursor-pointer"
                   >
@@ -3316,7 +3380,7 @@ export default function AdminPanel({
                     <select
                       className="bg-white border border-slate-300 text-slate-900 text-[10px] sm:text-xs rounded-lg px-2 py-1.5 outline-none focus:border-primary transition-colors"
                       value={usersFilter}
-                      onChange={(e) => setUsersFilter(e.target.value as any)}
+                      onChange={(e) => setUsersFilter(e.target.value as typeof usersFilter)}
                     >
                       <option value="all">-- Lọc tất cả --</option>
                       <option value="admin">Admin (Quản trị)</option>
@@ -3543,8 +3607,9 @@ export default function AdminPanel({
                               className="bg-transparent border-none text-[11px] sm:text-xs text-slate-900 px-2 sm:px-3 py-1 outline-none cursor-pointer w-full h-full font-bold"
                               value={selectedUser.role}
                               onChange={(e) => {
-                                handleUpdateUserRole(selectedUser.id, e.target.value);
-                                setSelectedUser({ ...selectedUser, role: e.target.value });
+                                const role = e.target.value as UserRole;
+                                handleUpdateUserRole(selectedUser.id, role);
+                                setSelectedUser({ ...selectedUser, role });
                               }}
                             >
                               <option value="user" className="bg-slate-50">User (Người dùng)</option>
@@ -3596,7 +3661,7 @@ export default function AdminPanel({
                   <button
                     onClick={() => {
                       setCreateType("article");
-                      setActiveTab("new_wizard" as any);
+                      setActiveTab("new_wizard");
                     }}
                     className="inline-flex items-center gap-1 bg-primary text-white font-bold text-xs py-[5px] px-4 rounded-lg cursor-pointer"
                   >
@@ -3710,7 +3775,7 @@ export default function AdminPanel({
             {/* =========================================================
             TAB: Filters Configuration
             ========================================================= */}
-            {activeTab === "filters" as any && <FiltersConfigTab />}
+            {activeTab === "filters" && <FiltersConfigTab />}
 
             {/* =========================================================
             TAB 4: Categories listing group (Wordpress style)
@@ -3966,7 +4031,7 @@ export default function AdminPanel({
             {/* =========================================================
             TAB 4.5: GENERAL SETTINGS
             ========================================================= */}
-            {activeTab === ("general" as any) && (
+            {activeTab === "general" && (
               <div className="space-y-6 max-w-2xl mx-auto" id="general-settings-workspace">
                 <div className="bg-slate-50 border border-slate-200 px-[10px] py-[10px] rounded-lg">
                   <h3 className="font-display font-medium text-slate-900 text-base text-left border-b border-slate-200 pb-0 tracking-wider">
@@ -4103,7 +4168,7 @@ export default function AdminPanel({
             {/* =========================================================
             TAB 4.8: AI & AUTO-POST SETTINGS
             ========================================================= */}
-            {activeTab === ("integrations" as any) && (
+            {activeTab === "integrations" && (
               <div className="space-y-6 max-w-3xl mx-auto" id="integrations-workspace">
                 {/* AI / Gemini */}
                 <div className="bg-slate-50 border border-slate-200 px-[15px] py-[15px] rounded-lg">
@@ -4248,7 +4313,7 @@ export default function AdminPanel({
                 {/* Logo Configuration Card */}
                 <div className="bg-slate-50 border border-slate-200 px-[10px] py-[5px] rounded-lg">
                   <h3 className="font-display font-medium text-slate-900 text-base text-left border-b border-slate-200 pb-0 h-[36px] tracking-wider flex items-center gap-2">
-                    <Image className="w-4 h-d+ text-primary" />
+                    <ImageIcon className="w-4 h-d+ text-primary" />
                     <span>Thiết Lập Logo</span>
                   </h3>
 
@@ -4848,7 +4913,7 @@ export default function AdminPanel({
                                         ? fbPixelChartData
                                         : googleServiceTab === "tiktok"
                                           ? tkPixelChartData
-                                          : ga4ChartData) as any
+                                          : ga4ChartData) as Array<Record<string, string | number>>
                                 }
                                 margin={{
                                   top: 10,
@@ -5003,7 +5068,7 @@ export default function AdminPanel({
             {/* =========================================================
             TAB: Blocked IPs
             ========================================================= */}
-            {activeTab === ("blocked_ips" as any) && (
+            {activeTab === "blocked_ips" && (
               <div className="space-y-6 mx-auto" id="blocked-ips-workspace">
                 <div className="bg-slate-50 border border-slate-200 p-6 rounded-lg text-left">
                   <div className="mb-6">
@@ -5088,12 +5153,12 @@ export default function AdminPanel({
             {/* =========================================================
             DYNAMIC TAB: Media Gallery Browser (Image Library)
             ========================================================= */}
-            {activeTab === ("gallery" as any) && (
+            {activeTab === "gallery" && (
               <div className="space-y-6 text-left relative" id="gallery-workspace">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-50 border border-slate-200 p-6 rounded-lg gap-3 mb-6">
                   <div>
                     <h3 className="font-display font-medium text-slate-900 text-base tracking-wider flex items-center gap-2">
-                      <Image className="w-5 h-5 text-primary" />
+                      <ImageIcon className="w-5 h-5 text-primary" />
                       <span>Kho Thư Viện Hình Ảnh</span>
                     </h3>
                     <p className="text-slate-700 text-xs mt-1">
@@ -5165,7 +5230,7 @@ export default function AdminPanel({
                         <div className="aspect-[4/3] w-full overflow-hidden bg-white relative">
                           <img loading="lazy" decoding="async"
                             src={(imgUrl) || undefined}
-                            alt={`Thư viện #${index}`}
+                            alt={getImageAltFromUrl(imgUrl, `Thư viện ảnh #${index + 1}`)}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                             referrerPolicy="no-referrer"
                           />
@@ -5744,7 +5809,7 @@ export default function AdminPanel({
                                     : crmSelectedLead.status
                               }
                               onChange={(e) => {
-                                const st = e.target.value;
+                                const st = e.target.value as Consultation["status"];
                                 handleUpdateLeadStatus(
                                   crmSelectedLead.id,
                                   st,
@@ -5869,7 +5934,7 @@ export default function AdminPanel({
                                 );
                                 setCrmSelectedLead({
                                   ...crmSelectedLead,
-                                  priority: e.target.value,
+                                  priority: e.target.value as Consultation["priority"],
                                 });
                               }}
                             >
@@ -5929,7 +5994,7 @@ export default function AdminPanel({
                                       >
                                         <img loading="lazy" decoding="async"
                                           src={(img) || undefined}
-                                          alt={`Đính kèm`}
+                                          alt={getImageAltFromUrl(img, "Ảnh đính kèm khách hàng")}
                                           className="w-full h-full object-cover"
                                         />
                                       </a>
@@ -6024,7 +6089,7 @@ export default function AdminPanel({
                               ) : (
                                 [...crmSelectedLead.careHistory]
                                   .reverse()
-                                  .map((item: any, idx: number) => (
+                                  .map((item: CareHistoryItem, idx: number) => (
                                     <tr
                                       key={idx}
                                       className="hover:bg-zinc-800/50 transition-colors"
@@ -6064,7 +6129,7 @@ export default function AdminPanel({
             {/* =========================================================
             DYNAMIC TAB: new content creation wizard (WordPress-like editor)
             ========================================================= */}
-            {activeTab === ("new_wizard" as any) && (
+            {activeTab === "new_wizard" && (
               <div
                 className="max-w-[1000px] mx-auto space-y-6 text-left"
                 id="news-wizard-creation-deck"
@@ -6225,7 +6290,7 @@ export default function AdminPanel({
                         </label>
                         <select
                           value={prodType}
-                          onChange={(e) => setProdType(e.target.value as any)}
+                          onChange={(e) => setProdType(e.target.value as "sale" | "rent")}
                           className="w-full bg-white border border-slate-200 rounded-lg px-3 min-h-[32px] py-1.5 text-[10px] text-slate-900 outline-none cursor-pointer"
                         >
                           <option value="sale">Bán</option>
@@ -6434,7 +6499,7 @@ export default function AdminPanel({
                             type="button"
                             className="w-full bg-slate-100 hover:bg-slate-750 text-slate-800 border border-slate-300 text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5"
                           >
-                            <Image className="w-3.5 h-d+.5 text-primary-light" />
+                            <ImageIcon className="w-3.5 h-d+.5 text-primary-light" />
                             <span>Tải ảnh lên</span>
                           </button>
                         </div>
@@ -6448,13 +6513,13 @@ export default function AdminPanel({
                               }}
                               className="bg-primary hover:bg-amber-600 text-white font-bold text-xs py-2 px-3 rounded-lg flex items-center justify-center gap-1.5 cursor-pointer transition-all"
                             >
-                              <Image className="w-3.5 h-3.5 text-black" />
+                              <ImageIcon className="w-3.5 h-3.5 text-black" />
                               <span>Chọn từ kho</span>
                             </button>
                           )}
                       </div>
                       <div className="flex flex-wrap gap-1.5 pt-1">
-                        {assetPresets.map((ps, idx) => (
+                        {ASSET_PRESETS.map((ps, idx) => (
                           <button
                             key={idx}
                             type="button"
@@ -6475,7 +6540,7 @@ export default function AdminPanel({
                           </span>
                           <img loading="lazy" decoding="async"
                             src={(imageUrl) || undefined}
-                            alt="Cover preview"
+                            alt={getImageAltFromUrl(imageUrl, "Ảnh bìa xem trước")}
                             className="w-44 h-24 object-cover rounded-lg border border-slate-200"
                             referrerPolicy="no-referrer"
                           />
@@ -6488,7 +6553,7 @@ export default function AdminPanel({
                       {/* Top: Album Gallery multiple landscape arrays uploader */}
                       <div className="md:col-span-12 space-y-2 bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <label className="text-[10px] text-primary-light font-bold font-display flex items-center gap-1">
-                          <Image className="w-3.5 h-3.5" />
+                          <ImageIcon className="w-3.5 h-3.5" />
                           <span>Anbum ảnh</span>
                         </label>
                         <p className="text-[9px] text-slate-700">
@@ -6541,7 +6606,7 @@ export default function AdminPanel({
                                 >
                                   <img loading="lazy" decoding="async"
                                     src={(url) || undefined}
-                                    alt={`Album thumb #${idx}`}
+                                    alt={getImageAltFromUrl(url, `Ảnh album #${idx + 1}`)}
                                     className="w-full h-full object-cover group-hover:opacity-60 transition-opacity"
                                     referrerPolicy="no-referrer"
                                   />
@@ -6575,7 +6640,7 @@ export default function AdminPanel({
                           {avatarUrl && (
                             <img loading="lazy" decoding="async"
                               src={(avatarUrl) || undefined}
-                              alt="Broker avatar"
+                              alt={getImageAltFromUrl(avatarUrl, "Ảnh đại diện người đăng tin")}
                               className="w-16 h-16 rounded-full object-cover border-2 border-primary/20"
                               referrerPolicy="no-referrer"
                             />
@@ -7079,14 +7144,14 @@ export default function AdminPanel({
                             <div
                               className={`bg-white rounded-lg border border-slate-200 prose-editor-container flex flex-col ${isEditorFullscreen ? "flex-1 fullscreen" : ""}`}
                             >
-                              {React.createElement(ReactQuill as any, {
-                                ref: quillRef,
-                                theme: "snow",
-                                value: htmlContent,
-                                onChange: setHtmlContent,
-                                modules: quillModules,
-                                className: `text-zinc-900 flex flex-col ${isEditorFullscreen ? "flex-1" : ""}`,
-                              })}
+                              <RichTextEditor
+                                ref={quillRef}
+                                theme="snow"
+                                value={htmlContent}
+                                onChange={setHtmlContent}
+                                modules={quillModules}
+                                className={`text-zinc-900 flex flex-col ${isEditorFullscreen ? "flex-1" : ""}`}
+                              />
                             </div>
                           )}
 
@@ -7226,7 +7291,7 @@ export default function AdminPanel({
                                           className="bg-slate-100 text-slate-800 border border-slate-300 py-1 text-[10px] px-2 rounded-lg flex items-center justify-center gap-1"
                                           title="Tải ảnh lên"
                                         >
-                                          <Image className="w-3 h-d+ text-primary-light" />
+                                          <ImageIcon className="w-3 h-d+ text-primary-light" />
                                         </button>
                                       </div>
                                       <button
@@ -7405,7 +7470,7 @@ export default function AdminPanel({
 
                               <div className="md:col-span-12 space-y-2 bg-zinc-900/40 p-4 rounded-xl border border-slate-200 mt-2">
                                 <label className="text-[10px] text-primary-light font-bold font-display flex items-center gap-1">
-                                  <Image className="w-3.5 h-3.5" />
+                                  <ImageIcon className="w-3.5 h-3.5" />
                                   <span>Album Ảnh Tiện Ích</span>
                                 </label>
                                 <div className="flex gap-2">
@@ -7453,7 +7518,7 @@ export default function AdminPanel({
                                         >
                                           <img loading="lazy" decoding="async"
                                             src={(url) || undefined}
-                                            alt={`Amenity thumb #${idx}`}
+                                            alt={getImageAltFromUrl(url, `Ảnh tiện ích #${idx + 1}`)}
                                             className="w-full h-full object-cover group-hover:opacity-60 transition-opacity"
                                             referrerPolicy="no-referrer"
                                           />
@@ -7509,7 +7574,7 @@ export default function AdminPanel({
                           {expandedEditors.floorPlan && (
                             <div className="md:col-span-12 space-y-2 bg-zinc-900/40 p-4 rounded-xl border border-slate-200 mt-2">
                               <label className="text-[10px] text-primary-light font-bold font-display flex items-center gap-1">
-                                <Image className="w-3.5 h-3.5" />
+                                <ImageIcon className="w-3.5 h-3.5" />
                                 <span>Album Ảnh Mặt Bằng</span>
                               </label>
                               <div className="flex gap-2">
@@ -7557,7 +7622,7 @@ export default function AdminPanel({
                                       >
                                         <img loading="lazy" decoding="async"
                                           src={(url) || undefined}
-                                          alt={`Floor plan thumb #${idx}`}
+                                          alt={getImageAltFromUrl(url, `Ảnh mặt bằng #${idx + 1}`)}
                                           className="w-full h-full object-cover group-hover:opacity-60 transition-opacity"
                                           referrerPolicy="no-referrer"
                                         />
@@ -7728,7 +7793,7 @@ export default function AdminPanel({
                                                             <img loading="lazy" decoding="async"
                                                               src={(img) || undefined}
                                                               className="w-full h-full object-cover group-hover:opacity-50 transition-opacity"
-                                                              alt=""
+                                                              alt={getImageAltFromUrl(img, `Ảnh tab mặt bằng #${idx + 1}`)}
                                                             />
                                                             <button
                                                               type="button"
@@ -7955,7 +8020,7 @@ export default function AdminPanel({
                                           value={sec.position}
                                           onChange={(e) => {
                                             const newSec = [...customSections];
-                                            newSec[idx].position = e.target.value;
+                                            newSec[idx].position = e.target.value as CustomSectionPosition;
                                             setCustomSections(newSec);
                                           }}
                                           className="w-full bg-white border border-slate-200 rounded px-3 py-[9px] text-[10px] text-slate-900 focus:outline-none focus:border-primary"
@@ -8161,7 +8226,7 @@ export default function AdminPanel({
                   <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-white rounded-t-lg">
                     <div>
                       <h3 className="text-slate-900 font-display font-bold text-sm tracking-wider flex items-center gap-2">
-                        <Image className="w-4 h-3 text-primary" />
+                        <ImageIcon className="w-4 h-3 text-primary" />
                         <span>Chọn Hình Ảnh Từ Kho Thư Viện</span>
                       </h3>
                       <p className="text-slate-700 text-[11px] mt-0.5">
@@ -8235,7 +8300,7 @@ export default function AdminPanel({
                             <div className="aspect-[4/3] w-full relative">
                               <img loading="lazy" decoding="async"
                                 src={(imgUrl) || undefined}
-                                alt={`Library modal item #${idx}`}
+                                alt={getImageAltFromUrl(imgUrl, `Ảnh thư viện #${idx + 1}`)}
                                 className="w-full h-full object-cover group-hover/lib:scale-105 transition-transform duration-300"
                                 referrerPolicy="no-referrer"
                               />
@@ -8405,7 +8470,7 @@ export default function AdminPanel({
                             >
                               <img loading="lazy" decoding="async"
                                 src={(item.imageUrl) || undefined}
-                                alt=""
+                                alt={getImageAltFromUrl(item.imageUrl, item.title)}
                                 className="w-10 h-10 object-cover rounded-md flex-shrink-0"
                                 referrerPolicy="no-referrer"
                               />

@@ -2,6 +2,7 @@
 import ClientWrapper from "./ClientWrapper";
 import { permanentRedirect } from "next/navigation";
 import { generateSlug } from '../../../src/lib/utils';
+import type { CategoryExt } from '../../../src/types';
 import {
   getPublicSettings,
   getPublishedProducts,
@@ -33,8 +34,8 @@ export default async function CategoryProductPage({ params }: { params: Promise<
 
   try {
     if (generalSettings.productCategoriesExt) {
-      const cats = generalSettings.productCategoriesExt as any[];
-      const cat = cats.find((c: any) => c.name === decodedName || generateSlug(c.name) === decodedName);
+      const cats = generalSettings.productCategoriesExt as CategoryExt[];
+      const cat = cats.find((c) => c.name === decodedName || generateSlug(c.name) === decodedName);
       if (cat) {
         initialCategoryTitle = cat.seoTitle || cat.name;
         initialCategoryDesc = cat.seoDesc || cat.description || `Khám phá các sản phẩm nổi bật thuộc danh mục ${cat.name}.`;

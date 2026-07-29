@@ -230,7 +230,16 @@ export default function NewsList({
     <div className="relative min-h-screen">
       <div className="space-y-4 pb-0 font-sans" id="news-catalog-root-wrapper">
         {categoryName && (
-          <nav aria-label="breadcrumb" className={`sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10'} z-[90] mx-auto flex min-h-10 w-full max-w-7xl items-center gap-2 border-b border-border-color bg-bg-surface px-4 py-2 font-sans text-[13px] text-text-secondary shadow-sm transition-[top] duration-300 sm:px-6 lg:px-8`}>
+          <nav
+            aria-label="breadcrumb"
+            className={`sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10'} z-[90] mx-auto flex min-h-10 w-full max-w-7xl isolate items-center gap-2 border-b border-border-color bg-white px-4 py-2 font-sans text-[13px] text-text-secondary shadow-sm transition-[top] duration-300 sm:px-6 lg:px-8`}
+            style={{
+              backgroundColor: '#ffffff',
+              backgroundImage: 'none',
+              backdropFilter: 'none',
+              WebkitBackdropFilter: 'none',
+            }}
+          >
             <button onClick={() => onNavigate({ screen: 'tin-tuc' })} className="hover:text-primary transition-colors font-medium">Tin tức</button>
             <span className="text-text-secondary">/</span>
             {parentCategoryExt ? (

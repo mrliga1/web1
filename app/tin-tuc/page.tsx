@@ -1,6 +1,7 @@
 import ClientWrapper from "./ClientWrapper";
 import {
   getPublicSettings,
+  getPublicLayout,
   getPublishedNews,
   getPublishedProducts,
   getPublishedProjects,
@@ -9,11 +10,12 @@ import {
 export const revalidate = 60;
 
 export default async function TinTucPage() {
-  const [newsRows, productRows, projectRows, generalSettings] = await Promise.all([
+  const [newsRows, productRows, projectRows, generalSettings, initialSections] = await Promise.all([
     getPublishedNews(),
     getPublishedProducts(),
     getPublishedProjects(),
     getPublicSettings("general"),
+    getPublicLayout("tin-tuc"),
   ]);
 
   return (
@@ -22,6 +24,7 @@ export default async function TinTucPage() {
       initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
       initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
       initialGeneralSettings={generalSettings}
+      initialSections={initialSections}
     />
   );
 }

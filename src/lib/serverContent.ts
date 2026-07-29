@@ -2,11 +2,14 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { supabase } from "../supabase";
-import type { News, Product, Project } from "../types";
+import type { News, Product, Project, VisualSection } from "../types";
 import { generateSlug } from "./utils";
+import { deserializeSectionsFromDatabase } from "./layoutUtils";
+import { getPageDefaultSections } from "./layouts";
 
 type PublicContent = Product | News | Project;
 type ContentTable = "products" | "news" | "projects";
+type PublicLayoutId = "san-pham" | "du-an" | "tin-tuc" | "lien-he";
 
 interface ContentRow<T extends PublicContent> {
   id: string;
@@ -57,6 +60,33 @@ const getSettingsRow = unstable_cache(
   },
 );
 
+const getLayoutSections = unstable_cache(
+  async (id: PublicLayoutId): Promise<VisualSection[]> => {
+    const fallback = getPageDefaultSections(id);
+    const { data, error } = await supabase
+      .from("layouts")
+      .select("data")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (error) {
+      console.error(`Không thể tải bố cục công khai ${id}:`, error);
+      return fallback;
+    }
+
+    const payload = data?.data as { sections?: unknown } | null | undefined;
+    const sections = Array.isArray(payload?.sections)
+      ? deserializeSectionsFromDatabase<VisualSection>(payload.sections as VisualSection[])
+      : [];
+    return sections.length > 0 ? sections : fallback;
+  },
+  ["public-layout-sections-v1"],
+  {
+    revalidate: 60,
+    tags: ["public-layouts"],
+  },
+);
+
 export function isPublishedContent(item: Pick<PublicContent, "approvalStatus">) {
   return !item.approvalStatus || item.approvalStatus === "approved";
 }
@@ -100,3 +130,5 @@ export const getPublishedProjects = () =>
 
 export const getPublicSettings = (id: "general" | "filters") =>
   getSettingsRow(id);
+
+export const getPublicLayout = (id: PublicLayoutId) => getLayoutSections(id);

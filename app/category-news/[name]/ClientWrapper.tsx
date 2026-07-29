@@ -6,7 +6,7 @@ import { getRouteUrl } from '../../../src/lib/utils';
 import { useRouter } from 'next/navigation';
 import NewsList from '../../../src/components/NewsList';
 import { useAppContext } from '../../../src/contexts/AppContext';
-import type { GeneralSettingsData, News, Product, Project, RouteState } from '../../../src/types';
+import type { GeneralSettingsData, News, Product, Project, RouteState, VisualSection } from '../../../src/types';
 
 export default function ClientWrapper({
   categoryName,
@@ -14,14 +14,17 @@ export default function ClientWrapper({
   initialProducts,
   initialProjects,
   initialGeneralSettings,
+  initialSections,
 }: {
   categoryName: string;
   initialNews: News[];
   initialProducts: Product[];
   initialProjects: Project[];
   initialGeneralSettings: GeneralSettingsData;
+  initialSections: VisualSection[];
 }) {
-  const { sections, setSections, isEditMode } = useAppContext();
+  const { sections: contextSections, setSections, isEditMode } = useAppContext();
+  const sections = !isEditMode && initialSections.length > 0 ? initialSections : contextSections;
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
 
   const router = useRouter();

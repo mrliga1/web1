@@ -3,6 +3,7 @@ import ClientWrapper from "./ClientWrapper";
 import { generateSlug } from "../../../src/lib/utils";
 import {
   getPublicSettings,
+  getPublicLayout,
   getPublishedNews,
   getPublishedProducts,
   getPublishedProjects,
@@ -46,11 +47,12 @@ export default async function CategoryNewsPage({
   let categoryName = decodedName;
   let canonicalSlug = requestSlug;
 
-  const [generalSettings, newsRows, productRows, projectRows] = await Promise.all([
+  const [generalSettings, newsRows, productRows, projectRows, initialSections] = await Promise.all([
     getPublicSettings("general"),
     getPublishedNews(),
     getPublishedProducts(),
     getPublishedProjects(),
+    getPublicLayout("tin-tuc"),
   ]);
   const categories = (generalSettings.newsCategoriesExt || []) as Array<{ name?: string }>;
   const category = categories.find((item) => {
@@ -76,6 +78,7 @@ export default async function CategoryNewsPage({
       initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
       initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
       initialGeneralSettings={generalSettings}
+      initialSections={initialSections}
     />
   );
 }

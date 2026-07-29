@@ -1,6 +1,7 @@
 import ClientWrapper from "./ClientWrapper";
 import {
   getPublicSettings,
+  getPublicLayout,
   getPublishedProducts,
   getPublishedProjects,
 } from "../../src/lib/serverContent";
@@ -12,12 +13,13 @@ export default async function SanPhamPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [params, productRows, projectRows, generalSettings, filterSettings] = await Promise.all([
+  const [params, productRows, projectRows, generalSettings, filterSettings, initialSections] = await Promise.all([
     searchParams,
     getPublishedProducts(),
     getPublishedProjects(),
     getPublicSettings("general"),
     getPublicSettings("filters"),
+    getPublicLayout("san-pham"),
   ]);
   const getParam = (key: string) => typeof params[key] === "string" ? params[key] : undefined;
 
@@ -27,6 +29,7 @@ export default async function SanPhamPage({
       initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
       initialGeneralSettings={generalSettings}
       initialFilterSettings={filterSettings}
+      initialSections={initialSections}
       initialPriceRange={getParam("priceRange")}
       initialAreaRange={getParam("areaRange")}
       initialLocation={getParam("location")}

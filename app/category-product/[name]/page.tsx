@@ -5,6 +5,7 @@ import { generateSlug } from '../../../src/lib/utils';
 import type { CategoryExt } from '../../../src/types';
 import {
   getPublicSettings,
+  getPublicLayout,
   getPublishedProducts,
   getPublishedProjects,
 } from '../../../src/lib/serverContent';
@@ -25,11 +26,12 @@ export default async function CategoryProductPage({ params }: { params: Promise<
   let initialCategoryName;
   let canonicalSlug = requestSlug;
 
-  const [generalSettings, filterSettings, productRows, projectRows] = await Promise.all([
+  const [generalSettings, filterSettings, productRows, projectRows, initialSections] = await Promise.all([
     getPublicSettings('general'),
     getPublicSettings('filters'),
     getPublishedProducts(),
     getPublishedProjects(),
+    getPublicLayout('san-pham'),
   ]);
 
   try {
@@ -59,6 +61,7 @@ export default async function CategoryProductPage({ params }: { params: Promise<
       initialCategoryName={initialCategoryName}
       initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
       initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+      initialSections={initialSections}
       initialGeneralSettings={generalSettings}
       initialFilterSettings={filterSettings}
     />

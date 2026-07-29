@@ -446,10 +446,10 @@ export default function NewsDetail({
           <div className="bg-bg-surface/40 border border-border-color p-6 rounded-lg space-y-4 overflow-hidden" id="article-related-links">
             <div className="border-b border-border-color pb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <h3 className="text-text-primary text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                <h2 className="text-text-primary text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
                   <Bookmark className="w-4 h-4 text-primary" />
                   <span>Tin Cùng Danh Mục</span>
-                </h3>
+                </h2>
                 <button
                   type="button"
                   onClick={() => setIsMarqueePaused(!isMarqueePaused)}
@@ -483,9 +483,9 @@ export default function NewsDetail({
                     onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
                     className="w-[280px] shrink-0 bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
                   >
-                    <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
-                      <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
+                      <h3 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h3>
                       <span className="text-[10px] lg:text-[9px] text-text-secondary font-mono block mt-1">
                         {formatVietnamDate(n.createdAt)}
                       </span>
@@ -508,9 +508,9 @@ export default function NewsDetail({
                     onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
                     className="w-[280px] shrink-0 bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
                   >
-                    <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
-                      <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
+                      <h3 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h3>
                       <span className="text-[10px] lg:text-[9px] text-text-secondary font-mono block mt-1">
                         {formatVietnamDate(n.createdAt)}
                       </span>
@@ -531,9 +531,9 @@ export default function NewsDetail({
           
           {/* Newest News titles */}
           <div className="bg-bg-surface border border-border-color p-[10px] rounded-lg space-y-4 shadow-xl">
-            <h4 className="text-text-primary text-[14px] font-bold tracking-wider pb-[5px] mb-[10px] border-b border-border-color">
+            <h2 className="text-text-primary text-[14px] font-bold tracking-wider pb-[5px] mb-[10px] border-b border-border-color">
               Tin Nổi Bật
-            </h4>
+            </h2>
 
             <div className="space-y-3">
               {sidebarNewestNews.map((n) => (
@@ -545,11 +545,11 @@ export default function NewsDetail({
                   onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
                   className="flex gap-2.5 text-left group cursor-pointer border-b border-black pb-2 last:border-0 items-start"
                 >
-                  <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-[45px] h-[45px] object-cover rounded shrink-0" referrerPolicy="no-referrer" />
+                  <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={45} height={45} className="w-[45px] h-[45px] object-cover rounded shrink-0" referrerPolicy="no-referrer" />
                   <div className="flex-1 space-y-0.5 mt-[-1px]">
-                    <h5 className="text-[11px] font-semibold text-text-secondary group-hover:text-primary leading-[14px] line-clamp-2">
+                    <h3 className="text-[11px] font-semibold text-text-secondary group-hover:text-primary leading-[14px] line-clamp-2">
                       {n.title}
-                    </h5>
+                    </h3>
                     <span className="text-[9px] text-text-secondary font-mono block">
                       {formatVietnamDate(n.createdAt)}
                     </span>
@@ -561,9 +561,9 @@ export default function NewsDetail({
           
           {/* Product Categories (with counts) */}
           <div className="bg-bg-surface border border-border-color p-[10px] mb-[20px] rounded-lg space-y-4">
-            <h4 className="text-text-primary text-[14px] font-bold tracking-wider pb-[5px] border-b border-border-color">
+            <h2 className="text-text-primary text-[14px] font-bold tracking-wider pb-[5px] border-b border-border-color">
               Danh Mục Sản Phẩm
-            </h4>
+            </h2>
 
             <div className="space-y-2">
               {categoryHierarchy.length === 0 ? (
@@ -627,10 +627,10 @@ export default function NewsDetail({
           {/* Featured Products (with price, location) */}
           <div className="bg-bg-surface/40 border border-border-color p-[10px] mb-[20px] rounded-lg space-y-4">
             <div className="border-b border-border-color pb-[5px] mb-[10px] flex items-center justify-between">
-              <h4 className="text-text-primary text-[14px] font-semibold tracking-wider flex items-center gap-1.5">
+              <h2 className="text-text-primary text-[14px] font-semibold tracking-wider flex items-center gap-1.5">
                 <Building className="w-4 h-4 text-primary" />
                 <span>Bất Động Sản Nổi Bật</span>
-              </h4>
+              </h2>
             </div>
 
             <div className="space-y-4">
@@ -644,13 +644,13 @@ export default function NewsDetail({
                     <span className={`absolute top-0 left-0 px-[5px] py-[3px] text-[10px] font-semibold text-white z-10 rounded-br-[5px] ${p.type === 'rent' ? 'bg-primary' : 'bg-rose-700'}`}>
                       {p.type === 'rent' ? 'Cho thuê' : 'Bán'}
                     </span>
-                    <img loading="lazy" decoding="async" src={optimizeImageUrl(p.imageUrl || (p.imageUrls && p.imageUrls[0]), 400) || undefined} alt={p.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={optimizeImageUrl(p.imageUrl || (p.imageUrls && p.imageUrls[0]), 400) || undefined} alt={p.title} width={400} height={340} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center min-w-0">
-                    <h4 className="text-[13px] font-semibold text-text-primary leading-[1.4] m-0 mb-1.5 line-clamp-2 group-hover:text-primary text-left">
+                    <h3 className="text-[13px] font-semibold text-text-primary leading-[1.4] m-0 mb-1.5 line-clamp-2 group-hover:text-primary text-left">
                       {p.title}
-                    </h4>
+                    </h3>
                     <div className="text-[11px] text-[#999] flex flex-wrap items-center gap-x-3 gap-y-1 mb-1.5">
                       {p.area && (
                         <span className="flex items-center gap-1">
@@ -684,9 +684,9 @@ export default function NewsDetail({
           {/* Yêu cầu tư vấn Form widget */}
           <div className={`bg-bg-surface border border-border-color px-[16px] py-[8px] rounded-xl space-y-2 shadow-xl sticky ${scrollDirection === 'down' ? 'top-[58px]' : 'top-[98px]'} transition-[top,colors] duration-300 text-left`}>
             <div className="text-center space-y-1 pb-[2px]">
-              <h3 className="text-text-primary font-display font-bold text-base tracking-wide mt-[2px]">
+              <h2 className="text-text-primary font-display font-bold text-base tracking-wide mt-[2px]">
                 Tư vấn mua nhà chuyên sâu
-              </h3>
+              </h2>
               <p className="text-[11px] text-text-secondary pb-[2px]">
                 Chuyên viên Greenia Homes hỗ trợ 24/7
               </p>
@@ -720,7 +720,7 @@ export default function NewsDetail({
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h5 className="font-medium text-[15px] text-text-primary">Đăng ký thành công!</h5>
+                  <h3 className="font-medium text-[15px] text-text-primary">Đăng ký thành công!</h3>
                   <p className="text-[11px] text-emerald-200/70 mt-1.5 leading-relaxed">
                     Chuyên viên của chúng tôi sẽ gọi lại cho bạn theo số {clientPhone} trong ít phút nữa.
                   </p>
@@ -823,7 +823,7 @@ export default function NewsDetail({
                     rel="noopener noreferrer"
                     className="flex flex-col items-center justify-center gap-0.5 bg-blue-500/10 border border-blue-500/20 text-blue-600 hover:bg-blue-500/20 rounded-lg py-1 transition-colors cursor-pointer text-center"
                   >
-                    <img loading="lazy" decoding="async" src="/zalo-icon.svg" alt="Zalo" className="w-3.5 h-3.5" />
+                    <img loading="lazy" decoding="async" src="/zalo-icon.svg" alt="Zalo" width={14} height={14} className="w-3.5 h-3.5" />
                     <span className="text-[10px] font-medium">
                       Chat qua Zalo
                     </span>
@@ -858,9 +858,9 @@ export default function NewsDetail({
                 onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
                 className="w-full bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
               >
-                <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
+                <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                 <div className="text-left space-y-1">
-                  <h4 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h4>
+                  <h3 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h3>
                   <span className="text-[10px] lg:text-[9px] text-white/70 font-mono block mt-1">
                     {formatVietnamDate(n.createdAt)}
                   </span>
@@ -963,6 +963,8 @@ export default function NewsDetail({
                         <img loading="lazy" decoding="async"
                           src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                           alt={p.title}
+                          width={800}
+                          height={500}
                           referrerPolicy="no-referrer"
                           className="motion-media w-full h-full object-cover group-hover:scale-105 block"
                           onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}

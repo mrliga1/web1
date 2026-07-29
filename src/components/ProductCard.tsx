@@ -11,9 +11,10 @@ interface ProductCardProps {
   badgeText?: string;
   badgeColor?: string;
   priority?: boolean;
+  headingLevel?: 2 | 3;
 }
 
-export default function ProductCard({ item, onNavigate, badgeText, badgeColor, priority = false }: ProductCardProps) {
+export default function ProductCard({ item, onNavigate, badgeText, badgeColor, priority = false, headingLevel = 3 }: ProductCardProps) {
   const displayBadgeText = badgeText || (item.type === 'rent' ? 'Cho thuê' : 'Bán');
   const displayBadgeColor = badgeColor || (item.type === 'rent' ? 'bg-primary text-white' : 'bg-rose-700 text-white');
   let safeImageUrl = item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : '/no-image.svg');
@@ -27,6 +28,7 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
   safeImageUrl = optimizeImageUrl(safeImageUrl, 400);
 
   const [isFavorite, setIsFavorite] = useState(false);
+  const HeadingTag = headingLevel === 2 ? 'h2' : 'h3';
 
   useEffect(() => {
     const favs: string[] = JSON.parse(localStorage.getItem('saved_favorites') || '[]');
@@ -87,9 +89,9 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
         </button>
       </div>
       <div className="px-[12px] py-1 sm:p-[15px] flex-1 flex flex-col justify-center">
-        <h3 className="font-semibold text-[13px] sm:text-[14px] text-text-primary group-hover:text-primary line-clamp-2 leading-[1.4] transition-colors pt-[2px] sm:pt-0 mb-[2px] sm:mb-[10px] sm:min-h-[40px] font-serif tracking-wide">
+        <HeadingTag className="font-semibold text-[13px] sm:text-[14px] text-text-primary group-hover:text-primary line-clamp-2 leading-[1.4] transition-colors pt-[2px] sm:pt-0 mb-[2px] sm:mb-[10px] sm:min-h-[40px] font-serif tracking-wide">
           {item.title}
-        </h3>
+        </HeadingTag>
         <div className="flex items-center gap-[5px] text-[12px] text-text-secondary mb-[4px] sm:mb-[2px]">
           <MapPin className="w-3 h-3 text-primary shrink-0" />
           <span className="truncate text-[10px]">{item.street ? `${item.street}, ` : ''}{formatLocationName(item.district)}</span>

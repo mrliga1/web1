@@ -321,29 +321,6 @@ export default function ProductList({
     loadDataAndHistory();
   }, [initialProducts]);
 
-  useEffect(() => {
-    // Only run slider auto-scroll if it's explicitly needed and doesn't thrash layout continuously
-    let isRunning = true;
-    const interval = setInterval(() => {
-       if (!isRunning || window.innerWidth >= 1024) return;
-       // We use requestAnimationFrame to prevent layout thrashing
-       requestAnimationFrame(() => {
-         const slider = document.getElementById('featured-projects-slider');
-         if (!slider) return;
-         const maxScroll = slider.scrollWidth - slider.clientWidth;
-         let nextScroll = slider.scrollLeft + slider.clientWidth;
-         if (nextScroll >= maxScroll - 10) {
-            nextScroll = 0;
-         }
-         slider.scrollTo({ left: nextScroll, behavior: 'smooth' });
-       });
-    }, 5000);
-    return () => {
-      isRunning = false;
-      clearInterval(interval);
-    };
-  }, []);
-
   const resetFilters = () => {
     setSearchQuery('');
     setSelectedType('all');
@@ -466,13 +443,6 @@ export default function ProductList({
     };
   };
 
-  const [showBelowFold, setShowBelowFold] = useState(false);
-  useEffect(() => {
-    // Defer rendering below-the-fold sections by 1500ms to allow LCP and TTI to finish quickly
-    const timer = setTimeout(() => setShowBelowFold(true), 1500);
-    return () => clearTimeout(timer);
-  }, []);
-
   const schemaItemList = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -491,13 +461,7 @@ export default function ProductList({
         {sections.map((section, idx) => {
           if (!section.visible && !isEditMode) return null;
           
-          // DEFER HEAVY SECTIONS THAT ARE BELOW THE FOLD
           const isHeavySection = ['recently_viewed', 'latest_sales', 'latest_rents', 'featured_projects'].includes(section.id);
-          if (isHeavySection && !showBelowFold && !isEditMode) {
-            return (
-              <div key={section.id} className="min-h-[200px]" /> // Placeholder
-            );
-          }
 
           let cardContent = null;
           const sec = getSection(section.id);
@@ -953,7 +917,7 @@ export default function ProductList({
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
                       {filteredProducts.slice(0, mainGridLimit).map((item, index) => (
-                        <ProductCard key={item.id} item={item} priority={index < 2} onNavigate={onNavigate} />
+                        <ProductCard key={item.id} item={item} priority={index < 2} headingLevel={2} onNavigate={onNavigate} />
                       ))}
                     </div>
 
@@ -985,7 +949,7 @@ export default function ProductList({
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
                       className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3 m-0"
-                      tag="h3"
+                      tag="h2"
                     />
                     
                     <button
@@ -1036,7 +1000,7 @@ export default function ProductList({
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
                       className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3 m-0"
-                      tag="h3"
+                      tag="h2"
                     />
 
                     <button
@@ -1085,7 +1049,7 @@ export default function ProductList({
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
                       className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3 m-0"
-                      tag="h3"
+                      tag="h2"
                     />
 
                     <button
@@ -1134,7 +1098,7 @@ export default function ProductList({
                       sections={sections} 
                       onUpdateSections={onUpdateSections}
                       className="text-[15px] font-display font-medium text-text-primary border-l-4 border-primary pl-3 m-0"
-                      tag="h3"
+                      tag="h2"
                     />
 
                     <button
@@ -1241,7 +1205,7 @@ export default function ProductList({
                         : 'border-dashed border-border-color/80 hover:border-primary/50'
                     }` 
                   : ''
-              } ${!section.visible ? 'opacity-40 bg-white/20' : ''} ${
+              } ${!section.visible ? 'opacity-40 bg-white/20' : ''} ${!isEditMode && isHeavySection ? 'render-deferred-section' : ''} ${
                 !isEditMode && section.id === 'products_filter' 
                   ? `sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10'} z-40 bg-white/95 shadow-sm transition-colors duration-300` 
                   : 'relative z-10'

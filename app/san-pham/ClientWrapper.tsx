@@ -12,6 +12,7 @@ interface ClientWrapperProps {
   initialProjects: Project[];
   initialGeneralSettings: Record<string, unknown>;
   initialFilterSettings: Record<string, unknown>;
+  initialType?: "all" | "sale" | "rent";
   initialPriceRange?: string;
   initialAreaRange?: string;
   initialLocation?: string;
@@ -35,6 +36,7 @@ export default function ClientWrapper(props: ClientWrapperProps) {
       initialProjects={props.initialProjects}
       initialGeneralSettings={props.initialGeneralSettings}
       initialFilterSettings={props.initialFilterSettings}
+      initialType={props.initialType}
       initialPriceRange={props.initialPriceRange}
       initialAreaRange={props.initialAreaRange}
       initialLocation={props.initialLocation}

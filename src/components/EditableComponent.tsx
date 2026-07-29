@@ -253,7 +253,7 @@ export function EditableImage({
   return (
     <div className={`relative group/img ${className}`}>
       {url ? (
-        <img loading="lazy" decoding="async" src={(url) || undefined} alt="Bố cục" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        <img loading="lazy" decoding="async" src={(url) || undefined} alt="Bố cục" width={1200} height={675} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
       ) : (
         <div className="w-full h-full bg-bg-surface border border-border-color flex items-center justify-center text-white/70 text-xs">
           (Trắng)

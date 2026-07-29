@@ -243,13 +243,13 @@ export default function ContactPage({
                       <p className="text-[12px] font-bold uppercase tracking-wider text-text-secondary">Kết nối với chúng tôi</p>
                       <div className="flex gap-6 items-center">
                         <a href="https://zalo.me/0932966700" target="_blank" rel="noopener noreferrer" aria-label="Zalo" className="hover:scale-110 transition-transform" title="Zalo">
-                          <img loading="lazy" decoding="async" src="/zalo-icon.svg" alt="Zalo" className="w-6 h-6 object-contain" />
+                          <img loading="lazy" decoding="async" src="/zalo-icon.svg" alt="Zalo" width="24" height="24" className="w-6 h-6 object-contain" />
                         </a>
                         <a href="https://www.facebook.com/greeniahomes" target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="hover:scale-110 transition-transform" title="Facebook">
-                          <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook" className="w-6 h-6 object-contain" />
+                          <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg" alt="Facebook" width="24" height="24" className="w-6 h-6 object-contain" />
                         </a>
                         <a href="https://www.youtube.com/@greeniahomes.vn" target="_blank" rel="noopener noreferrer" aria-label="YouTube" className="hover:scale-110 transition-transform" title="YouTube">
-                          <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube" className="w-7 h-7 object-contain" />
+                          <img loading="lazy" decoding="async" src="https://upload.wikimedia.org/wikipedia/commons/0/09/YouTube_full-color_icon_%282017%29.svg" alt="YouTube" width="28" height="28" className="w-7 h-7 object-contain" />
                         </a>
                       </div>
                     </div>
@@ -357,7 +357,7 @@ export default function ContactPage({
                               <div className="flex flex-wrap gap-2 mt-1">
                                 {contactImages.map((url, idx) => (
                                   <div key={idx} className="relative w-14 h-14 rounded overflow-hidden border border-border-color shrink-0">
-                                    <img loading="lazy" decoding="async" src={(url) || undefined} alt={`upload-${idx}`} className="w-full h-full object-cover" />
+                                    <img loading="lazy" decoding="async" src={(url) || undefined} alt={`upload-${idx}`} width={56} height={56} className="w-full h-full object-cover" />
                                     <button
                                       type="button"
                                       onClick={() => handleRemoveImage(idx)}

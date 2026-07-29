@@ -1,37 +1,26 @@
-"use client";
+import ClientWrapper from "../san-pham/ClientWrapper";
+import {
+  getPublicSettings,
+  getPublishedProducts,
+  getPublishedProjects,
+} from "../../src/lib/serverContent";
 
-import React, { useState } from 'react';
-import { getRouteUrl } from '../../src/lib/utils';
-import type { RouteState } from '../../src/types';
+export const revalidate = 60;
 
-import { useRouter } from 'next/navigation';
-import ProductList from '../../src/components/ProductList';
-import { useAppContext } from '../../src/contexts/AppContext';
-
-export default function LatestRentsPage() {
-  const { sections, setSections, isEditMode } = useAppContext();
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
-
-  const router = useRouter();
-
-  const handleNavigate = (route: RouteState) => {
-    router.push(getRouteUrl(route));
-  };
-
-  const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    void message;
-    void type;
-  };
+export default async function LatestRentsPage() {
+  const [productRows, projectRows, generalSettings, filterSettings] = await Promise.all([
+    getPublishedProducts(),
+    getPublishedProjects(),
+    getPublicSettings("general"),
+    getPublicSettings("filters"),
+  ]);
 
   return (
-    <ProductList 
-      onNavigate={handleNavigate}
-      onShowNotification={handleShowNotification}
-      isEditMode={isEditMode}
-      sections={sections}
-      onUpdateSections={setSections}
-      selectedSectionId={selectedSectionId}
-      setSelectedSectionId={setSelectedSectionId}
+    <ClientWrapper
+      initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
+      initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+      initialGeneralSettings={generalSettings}
+      initialFilterSettings={filterSettings}
       initialType="rent"
     />
   );

@@ -175,12 +175,16 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
                         <img loading="lazy" decoding="async" 
                           src={(userProfile.avatarUrl) || undefined} 
                           alt="Avatar" 
+                          width={24}
+                          height={24}
                           className="w-6 h-6 rounded-full object-cover" 
                         />
                       ) : currentUser?.user_metadata?.avatar_url ? (
                         <img loading="lazy" decoding="async" 
                           src={(currentUser.user_metadata.avatar_url) || undefined} 
                           alt="Avatar" 
+                          width={24}
+                          height={24}
                           className="w-6 h-6 rounded-full object-cover" 
                         />
                       ) : (

@@ -8,9 +8,12 @@ const URI_ATTRIBUTE = /\s+(href|src|xlink:href|formaction)\s*=\s*("[^"]*"|'[^']*
 const IMAGE_WITHOUT_ALT_ATTRIBUTE = /<img\b(?![^>]*\balt\s*=)([^>]*)>/gi;
 const IMAGE_WITHOUT_LOADING_ATTRIBUTE = /<img\b(?![^>]*\bloading\s*=)([^>]*)>/gi;
 const IMAGE_WITHOUT_DECODING_ATTRIBUTE = /<img\b(?![^>]*\bdecoding\s*=)([^>]*)>/gi;
+const IMAGE_WITHOUT_WIDTH_ATTRIBUTE = /<img\b(?![^>]*\bwidth\s*=)([^>]*)>/gi;
+const IMAGE_WITHOUT_HEIGHT_ATTRIBUTE = /<img\b(?![^>]*\bheight\s*=)([^>]*)>/gi;
 const IFRAME_WITHOUT_TITLE_ATTRIBUTE = /<iframe\b(?![^>]*\btitle\s*=)([^>]*)>/gi;
 const IFRAME_WITHOUT_LOADING_ATTRIBUTE = /<iframe\b(?![^>]*\bloading\s*=)([^>]*)>/gi;
 const IMAGE_SRC_ATTRIBUTE = /(<img\b[^>]*\bsrc\s*=\s*)(["'])([^"']+)\2/gi;
+const HEADING_OPEN_TAG = /<(h[1-6])\b([^>]*)>/gi;
 
 function getAltFromImageAttributes(attributes: string) {
   const srcMatch = attributes.match(/\bsrc\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
@@ -50,6 +53,8 @@ function isUnsafeUri(rawValue: string) {
 export function sanitizeRichHtml(value: unknown) {
   if (typeof value !== "string" || !value) return "";
 
+  let previousHeadingLevel = 1;
+
   return value
     .replace(BLOCKED_CONTAINER_TAGS, "")
     .replace(BLOCKED_STANDALONE_TAGS, "")
@@ -65,10 +70,18 @@ export function sanitizeRichHtml(value: unknown) {
     .replace(IMAGE_WITHOUT_ALT_ATTRIBUTE, (_tag, attributes: string) => {
       return `<img alt="${getAltFromImageAttributes(attributes)}"${attributes}>`;
     })
+    .replace(IMAGE_WITHOUT_WIDTH_ATTRIBUTE, '<img width="1200"$1>')
+    .replace(IMAGE_WITHOUT_HEIGHT_ATTRIBUTE, '<img height="675"$1>')
     .replace(IMAGE_WITHOUT_LOADING_ATTRIBUTE, '<img loading="lazy"$1>')
     .replace(IMAGE_WITHOUT_DECODING_ATTRIBUTE, '<img decoding="async"$1>')
     .replace(IFRAME_WITHOUT_TITLE_ATTRIBUTE, '<iframe title="Bản đồ và nội dung nhúng"$1>')
     .replace(IFRAME_WITHOUT_LOADING_ATTRIBUTE, '<iframe loading="lazy"$1>')
-    // Giữ nguyên kiểu hiển thị H1 nhưng hạ cấp trong cây trợ năng của nội dung nhúng.
-    .replace(/<h1(?![^>]*\baria-level\s*=)/gi, '<h1 aria-level="2"');
+    .replace(HEADING_OPEN_TAG, (_tag, headingTag: string, attributes: string) => {
+      const sourceLevel = Number(headingTag.slice(1));
+      const requestedLevel = sourceLevel === 1 ? 2 : sourceLevel;
+      const semanticLevel = Math.min(requestedLevel, previousHeadingLevel + 1);
+      previousHeadingLevel = semanticLevel;
+      const cleanAttributes = attributes.replace(/\s+aria-level\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "");
+      return `<${headingTag} aria-level="${semanticLevel}"${cleanAttributes}>`;
+    });
 }

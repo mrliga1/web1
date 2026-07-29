@@ -654,7 +654,7 @@ export default function ProjectDetail({
         <div
           className="absolute inset-0 hidden md:block bg-cover bg-center blur-2xl opacity-70 transition-all duration-700"
           style={{
-            backgroundImage: `url(${optimizeImageUrl(galleryImages[currentImageIndex], 1600)})`,
+            backgroundImage: `url(${optimizeImageUrl(galleryImages[currentImageIndex], 320)})`,
           }}
         />
 
@@ -1156,6 +1156,8 @@ export default function ProjectDetail({
                                 src={card.imageUrl || undefined}
                                 className="motion-media w-full h-full object-cover group-hover:scale-105"
                                 alt={card.name}
+                                width={800}
+                                height={450}
                                 referrerPolicy="no-referrer"
                               />
                             </div>
@@ -1934,6 +1936,8 @@ export default function ProjectDetail({
                           src={news.imageUrl || undefined}
                           className="motion-media w-full h-full object-cover group-hover:scale-105"
                           alt={news.title}
+                          width={800}
+                          height={450}
                           onError={(e) => {
                             e.currentTarget.onerror = null;
                             (e.target as HTMLImageElement).src =
@@ -2172,6 +2176,8 @@ export default function ProjectDetail({
                           decoding="async"
                           src="/zalo-icon.svg"
                           alt="Zalo"
+                          width={14}
+                          height={14}
                           className="w-3.5 h-3.5"
                         />
                         <span className="text-[10px] font-medium">
@@ -2225,6 +2231,8 @@ export default function ProjectDetail({
                           src={optimizeImageUrl(proj.images?.[0] || proj.imageUrl, 400) || undefined}
                           className="motion-media w-full h-full object-cover group-hover:scale-105"
                           alt={proj.title}
+                          width={800}
+                          height={600}
                           onError={(e) => {
                             e.currentTarget.onerror = null;
                             (e.target as HTMLImageElement).src =
@@ -2302,6 +2310,8 @@ export default function ProjectDetail({
               <img
                 src={galleryImages[lightboxIndex] ? optimizeImageUrl(galleryImages[lightboxIndex], 1920) : undefined}
                 alt={`Hình ảnh ${lightboxIndex + 1}`}
+                width={1920}
+                height={1080}
                 className="max-w-full max-h-full object-contain cursor-default"
                 onClick={(e) => e.stopPropagation()}
               />
@@ -2330,6 +2340,8 @@ export default function ProjectDetail({
               >
                 <img
                   src={img ? optimizeImageUrl(img, 200) : undefined}
+                  width={200}
+                  height={150}
                   className="w-full h-full object-cover"
                   loading="lazy"
                   alt={`Thumbnail ${idx + 1}`}

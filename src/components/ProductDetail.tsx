@@ -676,6 +676,8 @@ export default function ProductDetail({
                     decoding="async"
                     src={imgUrl ? optimizeImageUrl(imgUrl, 200) : undefined}
                     alt={`${product.title} - ảnh thu nhỏ ${thumbIdx + 1}`}
+                    width={200}
+                    height={150}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                   />
@@ -1036,6 +1038,8 @@ export default function ProductDetail({
                     "/cv-image.svg"
                   }
                   alt="Chuyên viên tư vấn"
+                  width={64}
+                  height={64}
                   className="h-16 w-16 rounded-full object-cover border-2 border-primary/50"
                   referrerPolicy="no-referrer"
                   onError={(e) => { e.currentTarget.onerror = null;
@@ -1095,6 +1099,8 @@ export default function ProductDetail({
                   decoding="async"
                   src="/zalo-icon.svg"
                   alt="Zalo"
+                  width={20}
+                  height={20}
                   className="w-5 h-5 drop-shadow-md"
                 />
                 <span className="text-[10px]">Chat qua Zalo</span>
@@ -1462,6 +1468,8 @@ export default function ProductDetail({
                       <img loading="lazy" decoding="async"
                         src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
                         alt={p.title}
+                        width={800}
+                        height={500}
                         referrerPolicy="no-referrer"
                         className="motion-media w-full h-full object-cover group-hover:scale-105 block"
                         onError={(e) => { e.currentTarget.onerror = null; (e.target as HTMLImageElement).src = 'https://via.placeholder.com/600x400?text=Greenia+Homes'; }}
@@ -1522,6 +1530,8 @@ export default function ProductDetail({
             <img 
               src={selectedImage}
               alt={product.title}
+              width={1600}
+              height={900}
               className="max-w-full max-h-[90vh] object-contain select-none"
             />
             

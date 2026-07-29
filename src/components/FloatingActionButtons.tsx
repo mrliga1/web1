@@ -100,6 +100,8 @@ export default function FloatingActionButtons() {
               decoding="async" 
               src="/zalo-icon.svg" 
               alt=""
+              width="35"
+              height="35"
               className="w-[35px] h-[35px] object-contain drop-shadow-sm md:group-hover:drop-shadow-none" 
             />
           </div>

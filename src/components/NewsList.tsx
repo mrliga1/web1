@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import NextImage from 'next/image';
 import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
@@ -29,6 +30,24 @@ interface NewsListProps {
   initialProducts?: Product[];
   initialProjects?: Project[];
   initialGeneralSettings?: GeneralSettingsData;
+}
+
+function getLocalRepositoryImageUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    const rawPrefix = '/mrliga1/web1/main/public/';
+    const cdnPrefix = '/gh/mrliga1/web1@main/public/';
+
+    if (parsed.hostname === 'raw.githubusercontent.com' && parsed.pathname.startsWith(rawPrefix)) {
+      return `/${parsed.pathname.slice(rawPrefix.length)}`;
+    }
+    if (parsed.hostname === 'cdn.jsdelivr.net' && parsed.pathname.startsWith(cdnPrefix)) {
+      return `/${parsed.pathname.slice(cdnPrefix.length)}`;
+    }
+  } catch {
+    // Giữ URL gốc nếu dữ liệu không phải URL hợp lệ.
+  }
+  return url;
 }
 
 export default function NewsList({ 
@@ -173,9 +192,8 @@ export default function NewsList({
   const displayArticle = hoveredArticle && middleGridNews.some(n => n.id === hoveredArticle.id) 
     ? hoveredArticle 
     : middleGridNews[0];
-  const displayArticleImage = optimizeImageUrl(
+  const displayArticleImage = getLocalRepositoryImageUrl(
     displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600",
-    800,
   );
 
   const trendingNews = [...contextNews]
@@ -392,14 +410,13 @@ export default function NewsList({
                     {/* Cover highlight */}
                     <div className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors">
                       <div className="h-[260px] overflow-hidden relative">
-                        <img
+                        <NextImage priority decoding="async"
                           src={displayArticleImage}
                           alt={displayArticle?.title || 'Tin tức bất động sản nổi bật'}
+                          sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 520px"
                           width={600}
                           height={400}
-                          loading="eager"
-                          fetchPriority="high"
-                          decoding="async"
+                          quality={60}
                           referrerPolicy="no-referrer"
                           onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
                           className="motion-media w-full h-full object-cover group-hover:scale-105"

@@ -61,7 +61,7 @@ function getDefaultSections(docName: LayoutDocName) {
 }
 
 function usesServerProvidedLayout(docName: string | null) {
-  return docName === 'home';
+  return docName === 'home' || docName === 'san-pham' || docName === 'du-an' || docName === 'tin-tuc';
 }
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
@@ -88,12 +88,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const defaults = getDefaultSections(docName);
-    setLayoutState({ docName, sections: defaults });
-
+    // Các trang này đã nhận bố cục Supabase từ Server Component, không tải lại ở client.
     if (usesServerProvidedLayout(docName)) {
       return;
     }
+
+    const defaults = getDefaultSections(docName);
+    setLayoutState({ docName, sections: defaults });
 
     const docRef = doc(db, 'layouts', docName);
     getDoc(docRef).then((snapshot) => {

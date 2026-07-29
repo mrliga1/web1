@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { generateSlug, optimizeImageUrl, getRouteUrl } from '../lib/utils';
 import { useRouter } from 'next/navigation';
 import { collection, getDocs, getDoc, doc, db, type LegacyDocSnapshot } from '../firebase';
@@ -166,6 +166,20 @@ export default function ProductList({
   const [priceRentConfig, setPriceRentConfig] = useState<FilterRangeConfig[]>(() => initialFilterSettings.priceRent || []);
   const [areaConfig, setAreaConfig] = useState<FilterRangeConfig[]>(() => initialFilterSettings.areaRanges || []);
 
+  useLayoutEffect(() => {
+    if (initialProducts.length === 0) return;
+    try {
+      const viewedIds: string[] = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+      setRecentlyViewed(
+        initialProducts
+          .filter((item) => viewedIds.includes(item.id))
+          .sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id))
+      );
+    } catch {
+      setRecentlyViewed([]);
+    }
+  }, [initialProducts]);
+
   useEffect(() => {
     if (initialProducts.length > 0) {
       const uniqueDistricts = new Set<string>();
@@ -200,16 +214,6 @@ export default function ProductList({
       }).filter(Boolean) as LocationNode[];
 
       setFilteredLocationTree(dynamicTree);
-      try {
-        const viewedIds: string[] = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
-        setRecentlyViewed(
-          initialProducts
-            .filter((item) => viewedIds.includes(item.id))
-            .sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id))
-        );
-      } catch {
-        setRecentlyViewed([]);
-      }
       setLoading(false);
       return;
     }

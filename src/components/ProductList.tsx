@@ -157,8 +157,8 @@ export default function ProductList({
     scrollToGrid();
   }, [searchQuery, selectedPriceRange, selectedAreaRange, selectedDistrict, selectedCategory, selectedType]);
 
-  // Giới hạn số mục tải thêm để giảm DOM trên mobile.
-  const [mainGridLimit, setMainGridLimit] = useState(typeof window !== 'undefined' && window.innerWidth < 768 ? 4 : 10);
+  // Giữ cùng giá trị khởi tạo giữa SSR và trình duyệt để tránh hydration mismatch.
+  const [mainGridLimit, setMainGridLimit] = useState(10);
   const [recentGridLimit, setRecentGridLimit] = useState(5);
 
   const [districts, setDistricts] = useState<string[]>(() => {

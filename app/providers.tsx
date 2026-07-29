@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React from "react";
 import { ErrorBoundary } from "../src/ErrorBoundary";
 import { AppProvider } from "../src/contexts/AppContext";
 import { AuthProvider } from "../src/contexts/AuthContext";
@@ -13,14 +13,12 @@ import CookieConsent from "../src/components/CookieConsent";
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary>
-      <Suspense fallback={null}>
-        <AuthProvider>
-          <AppProvider>
-            {children}
-            <CookieConsent />
-          </AppProvider>
-        </AuthProvider>
-      </Suspense>
+      <AuthProvider>
+        <AppProvider>
+          {children}
+          <CookieConsent />
+        </AppProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

@@ -174,6 +174,10 @@ export default function NewsList({
   const displayArticle = hoveredArticle && middleGridNews.some(n => n.id === hoveredArticle.id) 
     ? hoveredArticle 
     : middleGridNews[0];
+  const displayArticleImage = optimizeImageUrl(
+    displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600",
+    800,
+  );
 
   const trendingNews = [...contextNews]
     .filter(n => !middleGridIds.has(n.id))
@@ -389,13 +393,12 @@ export default function NewsList({
                     {/* Cover highlight */}
                     <div className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors">
                       <div className="h-[260px] overflow-hidden relative">
-                        <NextImage priority decoding="async"
-                          src={displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600"}
+                        <NextImage priority unoptimized decoding="async"
+                          src={displayArticleImage}
                           sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 520px"
                           alt={displayArticle?.title}
                           width={600}
                           height={400}
-                          quality={60}
                           referrerPolicy="no-referrer"
                           onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
                           className="motion-media w-full h-full object-cover group-hover:scale-105"
@@ -409,7 +412,7 @@ export default function NewsList({
                         >
                           {displayArticle?.title}
                         </h3>
-                        <p className="text-[#888] text-[13px] mb-2.5 line-clamp-3 leading-[1.5]">
+                        <p className="text-text-secondary text-[13px] mb-2.5 line-clamp-3 leading-[1.5]">
                           {displayArticle?.description}
                         </p>
                         <div className="text-[11px] text-primary font-semibold mt-2.5 flex items-center gap-1.5">

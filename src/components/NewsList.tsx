@@ -57,6 +57,18 @@ function getFeaturedNewsImageUrl(url: string) {
   return localUrl.startsWith('/') ? localUrl : optimizeImageUrl(localUrl, 800);
 }
 
+const NEWS_SUPPORTING_IMAGE_VARIANTS: Record<string, string> = {
+  '/uploads/tien-ich-vinhomes-saigon-park-3-1782158113104.webp': '/uploads/tien-ich-vinhomes-saigon-park-3-1782158113104-news-thumb.webp',
+  '/uploads/vuon-hoa-vinhomes-saigon-park-1-1782671144098.webp': '/uploads/vuon-hoa-vinhomes-saigon-park-1-1782671144098-news-thumb.webp',
+  '/uploads/phoi-canh1-1779376605019.webp': '/uploads/phoi-canh1-1779376605019-news-project.webp',
+};
+
+function getNewsSupportingImageUrl(url: string | undefined, width: number) {
+  if (!url) return undefined;
+  const localUrl = getLocalRepositoryImageUrl(url);
+  return NEWS_SUPPORTING_IMAGE_VARIANTS[localUrl] || optimizeImageUrl(url, width) || undefined;
+}
+
 export default function NewsList({ 
   onNavigate, 
   onShowNotification,
@@ -421,8 +433,8 @@ export default function NewsList({
                         <img
                           src={displayArticleImage}
                           alt={displayArticle?.title || 'Tin tức bất động sản nổi bật'}
-                          width={600}
-                          height={338}
+                          width={520}
+                          height={293}
                           loading="eager"
                           fetchPriority="high"
                           decoding="async"
@@ -584,7 +596,7 @@ export default function NewsList({
                                       {p.type === 'rent' ? 'Cho thuê' : 'Bán'}
                                     </span>
                                   )}
-                                  <img loading="lazy" decoding="async" src={optimizeImageUrl(p.imageUrl || p.imageUrls?.[0], 400) || undefined} alt={p.title} width="100" height="85" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                                  <img loading="lazy" decoding="async" src={getNewsSupportingImageUrl(p.imageUrl || p.imageUrls?.[0], 200)} alt={p.title} width="100" height="85" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                                 </div>
 
                                 <div className="flex-1 flex flex-col justify-center min-w-0">
@@ -698,7 +710,7 @@ export default function NewsList({
                               >
                                 <div className="relative aspect-[16/10] overflow-hidden">
                                   <img loading="lazy" decoding="async"
-                                    src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                                    src={getNewsSupportingImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400)}
                                     alt={p.title}
                                     width="800"
                                     height="500"

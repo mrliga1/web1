@@ -22,6 +22,7 @@ function getLocalNewsHeroSources(url: string | undefined) {
     return {
       avif: '/uploads/kiem-tra-bai-viet-moi-lcp.avif',
       webp: '/uploads/kiem-tra-bai-viet-moi-lcp.webp',
+      mobileWebp: '/uploads/kiem-tra-bai-viet-moi-lcp-mobile.webp',
     };
   }
   return null;
@@ -438,8 +439,10 @@ export default function NewsDetail({
           <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-border-color bg-bg-surface">
             {localHeroSources ? (
               <>
-                <link rel="preload" as="image" href={localHeroSources.avif} type="image/avif" fetchPriority="high" />
+                <link rel="preload" as="image" href={localHeroSources.mobileWebp} type="image/webp" media="(max-width: 767px)" fetchPriority="high" />
+                <link rel="preload" as="image" href={localHeroSources.avif} type="image/avif" media="(min-width: 768px)" fetchPriority="high" />
                 <picture className="block w-full h-full">
+                  <source srcSet={localHeroSources.mobileWebp} type="image/webp" media="(max-width: 767px)" />
                   <source srcSet={localHeroSources.avif} type="image/avif" />
                   <img src={localHeroSources.webp} alt={article.title} width={1200} height={675} loading="eager" fetchPriority="high" decoding="sync" className="block w-full h-full object-cover" referrerPolicy="no-referrer" />
                 </picture>
@@ -801,7 +804,7 @@ export default function NewsDetail({
                       type="checkbox"
                       checked={agreeTerms}
                       onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
+                      className="rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-6 w-6 shrink-0 cursor-pointer"
                     />
                     <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
                       Tôi đã đọc và đồng ý với <button type="button" onClick={() => onNavigate({ screen: "terms-of-use" })} className="underline text-primary hover:text-primary">Điều khoản & Điều kiện</button> của Greenia Market.
@@ -812,7 +815,7 @@ export default function NewsDetail({
                       type="checkbox"
                       checked={agreePrivacy}
                       onChange={(e) => setAgreePrivacy(e.target.checked)}
-                      className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
+                      className="rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-6 w-6 shrink-0 cursor-pointer"
                     />
                     <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
                       Tôi đã đọc và đồng ý với <button type="button" onClick={() => onNavigate({ screen: "privacy-policy" })} className="underline text-primary hover:text-primary">Chính sách bảo mật dữ liệu cá nhân</button> của Greenia Market.

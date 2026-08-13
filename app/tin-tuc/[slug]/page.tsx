@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { createHash } from "node:crypto";
 import ClientWrapper from "./ClientWrapper";
 import {
   getNewsBySlug,
@@ -7,6 +8,9 @@ import {
   getPublishedNews,
   getPublishedProducts,
   getPublishedProjects,
+  toNewsListItem,
+  toProductListItem,
+  toProjectListItem,
 } from "../../../src/lib/serverContent";
 import { createNewsSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
@@ -15,6 +19,11 @@ import { generateSlug, getSocialImageUrl } from "../../../src/lib/utils";
 export const revalidate = 60;
 
 const SITE_URL = "https://greeniahomes.vn";
+const EMBEDDED_IMAGE_PATTERN = /data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+/gi;
+const EMBEDDED_NEWS_IMAGE_URLS: Record<string, string> = {
+  "75ebd83715931ae4deae283783e5b21bb7e580b359b9e9413f95e53f6e8241f3":
+    "/uploads/ha-tang-tay-bac-tphcm-vinhomes-saigon-park-content.webp",
+};
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -33,6 +42,18 @@ function removeTrailingBrand(title: string) {
 
 function plainText(value: string) {
   return value.replace(/<[^>]*>?/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function replaceKnownEmbeddedImages(value: string) {
+  return value.replace(EMBEDDED_IMAGE_PATTERN, (source) => {
+    try {
+      const payload = source.slice(source.indexOf(",") + 1);
+      const hash = createHash("sha256").update(Buffer.from(payload, "base64")).digest("hex");
+      return EMBEDDED_NEWS_IMAGE_URLS[hash] || source;
+    } catch {
+      return source;
+    }
+  });
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -96,7 +117,12 @@ export default async function NewsDetailPage({ params }: Props) {
 
   if (!article) notFound();
 
-  const { article: articleSchema, breadcrumb } = createNewsSchemas(article, slug);
+  const optimizedArticle = {
+    ...article,
+    content: replaceKnownEmbeddedImages(article.content || ""),
+  };
+
+  const { article: articleSchema, breadcrumb } = createNewsSchemas(optimizedArticle, slug);
 
   return (
     <>
@@ -104,10 +130,10 @@ export default async function NewsDetailPage({ params }: Props) {
       <SchemaMarkup schema={breadcrumb} />
       <ClientWrapper
         slug={slug}
-        initialArticle={article}
-        initialNews={newsRows.map(({ id, data }) => ({ ...data, id }))}
-        initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
-        initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
+        initialArticle={optimizedArticle}
+        initialNews={newsRows.map(({ id, data }) => toNewsListItem(id, data))}
+        initialProducts={productRows.map(({ id, data }) => toProductListItem(id, data))}
+        initialProjects={projectRows.map(({ id, data }) => toProjectListItem(id, data))}
         initialGeneralSettings={generalSettings}
       />
     </>

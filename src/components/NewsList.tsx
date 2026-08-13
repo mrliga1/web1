@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import NextImage from 'next/image';
 import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
@@ -48,6 +47,14 @@ function getLocalRepositoryImageUrl(url: string) {
     // Giữ URL gốc nếu dữ liệu không phải URL hợp lệ.
   }
   return url;
+}
+
+function getFeaturedNewsImageUrl(url: string) {
+  const localUrl = getLocalRepositoryImageUrl(url);
+  if (localUrl === '/uploads/thuc-te-vinwonders-quan-9-1779377331030.webp') {
+    return '/uploads/thuc-te-vinwonders-quan-9-1779377331030-lcp.webp';
+  }
+  return localUrl.startsWith('/') ? localUrl : optimizeImageUrl(localUrl, 800);
 }
 
 export default function NewsList({ 
@@ -192,7 +199,7 @@ export default function NewsList({
   const displayArticle = hoveredArticle && middleGridNews.some(n => n.id === hoveredArticle.id) 
     ? hoveredArticle 
     : middleGridNews[0];
-  const displayArticleImage = getLocalRepositoryImageUrl(
+  const displayArticleImage = getFeaturedNewsImageUrl(
     displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600",
   );
 
@@ -410,13 +417,15 @@ export default function NewsList({
                     {/* Cover highlight */}
                     <div className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors">
                       <div className="h-[260px] overflow-hidden relative">
-                        <NextImage priority decoding="async"
+                        <link rel="preload" as="image" href={displayArticleImage} fetchPriority="high" />
+                        <img
                           src={displayArticleImage}
                           alt={displayArticle?.title || 'Tin tức bất động sản nổi bật'}
-                          sizes="(max-width: 767px) 100vw, (max-width: 1023px) 50vw, 520px"
                           width={600}
-                          height={400}
-                          quality={60}
+                          height={338}
+                          loading="eager"
+                          fetchPriority="high"
+                          decoding="async"
                           referrerPolicy="no-referrer"
                           onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
                           className="motion-media w-full h-full object-cover group-hover:scale-105"

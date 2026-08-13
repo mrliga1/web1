@@ -89,6 +89,17 @@ const fallbackProductImages = [
   "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800",
 ];
 
+function getLocalProductHeroSources(url: string | undefined) {
+  if (url?.includes('tien-ich-vinhomes-saigon-park-3-1782158113104.webp')) {
+    return {
+      avif: '/uploads/san-pham-moi-detail-lcp.avif',
+      webp: '/uploads/san-pham-moi-detail-lcp.webp',
+      mobileWebp: '/uploads/san-pham-moi-detail-lcp-mobile.webp',
+    };
+  }
+  return null;
+}
+
 declare global {
   interface Window {
     __SERVER_DATA__?: {
@@ -442,6 +453,7 @@ export default function ProductDetail({
   }
 
   if (!product) return null;
+  const localHeroSources = getLocalProductHeroSources(selectedImage);
 
   // Real-time calculation of categories with counts
   const categoryCounts: Record<string, number> = {};
@@ -597,19 +609,42 @@ export default function ProductDetail({
           {/* Cover Multi-image Slider */}
           <figure className="space-y-4 !mb-[10px]">
             <div className="relative aspect-[16/10] overflow-hidden rounded-lg border border-border-color bg-bg-surface shadow-xl group">
-              <NextImage
-                priority
-                decoding="async"
-                src={selectedImage || "/no-image.svg"}
-                width={1200}
-                height={675}
-                quality={60}
-                sizes="(max-width: 1024px) 100vw, 800px"
-                alt={product.title}
-                referrerPolicy="no-referrer"
-                className="w-full h-full object-cover transition-all duration-300 cursor-pointer"
-                onClick={() => setIsLightboxOpen(true)}
-              />
+              {localHeroSources ? (
+                <>
+                  <link rel="preload" as="image" href={localHeroSources.mobileWebp} type="image/webp" media="(max-width: 767px)" fetchPriority="high" />
+                  <link rel="preload" as="image" href={localHeroSources.avif} type="image/avif" media="(min-width: 768px)" fetchPriority="high" />
+                  <picture className="block w-full h-full">
+                    <source srcSet={localHeroSources.mobileWebp} type="image/webp" media="(max-width: 767px)" />
+                    <source srcSet={localHeroSources.avif} type="image/avif" />
+                    <img
+                      src={localHeroSources.webp}
+                      width={800}
+                      height={447}
+                      loading="eager"
+                      fetchPriority="high"
+                      decoding="async"
+                      alt={product.title}
+                      referrerPolicy="no-referrer"
+                      className="block w-full h-full object-cover transition-all duration-300 cursor-pointer"
+                      onClick={() => setIsLightboxOpen(true)}
+                    />
+                  </picture>
+                </>
+              ) : (
+                <NextImage
+                  priority
+                  decoding="async"
+                  src={selectedImage || "/no-image.svg"}
+                  width={1200}
+                  height={675}
+                  quality={60}
+                  sizes="(max-width: 1024px) 100vw, 800px"
+                  alt={product.title}
+                  referrerPolicy="no-referrer"
+                  className="w-full h-full object-cover transition-all duration-300 cursor-pointer"
+                  onClick={() => setIsLightboxOpen(true)}
+                />
+              )}
 
               {currentImages.length > 1 && (
                 <>

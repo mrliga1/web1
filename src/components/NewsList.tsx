@@ -57,6 +57,12 @@ function getFeaturedNewsImageUrl(url: string) {
   return localUrl.startsWith('/') ? localUrl : optimizeImageUrl(localUrl, 800);
 }
 
+function getFeaturedNewsAvifUrl(url: string) {
+  return url === '/uploads/thuc-te-vinwonders-quan-9-1779377331030-lcp.webp'
+    ? '/uploads/thuc-te-vinwonders-quan-9-1779377331030-lcp.avif'
+    : null;
+}
+
 const NEWS_SUPPORTING_IMAGE_VARIANTS: Record<string, string> = {
   '/uploads/tien-ich-vinhomes-saigon-park-3-1782158113104.webp': '/uploads/tien-ich-vinhomes-saigon-park-3-1782158113104-news-thumb.webp',
   '/uploads/vuon-hoa-vinhomes-saigon-park-1-1782671144098.webp': '/uploads/vuon-hoa-vinhomes-saigon-park-1-1782671144098-news-thumb.webp',
@@ -214,6 +220,7 @@ export default function NewsList({
   const displayArticleImage = getFeaturedNewsImageUrl(
     displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600",
   );
+  const displayArticleAvif = getFeaturedNewsAvifUrl(displayArticleImage);
 
   const trendingNews = [...contextNews]
     .filter(n => !middleGridIds.has(n.id))
@@ -429,19 +436,22 @@ export default function NewsList({
                     {/* Cover highlight */}
                     <div className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors">
                       <div className="h-[260px] overflow-hidden relative">
-                        <link rel="preload" as="image" href={displayArticleImage} fetchPriority="high" />
-                        <img
-                          src={displayArticleImage}
-                          alt={displayArticle?.title || 'Tin tức bất động sản nổi bật'}
-                          width={520}
-                          height={293}
-                          loading="eager"
-                          fetchPriority="high"
-                          decoding="sync"
-                          referrerPolicy="no-referrer"
-                          onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
-                          className="motion-media w-full h-full object-cover group-hover:scale-105"
-                        />
+                        <link rel="preload" as="image" href={displayArticleAvif || displayArticleImage} type={displayArticleAvif ? 'image/avif' : undefined} fetchPriority="high" />
+                        <picture className="block w-full h-full">
+                          {displayArticleAvif && <source srcSet={displayArticleAvif} type="image/avif" />}
+                          <img
+                            src={displayArticleImage}
+                            alt={displayArticle?.title || 'Tin tức bất động sản nổi bật'}
+                            width={520}
+                            height={293}
+                            loading="eager"
+                            fetchPriority="high"
+                            decoding="sync"
+                            referrerPolicy="no-referrer"
+                            onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
+                            className="motion-media block w-full h-full object-cover group-hover:scale-105"
+                          />
+                        </picture>
                       </div>
 
                       <div className="p-5 flex flex-col border-t border-border-color bg-bg-surface">

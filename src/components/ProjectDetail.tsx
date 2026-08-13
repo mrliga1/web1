@@ -56,6 +56,36 @@ type ProjectTabId =
   | "news"
   | "contact";
 
+const PROJECT_OVERVIEW_THUMBNAILS: Array<[string, string]> = [
+  ["phoi-canh1-1779376605019.webp", "/uploads/vinhomes-can-gio-thumb-01.webp"],
+  ["vinhomes-saigon-park-1-1780609285395.webp", "/uploads/vinhomes-can-gio-thumb-02.webp"],
+  ["phoi-cnh-vinhomes-saigon-park-1-1780610276714.webp", "/uploads/vinhomes-can-gio-thumb-03.webp"],
+  ["phoi-cnh-vinhomes-saigon-park-2-1780610305698.webp", "/uploads/vinhomes-can-gio-thumb-04.webp"],
+  ["mat-bang-tien-ich-vinhomes-saigon-park-1780610350955.webp", "/uploads/vinhomes-can-gio-thumb-05.webp"],
+  ["vinhomes-saigon-park-5-1780609575960.webp", "/uploads/vinhomes-can-gio-thumb-06.webp"],
+  ["vinhomes-saigon-park-3-1780609510668.webp", "/uploads/vinhomes-can-gio-thumb-07.webp"],
+  ["vinhomes-saigon-park-2-1780609423834.webp", "/uploads/vinhomes-can-gio-thumb-08.webp"],
+  ["cong-vien-vinwonrder-saigon-park1-1780610480680.webp", "/uploads/vinhomes-can-gio-thumb-09.webp"],
+  ["vinwonrder-saigon-park-1780610393757.webp", "/uploads/vinhomes-can-gio-thumb-10.webp"],
+  ["tien-ich-vinhomes-saigon-park-3-1780610628768.webp", "/uploads/vinhomes-can-gio-thumb-11.webp"],
+  ["tien-ich-vinhomes-saigon-park-2-1780610600359.webp", "/uploads/vinhomes-can-gio-thumb-12.webp"],
+  ["vuon-hoa-vinhomes-saigon-park-1780610896882.webp", "/uploads/vinhomes-can-gio-thumb-13.webp"],
+];
+
+function getProjectOverviewThumbnail(url: string | undefined) {
+  if (!url) return undefined;
+  return PROJECT_OVERVIEW_THUMBNAILS.find(([name]) => url.includes(name))?.[1];
+}
+
+function getLocalProjectHeroSources(url: string | undefined) {
+  if (!url?.includes("phoi-canh1-1779376605019.webp")) return null;
+  return {
+    avif: "/uploads/vinhomes-can-gio-detail-lcp.avif",
+    webp: "/uploads/vinhomes-can-gio-detail-lcp.webp",
+    mobileWebp: "/uploads/vinhomes-can-gio-detail-lcp-mobile.webp",
+  };
+}
+
 import { notifyAdminEmail } from "../lib/email";
 import { fetchClientIp } from "../lib/ip";
 
@@ -671,6 +701,7 @@ export default function ProjectDetail({
             // Only show center, prev, next visually to keep it clean and avoid rendering many huge DOM nodes
             const isVisible = isCenter || isPrev || isNext;
             if (!isVisible && galleryImages.length > 3) return null;
+            const localHeroSources = idx === 0 ? getLocalProjectHeroSources(img) : null;
 
             let translation = "translate-x-[200%] opacity-0 scale-75";
             if (isCenter)
@@ -693,18 +724,40 @@ export default function ProjectDetail({
                   }
                 }}
               >
-                <NextImage
-                  priority={idx === 0}
-                  decoding="async"
-                  src={img || "/no-image.svg"}
-                  sizes="(max-width: 1024px) 100vw, 1200px"
-                  alt={`${project.title} - Image ${idx + 1}`}
-                  width={1200}
-                  height={675}
-                  quality={60}
-                  referrerPolicy="no-referrer"
-                  className={`w-full max-h-[85vh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-700 ${isCenter ? "ring-1 ring-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)]" : "cursor-pointer"}`}
-                />
+                {localHeroSources ? (
+                  <>
+                    <link rel="preload" as="image" href={localHeroSources.mobileWebp} type="image/webp" media="(max-width: 767px)" fetchPriority="high" />
+                    <link rel="preload" as="image" href={localHeroSources.avif} type="image/avif" media="(min-width: 768px)" fetchPriority="high" />
+                    <picture className="block w-full">
+                      <source srcSet={localHeroSources.mobileWebp} type="image/webp" media="(max-width: 767px)" />
+                      <source srcSet={localHeroSources.avif} type="image/avif" />
+                      <img
+                        src={localHeroSources.webp}
+                        alt={`${project.title} - Image ${idx + 1}`}
+                        width={1200}
+                        height={750}
+                        loading="eager"
+                        fetchPriority="high"
+                        decoding="async"
+                        referrerPolicy="no-referrer"
+                        className={`block w-full max-h-[85vh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-700 ${isCenter ? "ring-1 ring-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)]" : "cursor-pointer"}`}
+                      />
+                    </picture>
+                  </>
+                ) : (
+                  <NextImage
+                    priority={false}
+                    decoding="async"
+                    src={img || "/no-image.svg"}
+                    sizes="(max-width: 1024px) 100vw, 1200px"
+                    alt={`${project.title} - Image ${idx + 1}`}
+                    width={1200}
+                    height={675}
+                    quality={60}
+                    referrerPolicy="no-referrer"
+                    className={`w-full max-h-[85vh] object-contain rounded-md sm:rounded-lg shadow-2xl transition-all duration-700 ${isCenter ? "ring-1 ring-white/20 shadow-[0_0_50px_rgba(0,0,0,0.5)]" : "cursor-pointer"}`}
+                  />
+                )}
               </div>
             );
           })}
@@ -761,7 +814,7 @@ export default function ProjectDetail({
                 <img
                   loading="lazy"
                   decoding="async"
-                  src={img ? optimizeImageUrl(img, 200) : undefined}
+                  src={getProjectOverviewThumbnail(img) || (img ? optimizeImageUrl(img, 200) : undefined)}
                   width={200}
                   height={150}
                   alt={`Hình thu nhỏ tổng quan ${project.title} - ${idx + 1}`}

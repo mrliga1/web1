@@ -85,7 +85,13 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
       const urlObj = new URL(finalUrl);
       urlObj.searchParams.set('auto', 'format,compress');
       urlObj.searchParams.set('q', '75');
-      if (width) urlObj.searchParams.set('w', width.toString());
+      if (width) {
+        urlObj.searchParams.set('w', width.toString());
+        if (urlObj.pathname.includes('photo-1512917774080-9991f1c4c750')) {
+          urlObj.searchParams.set('h', Math.round(width * 9 / 16).toString());
+          urlObj.searchParams.set('fit', 'crop');
+        }
+      }
       return urlObj.toString();
     } catch {
       // Dự phòng khi URL không parse được.

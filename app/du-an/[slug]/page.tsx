@@ -6,6 +6,9 @@ import {
   getPublishedNews,
   getPublishedProducts,
   getPublishedProjects,
+  toNewsListItem,
+  toProductListItem,
+  toProjectListItem,
 } from "../../../src/lib/serverContent";
 import { createProjectSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
@@ -14,6 +17,21 @@ import { generateSlug, getSocialImageUrl } from "../../../src/lib/utils";
 export const revalidate = 60;
 
 const SITE_URL = "https://greeniahomes.vn";
+const PROJECT_ASSET_REPLACEMENTS: Record<string, string> = {
+  "vinhomes-saigon-park-1-1781806643258.webp": "vinhomes-saigon-park-1-1780609285395.webp",
+  "phoi-cnh-vinhomes-saigon-park-1-1781806400977.webp": "phoi-cnh-vinhomes-saigon-park-1-1780610276714.webp",
+  "phoi-cnh-vinhomes-saigon-park-2-1781806428580.webp": "phoi-cnh-vinhomes-saigon-park-2-1780610305698.webp",
+  "mat-bang-tien-ich-vinhomes-saigon-park-1781806443405.webp": "mat-bang-tien-ich-vinhomes-saigon-park-1780610350955.webp",
+  "vinhomes-saigon-park-5-1781806460409.webp": "vinhomes-saigon-park-5-1780609575960.webp",
+  "vinhomes-saigon-park-4-1781806481868.webp": "vinhomes-saigon-park-3-1780609510668.webp",
+  "vinhomes-saigon-park-2-1781806532525.webp": "vinhomes-saigon-park-2-1780609423834.webp",
+  "tien-ich-vinhomes-saigon-park-3-1781806554429.webp": "tien-ich-vinhomes-saigon-park-3-1780610628768.webp",
+  "cong-vien-vinwonrder-saigon-park1-1781806591634.webp": "cong-vien-vinwonrder-saigon-park1-1780610480680.webp",
+  "vinwonrder-saigon-park-1781806621598.webp": "vinwonrder-saigon-park-1780610393757.webp",
+  "tien-ich-vinhomes-saigon-park-2-1781806678461.webp": "tien-ich-vinhomes-saigon-park-2-1780610600359.webp",
+  "vuon-hoa-vinhomes-saigon-park-1781806711765.webp": "vuon-hoa-vinhomes-saigon-park-1780610896882.webp",
+  "nha-pho-vinhomes-saigon-park-1780242562020.webp": "nha-pho-vinhomes-saigon-park-1779377463400.webp",
+};
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -37,6 +55,14 @@ function getCategoryTarget(value?: string) {
   } catch {
     return categoryMatch[1].trim();
   }
+}
+
+function replaceKnownProjectAssets<T>(value: T): T {
+  let serialized = JSON.stringify(value);
+  for (const [missingName, availableName] of Object.entries(PROJECT_ASSET_REPLACEMENTS)) {
+    serialized = serialized.replaceAll(missingName, availableName);
+  }
+  return JSON.parse(serialized) as T;
 }
 
 function removeTrailingBrand(title: string) {
@@ -114,22 +140,24 @@ export default async function ProjectDetailPage({ params }: Props) {
 
   if (!project) notFound();
 
-  const newsCategoryTarget = getCategoryTarget(project.newsCategoryUrl).toLowerCase();
-  const productCategoryTarget = getCategoryTarget(project.productCategoryUrl).toLowerCase();
+  const optimizedProject = replaceKnownProjectAssets(project);
+
+  const newsCategoryTarget = getCategoryTarget(optimizedProject.newsCategoryUrl).toLowerCase();
+  const productCategoryTarget = getCategoryTarget(optimizedProject.productCategoryUrl).toLowerCase();
   const news = newsRows.map(({ id, data }) => ({ ...data, id }));
   const products = productRows.map(({ id, data }) => ({ ...data, id }));
-  const relatedNews = (
+  const relatedNewsRows = (
     newsCategoryTarget
       ? news.filter((item) => item.category?.trim().toLowerCase() === newsCategoryTarget)
       : news
   ).slice(0, 6);
-  const relatedProducts = (
+  const relatedProductRows = (
     productCategoryTarget
       ? products.filter((item) => item.category?.trim().toLowerCase() === productCategoryTarget)
       : products
   ).slice(0, 5);
 
-  const { listing, breadcrumb } = createProjectSchemas(project, slug);
+  const { listing, breadcrumb } = createProjectSchemas(optimizedProject, slug);
 
   return (
     <>
@@ -137,10 +165,10 @@ export default async function ProjectDetailPage({ params }: Props) {
       <SchemaMarkup schema={breadcrumb} />
       <ClientWrapper
         slug={slug}
-        initialProject={project}
-        initialNews={relatedNews}
-        initialProducts={relatedProducts}
-        initialProjects={projectRows.slice(0, 5).map(({ id, data }) => ({ ...data, id }))}
+        initialProject={optimizedProject}
+        initialNews={relatedNewsRows.map((item) => toNewsListItem(item.id, item))}
+        initialProducts={relatedProductRows.map((item) => toProductListItem(item.id, item))}
+        initialProjects={projectRows.slice(0, 5).map(({ id, data }) => toProjectListItem(id, data))}
       />
     </>
   );

@@ -421,7 +421,7 @@ div#app-workspace-flow:nth-of-type(2) > main#main-viewport:nth-of-type(1) > div:
 }
 
 .motion-float {
-  animation: softFloat 3.4s var(--motion-ease) infinite;
+  transition: transform var(--motion-base) var(--motion-ease);
 }
 
 .motion-delay-1 {
@@ -433,6 +433,11 @@ div#app-workspace-flow:nth-of-type(2) > main#main-viewport:nth-of-type(1) > div:
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .group:hover .motion-float,
+  .group:focus-within .motion-float {
+    transform: translate3d(0, -3px, 0) scale(1.03);
+  }
+
   .motion-card:hover {
     transform: translateY(-3px) scale(1.01);
     box-shadow: var(--shadow-elevation);

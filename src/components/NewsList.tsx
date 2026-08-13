@@ -54,13 +54,20 @@ function getFeaturedNewsImageUrl(url: string) {
   if (localUrl === '/uploads/thuc-te-vinwonders-quan-9-1779377331030.webp') {
     return '/uploads/thuc-te-vinwonders-quan-9-1779377331030-lcp.webp';
   }
+  if (localUrl.includes('images.unsplash.com/photo-1600585154340-be6161a56a0c')) {
+    return '/uploads/kiem-tra-bai-viet-moi-lcp.webp';
+  }
   return localUrl.startsWith('/') ? localUrl : optimizeImageUrl(localUrl, 800);
 }
 
 function getFeaturedNewsAvifUrl(url: string) {
-  return url === '/uploads/thuc-te-vinwonders-quan-9-1779377331030-lcp.webp'
-    ? '/uploads/thuc-te-vinwonders-quan-9-1779377331030-lcp.avif'
-    : null;
+  if (url === '/uploads/thuc-te-vinwonders-quan-9-1779377331030-lcp.webp') {
+    return '/uploads/thuc-te-vinwonders-quan-9-1779377331030-lcp.avif';
+  }
+  if (url === '/uploads/kiem-tra-bai-viet-moi-lcp.webp') {
+    return '/uploads/kiem-tra-bai-viet-moi-lcp.avif';
+  }
+  return null;
 }
 
 const NEWS_SUPPORTING_IMAGE_VARIANTS: Record<string, string> = {

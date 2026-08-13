@@ -17,6 +17,16 @@ function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void
   }
 }
 
+function getLocalNewsHeroSources(url: string | undefined) {
+  if (url?.includes('images.unsplash.com/photo-1600585154340-be6161a56a0c')) {
+    return {
+      avif: '/uploads/kiem-tra-bai-viet-moi-lcp.avif',
+      webp: '/uploads/kiem-tra-bai-viet-moi-lcp.webp',
+    };
+  }
+  return null;
+}
+
 interface NewsDetailProps {
   newsId: string;
   slug?: string;
@@ -349,6 +359,7 @@ export default function NewsDetail({
   }
 
   if (!article) return null;
+  const localHeroSources = getLocalNewsHeroSources(article.imageUrl);
 
   // Related articles (News share the same category, excluding active one)
   const relatedNews = allNews.filter(n => n.category === article.category && n.id !== article.id);
@@ -425,7 +436,17 @@ export default function NewsDetail({
           
           {/* Main big cover photo */}
           <div className="relative aspect-[16/9] overflow-hidden rounded-lg border border-border-color bg-bg-surface">
-            <NextImage priority decoding="async" src={article.imageUrl || "/no-image.svg"} sizes="(max-width: 1024px) 100vw, 800px" alt={article.title} width={1200} height={675} quality={60} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            {localHeroSources ? (
+              <>
+                <link rel="preload" as="image" href={localHeroSources.avif} type="image/avif" fetchPriority="high" />
+                <picture className="block w-full h-full">
+                  <source srcSet={localHeroSources.avif} type="image/avif" />
+                  <img src={localHeroSources.webp} alt={article.title} width={1200} height={675} loading="eager" fetchPriority="high" decoding="sync" className="block w-full h-full object-cover" referrerPolicy="no-referrer" />
+                </picture>
+              </>
+            ) : (
+              <NextImage priority decoding="async" src={article.imageUrl || "/no-image.svg"} sizes="(max-width: 1024px) 100vw, 800px" alt={article.title} width={1200} height={675} quality={60} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            )}
           </div>
 
           {/* HTML rendered prose */}

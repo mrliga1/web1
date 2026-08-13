@@ -437,7 +437,7 @@ export default function NewsList({
                           height={293}
                           loading="eager"
                           fetchPriority="high"
-                          decoding="async"
+                          decoding="sync"
                           referrerPolicy="no-referrer"
                           onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
                           className="motion-media w-full h-full object-cover group-hover:scale-105"

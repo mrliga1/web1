@@ -87,6 +87,14 @@ function getLocalRepositoryAssetUrl(url: string): string {
   return url;
 }
 
+function getNavigationLogoUrl(url: string): string {
+  const localUrl = getLocalRepositoryAssetUrl(url);
+  if (localUrl === "/uploads/favicon-1782158564445.webp") {
+    return "/uploads/favicon-1782158564445-nav.webp";
+  }
+  return optimizeImageUrl(localUrl, 100);
+}
+
 function toHomeProduct(product: Product): Product {
   return {
     id: product.id,
@@ -250,7 +258,7 @@ async function loadInitialSiteSettings(): Promise<InitialSiteSettings> {
     const logoUrl = typeof settings?.logoUrl === "string" ? settings.logoUrl : "";
 
     return {
-      logoUrl: optimizeImageUrl(getLocalRepositoryAssetUrl(logoUrl), 100),
+      logoUrl: getNavigationLogoUrl(logoUrl),
       loaded: true,
     };
   } catch (error) {

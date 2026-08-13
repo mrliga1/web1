@@ -7,6 +7,9 @@ import {
   getPublishedNews,
   getPublishedProducts,
   getPublishedProjects,
+  toNewsListItem,
+  toProductListItem,
+  toProjectListItem,
 } from "../../../src/lib/serverContent";
 
 export const revalidate = 60;
@@ -74,10 +77,10 @@ export default async function CategoryNewsPage({
   return (
     <ClientWrapper
       categoryName={categoryName}
-      initialNews={newsRows.map(({ id, data }) => ({ ...data, id }))}
-      initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
-      initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
-      initialGeneralSettings={generalSettings}
+      initialNews={newsRows.map(({ id, data }) => toNewsListItem(id, data))}
+      initialProducts={productRows.map(({ id, data }) => toProductListItem(id, data))}
+      initialProjects={projectRows.map(({ id, data }) => toProjectListItem(id, data))}
+      initialGeneralSettings={{ newsCategoriesExt: generalSettings.newsCategoriesExt }}
       initialSections={initialSections}
     />
   );

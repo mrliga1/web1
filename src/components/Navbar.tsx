@@ -71,7 +71,6 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
               <img loading="eager" decoding="async" 
                 src={(logoUrl) || undefined} 
                 alt="Greenia Homes" 
-                fetchPriority="high"
                 className="motion-media h-7 md:h-8 max-h-9 w-auto object-contain shrink-0 group-hover:scale-105"
                 referrerPolicy="no-referrer"
                 width={120}

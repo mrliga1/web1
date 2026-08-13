@@ -2,7 +2,7 @@ import "server-only";
 
 import { unstable_cache } from "next/cache";
 import { supabase } from "../supabase";
-import type { News, Product, Project, VisualSection } from "../types";
+import type { GeneralSettingsData, News, Product, Project, VisualSection } from "../types";
 import { generateSlug } from "./utils";
 import { deserializeSectionsFromDatabase } from "./layoutUtils";
 import { getPageDefaultSections } from "./layouts";
@@ -16,7 +16,7 @@ interface ContentRow<T extends PublicContent> {
   data: T;
 }
 
-export type PublicSettingsData = Record<string, unknown>;
+export type PublicSettingsData = GeneralSettingsData;
 
 const getContentRows = unstable_cache(
   async (table: ContentTable): Promise<ContentRow<PublicContent>[]> => {
@@ -127,6 +127,65 @@ export const getPublishedNews = () => getPublishedRows<News>("news");
 
 export const getPublishedProjects = () =>
   getPublishedRows<Project>("projects");
+
+export function toNewsListItem(id: string, data: News): News {
+  return {
+    id,
+    title: data.title || "",
+    description: data.description || "",
+    content: "",
+    category: data.category || "",
+    imageUrl: data.imageUrl || "",
+    thumbnail: data.thumbnail,
+    viewsCount: data.viewsCount || 0,
+    author: data.author || "",
+    createdAt: data.createdAt || "",
+    approvalStatus: data.approvalStatus,
+  };
+}
+
+export function toProductListItem(id: string, data: Product): Product {
+  return {
+    id,
+    title: data.title || "",
+    priceText: data.priceText || data.price || "",
+    priceVal: data.priceVal || 0,
+    type: data.type || "sale",
+    district: data.district || data.location || "",
+    street: data.street,
+    phone: data.phone || "",
+    imageUrl: data.imageUrl || data.imageUrls?.[0] || "",
+    imageUrls: data.imageUrls?.[0] ? [data.imageUrls[0]] : undefined,
+    area: data.area,
+    bedrooms: data.bedrooms,
+    toilets: data.toilets,
+    category: data.category || "",
+    location: data.location,
+    viewsCount: data.viewsCount || 0,
+    createdAt: data.createdAt || "",
+    createdBy: data.createdBy || "",
+    createdByRole: data.createdByRole || "member",
+    approvalStatus: data.approvalStatus || "approved",
+  };
+}
+
+export function toProjectListItem(id: string, data: Project): Project {
+  return {
+    id,
+    title: data.title || "",
+    priceText: data.priceText || "",
+    priceVal: data.priceVal || 0,
+    location: data.location || "",
+    units: data.units,
+    imageUrl: data.imageUrl || data.imageUrls?.[0] || data.images?.[0] || "",
+    status: data.status || "opening",
+    description: "",
+    scale: data.scale,
+    viewsCount: data.viewsCount || 0,
+    createdAt: data.createdAt || "",
+    approvalStatus: data.approvalStatus,
+  };
+}
 
 export const getPublicSettings = (id: "general" | "filters") =>
   getSettingsRow(id);

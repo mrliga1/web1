@@ -68,6 +68,25 @@ function getCreatedAtTimestamp(value: unknown): number {
   return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
+function getLocalRepositoryAssetUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const rawPrefix = "/mrliga1/web1/main/public/";
+    const cdnPrefix = "/gh/mrliga1/web1@main/public/";
+
+    if (parsed.hostname === "raw.githubusercontent.com" && parsed.pathname.startsWith(rawPrefix)) {
+      return `/${parsed.pathname.slice(rawPrefix.length)}`;
+    }
+    if (parsed.hostname === "cdn.jsdelivr.net" && parsed.pathname.startsWith(cdnPrefix)) {
+      return `/${parsed.pathname.slice(cdnPrefix.length)}`;
+    }
+  } catch {
+    // Giữ URL gốc nếu dữ liệu nhận diện không phải URL hợp lệ.
+  }
+
+  return url;
+}
+
 function toHomeProduct(product: Product): Product {
   return {
     id: product.id,
@@ -231,7 +250,7 @@ async function loadInitialSiteSettings(): Promise<InitialSiteSettings> {
     const logoUrl = typeof settings?.logoUrl === "string" ? settings.logoUrl : "";
 
     return {
-      logoUrl: optimizeImageUrl(logoUrl, 100),
+      logoUrl: optimizeImageUrl(getLocalRepositoryAssetUrl(logoUrl), 100),
       loaded: true,
     };
   } catch (error) {

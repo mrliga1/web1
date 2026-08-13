@@ -137,10 +137,35 @@ export default function ProjectDetail({
   >(initialProject?.floorPlanTabs?.[0]?.id || null);
   const [showShareMenu, setShowShareMenu] = useState(false);
   const scrollDirection = useScrollDirection();
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const [shouldLoadMap, setShouldLoadMap] = useState(false);
 
   useEffect(() => {
     projectRef.current = project;
   }, [project]);
+
+  useEffect(() => {
+    if (!project || shouldLoadMap) return;
+
+    const container = mapContainerRef.current;
+    if (!container || typeof IntersectionObserver === "undefined") {
+      setShouldLoadMap(true);
+      return;
+    }
+
+    // Chỉ tải Google Maps khi người dùng cuộn gần khu vực bản đồ để giảm JavaScript đầu trang.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setShouldLoadMap(true);
+        observer.disconnect();
+      },
+      { rootMargin: "300px 0px" },
+    );
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [project, shouldLoadMap]);
 
   const hasSubdivisionContent = useMemo(() => {
     if (!project) return false;
@@ -575,27 +600,39 @@ export default function ProjectDetail({
     ) {
       return (
         <div
+          ref={mapContainerRef}
           className="w-full aspect-[16/9] rounded-xl overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
-          dangerouslySetInnerHTML={{
-            __html: sanitizeRichHtml(
-              project.mapHtml.includes("iframe")
-              ? project.mapHtml
-              : `<iframe title="Bản đồ ${project.title}" src="${project.mapHtml}"></iframe>`,
-            ),
-          }}
+          {...(shouldLoadMap
+            ? {
+                dangerouslySetInnerHTML: {
+                  __html: sanitizeRichHtml(
+                    project.mapHtml.includes("iframe")
+                      ? project.mapHtml
+                      : `<iframe loading="lazy" title="Bản đồ ${project.title}" src="${project.mapHtml}"></iframe>`,
+                  ),
+                },
+              }
+            : {})}
         />
       );
     }
     if (project.location) {
       return (
-        <div className="w-full aspect-[16/9] rounded-xl overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0">
-          <iframe title={`Bản đồ Google Maps cho ${project.title}`}
-            src={`https://maps.google.com/maps?q=${encodeURIComponent(project.location)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-            frameBorder="0"
-            scrolling="no"
-            marginHeight={0}
-            marginWidth={0}
-          ></iframe>
+        <div
+          ref={mapContainerRef}
+          className="w-full aspect-[16/9] rounded-xl overflow-hidden border border-border-color shadow-inner bg-bg-surface [&_iframe]:w-full [&_iframe]:h-full [&_iframe]:border-0"
+        >
+          {shouldLoadMap && (
+            <iframe
+              loading="lazy"
+              title={`Bản đồ Google Maps cho ${project.title}`}
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(project.location)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+              frameBorder="0"
+              scrolling="no"
+              marginHeight={0}
+              marginWidth={0}
+            ></iframe>
+          )}
         </div>
       );
     }
@@ -611,7 +648,7 @@ export default function ProjectDetail({
         </p>
       </div>
     );
-  }, [project]);
+  }, [project, shouldLoadMap]);
 
   const renderCustomSections = (position: string) => {
     if (!project?.customSections) return null;

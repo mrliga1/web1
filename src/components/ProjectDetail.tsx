@@ -86,6 +86,17 @@ function getLocalProjectHeroSources(url: string | undefined) {
   };
 }
 
+const COLLAPSED_PROJECT_CONTENT_CLASS =
+  "max-h-[calc(100dvh-210px)] md:max-h-[calc(100dvh-230px)]";
+const COLLAPSED_PROJECT_LOCATION_CONTENT_CLASS =
+  "max-h-[calc(100dvh-360px)] md:max-h-[calc(100dvh-600px)]";
+const PROJECT_READ_MORE_BUTTON_CLASS =
+  "flex items-center gap-2 text-primary hover:text-primary-light font-medium text-[13px] md:text-sm transition-colors mt-3";
+const PROJECT_FORM_FIELD_CLASS =
+  "w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-[13px] py-2 px-3.5 text-text-primary placeholder-text-secondary";
+const PROJECT_CHECKBOX_CLASS =
+  "mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer rounded border-border-color bg-bg-surface text-primary focus:ring-transparent";
+
 import { notifyAdminEmail } from "../lib/email";
 import { fetchClientIp } from "../lib/ip";
 
@@ -1128,7 +1139,7 @@ export default function ProjectDetail({
               <div className="space-y-4">
                 <div className="relative">
                   <div
-                    className={`prose prose-invert prose-p:mb-[10px] prose-img:my-[20px] prose-a:text-primary hover:prose-a:text-primary prose-a:font-medium prose-a:underline max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ease-in-out ${isDescriptionExpanded ? "max-h-none" : "max-h-[300px]"}`}
+                    className={`prose prose-invert prose-p:mb-[10px] prose-img:my-[20px] prose-a:text-primary hover:prose-a:text-primary prose-a:font-medium prose-a:underline max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ease-in-out ${isDescriptionExpanded ? "max-h-none" : COLLAPSED_PROJECT_CONTENT_CLASS}`}
                     dangerouslySetInnerHTML={{
                       __html:
                         safeProjectDescription ||
@@ -1136,9 +1147,6 @@ export default function ProjectDetail({
                     }}
                   />
 
-                  {project.description && !isDescriptionExpanded && (
-                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-                  )}
                 </div>
 
                 {project.description && (
@@ -1146,7 +1154,7 @@ export default function ProjectDetail({
                     onClick={() =>
                       setIsDescriptionExpanded(!isDescriptionExpanded)
                     }
-                    className="flex items-center gap-2 text-primary hover:text-primary font-medium text-[13px] md:text-sm transition-colors mt-2"
+                    className={PROJECT_READ_MORE_BUTTON_CLASS}
                   >
                     {isDescriptionExpanded ? (
                       <>
@@ -1198,14 +1206,11 @@ export default function ProjectDetail({
                   {project.subdivisionTab && (
                     <div className="relative">
                       <div
-                        className={`prose prose-invert prose-a:text-primary hover:prose-a:text-primary prose-a:font-medium prose-a:underline max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ease-in-out ${isSubdivisionExpanded ? "max-h-none" : "max-h-[300px]"}`}
+                        className={`prose prose-invert prose-a:text-primary hover:prose-a:text-primary prose-a:font-medium prose-a:underline max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ease-in-out ${isSubdivisionExpanded ? "max-h-none" : COLLAPSED_PROJECT_CONTENT_CLASS}`}
                         dangerouslySetInnerHTML={{
                           __html: sanitizeRichHtml(project.subdivisionTab),
                         }}
                       />
-                      {!isSubdivisionExpanded && (
-                        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-                      )}
                     </div>
                   )}
                   {project.subdivisionTab && (
@@ -1213,7 +1218,7 @@ export default function ProjectDetail({
                       onClick={() =>
                         setIsSubdivisionExpanded(!isSubdivisionExpanded)
                       }
-                      className="flex items-center gap-2 text-primary hover:text-primary font-medium text-[13px] md:text-sm transition-colors mt-2"
+                      className={PROJECT_READ_MORE_BUTTON_CLASS}
                     >
                       {isSubdivisionExpanded ? (
                         <>
@@ -1356,22 +1361,19 @@ export default function ProjectDetail({
                 {/* Nội dung chi tiết với xem thêm / thu gọn */}
                 <div className="relative">
                   <div
-                    className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isLocationExpanded ? "" : "max-h-[250px]"}`}
+                    className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isLocationExpanded ? "max-h-none" : COLLAPSED_PROJECT_LOCATION_CONTENT_CLASS}`}
                     dangerouslySetInnerHTML={{
                       __html:
                         safeLocationTab ||
                         "<p>Chưa có bài viết giới thiệu vị trí cụ thể.</p>",
                     }}
                   />
-                  {!isLocationExpanded && project.locationTab && (
-                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-                  )}
                 </div>
 
                 {project.locationTab && (
                   <button
                     onClick={() => setIsLocationExpanded(!isLocationExpanded)}
-                    className="flex items-center gap-2 text-primary hover:text-primary font-medium text-[13px] md:text-sm transition-colors mt-2"
+                    className={PROJECT_READ_MORE_BUTTON_CLASS}
                   >
                     {isLocationExpanded ? (
                       <>
@@ -1403,22 +1405,19 @@ export default function ProjectDetail({
               <div className="space-y-6">
                 <div className="relative">
                   <div
-                    className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isAmenityExpanded ? "" : "max-h-[250px]"}`}
+                    className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isAmenityExpanded ? "max-h-none" : COLLAPSED_PROJECT_CONTENT_CLASS}`}
                     dangerouslySetInnerHTML={{
                       __html:
                         safeAmenityTab ||
                         `<p>${project.title} sở hữu hệ sinh thái tiện ích đẳng cấp, đáp ứng trọn vẹn mọi nhu cầu sống, học tập, làm việc và giải trí.</p>`,
                     }}
                   />
-                  {!isAmenityExpanded && project.amenityTab && (
-                    <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-                  )}
                 </div>
 
                 {project.amenityTab && (
                   <button
                     onClick={() => setIsAmenityExpanded(!isAmenityExpanded)}
-                    className="flex items-center gap-2 text-primary hover:text-primary font-medium text-[13px] md:text-sm transition-colors mt-2"
+                    className={PROJECT_READ_MORE_BUTTON_CLASS}
                   >
                     {isAmenityExpanded ? (
                       <>
@@ -1611,17 +1610,14 @@ export default function ProjectDetail({
                 <div className="space-y-6">
                   <div className="relative">
                     <div
-                      className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isFloorPlanExpanded ? "" : "max-h-[250px]"}`}
+                      className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isFloorPlanExpanded ? "max-h-none" : COLLAPSED_PROJECT_CONTENT_CLASS}`}
                       dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(project.floorPlanTab) }}
                     />
-                    {!isFloorPlanExpanded && project.floorPlanTab && (
-                      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-                    )}
                   </div>
 
                   <button
                     onClick={() => setIsFloorPlanExpanded(!isFloorPlanExpanded)}
-                    className="flex items-center gap-2 text-primary hover:text-primary font-medium text-[13px] md:text-sm transition-colors mt-2"
+                    className={PROJECT_READ_MORE_BUTTON_CLASS}
                   >
                     {isFloorPlanExpanded ? (
                       <>
@@ -1823,18 +1819,15 @@ export default function ProjectDetail({
                 <div className="space-y-6">
                   <div className="relative">
                     <div
-                      className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isPriceExpanded ? "" : "max-h-[250px]"}`}
+                      className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isPriceExpanded ? "max-h-none" : COLLAPSED_PROJECT_CONTENT_CLASS}`}
                       dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(project.priceTab) }}
                     />
-                    {!isPriceExpanded && project.priceTab && (
-                      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-                    )}
                   </div>
 
                   {project.priceTab && (
                     <button
                       onClick={() => setIsPriceExpanded(!isPriceExpanded)}
-                      className="flex items-center gap-2 text-primary hover:text-primary font-medium text-[13px] md:text-sm transition-colors mt-2"
+                      className={PROJECT_READ_MORE_BUTTON_CLASS}
                     >
                       {isPriceExpanded ? (
                         <>
@@ -1937,12 +1930,9 @@ export default function ProjectDetail({
                 ) : project.qaTab ? (
                   <div className="relative">
                     <div
-                      className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isQaExpanded ? "" : "max-h-[250px]"}`}
+                      className={`prose prose-invert max-w-none text-text-secondary text-[13px] md:text-[15px] overflow-hidden transition-all duration-500 ${isQaExpanded ? "max-h-none" : COLLAPSED_PROJECT_CONTENT_CLASS}`}
                       dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(project.qaTab) }}
                     />
-                    {!isQaExpanded && (
-                      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black to-transparent pointer-events-none" />
-                    )}
                   </div>
                 ) : (
                   <p className="text-text-secondary italic">
@@ -1954,7 +1944,7 @@ export default function ProjectDetail({
                   project.qaTab && (
                     <button
                       onClick={() => setIsQaExpanded(!isQaExpanded)}
-                      className="flex items-center gap-2 text-primary hover:text-primary font-medium text-[13px] md:text-sm transition-colors mt-2"
+                      className={PROJECT_READ_MORE_BUTTON_CLASS}
                     >
                       {isQaExpanded ? (
                         <>
@@ -2154,7 +2144,7 @@ export default function ProjectDetail({
                         value={clientName}
                         onChange={(e) => setClientName(e.target.value)}
                         placeholder="Họ tên *"
-                        className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        className={PROJECT_FORM_FIELD_CLASS}
                         required
                       />
                     </div>
@@ -2165,7 +2155,7 @@ export default function ProjectDetail({
                         value={clientPhone}
                         onChange={(e) => setClientPhone(e.target.value)}
                         placeholder="Số điện thoại *"
-                        className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        className={PROJECT_FORM_FIELD_CLASS}
                         required
                       />
                     </div>
@@ -2176,7 +2166,7 @@ export default function ProjectDetail({
                         value={clientEmail}
                         onChange={(e) => setClientEmail(e.target.value)}
                         placeholder="Email (Tùy chọn)"
-                        className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                        className={PROJECT_FORM_FIELD_CLASS}
                       />
                     </div>
                     <div className="space-y-1 text-left">
@@ -2186,7 +2176,7 @@ export default function ProjectDetail({
                         onChange={(e) => setClientDemand(e.target.value)}
                         placeholder="Nhu cầu của bạn (Tùy chọn)"
                         rows={3}
-                        className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none"
+                        className={`${PROJECT_FORM_FIELD_CLASS} resize-none`}
                       />
                     </div>
 
@@ -2196,7 +2186,7 @@ export default function ProjectDetail({
                           type="checkbox"
                           checked={agreeTerms}
                           onChange={(e) => setAgreeTerms(e.target.checked)}
-                          className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-6 w-6 shrink-0 cursor-pointer"
+                          className={PROJECT_CHECKBOX_CLASS}
                         />
                         <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
                           Tôi đã đọc và đồng ý với{" "}
@@ -2217,7 +2207,7 @@ export default function ProjectDetail({
                           type="checkbox"
                           checked={agreePrivacy}
                           onChange={(e) => setAgreePrivacy(e.target.checked)}
-                          className="mt-0.5 rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-6 w-6 shrink-0 cursor-pointer"
+                          className={PROJECT_CHECKBOX_CLASS}
                         />
                         <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
                           Tôi đã đọc và đồng ý với{" "}

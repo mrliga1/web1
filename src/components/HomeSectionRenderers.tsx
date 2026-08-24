@@ -12,6 +12,9 @@ import { Product, Project, News, RouteState, VisualSection } from '../types';
 import { EditableText } from './EditableComponent';
 import ProductCard from './ProductCard';
 
+const HOME_CONSULTATION_FIELD_CLASS =
+  'w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-[12px] px-3.5 text-text-primary placeholder-text-secondary';
+
 interface SectionRendererProps {
   sec: VisualSection;
   isEditMode: boolean;
@@ -134,7 +137,7 @@ const HeroConsultationForm: React.FC<{
               onChange={(e) => setClientName(e.target.value)}
               placeholder="Họ tên *"
               aria-label="Họ tên"
-              className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] h-[35.5px] px-3.5 pt-0 rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all"
+              className={`${HOME_CONSULTATION_FIELD_CLASS} h-[35.5px] pt-0`}
               required
             />
           </div>
@@ -145,7 +148,7 @@ const HeroConsultationForm: React.FC<{
               onChange={(e) => setClientPhone(e.target.value)}
               placeholder="Số điện thoại *"
               aria-label="Số điện thoại"
-              className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 h-[35.5px] rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all"
+              className={`${HOME_CONSULTATION_FIELD_CLASS} h-[35.5px]`}
               required
             />
           </div>
@@ -156,7 +159,7 @@ const HeroConsultationForm: React.FC<{
               onChange={(e) => setClientEmail(e.target.value)}
               placeholder="Email *"
               aria-label="Địa chỉ Email"
-              className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 h-[35.5px] rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all"
+              className={`${HOME_CONSULTATION_FIELD_CLASS} h-[35.5px]`}
               required
             />
           </div>
@@ -167,7 +170,7 @@ const HeroConsultationForm: React.FC<{
               placeholder="Nhu cầu tư vấn (VD: Tôi cần mua để ở...)"
               aria-label="Nhu cầu tư vấn"
               rows={2}
-              className="w-full bg-bg-base border border-border-color text-text-primary text-[12px] px-3.5 py-[5px] h-[55px] rounded-lg outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm focus:shadow-md placeholder-text-secondary transition-all resize-none"
+              className={`${HOME_CONSULTATION_FIELD_CLASS} h-[55px] py-[5px] resize-none`}
             />
           </div>
 

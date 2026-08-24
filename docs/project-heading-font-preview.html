@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mẫu font tiêu đề trang dự án Greenia Homes</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lora:wght@600;700&family=Playfair+Display:wght@600;700&family=Spectral:wght@600;700&display=swap&subset=vietnamese"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+        --green: #064e3b;
+        --gold: #c59a31;
+        --ink: #17241d;
+        --muted: #526159;
+        --line: #d8e0da;
+        --surface: #ffffff;
+        --base: #f3f5f2;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 8% 12%, rgba(197, 154, 49, 0.11), transparent 24rem),
+          var(--base);
+        color: var(--ink);
+        font-family: "Segoe UI", Arial, sans-serif;
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 40px 0 56px;
+      }
+
+      .intro {
+        margin-bottom: 24px;
+      }
+
+      .eyebrow {
+        color: var(--gold);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+      }
+
+      .intro h1 {
+        margin: 8px 0 6px;
+        color: var(--green);
+        font-size: clamp(24px, 4vw, 38px);
+      }
+
+      .intro p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .card {
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--surface);
+        box-shadow: 0 14px 36px rgba(11, 31, 22, 0.08);
+      }
+
+      .card-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid var(--line);
+        padding: 14px 18px;
+      }
+
+      .choice {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .number {
+        display: grid;
+        width: 28px;
+        height: 28px;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--green);
+        color: white;
+      }
+
+      .tone {
+        color: var(--muted);
+        font-size: 11px;
+      }
+
+      .sample {
+        min-height: 260px;
+        padding: 28px 22px 24px;
+        background:
+          linear-gradient(135deg, transparent 0 70%, rgba(6, 78, 59, 0.04) 70% 100%),
+          white;
+      }
+
+      .sample h1,
+      .sample h2 {
+        margin: 0;
+        color: var(--green);
+        line-height: 1.12;
+      }
+
+      .sample h1 {
+        font-size: clamp(29px, 4vw, 42px);
+        letter-spacing: -0.025em;
+      }
+
+      .sample h2 {
+        margin-top: 26px;
+        font-size: clamp(22px, 3vw, 29px);
+      }
+
+      .sample p {
+        margin: 12px 0 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .playfair {
+        font-family: "Playfair Display", Georgia, serif;
+      }
+
+      .cormorant {
+        font-family: "Cormorant Garamond", Georgia, serif;
+      }
+
+      .lora {
+        font-family: "Lora", Georgia, serif;
+      }
+
+      .spectral {
+        font-family: "Spectral", Georgia, serif;
+      }
+
+      @media (max-width: 760px) {
+        main {
+          width: min(100% - 20px, 560px);
+          padding-top: 24px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .sample {
+          min-height: 230px;
+          padding: 24px 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header class="intro">
+        <span class="eyebrow">Greenia Homes · Bản xem trước</span>
+        <h1>Chọn font nghệ thuật cho tiêu đề trang dự án</h1>
+        <p>Bốn mẫu dưới đây chỉ là bản xem trước, chưa được áp dụng vào website.</p>
+      </header>
+
+      <section class="grid" aria-label="Các mẫu font tiêu đề">
+        <article class="card">
+          <div class="card-header">
+            <div class="choice"><span class="number">1</span> Playfair Display</div>
+            <span class="tone">Sang trọng · cổ điển</span>
+          </div>
+          <div class="sample playfair">
+            <h1>Vinhomes Cần Giờ</h1>
+            <p>Mẫu H1 — Khu đô thị biển đẳng cấp, kiến tạo phong cách sống khác biệt.</p>
+            <h2>Tổng quan dự án Vinhomes Cần Giờ</h2>
+            <p>Mẫu H2 — Vị trí, tiện ích, mặt bằng và chính sách giá bán.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <div class="choice"><span class="number">2</span> Cormorant Garamond</div>
+            <span class="tone">Nghệ thuật · mềm mại</span>
+          </div>
+          <div class="sample cormorant">
+            <h1>Vinhomes Cần Giờ</h1>
+            <p>Mẫu H1 — Khu đô thị biển đẳng cấp, kiến tạo phong cách sống khác biệt.</p>
+            <h2>Tổng quan dự án Vinhomes Cần Giờ</h2>
+            <p>Mẫu H2 — Vị trí, tiện ích, mặt bằng và chính sách giá bán.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <div class="choice"><span class="number">3</span> Lora</div>
+            <span class="tone">Thanh lịch · dễ đọc</span>
+          </div>
+          <div class="sample lora">
+            <h1>Vinhomes Cần Giờ</h1>
+            <p>Mẫu H1 — Khu đô thị biển đẳng cấp, kiến tạo phong cách sống khác biệt.</p>
+            <h2>Tổng quan dự án Vinhomes Cần Giờ</h2>
+            <p>Mẫu H2 — Vị trí, tiện ích, mặt bằng và chính sách giá bán.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-header">
+            <div class="choice"><span class="number">4</span> Spectral</div>
+            <span class="tone">Hiện đại · có chiều sâu</span>
+          </div>
+          <div class="sample spectral">
+            <h1>Vinhomes Cần Giờ</h1>
+            <p>Mẫu H1 — Khu đô thị biển đẳng cấp, kiến tạo phong cách sống khác biệt.</p>
+            <h2>Tổng quan dự án Vinhomes Cần Giờ</h2>
+            <p>Mẫu H2 — Vị trí, tiện ích, mặt bằng và chính sách giá bán.</p>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

@@ -224,6 +224,10 @@ export interface FilterRangeConfig {
 export interface GeneralSettingsData extends Record<string, unknown> {
   productCategoriesExt?: CategoryExt[];
   newsCategoriesExt?: CategoryExt[];
+  cookieConsentEnabled?: boolean;
+  quotePopupEnabled?: boolean;
+  quotePopupDelaySeconds?: number;
+  quotePopupFrequency?: "page-load" | "session" | "daily";
 }
 
 export interface FilterSettingsData extends Record<string, unknown> {

@@ -16,7 +16,9 @@ export default function CookieConsent() {
       .then((snapshot) => {
         const data = (snapshot.data() || {}) as GeneralSettingsData;
         if (cancelled || data.cookieConsentEnabled !== true) return;
-        if (!localStorage.getItem("cookie_consent")) {
+        // Chỉ trạng thái đồng ý mới tắt thông báo ở các lần tải trang sau.
+        // Nếu người dùng đóng/từ chối, popup sẽ xuất hiện lại sau khi tải lại trang.
+        if (localStorage.getItem("cookie_consent") !== "accepted") {
           timer = setTimeout(() => setShow(true), 6000);
         }
       })

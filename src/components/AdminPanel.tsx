@@ -902,6 +902,11 @@ export default function AdminPanel({
   const [facebookPixelId, setFacebookPixelId] = useState("");
   const [tiktokPixelId, setTiktokPixelId] = useState("");
   const [cookieConsentEnabled, setCookieConsentEnabled] = useState(false);
+  const [quotePopupEnabled, setQuotePopupEnabled] = useState(false);
+  const [quotePopupDelaySeconds, setQuotePopupDelaySeconds] = useState(8);
+  const [quotePopupFrequency, setQuotePopupFrequency] = useState<
+    "page-load" | "session" | "daily"
+  >("session");
 
   // General Contact Settings
   const [contactHotline, setContactHotline] = useState("");
@@ -1192,6 +1197,21 @@ export default function AdminPanel({
             setTiktokPixelId(getSettingString(data.tiktokPixelId));
           if (data.cookieConsentEnabled !== undefined)
             setCookieConsentEnabled(Boolean(data.cookieConsentEnabled));
+          if (data.quotePopupEnabled !== undefined)
+            setQuotePopupEnabled(Boolean(data.quotePopupEnabled));
+          if (data.quotePopupDelaySeconds !== undefined) {
+            const popupDelay = Number(data.quotePopupDelaySeconds);
+            if (Number.isFinite(popupDelay)) {
+              setQuotePopupDelaySeconds(Math.min(60, Math.max(0, popupDelay)));
+            }
+          }
+          if (
+            data.quotePopupFrequency === "page-load" ||
+            data.quotePopupFrequency === "session" ||
+            data.quotePopupFrequency === "daily"
+          ) {
+            setQuotePopupFrequency(data.quotePopupFrequency);
+          }
 
           if (data.contactHotline !== undefined) setContactHotline(getSettingString(data.contactHotline));
           if (data.contactEmail !== undefined) setContactEmail(getSettingString(data.contactEmail));
@@ -2252,6 +2272,9 @@ export default function AdminPanel({
           facebookPixelId: facebookPixelId.trim(),
           tiktokPixelId: tiktokPixelId.trim(),
           cookieConsentEnabled,
+          quotePopupEnabled,
+          quotePopupDelaySeconds,
+          quotePopupFrequency,
         },
         { merge: true },
       );
@@ -4608,6 +4631,78 @@ export default function AdminPanel({
                                 className={`w-5 h-5 bg-white rounded-full transition-transform absolute ${cookieConsentEnabled ? "translate-x-6" : "translate-x-1"}`}
                               />
                             </button>
+                          </div>
+
+                          <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4">
+                            <div className="flex items-center justify-between gap-4">
+                              <div>
+                                <label className="text-sm font-bold text-slate-900 mb-1 block">
+                                  Tự động mở Popup tư vấn
+                                </label>
+                                <p className="text-[10px] text-slate-700 font-light">
+                                  Popup chỉ mở trên trang công khai và không chồng lên thông báo cookie.
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                aria-label="Bật hoặc tắt tự động mở popup tư vấn"
+                                aria-pressed={quotePopupEnabled}
+                                onClick={() => setQuotePopupEnabled(!quotePopupEnabled)}
+                                className={`w-12 h-6 shrink-0 rounded-full transition-colors relative flex items-center ${quotePopupEnabled ? "bg-primary" : "bg-slate-700"}`}
+                              >
+                                <div
+                                  className={`w-5 h-5 bg-white rounded-full transition-transform absolute ${quotePopupEnabled ? "translate-x-6" : "translate-x-1"}`}
+                                />
+                              </button>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                              <label className="space-y-1.5 text-left">
+                                <span className="text-xs font-semibold text-slate-800">
+                                  Thời gian chờ (giây)
+                                </span>
+                                <input
+                                  type="number"
+                                  min={0}
+                                  max={60}
+                                  step={1}
+                                  value={quotePopupDelaySeconds}
+                                  onChange={(event) => {
+                                    const nextDelay = Number(event.target.value);
+                                    setQuotePopupDelaySeconds(
+                                      Number.isFinite(nextDelay)
+                                        ? Math.min(60, Math.max(0, nextDelay))
+                                        : 8,
+                                    );
+                                  }}
+                                  disabled={!quotePopupEnabled}
+                                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none transition-all focus:border-primary/50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60"
+                                />
+                              </label>
+
+                              <label className="space-y-1.5 text-left">
+                                <span className="text-xs font-semibold text-slate-800">
+                                  Tần suất hiển thị
+                                </span>
+                                <select
+                                  value={quotePopupFrequency}
+                                  onChange={(event) =>
+                                    setQuotePopupFrequency(
+                                      event.target.value as
+                                        | "page-load"
+                                        | "session"
+                                        | "daily",
+                                    )
+                                  }
+                                  disabled={!quotePopupEnabled}
+                                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none transition-all focus:border-primary/50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60"
+                                >
+                                  <option value="page-load">Mỗi lần tải trang</option>
+                                  <option value="session">Một lần mỗi phiên truy cập</option>
+                                  <option value="daily">Một lần mỗi ngày</option>
+                                </select>
+                              </label>
+                            </div>
                           </div>
                         </div>
                       )}

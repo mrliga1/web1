@@ -1,12 +1,10 @@
-import type { Metadata } from 'next';
+import { createStaticPageMetadata } from '../../src/lib/internalLinks';
 
-export const metadata: Metadata = {
+export const metadata = createStaticPageMetadata({
   title: 'Điều khoản sử dụng',
   description: 'Điều khoản sử dụng website Greenia Homes. Quy định về quyền và trách nhiệm khi sử dụng dịch vụ.',
-  alternates: {
-    canonical: 'https://greeniahomes.vn/dieu-khoan-su-dung'
-  },
-};
+  path: '/dieu-khoan-su-dung',
+});
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;

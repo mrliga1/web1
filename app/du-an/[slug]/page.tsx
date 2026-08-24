@@ -157,10 +157,11 @@ export default async function ProjectDetailPage({ params }: Props) {
       : products
   ).slice(0, 5);
 
-  const { listing, breadcrumb } = createProjectSchemas(optimizedProject, slug);
+  const { listing, breadcrumb, webPage } = createProjectSchemas(optimizedProject, slug);
 
   return (
     <>
+      <SchemaMarkup schema={webPage} />
       <SchemaMarkup schema={listing} />
       <SchemaMarkup schema={breadcrumb} />
       <ClientWrapper

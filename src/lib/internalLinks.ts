@@ -1,4 +1,11 @@
+import type { Metadata } from "next";
+
 export const SITE_URL = "https://greeniahomes.vn";
+
+export const SITE_NAME = "Greenia Homes";
+export const SITE_DESCRIPTION =
+  "Greenia Homes tư vấn đầu tư, mua bán, chuyển nhượng và cho thuê bất động sản tại TP.HCM; thông tin dự án, pháp lý minh bạch, hotline 0932 966 700.";
+export const DEFAULT_SOCIAL_IMAGE = `${SITE_URL}/og-image.jpg`;
 
 export type SitemapChangeFrequency =
   | "always"
@@ -207,16 +214,121 @@ export function createCoreSitemapRoutes() {
   }));
 }
 
-export function createSiteNavigationSchema() {
+interface StaticPageMetadataOptions {
+  title: string;
+  description: string;
+  path: string;
+  keywords?: Metadata["keywords"];
+}
+
+export function createStaticPageMetadata({
+  title,
+  description,
+  path,
+  keywords,
+}: StaticPageMetadataOptions): Metadata {
+  const canonical = getAbsoluteUrl(path);
+  const brandedTitle = `${title} | ${SITE_NAME}`;
+
+  return {
+    title,
+    description,
+    keywords,
+    alternates: { canonical },
+    openGraph: {
+      type: "website",
+      locale: "vi_VN",
+      siteName: SITE_NAME,
+      title: brandedTitle,
+      description,
+      url: canonical,
+      images: [
+        {
+          url: DEFAULT_SOCIAL_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: SITE_NAME,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: brandedTitle,
+      description,
+      images: [DEFAULT_SOCIAL_IMAGE],
+    },
+  };
+}
+
+export function createHomePageSchema() {
+  const organizationId = `${SITE_URL}/#organization`;
+  const websiteId = `${SITE_URL}/#website`;
+
   return {
     "@context": "https://schema.org",
-    "@type": "ItemList",
-    name: "Liên kết nội bộ chính của Greenia Homes",
-    itemListElement: CORE_INTERNAL_LINKS.map((link, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
-      name: link.label,
-      url: getAbsoluteUrl(link.href),
-    })),
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": websiteId,
+        url: `${SITE_URL}/`,
+        name: SITE_NAME,
+        alternateName: "greeniahomes.vn",
+        description: SITE_DESCRIPTION,
+        inLanguage: "vi-VN",
+        publisher: { "@id": organizationId },
+      },
+      {
+        "@type": ["Organization", "RealEstateAgent"],
+        "@id": organizationId,
+        name: SITE_NAME,
+        alternateName: "greeniahomes.vn",
+        url: `${SITE_URL}/`,
+        logo: {
+          "@type": "ImageObject",
+          url: `${SITE_URL}/favicon.webp`,
+          contentUrl: `${SITE_URL}/favicon.webp`,
+          width: 150,
+          height: 150,
+        },
+        image: DEFAULT_SOCIAL_IMAGE,
+        description: SITE_DESCRIPTION,
+        telephone: "+84 932 966 700",
+        email: "sales.greeniahomes@gmail.com",
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "sales",
+          telephone: "+84 932 966 700",
+          email: "sales.greeniahomes@gmail.com",
+          availableLanguage: ["vi"],
+        },
+        knowsAbout: getSemanticKeywords().slice(0, 24),
+        areaServed: ["TP.HCM", "Quận 7", "Phú Mỹ Hưng", "Việt Nam"],
+        sameAs: [
+          "https://www.facebook.com/greeniahomes",
+          "https://www.tiktok.com/@greeniahomes.vn",
+          "https://www.youtube.com/@greeniahomes.vn",
+          "https://zalo.me/0932966700",
+        ],
+        address: {
+          "@type": "PostalAddress",
+          streetAddress: "Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng",
+          addressLocality: "Quận 7",
+          addressRegion: "TP.HCM",
+          postalCode: "700000",
+          addressCountry: "VN",
+        },
+        priceRange: "$$$",
+      },
+      {
+        "@type": "WebPage",
+        "@id": `${SITE_URL}/#webpage`,
+        url: `${SITE_URL}/`,
+        name: `${SITE_NAME} - Cố vấn đầu tư bất động sản chuyên sâu`,
+        description: SITE_DESCRIPTION,
+        isPartOf: { "@id": websiteId },
+        about: { "@id": organizationId },
+        inLanguage: "vi-VN",
+      },
+    ],
   };
 }

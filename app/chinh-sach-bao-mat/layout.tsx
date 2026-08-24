@@ -1,12 +1,10 @@
-import type { Metadata } from 'next';
+import { createStaticPageMetadata } from '../../src/lib/internalLinks';
 
-export const metadata: Metadata = {
+export const metadata = createStaticPageMetadata({
   title: 'Chính sách bảo mật',
   description: 'Chính sách bảo mật thông tin cá nhân của Greenia Homes. Cam kết bảo vệ dữ liệu khách hàng.',
-  alternates: {
-    canonical: 'https://greeniahomes.vn/chinh-sach-bao-mat'
-  },
-};
+  path: '/chinh-sach-bao-mat',
+});
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;

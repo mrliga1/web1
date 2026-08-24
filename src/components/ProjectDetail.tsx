@@ -229,7 +229,9 @@ export default function ProjectDetail({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setActiveTab(entry.target.id as ProjectTabId);
+            const target = entry.target as HTMLElement;
+            const tabId = target.dataset.projectTab || target.id;
+            setActiveTab(tabId as ProjectTabId);
           }
         });
       },
@@ -256,7 +258,11 @@ export default function ProjectDetail({
     };
   }, [loading, project]);
 
-  const handleTabClick = (id: ProjectTabId) => {
+  const handleTabClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    id: ProjectTabId,
+  ) => {
+    event.preventDefault();
     setActiveTab(id);
     const element = document.getElementById(id);
     if (element) {
@@ -269,6 +275,11 @@ export default function ProjectDetail({
         top: offsetPosition,
         behavior: "smooth",
       });
+
+      const hash = `#${id}`;
+      if (window.location.hash !== hash) {
+        window.history.pushState(null, "", hash);
+      }
     }
   };
 
@@ -912,7 +923,8 @@ export default function ProjectDetail({
       </figure>
 
       {/* Sticky Tab Navigation */}
-      <div
+      <nav
+        aria-label="Mục lục nội dung dự án"
         className={`sticky ${scrollDirection === "down" ? "top-0" : "top-10"} z-40 bg-white/70 backdrop-blur-md border-b border-t-0 border-border-color shadow-sm transition-colors duration-300 w-full sm:mx-0 px-4 sm:px-0 h-[38px] pb-0`}
       >
         <div className="max-w-7xl mx-auto px-0 sm:px-6 lg:px-8 flex items-center justify-between h-[30px] py-0">
@@ -923,10 +935,12 @@ export default function ProjectDetail({
             {TABS.map((tab) => {
               const TabIcon = tab.icon;
               return (
-                <button
+                <a
                   key={tab.id}
                   id={`tab-btn-${tab.id}`}
-                  onClick={() => handleTabClick(tab.id)}
+                  href={`#${tab.id}`}
+                  onClick={(event) => handleTabClick(event, tab.id)}
+                  aria-current={activeTab === tab.id ? "location" : undefined}
                   className={`py-0 h-[30px] text-sm font-medium tracking-wider transition-all relative cursor-pointer flex items-center gap-1.5 whitespace-nowrap px-1 ${
                     activeTab === tab.id
                       ? "text-primary font-bold"
@@ -938,7 +952,7 @@ export default function ProjectDetail({
                   {activeTab === tab.id && (
                     <div className="absolute bottom-0 inset-x-0 h-px bg-primary" />
                   )}
-                </button>
+                </a>
               );
             })}
           </div>
@@ -988,7 +1002,7 @@ export default function ProjectDetail({
             </div>
           </div>
         </div>
-      </div>
+      </nav>
 
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto pl-[10px] pr-[10px] xl:px-8 pt-[10px] pb-[40px] lg:pt-[10px] lg:pb-[40px]">
@@ -1000,7 +1014,7 @@ export default function ProjectDetail({
             <div
               id="overview"
               ref={(el) => { sectionRefs.current[0] = el; }}
-              className="space-y-8 animate-in slide-in-from-bottom-4 duration-500 pt-8 mt-[-32px]"
+              className="scroll-mt-[110px] space-y-8 animate-in slide-in-from-bottom-4 duration-500 pt-8 mt-[-32px]"
             >
               <h1 className="flex items-center gap-3 text-[25px] md:text-[26px] w-full max-w-[785px] font-bold  my-[20px] drop-shadow-sm">
                 <FileText className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
@@ -1194,7 +1208,7 @@ export default function ProjectDetail({
               <div
                 id="subdivision"
                 ref={(el) => { sectionRefs.current[7] = el; }}
-                className="space-y-8 pt-[20px] mt-[-32px]"
+                className="scroll-mt-[110px] space-y-8 pt-[20px] mt-[-32px]"
               >
                 <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  mb-0 drop-shadow-sm">
                   <Building2 className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
@@ -1336,7 +1350,7 @@ export default function ProjectDetail({
             <div
               id="location"
               ref={(el) => { sectionRefs.current[1] = el; }}
-              className="space-y-8 pt-8 mt-[-32px]"
+              className="scroll-mt-[110px] space-y-8 pt-8 mt-[-32px]"
             >
               <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                 <MapPin className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
@@ -1394,7 +1408,7 @@ export default function ProjectDetail({
             <div
               id="amenity"
               ref={(el) => { sectionRefs.current[2] = el; }}
-              className="space-y-8 pt-8 mt-[-32px]"
+              className="scroll-mt-[110px] space-y-8 pt-8 mt-[-32px]"
             >
               <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                 <Sparkles className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
@@ -1527,7 +1541,7 @@ export default function ProjectDetail({
             <div
               id="floor-plan"
               ref={(el) => { sectionRefs.current[3] = el; }}
-              className="space-y-8 pt-8 mt-[-32px]"
+              className="scroll-mt-[110px] space-y-8 pt-8 mt-[-32px]"
             >
               <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                 <LayoutGrid className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
@@ -1785,7 +1799,7 @@ export default function ProjectDetail({
             <div
               id="price"
               ref={(el) => { sectionRefs.current[4] = el; }}
-              className="space-y-8 pt-8 mt-[-32px]"
+              className="scroll-mt-[110px] space-y-8 pt-8 mt-[-32px]"
             >
               <div className="flex justify-between items-end mb-4">
                 <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
@@ -1880,7 +1894,7 @@ export default function ProjectDetail({
             <div
               id="qa"
               ref={(el) => { sectionRefs.current[8] = el; }}
-              className="space-y-8 pt-12 mt-[-32px] border-t border-border-color/50"
+              className="scroll-mt-[110px] space-y-8 pt-12 mt-[-32px] border-t border-border-color/50"
             >
               <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
                 <HelpCircle className="w-[20px] h-[20px] md:w-8 md:h-8 text-primary shrink-0" />
@@ -1965,7 +1979,7 @@ export default function ProjectDetail({
             <div
               id="news"
               ref={(el) => { sectionRefs.current[5] = el; }}
-              className="space-y-8 pt-12 mt-[-32px] border-t border-border-color/50"
+              className="scroll-mt-[110px] space-y-8 pt-12 mt-[-32px] border-t border-border-color/50"
             >
               <div className="flex justify-between items-end mb-4">
                 <h2 className="flex items-center gap-3 text-[20px] md:text-[26px] font-bold  drop-shadow-sm">
@@ -2053,9 +2067,9 @@ export default function ProjectDetail({
 
             {renderCustomSections("after_news")}
 
-            {/* Hidden div to trigger contact section in IntersectionObserver, actual view is sidebar */}
+            {/* Điểm theo dõi cuộn cho trạng thái Liên hệ; đích liên kết thật nằm tại form. */}
             <div
-              id="contact"
+              data-project-tab="contact"
               ref={(el) => { sectionRefs.current[6] = el; }}
               className="absolute h-0 w-full"
             ></div>
@@ -2073,7 +2087,10 @@ export default function ProjectDetail({
               className={`sticky ${scrollDirection === "down" ? "top-[48px]" : "top-[96px] md:top-[100px]"}`}
             >
               {/* Specialized Form */}
-              <div className="bg-bg-surface border border-border-color px-[16px] py-[8px] rounded-xl space-y-2 shadow-xl relative text-left">
+              <div
+                id="contact"
+                className="scroll-mt-[110px] bg-bg-surface border border-border-color px-[16px] py-[8px] rounded-xl space-y-2 shadow-xl relative text-left"
+              >
                 <div className="text-center space-y-1 pb-[2px]">
                   <h3 className="text-text-primary font-display font-bold text-base tracking-wide mt-[2px]">
                     Tư vấn mua nhà chuyên sâu

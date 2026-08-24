@@ -103,6 +103,10 @@ export function createProductSchemas(product: Product, slug: string) {
 
 export function createProjectSchemas(project: Project, slug: string) {
   const canonicalUrl = `${SITE_URL}/du-an/${slug || generateSlug(project.title)}`;
+  const webPageId = `${canonicalUrl}#webpage`;
+  const listingId = `${canonicalUrl}#real-estate-listing`;
+  const breadcrumbId = `${canonicalUrl}#breadcrumb`;
+  const description = plainText(project.description).slice(0, 160);
   const images = (project.imageUrls?.length
     ? project.imageUrls
     : [project.imageUrl || "/no-image.svg"]
@@ -111,9 +115,12 @@ export function createProjectSchemas(project: Project, slug: string) {
   const listing: SchemaObject = {
     "@context": "https://schema.org",
     "@type": "RealEstateListing",
+    "@id": listingId,
+    url: canonicalUrl,
+    mainEntityOfPage: { "@id": webPageId },
     name: project.title,
     image: images,
-    description: plainText(project.description).slice(0, 160),
+    description,
     address: {
       "@type": "PostalAddress",
       streetAddress: project.location || undefined,
@@ -126,6 +133,7 @@ export function createProjectSchemas(project: Project, slug: string) {
   const breadcrumb: SchemaObject = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
+    "@id": breadcrumbId,
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Trang chủ", item: SITE_URL },
       { "@type": "ListItem", position: 2, name: "Dự án", item: `${SITE_URL}/du-an` },
@@ -133,7 +141,48 @@ export function createProjectSchemas(project: Project, slug: string) {
     ],
   };
 
-  return { listing, breadcrumb };
+  const subdivisionHtml = project.subdivisionTab || "";
+  const hasSubdivisionContent = Boolean(
+    project.subdivisionsCards?.some(
+      (card) => card.name?.trim() || card.imageUrl?.trim(),
+    ) ||
+      plainText(subdivisionHtml) ||
+      /<(?:img|iframe)\b/i.test(subdivisionHtml),
+  );
+  const sectionNames: Array<[string, string]> = [
+    ["overview", `Tổng quan dự án ${project.title}`],
+    ...(hasSubdivisionContent
+      ? [["subdivision", `Phân khu ${project.title}`] as [string, string]]
+      : []),
+    ["location", `Vị trí ${project.title}`],
+    ["amenity", `Tiện ích ${project.title}`],
+    ["floor-plan", `Mặt bằng ${project.title}`],
+    ["price", `Giá bán ${project.title}`],
+    ["qa", `Hỏi đáp ${project.title}`],
+    ["news", `Tin tức dự án ${project.title}`],
+    ["contact", `Liên hệ tư vấn ${project.title}`],
+  ];
+
+  const webPage: SchemaObject = {
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "@id": webPageId,
+    url: canonicalUrl,
+    name: project.title,
+    description,
+    inLanguage: "vi-VN",
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    breadcrumb: { "@id": breadcrumbId },
+    mainEntity: { "@id": listingId },
+    hasPart: sectionNames.map(([id, name]) => ({
+      "@type": "WebPageElement",
+      "@id": `${canonicalUrl}#${id}`,
+      url: `${canonicalUrl}#${id}`,
+      name,
+    })),
+  };
+
+  return { listing, breadcrumb, webPage };
 }
 
 export function createNewsSchemas(article: News, slug: string) {

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Providers from "./providers";
 import ClientLayout from "../src/components/ClientLayout";
-import SchemaMarkup from "../src/components/SchemaMarkup";
 import {
-  createSiteNavigationSchema,
+  DEFAULT_SOCIAL_IMAGE,
   getSemanticKeywords,
+  SITE_DESCRIPTION,
+  SITE_NAME,
   SITE_URL,
 } from "../src/lib/internalLinks";
 import { getInitialSiteSettings } from "../src/lib/serverData";
@@ -16,11 +17,10 @@ const semanticKeywords = getSemanticKeywords();
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu",
-    template: "%s | Greenia Homes",
+    default: "Greenia Homes - Cố vấn đầu tư bất động sản chuyên sâu",
+    template: `%s | ${SITE_NAME}`,
   },
-  description:
-    "Chào mừng đến với Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
+  description: SITE_DESCRIPTION,
   keywords: semanticKeywords,
   authors: [{ name: "Greenia Homes" }],
   alternates: {
@@ -37,19 +37,17 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "vi_VN",
-    siteName: "Greenia Homes",
-    title: "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu",
-    description:
-      "Chào mừng đến với Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
+    siteName: SITE_NAME,
+    title: "Greenia Homes - Cố vấn đầu tư bất động sản chuyên sâu",
+    description: SITE_DESCRIPTION,
     url: "/",
-    images: [{ url: "/og-image.jpg", alt: "Greenia Homes" }],
+    images: [{ url: DEFAULT_SOCIAL_IMAGE, width: 1200, height: 630, alt: SITE_NAME }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Greenia Homes - Cố Vấn Đầu Tư Bất Động Sản Chuyên Sâu",
-    description:
-      "Chào mừng đến với Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
-    images: ["/og-image.jpg"],
+    title: "Greenia Homes - Cố vấn đầu tư bất động sản chuyên sâu",
+    description: SITE_DESCRIPTION,
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
   other: {
     "geo.region": "VN",
@@ -81,43 +79,6 @@ export default async function RootLayout({
         {/* PWA Tags */}
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#04352A" />
-        <SchemaMarkup schema={{
-          "@context": "https://schema.org",
-          "@type": "WebSite",
-          "name": "Greenia Homes",
-          "url": SITE_URL,
-          "description": "Cố vấn đầu tư bất động sản chuyên sâu, uy tín tại Việt Nam.",
-          "about": semanticKeywords.slice(0, 12),
-        }} />
-        <SchemaMarkup schema={createSiteNavigationSchema()} />
-        <SchemaMarkup schema={{
-          "@context": "https://schema.org",
-          "@type": "RealEstateAgent",
-          "name": "Greenia Homes",
-          "url": SITE_URL,
-          "logo": "https://greeniahomes.vn/favicon.webp",
-          "image": "https://greeniahomes.vn/og-image.jpg",
-          "description": "Greenia Homes - Đồng hành cùng nhà đầu tư bất động sản với pháp lý minh bạch và dữ liệu thực chiến.",
-          "telephone": "0932966700",
-          "email": "sales.greeniahomes@gmail.com",
-          "knowsAbout": semanticKeywords.slice(0, 24),
-          "areaServed": ["TP.HCM", "Quận 7", "Phú Mỹ Hưng", "Việt Nam"],
-          "sameAs": [
-            "https://www.facebook.com/GreeniaHomes",
-            "https://www.tiktok.com/@greeniahomes",
-            "https://www.youtube.com/@GreeniaHomes",
-            "https://zalo.me/greeniahomes"
-          ],
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "Tòa nhà Greenia, Khu biệt thự Phú Mỹ Hưng",
-            "addressLocality": "Quận 7",
-            "addressRegion": "TP.HCM",
-            "postalCode": "700000",
-            "addressCountry": "VN"
-          },
-          "priceRange": "$$$"
-        }} />
       </head>
       <body className="min-h-screen bg-bg-base text-text-primary antialiased">
         <Providers>

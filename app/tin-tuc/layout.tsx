@@ -1,12 +1,10 @@
-import type { Metadata } from 'next';
+import { createStaticPageMetadata } from '../../src/lib/internalLinks';
 
-export const metadata: Metadata = {
+export const metadata = createStaticPageMetadata({
   title: 'Tin tức bất động sản',
   description: 'Tin tức bất động sản mới nhất. Phân tích thị trường, xu hướng đầu tư, kiến thức mua bán nhà đất.',
-  alternates: {
-    canonical: 'https://greeniahomes.vn/tin-tuc'
-  },
-};
+  path: '/tin-tuc',
+});
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;

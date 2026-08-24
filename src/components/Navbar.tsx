@@ -103,13 +103,11 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
               const active = currentRoute.screen === item.screen;
               return (
                 <li key={item.screen}>
-                  <button
+                  <Link
                     id={`nav-${item.screen}`}
-                    onClick={() => {
-                      handleNavigate({ screen: item.screen });
-                      setMobileMenuOpen(false);
-                    }}
-                    className={`motion-button relative px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold cursor-pointer ${
+                    href={getRouteUrl({ screen: item.screen })}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`motion-button relative inline-block px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold cursor-pointer ${
                       active 
                         ? theme === 'dark'
                           ? 'text-accent font-bold' 
@@ -120,7 +118,7 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
                     }`}
                   >
                     <span className="relative z-10">{item.label}</span>
-                  </button>
+                  </Link>
                 </li>
               );
             })}
@@ -292,11 +290,9 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
                 const active = currentRoute.screen === item.screen;
                 return (
                   <li key={item.screen}>
-                    <button
-                      onClick={() => {
-                        handleNavigate({ screen: item.screen });
-                        setMobileMenuOpen(false);
-                      }}
+                    <Link
+                      href={getRouteUrl({ screen: item.screen })}
+                      onClick={() => setMobileMenuOpen(false)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
                         active 
                           ? (theme === 'dark' ? 'text-accent bg-accent/10' : 'text-primary bg-primary/10')
@@ -304,7 +300,7 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
                       }`}
                     >
                       <span>{item.label}</span>
-                    </button>
+                    </Link>
                   </li>
                 );
               })}

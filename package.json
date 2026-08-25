@@ -9,6 +9,7 @@
     "start": "next start --port 3000",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit --pretty false --incremental false",
+    "audit:search": "node scripts/audit-search-output.mjs",
     "verify:production": "node scripts/verify-production-security.mjs"
   },
   "dependencies": {

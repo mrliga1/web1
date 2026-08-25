@@ -264,23 +264,25 @@ export default function ProjectDetail({
   ) => {
     event.preventDefault();
     setActiveTab(id);
-    const element = document.getElementById(id);
-    if (element) {
-      const headerOffset = 110;
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition =
-        elementPosition + window.pageYOffset - headerOffset;
+    window.requestAnimationFrame(() => {
+      const element = document.getElementById(id)
+        || document.querySelector<HTMLElement>(`[data-project-tab="${id}"]`);
+      if (!element) return;
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
+      const tabNavigation = document.getElementById('project-detail-tab-navigation');
+      const navigationRect = tabNavigation?.getBoundingClientRect();
+      const occupiedTop = navigationRect
+        ? Math.max(0, navigationRect.top) + navigationRect.height + 8
+        : 56;
+      const offsetPosition = element.getBoundingClientRect().top + window.scrollY - occupiedTop;
+
+      window.scrollTo({ top: Math.max(0, offsetPosition), behavior: "smooth" });
 
       const hash = `#${id}`;
       if (window.location.hash !== hash) {
         window.history.pushState(null, "", hash);
       }
-    }
+    });
   };
 
   // Trạng thái form liên hệ.
@@ -924,6 +926,7 @@ export default function ProjectDetail({
 
       {/* Sticky Tab Navigation */}
       <nav
+        id="project-detail-tab-navigation"
         aria-label="Mục lục nội dung dự án"
         className={`sticky ${scrollDirection === "down" ? "top-0" : "top-10"} z-40 bg-white/70 backdrop-blur-md border-b border-t-0 border-border-color shadow-sm transition-colors duration-300 w-full sm:mx-0 px-4 sm:px-0 h-[38px] pb-0`}
       >

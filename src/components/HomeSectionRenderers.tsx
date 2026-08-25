@@ -818,6 +818,13 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
   onNavigate,
   projects
 }) => {
+  const visibleProjects = Array.from(
+    new Map(projects.map((project) => [project.id || generateSlug(project.title), project])).values(),
+  ).slice(0, 5);
+  const projectSlides = visibleProjects.length >= 4
+    ? [...visibleProjects, ...visibleProjects]
+    : visibleProjects;
+
   return (
     <section className="bg-bg-surface border-y border-border-color py-1 font-sans" id="home-swiper-projects">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 pt-[25px]">
@@ -857,17 +864,17 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
         </div>
         </div>
 
-        {projects.length === 0 ? (
+        {visibleProjects.length === 0 ? (
           <div className="text-white/70 text-xs py-6 text-center">Chưa có dự án nào được cập nhật.</div>
         ) : (
           <div className="relative overflow-hidden py-4 w-full">
-            <div className="animate-sliding-container flex w-max">
-              <div className="flex w-max animate-slider-projects">
-                {[...Array(2)].flatMap(() => projects.slice(0, 5)).map((proj, idx) => (
+            <div className={`${visibleProjects.length >= 4 ? 'animate-sliding-container' : ''} flex w-max`}>
+              <div className={`flex w-max ${visibleProjects.length >= 4 ? 'animate-slider-projects' : ''}`}>
+                {projectSlides.map((proj, idx) => (
                   <a
                     key={`${proj.id}-${idx}`}
-                    aria-hidden={idx >= projects.slice(0, 5).length}
-                    tabIndex={idx >= projects.slice(0, 5).length ? -1 : undefined}
+                    aria-hidden={idx >= visibleProjects.length}
+                    tabIndex={idx >= visibleProjects.length ? -1 : undefined}
                     href={`/du-an/${generateSlug(proj.title)}`}
                     onClick={(e) => {
                       e.preventDefault();
@@ -941,6 +948,13 @@ export const NewsBody: React.FC<NewsProps> = ({
   onNavigate,
   news
 }) => {
+  const visibleNews = Array.from(
+    new Map(news.map((article) => [article.id || generateSlug(article.title), article])).values(),
+  ).slice(0, 5);
+  const newsSlides = visibleNews.length >= 4
+    ? [...visibleNews, ...visibleNews]
+    : visibleNews;
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 font-sans" id="home-swiper-news">
       <div className="flex flex-row items-center justify-between gap-4 text-left">
@@ -979,17 +993,17 @@ export const NewsBody: React.FC<NewsProps> = ({
         </div>
       </div>
 
-      {news.length === 0 ? (
+      {visibleNews.length === 0 ? (
         <div className="text-white/70 text-xs py-6 text-center">Chưa có tin tức nào được cập nhật.</div>
       ) : (
         <div className="relative overflow-hidden py-4 w-full">
-          <div className="animate-sliding-container flex w-max">
-            <div className="flex w-max animate-slider-news">
-              {[...Array(2)].flatMap(() => news.slice(0, 5)).map((article, idx) => (
+          <div className={`${visibleNews.length >= 4 ? 'animate-sliding-container' : ''} flex w-max`}>
+            <div className={`flex w-max ${visibleNews.length >= 4 ? 'animate-slider-news' : ''}`}>
+              {newsSlides.map((article, idx) => (
                 <a
                   key={`${article.id}-${idx}`}
-                  aria-hidden={idx >= news.slice(0, 5).length}
-                  tabIndex={idx >= news.slice(0, 5).length ? -1 : undefined}
+                  aria-hidden={idx >= visibleNews.length}
+                  tabIndex={idx >= visibleNews.length ? -1 : undefined}
                   href={`/tin-tuc/${generateSlug(article.title)}`}
                   onClick={(e) => {
                     e.preventDefault();

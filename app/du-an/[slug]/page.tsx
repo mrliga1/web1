@@ -13,6 +13,7 @@ import {
 import { createProjectSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { generateSlug, getSocialImageUrl } from "../../../src/lib/utils";
+import { createSearchDescription, getSemanticTerms } from "../../../src/lib/searchIntent";
 
 export const revalidate = 60;
 
@@ -88,18 +89,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const brandedTitle = `${title} | Greenia Homes`;
   const location = project.location || "Đang cập nhật";
   const price = project.priceText || "Đang cập nhật";
-  const description =
-    project.seoDesc?.trim() ||
-    project.metaDesc?.trim() ||
-    `Vị trí: ${location} | Giá: ${price}. Xem thông tin dự án tại Greenia Homes.`;
   const canonical = `${SITE_URL}/du-an/${slug}`;
+  const description = createSearchDescription({
+    path: canonical,
+    source: project.seoDesc?.trim() || project.metaDesc?.trim(),
+    fallback: `Vị trí: ${location} | Giá: ${price}. Xem thông tin dự án tại Greenia Homes.`,
+  });
   const socialImage = getSocialImageUrl(project.imageUrl);
   const images = [{ url: socialImage, width: 1200, height: 630, alt: project.title, type: "image/jpeg" }];
+  const keywords = getSemanticTerms({
+    path: canonical,
+    title: project.title,
+    location: project.location,
+    attributes: [project.developer, project.productType, project.ownership],
+    customKeywords: project.seoKeywords || project.metaKeywords,
+  });
 
   return {
     title,
     description,
-    keywords: project.seoKeywords?.trim() || project.metaKeywords?.trim() || undefined,
+    keywords,
     alternates: { canonical },
     openGraph: {
       type: "website",

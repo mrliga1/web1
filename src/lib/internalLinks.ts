@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { createSearchDescription, getSemanticTerms } from "./searchIntent";
 
 export const SITE_URL = "https://greeniahomes.vn";
 
@@ -193,7 +194,7 @@ export function getAbsoluteUrl(href: string) {
   return `${SITE_URL}${href.startsWith("/") ? href : `/${href}`}`;
 }
 
-export function getSemanticKeywords() {
+export function getSemanticKeywords(path = "/") {
   const keywords = new Set<string>();
   CORE_INTERNAL_LINKS.forEach((link) => {
     keywords.add(link.label);
@@ -203,6 +204,7 @@ export function getSemanticKeywords() {
     keywords.add(cluster.topic);
     cluster.terms.forEach((term) => keywords.add(term));
   });
+  getSemanticTerms({ path }).forEach((term) => keywords.add(term));
   return Array.from(keywords);
 }
 
@@ -229,18 +231,23 @@ export function createStaticPageMetadata({
 }: StaticPageMetadataOptions): Metadata {
   const canonical = getAbsoluteUrl(path);
   const brandedTitle = `${title} | ${SITE_NAME}`;
+  const searchDescription = createSearchDescription({
+    path,
+    source: description,
+    fallback: SITE_DESCRIPTION,
+  });
 
   return {
     title,
-    description,
-    keywords,
+    description: searchDescription,
+    keywords: keywords || getSemanticTerms({ path, title }),
     alternates: { canonical },
     openGraph: {
       type: "website",
       locale: "vi_VN",
       siteName: SITE_NAME,
       title: brandedTitle,
-      description,
+      description: searchDescription,
       url: canonical,
       images: [
         {
@@ -254,7 +261,7 @@ export function createStaticPageMetadata({
     twitter: {
       card: "summary_large_image",
       title: brandedTitle,
-      description,
+      description: searchDescription,
       images: [DEFAULT_SOCIAL_IMAGE],
     },
   };

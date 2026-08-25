@@ -143,6 +143,7 @@ export interface News {
   userTotalRating?: number;
   userReviewCount?: number;
   approvalStatus?: 'approved' | 'pending' | 'rejected';
+  internalLinks?: import('./lib/contextualInternalLinks').InternalLinkRecord[];
 }
 
 export interface Category {

@@ -15,6 +15,11 @@ import {
 import { createNewsSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { generateSlug, getSocialImageUrl } from "../../../src/lib/utils";
+import { createSearchDescription, getSemanticTerms } from "../../../src/lib/searchIntent";
+import {
+  buildInternalLinkTargets,
+  resolveInternalLinkUrls,
+} from "../../../src/lib/contextualInternalLinks";
 
 export const revalidate = 60;
 
@@ -73,19 +78,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     article.title.trim();
   const title = removeTrailingBrand(sourceTitle) || article.title.trim();
   const brandedTitle = `${title} | Greenia Homes`;
-  const description = (
+  const rawDescription = (
     article.seoDesc?.trim() ||
     article.metaDesc?.trim() ||
     plainText(article.description || article.content || "")
   ).slice(0, 160);
   const canonical = `${SITE_URL}/tin-tuc/${slug}`;
+  const description = createSearchDescription({
+    path: canonical,
+    source: rawDescription,
+    fallback: `Cập nhật thông tin trong bài viết ${article.title} tại Greenia Homes.`,
+  });
   const socialImage = getSocialImageUrl(article.imageUrl);
   const images = [{ url: socialImage, width: 1200, height: 630, alt: article.title, type: "image/jpeg" }];
+  const keywords = getSemanticTerms({
+    path: canonical,
+    title: article.title,
+    category: article.category,
+    customKeywords: article.seoKeywords || article.metaKeywords,
+  });
 
   return {
     title,
     description,
-    keywords: article.seoKeywords?.trim() || article.metaKeywords?.trim() || undefined,
+    keywords,
     alternates: { canonical },
     openGraph: {
       type: "article",
@@ -117,15 +133,26 @@ export default async function NewsDetailPage({ params }: Props) {
 
   if (!article) notFound();
 
+  const internalLinkTargets = buildInternalLinkTargets({
+    news: newsRows.map(({ id, data }) => ({ ...data, id })),
+    products: productRows.map(({ id, data }) => ({ ...data, id })),
+    projects: projectRows.map(({ id, data }) => ({ ...data, id })),
+    currentArticleId: article.id,
+  });
+
   const optimizedArticle = {
     ...article,
-    content: replaceKnownEmbeddedImages(article.content || ""),
+    content: resolveInternalLinkUrls(
+      replaceKnownEmbeddedImages(article.content || ""),
+      internalLinkTargets,
+    ),
   };
 
-  const { article: articleSchema, breadcrumb } = createNewsSchemas(optimizedArticle, slug);
+  const { article: articleSchema, breadcrumb, webPage } = createNewsSchemas(optimizedArticle, slug);
 
   return (
     <>
+      <SchemaMarkup schema={webPage} />
       <SchemaMarkup schema={articleSchema} />
       <SchemaMarkup schema={breadcrumb} />
       <ClientWrapper

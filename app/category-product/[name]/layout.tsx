@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { generateSlug } from "../../../src/lib/utils";
 import { supabase } from "../../../src/supabase";
+import { createSearchDescription, getSemanticTerms } from "../../../src/lib/searchIntent";
 
 export const revalidate = 60;
 
@@ -48,11 +49,22 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   title = removeTrailingBrand(title) || title;
   const brandedTitle = `${title} | Greenia Homes`;
   const canonical = `https://greeniahomes.vn/category-product/${canonicalSlug}`;
+  description = createSearchDescription({
+    path: canonical,
+    source: description,
+    fallback: `Khám phá các sản phẩm nổi bật thuộc danh mục ${decodedName.replace(/-/g, " ")}.`,
+  });
+  const semanticKeywords = getSemanticTerms({
+    path: canonical,
+    title,
+    category: decodedName.replace(/-/g, " "),
+    customKeywords: keywords,
+  });
 
   return {
     title,
     description,
-    keywords,
+    keywords: semanticKeywords,
     alternates: { canonical },
     openGraph: {
       type: "website",

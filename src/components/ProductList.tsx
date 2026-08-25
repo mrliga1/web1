@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { generateSlug, optimizeImageUrl, getRouteUrl } from '../lib/utils';
+import { formatVietnamDate, generateSlug, optimizeImageUrl, getRouteUrl } from '../lib/utils';
 import { useRouter } from 'next/navigation';
 import { collection, getDocs, getDoc, doc, db, type LegacyDocSnapshot } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { CategoryExt, FilterRangeConfig, FilterSettingsData, GeneralSettingsData, Product, Project, RouteState, VisualSection } from '../types';
-import { Search, MapPin, ArrowUpRight, Layers, Building2, ChevronDown, X } from 'lucide-react';
+import { Search, MapPin, ArrowUpRight, Layers, Building2, ChevronDown, X, Heart, Share2, Phone, CalendarDays, UserRound, Images } from 'lucide-react';
 import AdBanner from './AdBanner';
 import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { locationTree, parseLocation, LocationNode, formatLocationName } from '../lib/locationMapping';
-import SchemaMarkup from './SchemaMarkup';
 
 interface ProductListProps {
   onNavigate: (route: RouteState) => void;
@@ -54,6 +53,162 @@ const syncRecentlyViewedDocumentState = (count: number) => {
   document.documentElement.style.removeProperty('--recently-viewed-count');
 };
 
+const getPlainProductDescription = (description?: string) =>
+  (description || '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+interface CategoryProductRowProps {
+  item: Product;
+  priority?: boolean;
+  onNavigate: (route: RouteState) => void;
+  onShowNotification: (message: string, type: 'success' | 'error') => void;
+}
+
+function CategoryProductRow({ item, priority = false, onNavigate, onShowNotification }: CategoryProductRowProps) {
+  const [isFavorite, setIsFavorite] = useState(false);
+  const productSlug = generateSlug(item.title);
+  const allImages = Array.from(
+    new Set([item.imageUrl, ...(item.imageUrls || [])].filter(Boolean)),
+  );
+  const mainImage = allImages[0] || '/no-image.svg';
+  const thumbnails = Array.from({ length: 3 }, (_, index) => allImages[index + 1] || '/no-image.svg');
+  const description = getPlainProductDescription(item.description);
+
+  useEffect(() => {
+    try {
+      const favorites: string[] = JSON.parse(localStorage.getItem('saved_favorites') || '[]');
+      setIsFavorite(favorites.includes(item.id));
+    } catch {
+      setIsFavorite(false);
+    }
+  }, [item.id]);
+
+  const openProduct = () => {
+    onNavigate({ screen: 'product-detail', productId: item.id, slug: productSlug });
+  };
+
+  const toggleFavorite = () => {
+    try {
+      const favorites: string[] = JSON.parse(localStorage.getItem('saved_favorites') || '[]');
+      const nextFavorites = favorites.includes(item.id)
+        ? favorites.filter((id) => id !== item.id)
+        : [...favorites, item.id];
+      localStorage.setItem('saved_favorites', JSON.stringify(nextFavorites));
+      setIsFavorite(nextFavorites.includes(item.id));
+      window.dispatchEvent(new Event('favorites_changed'));
+    } catch {
+      onShowNotification('Không thể cập nhật danh sách yêu thích trên trình duyệt này.', 'error');
+    }
+  };
+
+  const shareProduct = async () => {
+    const url = `${window.location.origin}/san-pham/${productSlug}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: item.title, text: description || item.title, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        onShowNotification('Đã sao chép liên kết sản phẩm.', 'success');
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') return;
+      onShowNotification('Không thể chia sẻ sản phẩm lúc này.', 'error');
+    }
+  };
+
+  return (
+    <article className="motion-card overflow-hidden rounded-xl border border-border-color bg-bg-surface shadow-sm transition-colors hover:border-primary/35">
+      <div className="grid grid-cols-1 md:grid-cols-[minmax(0,42%)_minmax(0,58%)]">
+        <div className="grid min-h-[230px] grid-cols-[minmax(0,2fr)_minmax(82px,1fr)] grid-rows-3 gap-1 bg-bg-base p-1">
+          <button
+            type="button"
+            onClick={openProduct}
+            className="group relative row-span-3 overflow-hidden rounded-lg border-0 bg-bg-base p-0 text-left"
+            aria-label={`Xem ${item.title}`}
+          >
+            <img
+              src={optimizeImageUrl(mainImage, 800) || undefined}
+              alt={item.title}
+              width={800}
+              height={600}
+              loading={priority ? 'eager' : 'lazy'}
+              fetchPriority={priority ? 'high' : 'auto'}
+              decoding="async"
+              className="motion-media h-full w-full object-cover group-hover:scale-[1.02]"
+              onError={(event) => { event.currentTarget.src = '/no-image.svg'; }}
+            />
+            <span className={`absolute left-0 top-0 px-2.5 py-1 text-[10px] font-bold text-white ${item.type === 'rent' ? 'bg-primary' : 'bg-rose-700'}`}>
+              {item.type === 'rent' ? 'Cho thuê' : 'Bán'}
+            </span>
+          </button>
+
+          {thumbnails.map((image, index) => (
+            <button
+              key={`${item.id}-thumb-${index}`}
+              type="button"
+              onClick={openProduct}
+              className="relative overflow-hidden rounded-md border-0 bg-bg-base p-0"
+              aria-label={`Xem ảnh ${index + 2} của ${item.title}`}
+            >
+              <img
+                src={optimizeImageUrl(image, 300) || undefined}
+                alt={`${item.title} - ảnh ${index + 2}`}
+                width={300}
+                height={200}
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover"
+                onError={(event) => { event.currentTarget.src = '/no-image.svg'; }}
+              />
+              {index === 2 && allImages.length > 4 && (
+                <span className="absolute inset-0 flex items-center justify-center gap-1 bg-black/55 text-xs font-bold text-white">
+                  <Images className="h-3.5 w-3.5" /> +{allImages.length - 4}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex min-w-0 flex-col p-4 sm:p-5">
+          <button type="button" onClick={openProduct} className="border-0 bg-transparent p-0 text-left">
+            <h2 className="line-clamp-2 font-display text-base font-semibold leading-snug text-text-primary transition-colors hover:text-primary sm:text-lg">
+              {item.title}
+            </h2>
+          </button>
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-text-secondary">
+            <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-primary" />{item.street ? `${item.street}, ` : ''}{item.district}</span>
+            <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" />{item.area ? `${item.area} m²` : 'Diện tích đang cập nhật'}</span>
+          </div>
+          <p className="mt-3 line-clamp-4 text-xs leading-relaxed text-text-secondary">
+            {description || 'Thông tin chi tiết sản phẩm đang được Greenia Homes cập nhật.'}
+          </p>
+          <div className="mt-3 text-base font-bold text-primary">{item.priceText || 'Giá đang cập nhật'}</div>
+
+          <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border-color pt-3 text-[10px] text-text-secondary">
+            <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" />{item.createdBy?.split('@')[0] || 'Greenia Homes'}</span>
+            <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{formatVietnamDate(item.createdAt)}</span>
+            <a href={`tel:${(item.phone || '0932966700').replace(/\s+/g, '')}`} className="flex items-center gap-1 font-semibold text-primary hover:underline" onClick={(event) => event.stopPropagation()}>
+              <Phone className="h-3.5 w-3.5" />{item.phone || '0932 966 700'}
+            </a>
+            <div className="ml-auto flex items-center gap-1.5">
+              <button type="button" onClick={toggleFavorite} aria-label={isFavorite ? 'Bỏ yêu thích' : 'Thêm yêu thích'} className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${isFavorite ? 'border-primary bg-primary text-white' : 'border-border-color bg-bg-surface text-text-secondary hover:border-primary hover:text-primary'}`}>
+                <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+              </button>
+              <button type="button" onClick={shareProduct} aria-label="Chia sẻ sản phẩm" className="flex h-8 w-8 items-center justify-center rounded-full border border-border-color bg-bg-surface text-text-secondary transition-colors hover:border-primary hover:text-primary">
+                <Share2 className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
 export default function ProductList({ 
   onNavigate, 
   onShowNotification,
@@ -81,6 +236,7 @@ export default function ProductList({
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
   const [loading, setLoading] = useState(initialProducts.length === 0);
+  const isCategoryView = Boolean(initialCategory && initialCategory !== 'all');
 
   // Điều kiện lọc.
   const [searchQuery, setSearchQuery] = useState('');
@@ -343,7 +499,7 @@ export default function ProductList({
     setSearchQuery('');
     setSelectedType('all');
     setSelectedDistrict('all');
-    setSelectedCategory('all');
+    setSelectedCategory(initialCategory || 'all');
     setSelectedPriceRange('all');
     setSelectedAreaRange('all');
     setMainGridLimit(10);
@@ -447,6 +603,21 @@ export default function ProductList({
 
   const latestSales = React.useMemo(() => products.filter(p => p.type !== 'rent' && !displayedProductIds.has(p.id)).slice(0, 8), [products, displayedProductIds]);
   const latestRents = React.useMemo(() => products.filter(p => p.type === 'rent' && !displayedProductIds.has(p.id)).slice(0, 8), [products, displayedProductIds]);
+  const sidebarLatestProducts = React.useMemo(
+    () => Array.from(new Map(products.map((product) => [product.id, product])).values()).slice(0, 6),
+    [products],
+  );
+  const recommendedProducts = React.useMemo(() => {
+    if (recentlyViewed.length > 0) return recentlyViewed;
+    const outsideCurrentList = products.filter((product) => !displayedProductIds.has(product.id));
+    return (outsideCurrentList.length > 0 ? outsideCurrentList : filteredProducts).slice(0, 5);
+  }, [displayedProductIds, filteredProducts, products, recentlyViewed]);
+  const featuredProjects = React.useMemo(
+    () => Array.from(
+      new Map(projects.map((project) => [project.id || generateSlug(project.title), project])).values(),
+    ).slice(0, 5),
+    [projects],
+  );
 
   const getSection = (id: string) => {
     return sections.find(s => s.id === id) || {
@@ -461,22 +632,30 @@ export default function ProductList({
     };
   };
 
-  const schemaItemList = {
-    "@context": "https://schema.org",
-    "@type": "ItemList",
-    "itemListElement": filteredProducts.slice(0, mainGridLimit).map((product, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "url": `https://greeniahomes.vn/san-pham/${generateSlug(product.title)}`
-    }))
-  };
+  const sectionsToRender = React.useMemo(() => {
+    if (!isCategoryView || isEditMode || sections.some((section) => section.id === 'recently_viewed')) {
+      return sections;
+    }
 
+    const nextSections = [...sections];
+    const productsGridIndex = nextSections.findIndex((section) => section.id === 'products_grid');
+    const fallbackSection: VisualSection = {
+      id: 'recently_viewed',
+      name: 'Bất động sản dành cho bạn',
+      visible: true,
+      paddingTop: 0,
+      paddingBottom: 30,
+      title: 'Bất Động Sản Dành Cho Riêng Bạn',
+      description: '',
+    };
+    nextSections.splice(productsGridIndex >= 0 ? productsGridIndex + 1 : nextSections.length, 0, fallbackSection);
+    return nextSections;
+  }, [isCategoryView, isEditMode, sections]);
 
   return (    <>
-    <SchemaMarkup schema={schemaItemList} />
     <div className="relative min-h-screen">
       <div className="font-sans" id="product-hub-view-root" style={{ paddingTop: '20px', paddingBottom: '20px' }}>
-        {sections.map((section, idx) => {
+        {sectionsToRender.map((section, idx) => {
           if (!section.visible && !isEditMode) return null;
           
           const isHeavySection = ['recently_viewed', 'latest_sales', 'latest_rents', 'featured_projects'].includes(section.id);
@@ -511,7 +690,7 @@ export default function ProductList({
                     <div ref={tabsContainerRef} className="flex flex-nowrap items-center gap-[6px] md:gap-2 overflow-x-auto w-[calc(100%-36px)] md:w-full relative flex-1 z-50 pb-[2px] px-[5px] scrollbar-hide scroll-smooth [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                       
                       {/* Mobile Type Dropdown */}
-                      <div className="relative flex shrink-0 md:hidden sticky left-[-5px] z-[60] bg-bg-surface pr-1 py-1 -my-1 outline outline-1 outline-white">
+                      <div className="hidden">
                         <button 
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'type' ? null : 'type'); })}
                           className={`px-[8px] py-[4px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType !== 'all' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'} flex items-center gap-1.5`}
@@ -527,7 +706,7 @@ export default function ProductList({
                           if (selectedType === 'all') scrollToGrid();
                           setSelectedType('all'); setSelectedPriceRange('all'); setSelectedDistrict('all'); 
                         })}
-                        className={`hidden md:inline-flex px-[8px] py-[4px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'all' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
+                        className={`inline-flex px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'all' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                       >
                         Tất cả
                       </button>
@@ -536,7 +715,7 @@ export default function ProductList({
                           if (selectedType === 'sale') scrollToGrid();
                           setSelectedType('sale'); setSelectedPriceRange('all'); setSelectedDistrict('all'); 
                         })}
-                        className={`hidden md:inline-flex px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'sale' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
+                        className={`inline-flex px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'sale' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                       >
                         Bán
                       </button>
@@ -545,7 +724,7 @@ export default function ProductList({
                           if (selectedType === 'rent') scrollToGrid();
                           setSelectedType('rent'); setSelectedPriceRange('all'); setSelectedDistrict('all'); 
                         })}
-                        className={`hidden md:inline-flex px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'rent' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
+                        className={`inline-flex px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'rent' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                       >
                         Cho thuê
                       </button>
@@ -553,7 +732,7 @@ export default function ProductList({
                       <div className="relative inline-block shrink-0">
                         <button 
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'district' ? null : 'district'); })}
-                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                          className="px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
                           <span className={selectedDistrict !== 'all' ? 'text-primary' : ''}>
                             {selectedDistrict === 'all' ? 'Khu vực' : selectedDistrict}
                           </span>
@@ -564,7 +743,7 @@ export default function ProductList({
                       <div className="relative inline-block shrink-0">
                         <button 
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'category' ? null : 'category'); })}
-                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                          className="px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
                           <span className={selectedCategory !== 'all' ? 'text-primary' : ''}>
                             {selectedCategory === 'all' ? 'Danh mục' : (productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory)?.name || (selectedCategory === initialCategory && initialCategoryName ? initialCategoryName : selectedCategory))}
                           </span>
@@ -575,7 +754,7 @@ export default function ProductList({
                       <div className="relative inline-block shrink-0">
                         <button 
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'price' ? null : 'price'); })}
-                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                          className="px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
                           <span className={selectedPriceRange !== 'all' ? 'text-primary' : ''}>
                              {selectedPriceRange === 'all' ? 'Khoảng giá' : (
                                (selectedType !== 'rent' 
@@ -591,7 +770,7 @@ export default function ProductList({
                     <div className="relative inline-block shrink-0">
                       <button 
                         onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'area' ? null : 'area'); })}
-                        className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                        className="px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
                         <span className={selectedAreaRange !== 'all' ? 'text-primary' : ''}>
                           {selectedAreaRange === 'all' ? 'Diện tích' : (
                              (areaConfig.length > 0 ? areaConfig.find(c => c.id === selectedAreaRange)?.label : undefined) || 'Diện tích'
@@ -611,7 +790,7 @@ export default function ProductList({
                           value={searchQuery}
                           onChange={e => setSearchQuery(e.target.value)}
                           placeholder="Tìm dự án, khu vực..." 
-                          className="w-full bg-bg-surface border border-primary/20 pl-3 pr-8 py-[4px] rounded-lg text-text-primary outline-none text-[11px] transition-colors focus:border-primary h-[26px]"
+                          className="w-full appearance-none bg-bg-surface !border border-border-color pl-3 pr-8 py-[4px] rounded-lg text-text-primary !outline-none text-[11px] transition-colors focus:!border-primary !ring-0 !shadow-none h-[26px]"
                         />
                         <button aria-label="Tìm kiếm" className="absolute right-2 top-1/2 -translate-y-1/2 text-primary p-1 bg-transparent border-none">
                           <Search size={10} strokeWidth={3} />
@@ -842,7 +1021,7 @@ export default function ProductList({
                           value={searchQuery}
                           onChange={e => setSearchQuery(e.target.value)}
                           placeholder="Tìm dự án, khu vực, danh mục..." 
-                          className="w-full bg-bg-surface border border-primary/20 pl-3 pr-8 rounded-lg text-text-primary outline-none text-[12px] transition-colors focus:border-primary h-[32px]"
+                          className="w-full appearance-none bg-bg-surface !border border-border-color pl-3 pr-8 rounded-lg text-text-primary !outline-none text-[12px] transition-colors focus:!border-primary !ring-0 !shadow-none h-[32px]"
                           autoFocus
                         />
                         <button onClick={() => { setIsSearchOpen(false); setSearchQuery(''); }} className="absolute right-2 top-1/2 -translate-y-1/2 text-white/50 p-1 bg-transparent border-none hover:text-primary transition-colors">
@@ -933,11 +1112,66 @@ export default function ProductList({
                   <div className="text-center py-12 text-white/70 text-xs">Không tìm thấy sản phẩm nào khớp bộ lọc lựa chọn của bạn.</div>
                 ) : (
                   <div className="space-y-6">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
-                      {filteredProducts.slice(0, mainGridLimit).map((item, index) => (
-                        <ProductCard key={item.id} item={item} priority={index < 2} headingLevel={2} onNavigate={onNavigate} />
-                      ))}
-                    </div>
+                    {isCategoryView ? (
+                      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(280px,3fr)]">
+                        <div className="space-y-5">
+                          {filteredProducts.slice(0, mainGridLimit).map((item, index) => (
+                            <CategoryProductRow
+                              key={item.id}
+                              item={item}
+                              priority={index === 0}
+                              onNavigate={onNavigate}
+                              onShowNotification={onShowNotification}
+                            />
+                          ))}
+                        </div>
+
+                        <aside className="self-start rounded-xl border border-border-color bg-bg-surface p-4 shadow-sm lg:sticky lg:top-[112px]" aria-labelledby="category-latest-products-title">
+                          <h2 id="category-latest-products-title" className="border-l-4 border-primary pl-3 font-display text-[15px] font-semibold text-text-primary">
+                            Sản phẩm mới nhất
+                          </h2>
+                          <div className="mt-4 space-y-3">
+                            {sidebarLatestProducts.map((item) => (
+                              <a
+                                key={`sidebar-${item.id}`}
+                                href={`/san-pham/${generateSlug(item.title)}`}
+                                onClick={(event) => {
+                                  event.preventDefault();
+                                  onNavigate({ screen: 'product-detail', productId: item.id, slug: generateSlug(item.title) });
+                                }}
+                                className="group flex gap-3 border-b border-border-color pb-3 last:border-0 last:pb-0"
+                              >
+                                <div className="relative h-[72px] w-[92px] shrink-0 overflow-hidden rounded-lg bg-bg-base">
+                                  <img
+                                    src={optimizeImageUrl(item.imageUrl || item.imageUrls?.[0] || '/no-image.svg', 300) || undefined}
+                                    alt={item.title}
+                                    width={300}
+                                    height={220}
+                                    loading="lazy"
+                                    decoding="async"
+                                    className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                    onError={(event) => { event.currentTarget.src = '/no-image.svg'; }}
+                                  />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="line-clamp-2 text-xs font-semibold leading-snug text-text-primary group-hover:text-primary">{item.title}</h3>
+                                  <p className="mt-1 text-[11px] font-bold text-primary">{item.priceText || 'Giá đang cập nhật'}</p>
+                                  <p className="mt-1 flex items-center gap-1 truncate text-[10px] text-text-secondary">
+                                    <MapPin className="h-3 w-3 shrink-0" />{item.district}
+                                  </p>
+                                </div>
+                              </a>
+                            ))}
+                          </div>
+                        </aside>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
+                        {filteredProducts.slice(0, mainGridLimit).map((item, index) => (
+                          <ProductCard key={item.id} item={item} priority={index < 2} headingLevel={2} onNavigate={onNavigate} />
+                        ))}
+                      </div>
+                    )}
 
                     {filteredProducts.length > mainGridLimit && (
                       <div className="text-center">
@@ -946,7 +1180,7 @@ export default function ProductList({
                           onClick={() => setMainGridLimit(prev => prev + 10)}
                           className="bg-primary hover:bg-primary/80 text-[10px] font-bold uppercase tracking-wider text-white hover:text-white border border-primary px-6 py-3.5 rounded-full cursor-pointer transition-all border-solid shadow-md hover:shadow-lg"
                         >
-                          Xem thêm bài đăng sàn chính (Tải thêm +10)
+                          Xem thêm sản phẩm
                         </button>
                       </div>
                     )}
@@ -954,7 +1188,7 @@ export default function ProductList({
                 )}
               </div>
             );
-          } else if (section.id === 'recently_viewed' && recentlyViewed.length > 0) {
+          } else if (section.id === 'recently_viewed' && (recentlyViewed.length > 0 || isCategoryView)) {
             cardContent = (
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left">
                 <section className="space-y-4 pt-4 border-t border-border-color border-dashed text-left" id="product-hub-history">
@@ -970,28 +1204,30 @@ export default function ProductList({
                       tag="h2"
                     />
                     
-                    <button
-                      type="button"
-                      onClick={() => {
-                        localStorage.removeItem('recentlyViewed');
-                        setRecentlyViewed([]);
-                        syncRecentlyViewedDocumentState(0);
-                        onShowNotification('Đã làm trống lịch sử xem.', 'success');
-                      }}
-                      className="text-[9px] uppercase font-mono font-bold tracking-wider text-text-secondary hover:text-error transition-colors bg-transparent border-none cursor-pointer"
-                    >
-                      Xóa lịch sử
-                    </button>
+                    {recentlyViewed.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          localStorage.removeItem('recentlyViewed');
+                          setRecentlyViewed([]);
+                          syncRecentlyViewedDocumentState(0);
+                          onShowNotification('Đã làm trống lịch sử xem.', 'success');
+                        }}
+                        className="text-[9px] uppercase font-mono font-bold tracking-wider text-text-secondary hover:text-error transition-colors bg-transparent border-none cursor-pointer"
+                      >
+                        Xóa lịch sử
+                      </button>
+                    )}
                   </div>
 
                   <div className="space-y-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
-                      {recentlyViewed.slice(0, recentGridLimit).map((item) => (
-                        <ProductCard key={item.id} item={item} badgeText="Vừa xem" badgeColor="bg-pink-700 text-white" onNavigate={onNavigate} />
+                      {recommendedProducts.slice(0, recentGridLimit).map((item) => (
+                        <ProductCard key={item.id} item={item} badgeText={recentlyViewed.length > 0 ? 'Vừa xem' : undefined} badgeColor={recentlyViewed.length > 0 ? 'bg-pink-700 text-white' : undefined} onNavigate={onNavigate} />
                       ))}
                     </div>
 
-                    {recentlyViewed.length > recentGridLimit && (
+                    {recommendedProducts.length > recentGridLimit && (
                       <div className="text-center">
                         <button
                           type="button"
@@ -1130,9 +1366,9 @@ export default function ProductList({
                   </div>
 
                   <div className="relative overflow-hidden py-4 w-full" id="featured-projects-slider">
-                    <div className="animate-product-sliding-container flex w-max">
-                      <div className="flex w-max animate-product-slider">
-                        {[...Array(2)].flatMap(() => projects.slice(0, 5)).map((proj, idx) => {
+                    <div className={`${featuredProjects.length >= 4 ? 'animate-product-sliding-container' : ''} flex w-max`}>
+                      <div className={`flex w-max ${featuredProjects.length >= 4 ? 'animate-product-slider' : ''}`}>
+                        {(featuredProjects.length >= 4 ? [...featuredProjects, ...featuredProjects] : featuredProjects).map((proj, idx) => {
                           let statusText = 'Đang mở bán';
                           if (proj.status === 'handed_over') statusText = 'Đã bàn giao';
                           if (proj.status === 'coming_soon') statusText = 'Sắp ra mắt';
@@ -1140,7 +1376,7 @@ export default function ProductList({
                           return (
                             <div
                               key={`${proj.id}-${idx}`}
-                              aria-hidden={idx >= projects.slice(0, 5).length}
+                              aria-hidden={idx >= featuredProjects.length}
                               onClick={() => router.push(getRouteUrl({ screen: 'project-detail', projectId: proj.id, slug: generateSlug(proj.title) }))}
                               className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                             >

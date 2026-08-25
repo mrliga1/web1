@@ -88,6 +88,19 @@ import { useAuth, type UserProfile } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
 import FiltersConfigTab from "./FiltersConfigTab";
 import { allLocationsList } from "../lib/locationMapping";
+import {
+  applyAutomaticContextualLinks,
+  buildInternalLinkTargets,
+  detectRelatedContentTrigger,
+  extractInternalLinkRecords,
+  findAmbiguousInternalLinkMatches,
+  getRelatedNewsSuggestions,
+  insertInternalLinkAtSelection,
+  insertRelatedNewsLinks,
+  linkFirstMatchingTerm,
+  normalizeText,
+  type InternalLinkTarget,
+} from "../lib/contextualInternalLinks";
 
 interface AdminPanelProps {
   onShowNotification: (message: string, type: "success" | "error") => void;
@@ -988,6 +1001,152 @@ export default function AdminPanel({
   } | null>(null);
   const [isInternalLinkModalOpen, setIsInternalLinkModalOpen] = useState(false);
   const [internalLinkSearch, setInternalLinkSearch] = useState("");
+  const [internalLinkModalMode, setInternalLinkModalMode] = useState<
+    "manual" | "related" | "ambiguous"
+  >("manual");
+  const [relatedContentTrigger, setRelatedContentTrigger] = useState("");
+  const [selectedRelatedLinkIds, setSelectedRelatedLinkIds] = useState<string[]>([]);
+  const [activeAmbiguousTerm, setActiveAmbiguousTerm] = useState("");
+  const lastRelatedTriggerRef = useRef("");
+
+  const internalLinkTargets = useMemo(
+    () =>
+      buildInternalLinkTargets({
+        news,
+        products,
+        projects,
+        currentArticleId:
+          createType === "article" && isEditing ? editingItemId : undefined,
+      }),
+    [news, products, projects, createType, isEditing, editingItemId],
+  );
+
+  const relatedNewsSuggestions = useMemo(
+    () =>
+      getRelatedNewsSuggestions({
+        title,
+        content: htmlContent,
+        category,
+        keywords: itemSeoKeywords,
+        targets: internalLinkTargets,
+        limit: 5,
+      }),
+    [title, htmlContent, category, itemSeoKeywords, internalLinkTargets],
+  );
+
+  const ambiguousInternalLinkMatches = useMemo(
+    () => findAmbiguousInternalLinkMatches(htmlContent, internalLinkTargets),
+    [htmlContent, internalLinkTargets],
+  );
+
+  const visibleInternalLinkTargets = useMemo(() => {
+    if (internalLinkModalMode === "related") {
+      return relatedNewsSuggestions.map((suggestion) => suggestion.target);
+    }
+    if (internalLinkModalMode === "ambiguous") {
+      return (
+        ambiguousInternalLinkMatches.find(
+          (match) => normalizeText(match.term) === normalizeText(activeAmbiguousTerm),
+        )?.targets || []
+      );
+    }
+    const query = normalizeText(internalLinkSearch);
+    return internalLinkTargets
+      .filter((target) => {
+        if (!query) return true;
+        return normalizeText(
+          `${target.title} ${target.category} ${target.keywords.join(" ")}`,
+        ).includes(query);
+      })
+      .slice(0, 30);
+  }, [
+    internalLinkModalMode,
+    relatedNewsSuggestions,
+    ambiguousInternalLinkMatches,
+    activeAmbiguousTerm,
+    internalLinkSearch,
+    internalLinkTargets,
+  ]);
+
+  const closeInternalLinkModal = () => {
+    setIsInternalLinkModalOpen(false);
+    setEditorCursorMatch(null);
+    setInternalLinkSearch("");
+    setSelectedRelatedLinkIds([]);
+    setActiveAmbiguousTerm("");
+  };
+
+  const handleEditorContentChange = (value: string) => {
+    setHtmlContent(value);
+    if (createType !== "article") return;
+    const hasNewLine = /(?:\r?\n\s*|<(?:p|div)[^>]*>(?:\s|<br\s*\/?>|&nbsp;)*<\/(?:p|div)>)\s*$/i.test(value);
+    if (!hasNewLine) return;
+    const trigger = detectRelatedContentTrigger(value);
+    if (!trigger) return;
+    const fingerprint = `${normalizeText(trigger)}:${value.length}`;
+    if (lastRelatedTriggerRef.current === fingerprint) return;
+    lastRelatedTriggerRef.current = fingerprint;
+    setRelatedContentTrigger(trigger);
+    setInternalLinkModalMode("related");
+    setSelectedRelatedLinkIds([]);
+    setInternalLinkSearch("");
+    setIsInternalLinkModalOpen(true);
+  };
+
+  const openManualInternalLinkModal = () => {
+    setInternalLinkModalMode("manual");
+    setInternalLinkSearch("");
+    setIsInternalLinkModalOpen(true);
+  };
+
+  const openAmbiguousInternalLinkModal = (term: string) => {
+    setInternalLinkModalMode("ambiguous");
+    setActiveAmbiguousTerm(term);
+    setInternalLinkSearch(term);
+    setIsInternalLinkModalOpen(true);
+  };
+
+  const insertSelectedInternalLink = (target: InternalLinkTarget) => {
+    if (internalLinkModalMode === "ambiguous") {
+      setHtmlContent((currentHtml) =>
+        linkFirstMatchingTerm(currentHtml, activeAmbiguousTerm, target),
+      );
+    } else if (editorCursorMatch) {
+      const { start, end, text } = editorCursorMatch;
+      setHtmlContent(
+        insertInternalLinkAtSelection({
+          html: text,
+          start,
+          end,
+          target,
+        }),
+      );
+    } else {
+      setHtmlContent((currentHtml) =>
+        insertInternalLinkAtSelection({
+          html: currentHtml,
+          target,
+        }),
+      );
+    }
+    onShowNotification("Đã chèn liên kết nội bộ bằng URL chuẩn.", "success");
+    closeInternalLinkModal();
+  };
+
+  const insertSelectedRelatedNews = () => {
+    const selectedTargets = relatedNewsSuggestions
+      .map((suggestion) => suggestion.target)
+      .filter((target) => selectedRelatedLinkIds.includes(`${target.type}:${target.id}`));
+    if (!selectedTargets.length) {
+      onShowNotification("Hãy chọn ít nhất một bài viết liên quan.", "error");
+      return;
+    }
+    setHtmlContent((currentHtml) =>
+      insertRelatedNewsLinks(currentHtml, relatedContentTrigger, selectedTargets),
+    );
+    onShowNotification(`Đã chèn ${selectedTargets.length} bài viết liên quan.`, "success");
+    closeInternalLinkModal();
+  };
 
   const libraryImages = React.useMemo(() => {
     const urls = new Set<string>();
@@ -1574,6 +1733,13 @@ export default function AdminPanel({
       }
     }
 
+    const automaticLinkResult =
+      createType === "article"
+        ? applyAutomaticContextualLinks(htmlContent.trim(), internalLinkTargets)
+        : { html: htmlContent.trim(), links: [] };
+    const finalArticleContent = automaticLinkResult.html;
+    const trackedInternalLinks = extractInternalLinkRecords(finalArticleContent);
+
     try {
       setLoading(true);
       if (isEditing) {
@@ -1694,7 +1860,8 @@ export default function AdminPanel({
           const updatePayload = {
             title: title.trim(),
             category: finalCategory,
-            content: htmlContent.trim(),
+            content: finalArticleContent,
+            internalLinks: trackedInternalLinks,
             imageUrl: finalImage,
             imageUrls: imageUrls,
             avatarUrl: avatarUrl,
@@ -1708,7 +1875,12 @@ export default function AdminPanel({
             metaKeywords: itemSeoKeywords.trim(),
           };
           await updateDoc(doc(db, "news", editingItemId), updatePayload);
-          // Removed success notification when editing article as requested
+          onShowNotification(
+            automaticLinkResult.links.length
+              ? `Đã cập nhật bài viết và tự động tạo ${automaticLinkResult.links.length} liên kết nội bộ phù hợp.`
+              : "Đã cập nhật bài viết và kiểm tra liên kết nội bộ.",
+            "success",
+          );
         }
       } else {
         if (createType === "product") {
@@ -1831,7 +2003,8 @@ export default function AdminPanel({
             title: title.trim(),
             category: finalCategory,
             description: title.trim(),
-            content: htmlContent.trim(),
+            content: finalArticleContent,
+            internalLinks: trackedInternalLinks,
             imageUrl: finalImage,
             imageUrls: imageUrls,
             avatarUrl: avatarUrl,
@@ -1858,7 +2031,9 @@ export default function AdminPanel({
 
           await addDoc(collection(db, "news"), newsPayload);
           onShowNotification(
-            "Đăng tải chuyên mục tin bài thành công!",
+            automaticLinkResult.links.length
+              ? `Đăng bài thành công và tự động tạo ${automaticLinkResult.links.length} liên kết nội bộ phù hợp.`
+              : "Đăng tải chuyên mục tin bài thành công!",
             "success",
           );
         }
@@ -7207,7 +7382,7 @@ export default function AdminPanel({
                                       end: textarea.selectionEnd,
                                       text: textarea.value,
                                     });
-                                  setIsInternalLinkModalOpen(true);
+                                  openManualInternalLinkModal();
                                 }}
                                 className="text-[9px] bg-white border border-slate-200 text-emerald-400 hover:text-slate-900 px-1.5 py-1 rounded font-mono font-bold"
                                 title="Chèn liên kết bài cũ nội bộ"
@@ -7229,7 +7404,7 @@ export default function AdminPanel({
                             <textarea
                               id="html-content-editor"
                               value={htmlContent}
-                              onChange={(e) => setHtmlContent(e.target.value)}
+                              onChange={(e) => handleEditorContentChange(e.target.value)}
                               placeholder="Nhập mã HTML hoặc bôi đen định dạng. Sử dụng thanh công cụ trợ giúp nhanh phía trên để kiến thiết bài đăng cực chuẩn WordPress..."
                               className={`w-full bg-white border border-slate-200 rounded-lg py-3 px-4 text-xs text-slate-800 outline-none font-mono resize-none ${isEditorFullscreen ? "flex-1" : ""}`}
                               rows={isEditorFullscreen ? undefined : 15}
@@ -7243,7 +7418,7 @@ export default function AdminPanel({
                                 ref={quillRef}
                                 theme="snow"
                                 value={htmlContent}
-                                onChange={setHtmlContent}
+                                onChange={handleEditorContentChange}
                                 modules={quillModules}
                                 className={`text-zinc-900 flex flex-col ${isEditorFullscreen ? "flex-1" : ""}`}
                               />
@@ -7263,6 +7438,48 @@ export default function AdminPanel({
                                   __html: htmlContent,
                                 }}
                               />
+                            </div>
+                          )}
+
+                          {createType === "article" && (
+                            <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/70 p-3 space-y-2">
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <div>
+                                  <p className="text-[10px] font-bold text-emerald-900">
+                                    Trợ lý liên kết nội bộ
+                                  </p>
+                                  <p className="text-[9px] text-emerald-800/80">
+                                    Khi lưu bài, hệ thống tự liên kết tối đa 3–8 cụm từ rõ nghĩa; cụm mơ hồ luôn cần bạn chọn.
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={openManualInternalLinkModal}
+                                  className="rounded-md border border-emerald-300 bg-white px-3 py-1.5 text-[9px] font-bold text-emerald-800 hover:bg-emerald-100"
+                                >
+                                  Chèn liên kết thủ công
+                                </button>
+                              </div>
+
+                              {ambiguousInternalLinkMatches.length > 0 && (
+                                <div className="border-t border-emerald-200 pt-2">
+                                  <p className="mb-1.5 text-[9px] font-semibold text-amber-800">
+                                    {ambiguousInternalLinkMatches.length} cụm từ có nhiều đích đến — chọn trang phù hợp:
+                                  </p>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {ambiguousInternalLinkMatches.slice(0, 5).map((match) => (
+                                      <button
+                                        key={normalizeText(match.term)}
+                                        type="button"
+                                        onClick={() => openAmbiguousInternalLinkModal(match.term)}
+                                        className="rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[9px] font-semibold text-amber-900 hover:bg-amber-100"
+                                      >
+                                        {match.term} ({match.targets.length})
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
                         </>
@@ -8460,140 +8677,158 @@ export default function AdminPanel({
             {isInternalLinkModalOpen && (
               <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
                 <div className="bg-slate-50 border border-slate-200 rounded-lg w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-                  <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-black/20">
+                  <div className="p-5 border-b border-slate-200 flex justify-between items-start gap-4 bg-white">
                     <div>
-                      <h3 className="text-sm font-bold text-emerald-400 flex items-center gap-2">
+                      <h3 className="text-sm font-bold text-emerald-800 flex items-center gap-2">
                         <span className="bg-emerald-400/10 p-1.5 rounded-md">
-                          <Bookmark className="w-4 h-4 text-emerald-400" />
+                          <Bookmark className="w-4 h-4 text-emerald-700" />
                         </span>
-                        LIÊN KẾT BÀI VIẾT NỘI BỘ
+                        {internalLinkModalMode === "related"
+                          ? "GỢI Ý BÀI VIẾT LIÊN QUAN"
+                          : internalLinkModalMode === "ambiguous"
+                            ? `CHỌN ĐÍCH CHO “${activeAmbiguousTerm}”`
+                            : "CHÈN LIÊN KẾT NỘI BỘ"}
                       </h3>
-                      <p className="text-slate-500 text-[10px] mt-1">
-                        Tìm kiếm và chèn đường dẫn sản phẩm, dự án hoặc bài tin
-                        tức có sẵn vào nội dung đang soạn thảo.
+                      <p className="text-slate-600 text-[10px] mt-1">
+                        {internalLinkModalMode === "related"
+                          ? "Chọn tối đa 5 bài phù hợp với chủ đề hiện tại; hệ thống sẽ chèn ngay sau tiêu đề gợi ý."
+                          : internalLinkModalMode === "ambiguous"
+                            ? "Cụm từ này có nhiều trang phù hợp nên hệ thống không tự quyết định thay bạn."
+                            : "Tìm nội dung theo tiêu đề, danh mục hoặc từ khóa; URL chuẩn được tạo tự động."}
                       </p>
                     </div>
                     <button
                       type="button"
-                      onClick={() => {
-                        setIsInternalLinkModalOpen(false);
-                        setEditorCursorMatch(null);
-                      }}
+                      onClick={closeInternalLinkModal}
                       className="text-slate-700 hover:text-slate-900 text-xs font-semibold cursor-pointer py-1.5 px-3 bg-white border border-slate-200 rounded-lg transition-colors"
                     >
-                      Đóng lại
+                      Đóng
                     </button>
                   </div>
 
-                  <div className="p-5 flex-1 min-h-[50vh] overflow-y-auto space-y-4">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={internalLinkSearch}
-                        onChange={(e) => setInternalLinkSearch(e.target.value)}
-                        placeholder="Tìm theo tiêu đề bài viết, sản phẩm..."
-                        className="w-full bg-white border border-slate-200 rounded-lg px-3  py-[10px] text-[10px] text-slate-900 outline-none focus:border-primary transition-colors"
-                      />
-                      <Search className="w-3.5 h-3.5 text-slate-500 absolute right-3 top-3" />
-                    </div>
+                  <div className="p-5 flex-1 min-h-[45vh] overflow-y-auto space-y-4">
+                    {internalLinkModalMode === "manual" && (
+                      <div className="relative">
+                        <input
+                          type="search"
+                          value={internalLinkSearch}
+                          onChange={(e) => setInternalLinkSearch(e.target.value)}
+                          placeholder="Tìm theo tiêu đề, danh mục hoặc từ khóa..."
+                          className="w-full bg-white border border-slate-300 rounded-lg px-3 py-[10px] pr-9 text-[10px] text-slate-900 outline-none focus:border-primary transition-colors"
+                        />
+                        <Search className="w-3.5 h-3.5 text-slate-500 absolute right-3 top-3" />
+                      </div>
+                    )}
 
                     <div className="space-y-3">
-                      {/* Flatten and filter items */}
-                      {[
-                        ...products.map((p) => ({
-                          ...p,
-                          _type: "product",
-                          _label: "Sản Phẩm",
-                        })),
-                        ...projects.map((p) => ({
-                          ...p,
-                          _type: "project",
-                          _label: "Dự Án",
-                        })),
-                        ...news.map((p) => ({
-                          ...p,
-                          _type: "news",
-                          _label: "Tin Tức",
-                        })),
-                      ]
-                        .filter(
-                          (item) =>
-                            item.title &&
-                            item.title
-                              .toLowerCase()
-                              .includes(internalLinkSearch.toLowerCase()),
-                        )
-                        .map((item) => {
-                          let href = "";
-                          if (item._type === "product")
-                            href = `#product/${item.id}`;
-                          else if (item._type === "project")
-                            href = `#project/${item.id}`;
-                          else if (item._type === "news")
-                            href = `#news/${item.id}`;
+                      {visibleInternalLinkTargets.map((target) => {
+                        const targetKey = `${target.type}:${target.id}`;
+                        const isRelated = internalLinkModalMode === "related";
+                        const isSelected = selectedRelatedLinkIds.includes(targetKey);
+                        const relatedReason = relatedNewsSuggestions.find(
+                          (suggestion) => suggestion.target.id === target.id,
+                        );
+                        const typeLabel =
+                          target.type === "product"
+                            ? "Sản phẩm"
+                            : target.type === "project"
+                              ? "Dự án"
+                              : "Tin tức";
 
-                          return (
-                            <div
-                              key={`${item._type}-${item.id}`}
-                              onClick={() => {
-                                if (editorCursorMatch) {
-                                  const { start, end, text } =
-                                    editorCursorMatch;
-                                  const selected =
-                                    text.substring(start, end) || item.title;
-                                  const imgTag = `<a href="${href}" class="text-emerald-400 font-medium hover:underline cursor-pointer transition-colors" title="${item.title}">${selected}</a>`;
-                                  setHtmlContent(
-                                    text.substring(0, start) +
-                                    imgTag +
-                                    text.substring(end),
-                                  );
-                                  setEditorCursorMatch(null);
-                                } else {
-                                  setHtmlContent(
-                                    (prev) =>
-                                      prev +
-                                      `<a href="${href}" class="text-emerald-400 font-medium hover:underline cursor-pointer transition-colors" title="${item.title}">${item.title}</a>`,
-                                  );
-                                }
-                                onShowNotification(
-                                  "Đã chèn liên kết nội bộ thành công!",
-                                  "success",
+                        return (
+                          <button
+                            type="button"
+                            key={targetKey}
+                            onClick={() => {
+                              if (isRelated) {
+                                setSelectedRelatedLinkIds((currentIds) =>
+                                  currentIds.includes(targetKey)
+                                    ? currentIds.filter((id) => id !== targetKey)
+                                    : currentIds.length < 5
+                                      ? [...currentIds, targetKey]
+                                      : currentIds,
                                 );
-                                setIsInternalLinkModalOpen(false);
-                              }}
-                              className="bg-white border border-slate-200 p-3 rounded-lg flex items-center gap-3 cursor-pointer hover:border-primary hover:bg-slate-100 transition-all group"
-                            >
-                              <img loading="lazy" decoding="async"
-                                src={(item.imageUrl) || undefined}
-                                alt={getImageAltFromUrl(item.imageUrl, item.title)}
-                                className="w-10 h-10 object-cover rounded-md flex-shrink-0"
+                                return;
+                              }
+                              insertSelectedInternalLink(target);
+                            }}
+                            className={`w-full border p-3 rounded-lg flex items-center gap-3 text-left transition-all group ${
+                              isSelected
+                                ? "border-emerald-500 bg-emerald-50"
+                                : "border-slate-200 bg-white hover:border-primary hover:bg-slate-50"
+                            }`}
+                          >
+                            {isRelated && (
+                              <span
+                                aria-hidden="true"
+                                className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border text-[10px] ${
+                                  isSelected
+                                    ? "border-emerald-600 bg-emerald-600 text-white"
+                                    : "border-slate-400 bg-white"
+                                }`}
+                              >
+                                {isSelected ? "✓" : ""}
+                              </span>
+                            )}
+                            {target.imageUrl ? (
+                              <img
+                                loading="lazy"
+                                decoding="async"
+                                src={target.imageUrl}
+                                alt={getImageAltFromUrl(target.imageUrl, target.title)}
+                                className="w-11 h-11 object-cover rounded-md flex-shrink-0"
                                 referrerPolicy="no-referrer"
                               />
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span
-                                    className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${item._type === "product"
-                                        ? "bg-primary/20 text-primary"
-                                        : item._type === "project"
-                                          ? "bg-indigo-500/20 text-indigo-400"
-                                          : "bg-sky-500/20 text-sky-400"
-                                      }`}
-                                  >
-                                    {item._label}
-                                  </span>
-                                  <span className="text-[9px] text-slate-500 font-mono truncate">
-                                    {window.location.origin}/{href}
-                                  </span>
-                                </div>
-                                <h4 className="text-xs font-semibold text-slate-800 truncate group-hover:text-emerald-400 transition-colors">
-                                  {item.title}
-                                </h4>
-                              </div>
-                            </div>
-                          );
-                        })}
+                            ) : (
+                              <span className="w-11 h-11 rounded-md bg-slate-100 flex items-center justify-center flex-shrink-0">
+                                <FileText className="w-4 h-4 text-slate-400" />
+                              </span>
+                            )}
+                            <span className="flex-1 min-w-0">
+                              <span className="flex items-center gap-2 mb-1">
+                                <span className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                                  {typeLabel}
+                                </span>
+                                <span className="text-[9px] text-slate-500 font-mono truncate">
+                                  {target.url}
+                                </span>
+                              </span>
+                              <span className="block text-xs font-semibold text-slate-800 truncate group-hover:text-emerald-700 transition-colors">
+                                {target.title}
+                              </span>
+                              {relatedReason?.reasons.length ? (
+                                <span className="block mt-1 text-[9px] text-slate-500 truncate">
+                                  {relatedReason.reasons.join(" · ")}
+                                </span>
+                              ) : null}
+                            </span>
+                          </button>
+                        );
+                      })}
+
+                      {visibleInternalLinkTargets.length === 0 && (
+                        <div className="rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center text-[10px] text-slate-500">
+                          Chưa tìm thấy nội dung đã xuất bản phù hợp.
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {internalLinkModalMode === "related" && (
+                    <div className="flex items-center justify-between gap-3 border-t border-slate-200 bg-white p-4">
+                      <span className="text-[10px] text-slate-600">
+                        Đã chọn {selectedRelatedLinkIds.length}/5 bài
+                      </span>
+                      <button
+                        type="button"
+                        onClick={insertSelectedRelatedNews}
+                        disabled={selectedRelatedLinkIds.length === 0}
+                        className="rounded-lg bg-emerald-700 px-4 py-2 text-[10px] font-bold text-white hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        Chèn bài đã chọn
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

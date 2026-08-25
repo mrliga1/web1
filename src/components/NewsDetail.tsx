@@ -105,10 +105,33 @@ export default function NewsDetail({
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [agreePrivacy, setAgreePrivacy] = useState(true);
   const [isMarqueePaused, setIsMarqueePaused] = useState(false);
+  const relatedCarouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     articleRef.current = article;
   }, [article]);
+
+  useEffect(() => {
+    if (isMarqueePaused) return;
+
+    const timer = window.setInterval(() => {
+      const carousel = relatedCarouselRef.current;
+      if (!carousel || carousel.scrollWidth <= carousel.clientWidth + 4) return;
+
+      const maxScrollLeft = carousel.scrollWidth - carousel.clientWidth;
+      if (carousel.scrollLeft >= maxScrollLeft - 8) {
+        carousel.scrollTo({ left: 0, behavior: 'smooth' });
+        return;
+      }
+
+      carousel.scrollBy({
+        left: Math.max(260, carousel.clientWidth / 3),
+        behavior: 'smooth',
+      });
+    }, 4500);
+
+    return () => window.clearInterval(timer);
+  }, [article?.category, article?.id, allNews, isMarqueePaused]);
 
   useEffect(() => {
     async function loadArticleData() {
@@ -489,50 +512,31 @@ export default function NewsDetail({
               </button>
             </div>
 
-            <div 
-              className="relative overflow-hidden pb-4 w-full flex group"
+            <div
+              ref={relatedCarouselRef}
+              className="relative overflow-x-auto pb-4 w-full flex gap-4 group snap-x snap-mandatory scroll-smooth hide-scrollbar"
               onMouseEnter={() => setIsMarqueePaused(true)}
               onMouseLeave={() => setIsMarqueePaused(false)}
             >
-              <div className="flex gap-4 box-border animate-marquee pr-4 flex-nowrap" style={{ animationPlayState: isMarqueePaused ? 'paused' : 'running' }}>
-                {(() => {
-                  const relatedList = generalNewsList.filter(n => n.id !== article.id && n.category === article.category).slice(0, 5);
-                  
-                  return relatedList.map((n, index) => (
-                  <div
-                    key={`${n.id}-${index}`}
-                    role="link"
-                    tabIndex={0}
-                    onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
-                    onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
-                    className="w-[280px] shrink-0 bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
-                  >
-                    <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
-                    <div className="text-left space-y-1 whitespace-normal">
-                      <h3 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h3>
-                      <span className="text-[10px] lg:text-[9px] text-text-secondary font-mono block mt-1">
-                        {formatVietnamDate(n.createdAt)}
-                      </span>
-                    </div>
-                  </div>
-                  ));
-                })()}
-              </div>
+              {(() => {
+                const relatedList = Array.from(
+                  new Map(
+                    generalNewsList
+                      .filter((newsItem) => newsItem.id !== article.id && newsItem.category === article.category)
+                      .map((newsItem) => [newsItem.id || generateSlug(newsItem.title), newsItem]),
+                  ).values(),
+                ).slice(0, 6);
 
-              <div className="flex gap-4 box-border animate-marquee pr-4 flex-nowrap" style={{ animationPlayState: isMarqueePaused ? 'paused' : 'running' }}>
-                {(() => {
-                  const relatedList = generalNewsList.filter(n => n.id !== article.id && n.category === article.category).slice(0, 5);
-                  
-                  return relatedList.map((n, index) => (
+                return relatedList.map((n) => (
                   <div
-                    key={`${n.id}-dup-${index}`}
+                    key={n.id}
                     role="link"
                     tabIndex={0}
                     onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
                     onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
-                    className="w-[280px] shrink-0 bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
+                    className="basis-[85%] sm:basis-[calc(50%-0.5rem)] lg:basis-[calc(33.333%-0.75rem)] shrink-0 snap-start bg-bg-surface/30 border border-border-color hover:border-primary/40 rounded-lg p-3 space-y-3 cursor-pointer transition-all"
                   >
-                    <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-28 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
                       <h3 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h3>
                       <span className="text-[10px] lg:text-[9px] text-text-secondary font-mono block mt-1">
@@ -540,9 +544,8 @@ export default function NewsDetail({
                       </span>
                     </div>
                   </div>
-                  ));
-                })()}
-              </div>
+                ));
+              })()}
             </div>
           </div>
 
@@ -804,7 +807,7 @@ export default function NewsDetail({
                       type="checkbox"
                       checked={agreeTerms}
                       onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-6 w-6 shrink-0 cursor-pointer"
+                      className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 shrink-0 cursor-pointer"
                     />
                     <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
                       Tôi đã đọc và đồng ý với <button type="button" onClick={() => onNavigate({ screen: "terms-of-use" })} className="underline text-primary hover:text-primary">Điều khoản & Điều kiện</button> của Greenia Market.
@@ -815,7 +818,7 @@ export default function NewsDetail({
                       type="checkbox"
                       checked={agreePrivacy}
                       onChange={(e) => setAgreePrivacy(e.target.checked)}
-                      className="rounded border-border-inverse bg-bg-surface text-primary focus:ring-transparent h-6 w-6 shrink-0 cursor-pointer"
+                      className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 shrink-0 cursor-pointer"
                     />
                     <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
                       Tôi đã đọc và đồng ý với <button type="button" onClick={() => onNavigate({ screen: "privacy-policy" })} className="underline text-primary hover:text-primary">Chính sách bảo mật dữ liệu cá nhân</button> của Greenia Market.

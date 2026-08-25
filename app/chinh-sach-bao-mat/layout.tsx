@@ -1,11 +1,31 @@
 import { createStaticPageMetadata } from '../../src/lib/internalLinks';
+import SchemaMarkup from '../../src/components/SchemaMarkup';
+import { createWebPageSchemas } from '../../src/lib/contentSchemas';
+
+const pageDescription = 'Chính sách bảo mật thông tin cá nhân của Greenia Homes. Cam kết bảo vệ dữ liệu khách hàng.';
+const { webPage, breadcrumb } = createWebPageSchemas({
+  path: '/chinh-sach-bao-mat',
+  name: 'Chính sách bảo mật',
+  description: pageDescription,
+  topics: ['Bảo mật dữ liệu cá nhân', 'Quyền riêng tư'],
+  breadcrumbs: [
+    { name: 'Trang chủ', path: '/' },
+    { name: 'Chính sách bảo mật', path: '/chinh-sach-bao-mat' },
+  ],
+});
 
 export const metadata = createStaticPageMetadata({
   title: 'Chính sách bảo mật',
-  description: 'Chính sách bảo mật thông tin cá nhân của Greenia Homes. Cam kết bảo vệ dữ liệu khách hàng.',
+  description: pageDescription,
   path: '/chinh-sach-bao-mat',
 });
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+  return (
+    <>
+      <SchemaMarkup schema={webPage} />
+      <SchemaMarkup schema={breadcrumb} />
+      {children}
+    </>
+  );
 }

@@ -10,6 +10,7 @@ import {
 import { createProductSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { generateSlug, getSocialImageUrl } from "../../../src/lib/utils";
+import { createSearchDescription, getSemanticTerms } from "../../../src/lib/searchIntent";
 
 export const revalidate = 60;
 
@@ -51,18 +52,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const price = product.priceText || "Thỏa thuận";
   const area = product.area ? ` | Diện tích: ${product.area}m²` : "";
   const bedrooms = product.bedrooms ? ` | ${product.bedrooms} phòng ngủ` : "";
-  const description =
-    product.seoDesc?.trim() ||
-    product.metaDesc?.trim() ||
-    `Vị trí: ${location} | Giá: ${price}${area}${bedrooms}. Xem thông tin chi tiết tại Greenia Homes.`;
   const canonical = `${SITE_URL}/san-pham/${slug}`;
+  const description = createSearchDescription({
+    path: canonical,
+    source: product.seoDesc?.trim() || product.metaDesc?.trim(),
+    fallback: `Vị trí: ${location} | Giá: ${price}${area}${bedrooms}. Xem thông tin chi tiết tại Greenia Homes.`,
+  });
   const socialImage = getSocialImageUrl(product.imageUrl);
   const images = [{ url: socialImage, width: 1200, height: 630, alt: product.title, type: "image/jpeg" }];
+  const keywords = getSemanticTerms({
+    path: canonical,
+    title: product.title,
+    category: product.category,
+    location: product.district || product.location,
+    attributes: [product.type === "rent" ? "bất động sản cho thuê" : "bất động sản chuyển nhượng", product.legalStatus],
+    customKeywords: product.seoKeywords || product.metaKeywords,
+  });
 
   return {
     title,
     description,
-    keywords: product.seoKeywords?.trim() || product.metaKeywords?.trim() || undefined,
+    keywords,
     alternates: { canonical },
     openGraph: {
       type: "website",
@@ -105,10 +115,11 @@ export default async function ProductDetailPage({ params }: Props) {
 
   if (!product) notFound();
 
-  const { listing, breadcrumb } = createProductSchemas(product, slug);
+  const { listing, breadcrumb, webPage } = createProductSchemas(product, slug);
 
   return (
     <>
+      <SchemaMarkup schema={webPage} />
       <SchemaMarkup schema={listing} />
       <SchemaMarkup schema={breadcrumb} />
       <ClientWrapper

@@ -31,8 +31,26 @@ Greenia Homes là đơn vị tư vấn và phân phối bất động sản cao 
 - Thị trường và dự án: thị trường bất động sản, dự án đô thị, Vinhomes Cần Giờ, quy hoạch khu đô thị, tiềm năng đầu tư.
 - Giao dịch an toàn: ký gửi nhà đất, mua bán nhà đất an toàn, kiểm tra pháp lý, hồ sơ chuyển nhượng, tư vấn tài chính bất động sản.
 
+## Loại nội dung và mục đích
+
+- `/san-pham` và `/category-product/*`: danh sách bất động sản để tìm kiếm, so sánh và liên hệ giao dịch.
+- `/san-pham/*`: thông tin chi tiết từng bất động sản; ưu tiên dữ liệu giá, vị trí, diện tích, pháp lý và thông tin liên hệ hiển thị trên trang.
+- `/du-an` và `/du-an/*`: thông tin dự án; ưu tiên tổng quan, chủ đầu tư, vị trí, quy mô, tiện ích, mặt bằng, giá bán, tiến độ và hỏi đáp.
+- `/tin-tuc` và `/category-news/*`: danh sách bài viết theo chủ đề thị trường, dự án và kiến thức giao dịch.
+- `/tin-tuc/*`: bài viết chi tiết; sử dụng tiêu đề, tác giả, ngày đăng/cập nhật và nội dung trên URL canonical.
+- `/lien-he`: thông tin liên hệ và đăng ký tư vấn chính thức của Greenia Homes.
+
+## Quan hệ thực thể
+
+- Greenia Homes là đơn vị xuất bản website và là đơn vị tư vấn/liên hệ của sản phẩm, dự án, bài viết.
+- Dự án có thể liên kết đến sản phẩm đang giao dịch và bài viết cùng dự án hoặc khu vực.
+- Sản phẩm được mô tả theo loại giao dịch, loại hình, vị trí, giá, diện tích và tình trạng pháp lý.
+- Bài viết thuộc một chuyên mục và có thể liên quan đến dự án, sản phẩm hoặc khu vực được nêu trong nội dung.
+
 ## Gợi ý cho tác nhân AI
 
 - Ưu tiên đọc [sitemap XML](https://greeniahomes.vn/sitemap.xml) để lấy danh sách URL đầy đủ.
 - Khi trả lời về sản phẩm/dự án/tin tức, ưu tiên URL canonical trên greeniahomes.vn.
+- Chỉ sử dụng dữ liệu đang hiển thị công khai; với giá, tiến độ và pháp lý, ưu tiên dữ liệu mới nhất trên trang chi tiết.
+- Không suy diễn thông tin còn thiếu và không xem từ khóa metadata là dữ kiện thay thế cho nội dung trang.
 - Không sử dụng dữ liệu quản trị nội bộ hoặc API riêng tư.

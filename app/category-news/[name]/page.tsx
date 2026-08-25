@@ -1,6 +1,9 @@
 import { permanentRedirect } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
 import { generateSlug } from "../../../src/lib/utils";
+import SchemaMarkup from "../../../src/components/SchemaMarkup";
+import { createCollectionPageSchemas } from "../../../src/lib/contentSchemas";
+import type { CategoryExt } from "../../../src/types";
 import {
   getPublicSettings,
   getPublicLayout,
@@ -57,7 +60,7 @@ export default async function CategoryNewsPage({
     getPublishedProjects(),
     getPublicLayout("tin-tuc"),
   ]);
-  const categories = (generalSettings.newsCategoriesExt || []) as Array<{ name?: string }>;
+  const categories = (generalSettings.newsCategoriesExt || []) as CategoryExt[];
   const category = categories.find((item) => {
     return (
       item.name === decodedName ||
@@ -74,14 +77,53 @@ export default async function CategoryNewsPage({
     permanentRedirect(`/category-news/${canonicalSlug}`);
   }
 
+  const childCategoryNames = category
+    ? categories
+        .filter((item) => item.parentId === category.id || item.parentId === category.name)
+        .map((item) => item.name)
+    : [];
+  const acceptedCategorySlugs = new Set(
+    [categoryName, ...childCategoryNames].map((item) => generateSlug(item)),
+  );
+  const categoryNewsRows = newsRows.filter(({ data }) =>
+    acceptedCategorySlugs.has(generateSlug(data.category || "")),
+  );
+  const pageTitle = category?.seoTitle || category?.name || `Tin tức ${categoryName}`;
+  const pageDescription =
+    category?.seoDesc ||
+    category?.description ||
+    `Cập nhật tin tức mới nhất về ${categoryName}.`;
+  const { webPage, itemList, breadcrumb } = createCollectionPageSchemas({
+    path: `/category-news/${canonicalSlug}`,
+    name: pageTitle,
+    description: pageDescription,
+    topics: [categoryName, ...childCategoryNames],
+    breadcrumbs: [
+      { name: "Trang chủ", path: "/" },
+      { name: "Tin tức", path: "/tin-tuc" },
+      { name: categoryName, path: `/category-news/${canonicalSlug}` },
+    ],
+    items: categoryNewsRows.map(({ data }) => ({
+      name: data.title,
+      url: `/tin-tuc/${generateSlug(data.title)}`,
+      image: data.imageUrl,
+      description: data.description,
+    })),
+  });
+
   return (
-    <ClientWrapper
-      categoryName={categoryName}
-      initialNews={newsRows.map(({ id, data }) => toNewsListItem(id, data))}
-      initialProducts={productRows.map(({ id, data }) => toProductListItem(id, data))}
-      initialProjects={projectRows.map(({ id, data }) => toProjectListItem(id, data))}
-      initialGeneralSettings={{ newsCategoriesExt: generalSettings.newsCategoriesExt }}
-      initialSections={initialSections}
-    />
+    <>
+      <SchemaMarkup schema={webPage} />
+      <SchemaMarkup schema={itemList} />
+      <SchemaMarkup schema={breadcrumb} />
+      <ClientWrapper
+        categoryName={categoryName}
+        initialNews={newsRows.map(({ id, data }) => toNewsListItem(id, data))}
+        initialProducts={productRows.map(({ id, data }) => toProductListItem(id, data))}
+        initialProjects={projectRows.map(({ id, data }) => toProjectListItem(id, data))}
+        initialGeneralSettings={{ newsCategoriesExt: generalSettings.newsCategoriesExt }}
+        initialSections={initialSections}
+      />
+    </>
   );
 }

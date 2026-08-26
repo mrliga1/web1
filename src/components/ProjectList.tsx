@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import NextImage from 'next/image';
 import { generateSlug } from '../lib/utils';
 
@@ -15,7 +15,6 @@ import AdBanner from './AdBanner';
 import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
-import { useScrollDirection } from '../hooks/useScrollDirection';
 import ProductCard from './ProductCard';
 
 interface ProjectListProps {
@@ -47,8 +46,8 @@ export default function ProjectList({
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>(() =>
     [...initialProducts].sort((a, b) => (b.viewsCount || 0) - (a.viewsCount || 0)).slice(0, 10)
   );
-  const scrollDirection = useScrollDirection();
   const [loading, setLoading] = useState(initialProjects.length === 0);
+  const filterBarRef = useRef<HTMLDivElement>(null);
 
   // Trạng thái lọc.
   const [currentStatus, setCurrentStatus] = useState<string>('');
@@ -63,14 +62,12 @@ export default function ProjectList({
     keyword, currentStatus
   });
 
-  const scrollToGrid = () => {
-    const element = document.getElementById('projects-grid-section');
+  const scrollFilterBarToTop = () => {
+    const element = filterBarRef.current;
     if (element) {
-      const offset = 140; // Bù khoảng cách cho header cố định.
-      const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - offset;
+      const offsetPosition = element.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({
-        top: offsetPosition,
+        top: Math.max(0, offsetPosition),
         behavior: 'smooth'
       });
     }
@@ -86,7 +83,7 @@ export default function ProjectList({
       return;
     }
     
-    scrollToGrid();
+    scrollFilterBarToTop();
   }, [keyword, currentStatus]);
 
 
@@ -94,7 +91,11 @@ export default function ProjectList({
   const filteredProjects = projects.filter(p => {
     let matchStatus = true;
     if (currentStatus !== '') {
-      matchStatus = Boolean(p.status === currentStatus || (currentStatus === 'opening' && !p.status)); // Default
+      matchStatus = Boolean(
+        p.status === currentStatus
+        || (currentStatus === 'handed_over' && p.status === 'handed-over')
+        || (currentStatus === 'opening' && !p.status),
+      );
     }
     
     let matchKw = true;
@@ -216,14 +217,14 @@ export default function ProjectList({
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-left space-y-6" id="projects-grid-section">
                 
                 {/* Navbar/Filter Bar */}
-                <div className={`block sticky ${scrollDirection === 'down' ? 'top-0' : 'top-10 md:top-10'} z-[100] bg-white/70 backdrop-blur-md pb-[2px] pt-[5px] border-b border-primary/10 shadow-sm mb-[24px] transition-colors duration-300 mx-[-1rem] sm:mx-0 px-4 sm:px-0`}>
+                <div ref={filterBarRef} className="block sticky top-0 z-[100] bg-white/95 backdrop-blur-md pb-[2px] pt-[5px] border-b border-primary/10 shadow-sm mb-[24px] transition-colors duration-300 mx-[-1rem] sm:mx-0 px-4 sm:px-0">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative">
                     {!isSearchOpen && (
                       <div className="flex w-full md:w-auto items-center pr-1 md:pr-0">
                         <div className="flex items-center gap-2 overflow-x-auto flex-1 font-sans z-50 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] pb-1 md:pb-0 relative">
                           <button 
                             onClick={(e) => { 
-                              if (currentStatus === '') scrollToGrid();
+                              if (currentStatus === '') scrollFilterBarToTop();
                               setCurrentStatus(''); 
                               const parent = e.currentTarget.parentElement;
                               if (parent) parent.scrollTo({ left: e.currentTarget.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 + e.currentTarget.clientWidth / 2, behavior: 'smooth' });
@@ -234,7 +235,7 @@ export default function ProjectList({
                           </button>
                           <button 
                             onClick={(e) => { 
-                              if (currentStatus === 'opening') scrollToGrid();
+                              if (currentStatus === 'opening') scrollFilterBarToTop();
                               setCurrentStatus('opening'); 
                               const parent = e.currentTarget.parentElement;
                               if (parent) parent.scrollTo({ left: e.currentTarget.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 + e.currentTarget.clientWidth / 2, behavior: 'smooth' });
@@ -245,7 +246,7 @@ export default function ProjectList({
                           </button>
                           <button 
                             onClick={(e) => { 
-                              if (currentStatus === 'coming_soon') scrollToGrid();
+                              if (currentStatus === 'coming_soon') scrollFilterBarToTop();
                               setCurrentStatus('coming_soon'); 
                               const parent = e.currentTarget.parentElement;
                               if (parent) parent.scrollTo({ left: e.currentTarget.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 + e.currentTarget.clientWidth / 2, behavior: 'smooth' });
@@ -256,12 +257,12 @@ export default function ProjectList({
                           </button>
                           <button 
                             onClick={(e) => { 
-                              if (currentStatus === 'handed-over') scrollToGrid();
+                              if (currentStatus === 'handed_over') scrollFilterBarToTop();
                               setCurrentStatus('handed_over'); 
                               const parent = e.currentTarget.parentElement;
                               if (parent) parent.scrollTo({ left: e.currentTarget.offsetLeft - parent.offsetLeft - parent.clientWidth / 2 + e.currentTarget.clientWidth / 2, behavior: 'smooth' });
                             }}
-                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'handed-over' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
+                            className={`px-[8px] py-[4px] border shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer ${currentStatus === 'handed_over' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                           >
                             Đã bàn giao
                           </button>
@@ -290,7 +291,7 @@ export default function ProjectList({
                           value={searchInput}
                           onChange={e => setSearchInput(e.target.value)}
                           placeholder="Tìm tên dự án, vị trí..." 
-                          className="w-full bg-bg-surface border border-primary/30 pl-3 pr-8 py-[4px] rounded-lg text-text-primary outline-none text-[11px] transition-colors focus:border-primary h-[26px]"
+                          className="w-full appearance-none bg-bg-surface !border border-border-color pl-3 pr-8 py-[4px] rounded-[10px] text-text-primary !outline-none text-[11px] transition-colors focus:!border-primary !ring-0 !shadow-none h-[26px]"
                           autoFocus={isSearchOpen}
                         />
                         <button type="submit" aria-label="Tìm kiếm dự án" className={`absolute ${isSearchOpen ? 'right-[34px]' : 'right-2'} md:right-2 top-1/2 -translate-y-1/2 text-primary p-1 hover:text-primary bg-transparent border-none cursor-pointer flex items-center justify-center`}>

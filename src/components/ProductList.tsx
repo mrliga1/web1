@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { collection, getDocs, getDoc, doc, db, type LegacyDocSnapshot } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { CategoryExt, FilterRangeConfig, FilterSettingsData, GeneralSettingsData, Product, Project, RouteState, VisualSection } from '../types';
-import { Search, MapPin, ArrowUpRight, Layers, Building2, ChevronDown, X, Heart, Share2, Phone, CalendarDays, UserRound, Images } from 'lucide-react';
+import { Search, MapPin, ArrowUpRight, Layers, Building2, ChevronDown, X, Heart, Share2, Phone, CalendarDays, UserRound, Images, BedDouble, Bath, Compass } from 'lucide-react';
 import AdBanner from './AdBanner';
 import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
@@ -179,14 +179,19 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
               {item.title}
             </h2>
           </button>
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-text-secondary">
-            <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-primary" />{item.street ? `${item.street}, ` : ''}{item.district}</span>
-            <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5" />{item.area ? `${item.area} m²` : 'Diện tích đang cập nhật'}</span>
-          </div>
           <p className="mt-3 line-clamp-4 text-xs leading-relaxed text-text-secondary">
             {description || 'Thông tin chi tiết sản phẩm đang được Greenia Homes cập nhật.'}
           </p>
           <div className="mt-3 text-base font-bold text-primary">{item.priceText || 'Giá đang cập nhật'}</div>
+
+          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] text-text-secondary sm:grid-cols-3">
+            <span className="col-span-2 flex min-w-0 items-center gap-1 sm:col-span-3"><MapPin className="h-3.5 w-3.5 shrink-0 text-primary" /><span className="truncate">{item.street ? `${item.street}, ` : ''}{item.district}</span></span>
+            <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5 shrink-0" />{item.area ? `${item.area} m²` : '-- m²'}</span>
+            <span className="flex items-center gap-1"><BedDouble className="h-3.5 w-3.5 shrink-0" />{item.bedrooms ? `${item.bedrooms} PN` : '-- PN'}</span>
+            <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5 shrink-0" />{item.toilets ? `${item.toilets} WC` : '-- WC'}</span>
+            <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5 shrink-0" />{item.floors ? `${item.floors} tầng` : '-- tầng'}</span>
+            <span className="flex items-center gap-1"><Compass className="h-3.5 w-3.5 shrink-0" />{item.direction || 'Chưa rõ hướng'}</span>
+          </div>
 
           <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border-color pt-3 text-[10px] text-text-secondary">
             <span className="flex items-center gap-1"><UserRound className="h-3.5 w-3.5" />{item.createdBy?.split('@')[0] || 'Greenia Homes'}</span>
@@ -198,7 +203,7 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
               <button type="button" onClick={toggleFavorite} aria-label={isFavorite ? 'Bỏ yêu thích' : 'Thêm yêu thích'} className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${isFavorite ? 'border-primary bg-primary text-white' : 'border-border-color bg-bg-surface text-text-secondary hover:border-primary hover:text-primary'}`}>
                 <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
               </button>
-              <button type="button" onClick={shareProduct} aria-label="Chia sẻ sản phẩm" className="flex h-8 w-8 items-center justify-center rounded-full border border-border-color bg-bg-surface text-text-secondary transition-colors hover:border-primary hover:text-primary">
+              <button type="button" onClick={shareProduct} aria-label="Chia sẻ sản phẩm" title="Chia sẻ sản phẩm" className="flex h-8 w-8 items-center justify-center rounded-full border border-[#b8d8cf] bg-[#e8f5f1] text-primary transition-colors hover:border-primary hover:bg-primary hover:text-white active:scale-95">
                 <Share2 className="h-4 w-4" />
               </button>
             </div>
@@ -706,7 +711,7 @@ export default function ProductList({
                           if (selectedType === 'all') scrollToGrid();
                           setSelectedType('all'); setSelectedPriceRange('all'); setSelectedDistrict('all'); 
                         })}
-                        className={`inline-flex px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'all' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
+                        className={`inline-flex px-[8px] py-[4px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'all' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                       >
                         Tất cả
                       </button>
@@ -715,7 +720,7 @@ export default function ProductList({
                           if (selectedType === 'sale') scrollToGrid();
                           setSelectedType('sale'); setSelectedPriceRange('all'); setSelectedDistrict('all'); 
                         })}
-                        className={`inline-flex px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'sale' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
+                        className={`inline-flex px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'sale' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                       >
                         Bán
                       </button>
@@ -724,26 +729,15 @@ export default function ProductList({
                           if (selectedType === 'rent') scrollToGrid();
                           setSelectedType('rent'); setSelectedPriceRange('all'); setSelectedDistrict('all'); 
                         })}
-                        className={`inline-flex px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'rent' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
+                        className={`inline-flex px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border ${selectedType === 'rent' ? 'bg-[#064E3B]/10 text-primary border-primary' : 'bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20'}`}
                       >
                         Cho thuê
                       </button>
                       
                       <div className="relative inline-block shrink-0">
-                        <button 
-                          onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'district' ? null : 'district'); })}
-                          className="px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
-                          <span className={selectedDistrict !== 'all' ? 'text-primary' : ''}>
-                            {selectedDistrict === 'all' ? 'Khu vực' : selectedDistrict}
-                          </span>
-                          <ChevronDown size={14} strokeWidth={2} />
-                        </button>
-                      </div>
-
-                      <div className="relative inline-block shrink-0">
-                        <button 
+                        <button
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'category' ? null : 'category'); })}
-                          className="px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
                           <span className={selectedCategory !== 'all' ? 'text-primary' : ''}>
                             {selectedCategory === 'all' ? 'Danh mục' : (productCategoriesExt.find(c => c.name === selectedCategory || generateSlug(c.name) === selectedCategory)?.name || (selectedCategory === initialCategory && initialCategoryName ? initialCategoryName : selectedCategory))}
                           </span>
@@ -754,7 +748,7 @@ export default function ProductList({
                       <div className="relative inline-block shrink-0">
                         <button 
                           onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'price' ? null : 'price'); })}
-                          className="px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
                           <span className={selectedPriceRange !== 'all' ? 'text-primary' : ''}>
                              {selectedPriceRange === 'all' ? 'Khoảng giá' : (
                                (selectedType !== 'rent' 
@@ -770,7 +764,7 @@ export default function ProductList({
                     <div className="relative inline-block shrink-0">
                       <button 
                         onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'area' ? null : 'area'); })}
-                        className="px-3 py-2 shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                        className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
                         <span className={selectedAreaRange !== 'all' ? 'text-primary' : ''}>
                           {selectedAreaRange === 'all' ? 'Diện tích' : (
                              (areaConfig.length > 0 ? areaConfig.find(c => c.id === selectedAreaRange)?.label : undefined) || 'Diện tích'
@@ -778,6 +772,17 @@ export default function ProductList({
                         </span>
                         <ChevronDown size={14} strokeWidth={2} />
                       </button>
+                      </div>
+
+                      <div className="relative inline-block shrink-0">
+                        <button
+                          onClick={(e) => handleTabClick(e, () => { e.stopPropagation(); setOpenDropdown(openDropdown === 'district' ? null : 'district'); })}
+                          className="px-[5px] py-[3px] shrink-0 text-[11px] font-medium rounded-lg transition-all cursor-pointer border bg-transparent border-border-color text-text-secondary hover:bg-[#064E3B]/10 hover:text-primary hover:border-primary/20 flex items-center gap-1.5">
+                          <span className={selectedDistrict !== 'all' ? 'text-primary' : ''}>
+                            {selectedDistrict === 'all' ? 'Khu vực' : selectedDistrict}
+                          </span>
+                          <ChevronDown size={14} strokeWidth={2} />
+                        </button>
                       </div>
                     </div>
 
@@ -1156,6 +1161,11 @@ export default function ProductList({
                                 <div className="min-w-0 flex-1">
                                   <h3 className="line-clamp-2 text-xs font-semibold leading-snug text-text-primary group-hover:text-primary">{item.title}</h3>
                                   <p className="mt-1 text-[11px] font-bold text-primary">{item.priceText || 'Giá đang cập nhật'}</p>
+                                  <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] text-text-secondary">
+                                    <span className="flex items-center gap-0.5"><Layers className="h-3 w-3" />{item.area ? `${item.area}m²` : '--m²'}</span>
+                                    <span className="flex items-center gap-0.5"><BedDouble className="h-3 w-3" />{item.bedrooms ? `${item.bedrooms} PN` : '-- PN'}</span>
+                                    <span className="flex items-center gap-0.5"><Bath className="h-3 w-3" />{item.toilets ? `${item.toilets} WC` : '-- WC'}</span>
+                                  </div>
                                   <p className="mt-1 flex items-center gap-1 truncate text-[10px] text-text-secondary">
                                     <MapPin className="h-3 w-3 shrink-0" />{item.district}
                                   </p>

@@ -15,14 +15,19 @@ export default function CookieConsent() {
     getDoc(doc(db, "settings", "general"))
       .then((snapshot) => {
         const data = (snapshot.data() || {}) as GeneralSettingsData;
-        if (cancelled || data.cookieConsentEnabled !== true) return;
+        if (cancelled || data.cookieConsentEnabled === false) return;
         // Chỉ trạng thái đồng ý mới tắt thông báo ở các lần tải trang sau.
         // Nếu người dùng đóng/từ chối, popup sẽ xuất hiện lại sau khi tải lại trang.
         if (localStorage.getItem("cookie_consent") !== "accepted") {
-          timer = setTimeout(() => setShow(true), 6000);
+          timer = setTimeout(() => setShow(true), 1200);
         }
       })
-      .catch((error) => console.error("Không thể tải cấu hình cookie:", error));
+      .catch((error) => {
+        console.error("Không thể tải cấu hình cookie:", error);
+        if (!cancelled && localStorage.getItem("cookie_consent") !== "accepted") {
+          timer = setTimeout(() => setShow(true), 1200);
+        }
+      });
 
     return () => {
       cancelled = true;

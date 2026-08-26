@@ -180,14 +180,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const popupFrequency = data.quotePopupFrequency;
         const popupDelay = Number(data.quotePopupDelaySeconds);
         setQuotePopupSettings({
-          enabled: data.quotePopupEnabled === true,
+          enabled: data.quotePopupEnabled !== false,
           delaySeconds: Number.isFinite(popupDelay)
             ? Math.min(60, Math.max(0, popupDelay))
             : 8,
           frequency:
-            popupFrequency === "page-load" || popupFrequency === "daily"
+            popupFrequency === "page-load" || popupFrequency === "daily" || popupFrequency === "session"
               ? popupFrequency
-              : "session",
+              : "page-load",
         });
 
         const loadTrackingScripts = () => {
@@ -329,8 +329,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           window.addEventListener('cookie_consent_changed', handleConsent);
         }
 
+      } else {
+        setQuotePopupSettings({ enabled: true, delaySeconds: 8, frequency: "page-load" });
       }
-    }).catch(console.error);
+    }).catch((error) => {
+      console.error("Không thể tải cấu hình popup tư vấn:", error);
+      setQuotePopupSettings({ enabled: true, delaySeconds: 8, frequency: "page-load" });
+    });
   }, []);
 
   useEffect(() => {

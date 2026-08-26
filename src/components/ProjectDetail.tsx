@@ -965,7 +965,7 @@ export default function ProjectDetail({
               <button
                 onClick={() => setShowShareMenu(!showShareMenu)}
                 aria-label="Chia sẻ dự án"
-                className="flex items-center justify-center rounded-full border border-primary/25 bg-primary/10 p-2 text-primary transition-colors hover:bg-primary hover:text-white"
+                className="flex items-center justify-center rounded-full border border-[#b8d8cf] bg-[#e8f5f1] p-2 text-primary transition-colors hover:border-primary hover:bg-primary hover:text-white"
                 title="Chia sẻ dự án"
               >
                 <Share2 className="w-5 h-5 hover:text-primary cursor-pointer transition-colors" />

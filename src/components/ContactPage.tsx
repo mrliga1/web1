@@ -21,7 +21,58 @@ import { fetchClientIp } from '../lib/ip';
 
 const MAX_CONTACT_IMAGES = 5;
 const MAX_CONTACT_IMAGE_SIZE = 3 * 1024 * 1024;
-const CONTACT_IMAGE_TYPES = new Set(['image/avif', 'image/jpeg', 'image/png', 'image/webp']);
+const MAX_CONTACT_SOURCE_IMAGE_SIZE = 12 * 1024 * 1024;
+const CONTACT_IMAGE_TYPES = new Set(['image/avif', 'image/gif', 'image/jpeg', 'image/png', 'image/webp']);
+const CONTACT_FIELD_CLASS = 'w-full appearance-none bg-bg-base border border-border-color rounded-[10px] px-3 py-2 text-xs text-text-primary !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-colors placeholder-text-secondary';
+
+const readFileAsDataUrl = (file: Blob) => new Promise<string>((resolve, reject) => {
+  const reader = new FileReader();
+  reader.onloadend = () => resolve(String(reader.result || ''));
+  reader.onerror = () => reject(new Error('Không thể đọc dữ liệu ảnh'));
+  reader.readAsDataURL(file);
+});
+
+const optimizeContactImage = async (file: File) => {
+  const sourceUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const imageElement = new Image();
+      imageElement.onload = () => resolve(imageElement);
+      imageElement.onerror = () => reject(new Error(`Không thể xử lý ảnh ${file.name}`));
+      imageElement.src = sourceUrl;
+    });
+
+    const maxDimension = 1600;
+    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('Trình duyệt không hỗ trợ tối ưu ảnh');
+    context.drawImage(image, 0, 0, width, height);
+
+    const optimizedBlob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error('Không thể nén ảnh')),
+        'image/webp',
+        0.82,
+      );
+    });
+    if (optimizedBlob.size > MAX_CONTACT_IMAGE_SIZE) {
+      throw new Error('Ảnh sau khi tối ưu vẫn vượt quá 3 MB');
+    }
+
+    const originalBaseName = file.name.replace(/\.[^.]+$/, '') || 'anh-lien-he';
+    return {
+      base64: await readFileAsDataUrl(optimizedBlob),
+      name: `${originalBaseName}.webp`,
+    };
+  } finally {
+    URL.revokeObjectURL(sourceUrl);
+  }
+};
 
 export default function ContactPage({
   onNavigate,
@@ -58,36 +109,40 @@ export default function ContactPage({
     const failedFiles: string[] = [];
     try {
       for (const file of selectedFiles) {
-        if (!CONTACT_IMAGE_TYPES.has(file.type) || file.size <= 0 || file.size > MAX_CONTACT_IMAGE_SIZE) {
-          failedFiles.push(file.name);
+        if (!CONTACT_IMAGE_TYPES.has(file.type) || file.size <= 0 || file.size > MAX_CONTACT_SOURCE_IMAGE_SIZE) {
+          failedFiles.push(`${file.name}: định dạng không hỗ trợ hoặc vượt quá 12 MB`);
           continue;
         }
 
-        const reader = new FileReader();
-        const base64Str = await new Promise<string>((resolve, reject) => {
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = () => reject(new Error(`Không thể đọc ảnh ${file.name}`));
-          reader.readAsDataURL(file);
-        });
-
-        const response = await fetch('/api/contact-upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ base64: base64Str, name: file.name })
-        });
-        const data = await response.json().catch(() => ({ error: 'Phản hồi tải ảnh không hợp lệ' }));
-        if (!response.ok || !data.url) {
-          failedFiles.push(file.name);
-          continue;
+        try {
+          const optimizedImage = await optimizeContactImage(file);
+          const controller = new AbortController();
+          const timeout = window.setTimeout(() => controller.abort(), 30000);
+          const response = await fetch('/api/contact-upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(optimizedImage),
+            signal: controller.signal,
+          }).finally(() => window.clearTimeout(timeout));
+          const data = await response.json().catch(() => ({ error: 'Phản hồi tải ảnh không hợp lệ' }));
+          if (!response.ok || !data.url) {
+            failedFiles.push(`${file.name}: ${data.error || 'không thể tải lên'}`);
+            continue;
+          }
+          newUrls.push(data.url);
+        } catch (error) {
+          const message = error instanceof Error && error.name === 'AbortError'
+            ? 'quá thời gian tải lên'
+            : error instanceof Error ? error.message : 'không thể xử lý ảnh';
+          failedFiles.push(`${file.name}: ${message}`);
         }
-        newUrls.push(data.url);
       }
 
       if (newUrls.length > 0) {
         setContactImages(prev => [...prev, ...newUrls].slice(0, MAX_CONTACT_IMAGES));
       }
       if (failedFiles.length > 0) {
-        onShowNotification(`Không thể tải ${failedFiles.length} ảnh. Chỉ nhận AVIF, JPG, PNG, WEBP tối đa 3 MB/ảnh.`, 'error');
+        onShowNotification(`Không thể tải ${failedFiles.length} ảnh. ${failedFiles[0]}`, 'error');
       }
     } catch (err) {
       console.error(err);
@@ -317,7 +372,7 @@ export default function ContactPage({
                               value={contactName}
                               onChange={(e) => setContactName(e.target.value)}
                               placeholder="Ông / Bà..."
-                              className="w-full bg-bg-surface border border-border-color rounded-lg px-3 py-2 text-xs text-text-primary outline-none focus:border-primary focus:ring-0"
+                              className={CONTACT_FIELD_CLASS}
                               required
                               disabled={contactSubmitting}
                             />
@@ -331,7 +386,7 @@ export default function ContactPage({
                               value={contactPhone}
                               onChange={(e) => setContactPhone(e.target.value)}
                               placeholder="Nhập số di động..."
-                              className="w-full bg-bg-surface border border-border-color rounded-lg px-3 py-2 text-xs text-text-primary outline-none focus:border-primary focus:ring-0"
+                              className={CONTACT_FIELD_CLASS}
                               required
                               disabled={contactSubmitting}
                             />
@@ -345,7 +400,7 @@ export default function ContactPage({
                               value={contactEmail}
                               onChange={(e) => setContactEmail(e.target.value)}
                               placeholder="Nhập địa chỉ email..."
-                              className="w-full bg-bg-surface border border-border-color rounded-lg px-3 py-2 text-xs text-text-primary outline-none focus:border-primary focus:ring-0"
+                              className={CONTACT_FIELD_CLASS}
                               disabled={contactSubmitting}
                             />
                           </div>
@@ -359,7 +414,7 @@ export default function ContactPage({
                             onChange={(e) => setContactMessage(e.target.value)}
                             placeholder="Chi tiết sản phẩm biệt thự, diện tích, giá ước tính, hoặc yêu cầu riêng..."
                             rows={2}
-                            className="w-full bg-bg-surface border border-border-color rounded-lg px-3 py-2 text-xs text-text-primary outline-none focus:border-primary focus:ring-0 resize-none"
+                            className={`${CONTACT_FIELD_CLASS} resize-none`}
                             disabled={contactSubmitting}
                           />
                         </div>
@@ -370,7 +425,7 @@ export default function ContactPage({
                             <input 
                               type="file" 
                               multiple 
-                              accept="image/*" 
+                              accept=".avif,.gif,.jpg,.jpeg,.png,.webp"
                               className="hidden" 
                               id="contact-image-upload"
                               onChange={handleImageUpload}

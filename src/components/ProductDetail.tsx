@@ -737,7 +737,7 @@ export default function ProductDetail({
                   <button
                     onClick={() => setShowShareMenu(!showShareMenu)}
                     aria-label="Chia sẻ sản phẩm"
-                    className="flex items-center justify-center rounded-full border border-primary/25 bg-primary/10 p-2 text-primary transition-colors hover:bg-primary hover:text-white active:scale-95"
+                    className="flex items-center justify-center rounded-full border border-[#b8d8cf] bg-[#e8f5f1] p-2 text-primary transition-colors hover:border-primary hover:bg-primary hover:text-white active:scale-95"
                     title="Chia sẻ sản phẩm"
                   >
                     <Share2 className="w-4 h-4" />

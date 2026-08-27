@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Phone, Mail, X, CheckCircle2 } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { useAppContext } from '../contexts/AppContext';
@@ -12,11 +12,18 @@ export default function FloatingActionButtons() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
 
+  const closeQuotePopup = useCallback(() => {
+    if (!formSubmitted) {
+      window.dispatchEvent(new Event('greenia_quote_popup_closed'));
+    }
+    setShowQuotePopup(false);
+  }, [formSubmitted, setShowQuotePopup]);
+
   useEffect(() => {
     if (!showQuotePopup) return;
     const previousOverflow = document.body.style.overflow;
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setShowQuotePopup(false);
+      if (event.key === 'Escape') closeQuotePopup();
     };
     document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', handleEscape);
@@ -24,7 +31,7 @@ export default function FloatingActionButtons() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [showQuotePopup, setShowQuotePopup]);
+  }, [showQuotePopup, closeQuotePopup]);
 
   const handleQuoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +54,12 @@ export default function FloatingActionButtons() {
       setQuotePhone('');
       setQuoteEmail('');
       setQuoteDemand('');
+      try {
+        localStorage.setItem('greenia_quote_popup_submitted', 'true');
+      } catch {
+        // Sự kiện vẫn dừng lịch popup nếu trình duyệt không cho phép localStorage.
+      }
+      window.dispatchEvent(new Event('greenia_quote_popup_submitted'));
       setTimeout(() => {
         setFormSubmitted(false);
         setShowQuotePopup(false);
@@ -127,16 +140,16 @@ export default function FloatingActionButtons() {
 
       {/* Quote Popup */}
       {showQuotePopup && (
-        <div className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center" onMouseDown={() => setShowQuotePopup(false)}>
+        <div className="fixed inset-0 z-[200] flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200 sm:items-center" onMouseDown={closeQuotePopup}>
           <div role="dialog" aria-modal="true" aria-labelledby="quote-popup-title" className="relative my-auto w-full max-w-[374px] min-h-[460px] max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-[10px] border border-border-color bg-bg-surface shadow-2xl animate-in zoom-in-95 duration-200" onMouseDown={(event) => event.stopPropagation()}>
             <div className="flex items-center justify-between pt-3 px-3 pb-[1px] md:pt-4 md:px-4 md:pb-[1px] border-b border-border-color">
               <h3 id="quote-popup-title" className="text-base md:text-lg font-bold text-text-primary font-display">
                 Tư vấn mua nhà chuyên sâu
               </h3>
               <button
-                onClick={() => setShowQuotePopup(false)}
+                onClick={closeQuotePopup}
                 aria-label="Đóng popup"
-                className="w-8 h-8 flex items-center justify-center rounded-full text-text-secondary hover:text-text-primary hover:bg-bg-base transition border-none bg-transparent cursor-pointer"
+                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[#b8d8cf] bg-white text-primary transition-colors hover:bg-[#e8f5f1]"
               >
                 <X className="w-5 h-5" />
               </button>

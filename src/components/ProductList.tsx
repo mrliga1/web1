@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import { collection, getDocs, getDoc, doc, db, type LegacyDocSnapshot } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { CategoryExt, FilterRangeConfig, FilterSettingsData, GeneralSettingsData, Product, Project, RouteState, VisualSection } from '../types';
-import { Search, MapPin, ArrowUpRight, Layers, Building2, ChevronDown, X, Heart, Share2, Phone, CalendarDays, UserRound, Images, BedDouble, Bath, Compass } from 'lucide-react';
+import { Search, MapPin, ArrowUpRight, Layers, Building2, ChevronDown, X, Heart, Share2, Phone, CalendarDays, UserRound, Images, BedDouble, Bath, Link as LinkIcon, Facebook, MessageCircle } from 'lucide-react';
 import AdBanner from './AdBanner';
 import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
@@ -70,7 +70,9 @@ interface CategoryProductRowProps {
 
 function CategoryProductRow({ item, priority = false, onNavigate, onShowNotification }: CategoryProductRowProps) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const productSlug = generateSlug(item.title);
+  const productUrl = `https://greeniahomes.vn/san-pham/${productSlug}`;
   const allImages = Array.from(
     new Set([item.imageUrl, ...(item.imageUrls || [])].filter(Boolean)),
   );
@@ -105,23 +107,18 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
     }
   };
 
-  const shareProduct = async () => {
-    const url = `${window.location.origin}/san-pham/${productSlug}`;
+  const copyProductLink = async () => {
     try {
-      if (navigator.share) {
-        await navigator.share({ title: item.title, text: description || item.title, url });
-      } else {
-        await navigator.clipboard.writeText(url);
-        onShowNotification('Đã sao chép liên kết sản phẩm.', 'success');
-      }
-    } catch (error) {
-      if (error instanceof DOMException && error.name === 'AbortError') return;
-      onShowNotification('Không thể chia sẻ sản phẩm lúc này.', 'error');
+      await navigator.clipboard.writeText(productUrl);
+      setShowShareMenu(false);
+      onShowNotification('Đã sao chép liên kết sản phẩm.', 'success');
+    } catch {
+      onShowNotification('Không thể sao chép liên kết sản phẩm.', 'error');
     }
   };
 
   return (
-    <article className="motion-card overflow-hidden rounded-xl border border-border-color bg-bg-surface shadow-sm transition-colors hover:border-primary/35">
+    <article className="motion-card overflow-visible rounded-xl border border-border-color bg-bg-surface shadow-sm transition-colors hover:border-primary/35">
       <div className="grid grid-cols-1 md:grid-cols-[minmax(0,42%)_minmax(0,58%)]">
         <div className="grid min-h-[230px] grid-cols-[minmax(0,2fr)_minmax(82px,1fr)] grid-rows-3 gap-1 bg-bg-base p-1">
           <button
@@ -184,13 +181,10 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
           </p>
           <div className="mt-3 text-base font-bold text-primary">{item.priceText || 'Giá đang cập nhật'}</div>
 
-          <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px] text-text-secondary sm:grid-cols-3">
-            <span className="col-span-2 flex min-w-0 items-center gap-1 sm:col-span-3"><MapPin className="h-3.5 w-3.5 shrink-0 text-primary" /><span className="truncate">{item.street ? `${item.street}, ` : ''}{item.district}</span></span>
+          <div className="mt-2 grid grid-cols-3 gap-x-3 gap-y-1.5 text-[11px] text-text-secondary">
             <span className="flex items-center gap-1"><Layers className="h-3.5 w-3.5 shrink-0" />{item.area ? `${item.area} m²` : '-- m²'}</span>
             <span className="flex items-center gap-1"><BedDouble className="h-3.5 w-3.5 shrink-0" />{item.bedrooms ? `${item.bedrooms} PN` : '-- PN'}</span>
             <span className="flex items-center gap-1"><Bath className="h-3.5 w-3.5 shrink-0" />{item.toilets ? `${item.toilets} WC` : '-- WC'}</span>
-            <span className="flex items-center gap-1"><Building2 className="h-3.5 w-3.5 shrink-0" />{item.floors ? `${item.floors} tầng` : '-- tầng'}</span>
-            <span className="flex items-center gap-1"><Compass className="h-3.5 w-3.5 shrink-0" />{item.direction || 'Chưa rõ hướng'}</span>
           </div>
 
           <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-border-color pt-3 text-[10px] text-text-secondary">
@@ -203,9 +197,31 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
               <button type="button" onClick={toggleFavorite} aria-label={isFavorite ? 'Bỏ yêu thích' : 'Thêm yêu thích'} className={`flex h-8 w-8 items-center justify-center rounded-full border transition-colors ${isFavorite ? 'border-primary bg-primary text-white' : 'border-border-color bg-bg-surface text-text-secondary hover:border-primary hover:text-primary'}`}>
                 <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
               </button>
-              <button type="button" onClick={shareProduct} aria-label="Chia sẻ sản phẩm" title="Chia sẻ sản phẩm" className="flex h-8 w-8 items-center justify-center rounded-full border border-[#b8d8cf] bg-[#e8f5f1] text-primary transition-colors hover:border-primary hover:bg-primary hover:text-white active:scale-95">
-                <Share2 className="h-4 w-4" />
-              </button>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowShareMenu((current) => !current)}
+                  aria-label="Chia sẻ sản phẩm"
+                  aria-expanded={showShareMenu}
+                  title="Chia sẻ sản phẩm"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-[#b8d8cf] bg-[#e8f5f1] text-primary transition-colors hover:border-primary hover:bg-primary hover:text-white active:scale-95"
+                >
+                  <Share2 className="h-4 w-4" />
+                </button>
+                {showShareMenu && (
+                  <div className="absolute bottom-full right-0 z-50 mb-2 w-44 overflow-hidden rounded-lg border border-border-color bg-white py-1.5 text-slate-800 shadow-xl">
+                    <button type="button" onClick={copyProductLink} className="flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-3 py-2 text-left text-xs text-slate-800 hover:bg-emerald-50 hover:text-primary">
+                      <LinkIcon className="h-4 w-4" /> Sao chép liên kết
+                    </button>
+                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}`} target="_blank" rel="noopener noreferrer" onClick={() => setShowShareMenu(false)} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-800 no-underline hover:bg-blue-50 hover:text-blue-800">
+                      <Facebook className="h-4 w-4 text-[#1877F2]" /> Facebook
+                    </a>
+                    <a href={`https://zalo.me/share?url=${encodeURIComponent(productUrl)}`} target="_blank" rel="noopener noreferrer" onClick={() => setShowShareMenu(false)} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-800 no-underline hover:bg-sky-50 hover:text-sky-800">
+                      <MessageCircle className="h-4 w-4 text-[#0068FF]" /> Zalo
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -619,7 +635,7 @@ export default function ProductList({
   }, [displayedProductIds, filteredProducts, products, recentlyViewed]);
   const featuredProjects = React.useMemo(
     () => Array.from(
-      new Map(projects.map((project) => [project.id || generateSlug(project.title), project])).values(),
+      new Map(projects.map((project) => [generateSlug(project.title) || project.id, project])).values(),
     ).slice(0, 5),
     [projects],
   );

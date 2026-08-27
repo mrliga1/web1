@@ -257,7 +257,9 @@ export default function NewsList({
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
     .slice(0, 5);
 
-  const featuredProjects = [...projects]
+  const featuredProjects = Array.from(
+    new Map(projects.map((project) => [generateSlug(project.title) || project.id, project])).values(),
+  )
     .sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime())
     .slice(0, 5);
 
@@ -711,9 +713,9 @@ export default function NewsList({
                       </button>
                     </div>
                     <div className="relative overflow-hidden py-4 w-full">
-                      <div className="animate-news-list-sliding-container flex w-max">
-                        <div className="flex w-max animate-news-list-slider">
-                          {[...Array(2)].flatMap(() => featuredProjects.slice(0, 5)).map((p, idx) => {
+                      <div className={`${featuredProjects.length >= 4 ? 'animate-news-list-sliding-container' : ''} flex w-max`}>
+                        <div className={`flex w-max ${featuredProjects.length >= 4 ? 'animate-news-list-slider' : ''}`}>
+                          {(featuredProjects.length >= 4 ? [...featuredProjects, ...featuredProjects] : featuredProjects).map((p, idx) => {
                             let statusText = 'Đang mở bán';
                             if (p.status === 'handed-over') statusText = 'Đã bàn giao';
                             if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
@@ -721,7 +723,7 @@ export default function NewsList({
                             return (
                               <div
                                 key={`${p.id}-${idx}`}
-                                aria-hidden={idx >= featuredProjects.slice(0, 5).length}
+                                aria-hidden={idx >= featuredProjects.length}
                                 onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
                                 className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                               >

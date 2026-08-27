@@ -80,7 +80,7 @@ export default function FavoritesPage({ onNavigate }: { onNavigate: (route: Rout
           <p className="text-white/70 text-sm max-w-md mx-auto mb-6">Bạn có thể lưu các tin đăng bất động sản yêu thích để xem lại sau bằng cách nhấn vào biểu tượng trái tim.</p>
           <button
             onClick={() => onNavigate({ screen: 'san-pham' })}
-            className="px-6 py-2.5 bg-primary hover:bg-amber-600 text-black font-bold rounded-lg transition-colors cursor-pointer"
+            className="cursor-pointer rounded-lg border border-primary bg-primary px-6 py-2.5 font-bold text-white transition-colors hover:bg-primary-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             Khám phá nhà đất
           </button>

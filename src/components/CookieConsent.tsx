@@ -77,13 +77,13 @@ export default function CookieConsent() {
           <div className="flex flex-row md:flex-col justify-end gap-3 w-full md:w-[80px]">
             <button
               onClick={acceptCookies}
-              className="flex-1 md:flex-none py-[5px] px-0 w-full md:w-[80px] text-[12px] bg-primary hover:bg-amber-600 text-zinc-900 font-bold rounded-lg transition-colors text-center"
+              className="w-full flex-1 rounded-lg border border-primary bg-primary px-0 py-[5px] text-center text-[12px] font-bold text-white transition-colors hover:bg-primary-light focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:w-[80px] md:flex-none"
             >
               Đồng ý
             </button>
             <button
               onClick={declineCookies}
-              className="flex-1 md:flex-none py-[5px] px-0 w-full md:w-[80px] text-[12px] bg-bg-base hover:bg-slate-700 text-text-primary font-medium rounded-lg transition-colors border border-border-inverse text-center relative"
+              className="relative w-full flex-1 rounded-lg border border-[#b8d8cf] bg-white px-0 py-[5px] text-center text-[12px] font-semibold text-primary transition-colors hover:bg-[#e8f5f1] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:w-[80px] md:flex-none"
             >
               Đóng
             </button>

@@ -50,6 +50,10 @@ interface QuotePopupSettings {
 }
 
 const EMPTY_SECTIONS: VisualSection[] = [];
+const QUOTE_POPUP_INITIAL_DELAY_MS = 60_000;
+const QUOTE_POPUP_FIRST_RETRY_DELAY_MS = 90_000;
+const QUOTE_POPUP_REPEAT_DELAY_MS = 60_000;
+const QUOTE_POPUP_SUBMITTED_KEY = 'greenia_quote_popup_submitted';
 
 const getSettingString = (value: unknown) => (typeof value === 'string' ? value : '');
 
@@ -86,7 +90,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     : getDefaultSections(layoutDocName);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isQuotePopupOpen, setIsQuotePopupOpen] = useState(false);
-  const [quotePopupSettings, setQuotePopupSettings] = useState<QuotePopupSettings | null>(null);
+  const [quotePopupSettings, setQuotePopupSettings] = useState<QuotePopupSettings>({
+    enabled: true,
+    delaySeconds: 60,
+    frequency: 'page-load',
+  });
 
 
   useEffect(() => {
@@ -193,7 +201,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const loadTrackingScripts = () => {
         // Chỉ chèn mã theo dõi sau khi đã đáp ứng lựa chọn cookie.
         const analyticsId = getSettingString(data.googleAnalyticsId).trim();
-        const tagManagerId = getSettingString(data.googleTagId).trim();
+        const tagManagerId =
+          getSettingString(data.googleTagId).trim() ||
+          getSettingString(process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID).trim();
         const adsId = getSettingString(data.googleAdsId).trim();
 
         const fbPixelId = getSettingString(data.facebookPixelId).trim();
@@ -339,32 +349,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!quotePopupSettings?.enabled || pathname?.startsWith("/admin")) return;
-
-    const sessionKey = "greenia_quote_popup_shown_session";
-    const dailyKey = "greenia_quote_popup_shown_date";
-    const today = new Date().toISOString().slice(0, 10);
-
-    if (
-      (quotePopupSettings.frequency === "session" && sessionStorage.getItem(sessionKey) === "true") ||
-      (quotePopupSettings.frequency === "daily" && localStorage.getItem(dailyKey) === today)
-    ) {
-      return;
-    }
+    if (!quotePopupSettings.enabled || pathname?.startsWith("/admin")) return;
+    if (localStorage.getItem(QUOTE_POPUP_SUBMITTED_KEY) === 'true') return;
 
     let cancelled = false;
+    let closeCount = 0;
+    let openTimer: ReturnType<typeof setTimeout> | undefined;
     let retryTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const markPopupAsShown = () => {
-      if (quotePopupSettings.frequency === "session") {
-        sessionStorage.setItem(sessionKey, "true");
-      } else if (quotePopupSettings.frequency === "daily") {
-        localStorage.setItem(dailyKey, today);
-      }
+    const clearTimers = () => {
+      if (openTimer) clearTimeout(openTimer);
+      if (retryTimer) clearTimeout(retryTimer);
+      openTimer = undefined;
+      retryTimer = undefined;
     };
 
     const openPopupWhenAvailable = () => {
       if (cancelled) return;
+      if (localStorage.getItem(QUOTE_POPUP_SUBMITTED_KEY) === 'true') return;
 
       // Không chồng popup tư vấn lên thông báo cookie đang chờ người dùng xử lý.
       if (document.querySelector('[aria-label="Thông báo cookie"]')) {
@@ -372,21 +374,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      markPopupAsShown();
       setIsQuotePopupOpen(true);
     };
 
-    const openTimer = setTimeout(
-      openPopupWhenAvailable,
-      quotePopupSettings.delaySeconds * 1000,
-    );
+    const schedulePopup = (delayMs: number) => {
+      clearTimers();
+      openTimer = setTimeout(openPopupWhenAvailable, delayMs);
+    };
+
+    const handlePopupClosed = () => {
+      if (localStorage.getItem(QUOTE_POPUP_SUBMITTED_KEY) === 'true') return;
+      const delay = closeCount === 0
+        ? QUOTE_POPUP_FIRST_RETRY_DELAY_MS
+        : QUOTE_POPUP_REPEAT_DELAY_MS;
+      closeCount += 1;
+      schedulePopup(delay);
+    };
+
+    const handlePopupSubmitted = () => {
+      clearTimers();
+      setIsQuotePopupOpen(false);
+    };
+
+    window.addEventListener('greenia_quote_popup_closed', handlePopupClosed);
+    window.addEventListener('greenia_quote_popup_submitted', handlePopupSubmitted);
+    schedulePopup(QUOTE_POPUP_INITIAL_DELAY_MS);
 
     return () => {
       cancelled = true;
-      clearTimeout(openTimer);
-      if (retryTimer) clearTimeout(retryTimer);
+      clearTimers();
+      window.removeEventListener('greenia_quote_popup_closed', handlePopupClosed);
+      window.removeEventListener('greenia_quote_popup_submitted', handlePopupSubmitted);
     };
-  }, [pathname, quotePopupSettings]);
+  }, [pathname, quotePopupSettings.enabled]);
 
   return (
     <AppContext.Provider value={{

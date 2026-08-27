@@ -124,7 +124,13 @@ export default function ProjectDetail({
     return readServerProject();
   });
   const projectRef = useRef<Project | null>(project);
-  const [relatedProjects, setRelatedProjects] = useState<Project[]>(initialProjects.slice(0, 5));
+  const [relatedProjects, setRelatedProjects] = useState<Project[]>(() => Array.from(
+    new Map(
+      initialProjects
+        .filter((projectItem) => projectItem.id !== projectId)
+        .map((projectItem) => [generateSlug(projectItem.title) || projectItem.id, projectItem]),
+    ).values(),
+  ).slice(0, 5));
   const [relatedProducts, setRelatedProducts] = useState<Product[]>(initialProducts.slice(0, 5));
   const [relatedNews, setRelatedNews] = useState<News[]>(initialNews.slice(0, 6));
   const [targetNewsCategory, setTargetNewsCategory] = useState<string>(initialProject?.newsCategoryUrl?.trim() || "");
@@ -532,7 +538,13 @@ export default function ProjectDetail({
               projList.push({ ...data, id: doc.id } as Project);
             }
           });
-          setRelatedProjects(projList.slice(0, 5));
+          setRelatedProjects(Array.from(
+            new Map(
+              projList
+                .filter((projectItem) => projectItem.id !== projectId)
+                .map((projectItem) => [generateSlug(projectItem.title) || projectItem.id, projectItem]),
+            ).values(),
+          ).slice(0, 5));
         } else {
           onShowNotification(
             "Dự án quy hoạch không tồn tại hoặc đã bị xóa.",
@@ -2309,9 +2321,9 @@ export default function ProjectDetail({
               </button>
             </div>
             <div className="relative overflow-hidden py-4 w-full">
-              <div className="animate-project-detail-sliding-container flex w-max">
-                <div className="flex w-max animate-project-detail-slider">
-                  {[...Array(2)].flatMap(() => relatedProjects).map((proj, idx) => (
+              <div className={`${relatedProjects.length >= 4 ? 'animate-project-detail-sliding-container' : ''} flex w-max`}>
+                <div className={`flex w-max ${relatedProjects.length >= 4 ? 'animate-project-detail-slider' : ''}`}>
+                  {(relatedProjects.length >= 4 ? [...relatedProjects, ...relatedProjects] : relatedProjects).map((proj, idx) => (
                     <div
                       key={`${proj.id}-${idx}`}
                       aria-hidden={idx >= relatedProjects.length}

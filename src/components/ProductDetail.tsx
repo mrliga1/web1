@@ -545,6 +545,9 @@ export default function ProductDetail({
   const footerLatestRents = products
     .filter((p) => p.type === "rent" && p.id !== product.id && !relatedIds.has(p.id))
     .slice(0, 8);
+  const featuredProjectsList = Array.from(
+    new Map(projects.map((projectItem) => [generateSlug(projectItem.title) || projectItem.id, projectItem])).values(),
+  ).slice(0, 5);
 
   return (
     <article
@@ -1485,9 +1488,9 @@ export default function ProductDetail({
         </div>
 
         <div className="relative overflow-hidden py-4 w-full">
-          <div className="animate-product-detail-sliding-container flex w-max">
-            <div className="flex w-max animate-product-detail-slider">
-              {[...Array(2)].flatMap(() => projects.slice(0, 5)).map((p, idx) => {
+          <div className={`${featuredProjectsList.length >= 4 ? 'animate-product-detail-sliding-container' : ''} flex w-max`}>
+            <div className={`flex w-max ${featuredProjectsList.length >= 4 ? 'animate-product-detail-slider' : ''}`}>
+              {(featuredProjectsList.length >= 4 ? [...featuredProjectsList, ...featuredProjectsList] : featuredProjectsList).map((p, idx) => {
                 let statusText = "Đang mở bán";
                 if (p.status === "handed-over") statusText = "Đã bàn giao";
                 if (p.status === "coming_soon") statusText = "Sắp ra mắt";
@@ -1495,7 +1498,7 @@ export default function ProductDetail({
                 return (
                   <div
                     key={`${p.id}-${idx}`}
-                    aria-hidden={idx >= projects.slice(0, 5).length}
+                    aria-hidden={idx >= featuredProjectsList.length}
                     onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
                     className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                   >

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Cookie } from "lucide-react";
 import { db, doc, getDoc } from "../firebase";
 import type { GeneralSettingsData } from "../types";
+import { setTrackingConsent } from "../lib/tracking";
 
 export default function CookieConsent() {
   const [show, setShow] = useState(false);
@@ -37,12 +38,14 @@ export default function CookieConsent() {
 
   const acceptCookies = () => {
     localStorage.setItem("cookie_consent", "accepted");
+    setTrackingConsent("granted");
     window.dispatchEvent(new CustomEvent("cookie_consent_changed", { detail: { status: "accepted" } }));
     setShow(false);
   };
 
   const declineCookies = () => {
     localStorage.setItem("cookie_consent", "declined");
+    setTrackingConsent("denied");
     window.dispatchEvent(new CustomEvent("cookie_consent_changed", { detail: { status: "declined" } }));
     setShow(false);
   };

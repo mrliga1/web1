@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import NextImage from "next/image";
 import { formatVietnamDate, generateSlug } from "../lib/utils";
 import { News, Product, Project, RouteState } from "../types";
+import { trackContentView, trackLead, trackShare } from "../lib/tracking";
 import {
   X,
   ChevronLeft,
@@ -93,7 +94,7 @@ const COLLAPSED_PROJECT_LOCATION_CONTENT_CLASS =
 const PROJECT_READ_MORE_BUTTON_CLASS =
   "flex items-center gap-2 text-primary hover:text-primary-light font-medium text-[13px] md:text-sm transition-colors mt-3";
 const PROJECT_FORM_FIELD_CLASS =
-  "w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-[13px] py-2 px-3.5 text-text-primary placeholder-text-secondary";
+  "w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-[13px] py-2 px-3.5 text-text-primary placeholder-text-secondary";
 const PROJECT_CHECKBOX_CLASS =
   "mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer rounded border-border-color bg-bg-surface text-primary focus:ring-transparent";
 
@@ -124,6 +125,7 @@ export default function ProjectDetail({
     return readServerProject();
   });
   const projectRef = useRef<Project | null>(project);
+  const trackedProjectIdRef = useRef("");
   const [relatedProjects, setRelatedProjects] = useState<Project[]>(() => Array.from(
     new Map(
       initialProjects
@@ -160,6 +162,13 @@ export default function ProjectDetail({
   useEffect(() => {
     projectRef.current = project;
   }, [project]);
+
+  useEffect(() => {
+    const itemId = project?.id || projectId || slug || "";
+    if (!project || !itemId || trackedProjectIdRef.current === itemId) return;
+    trackedProjectIdRef.current = itemId;
+    trackContentView("project", itemId, project.title);
+  }, [project, projectId, slug]);
 
   useEffect(() => {
     if (!project || shouldLoadMap) return;
@@ -597,6 +606,7 @@ export default function ProjectDetail({
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,
       });
+      trackLead('project_consultation', 'project_detail', project?.id || projectId || slug);
 
       notifyAdminEmail({
         name: clientName.trim(),
@@ -987,6 +997,7 @@ export default function ProjectDetail({
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(window.location.href);
+                      trackShare("copy_link", "project", project?.id || projectId || slug || "unknown");
                       alert("Đã copy link!");
                       setShowShareMenu(false);
                     }}
@@ -999,7 +1010,10 @@ export default function ProjectDetail({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-blue-50 hover:text-blue-800 flex items-center gap-2 no-underline"
-                    onClick={() => setShowShareMenu(false)}
+                    onClick={() => {
+                      trackShare("facebook", "project", project?.id || projectId || slug || "unknown");
+                      setShowShareMenu(false);
+                    }}
                   >
                     <Facebook className="w-4 h-4 text-[#1877F2]" /> Facebook
                   </a>
@@ -1008,7 +1022,10 @@ export default function ProjectDetail({
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-sky-50 hover:text-sky-800 flex items-center gap-2 no-underline"
-                    onClick={() => setShowShareMenu(false)}
+                    onClick={() => {
+                      trackShare("zalo", "project", project?.id || projectId || slug || "unknown");
+                      setShowShareMenu(false);
+                    }}
                   >
                     <MessageCircle className="w-4 h-4 text-[#0068FF]" /> Zalo
                   </a>

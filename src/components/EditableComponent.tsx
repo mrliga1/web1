@@ -104,7 +104,7 @@ export function EditableText({
             });
             onUpdateSections(updated);
           }}
-          className={`w-full bg-bg-inverse/95 text-slate-100 border border-primary rounded p-2 text-xs outline-none focus:ring-1 focus:ring-yellow-500 font-light resize-none ${className}`}
+          className={`w-full bg-bg-inverse/95 text-slate-100 border border-primary rounded p-2 text-xs !outline-none focus:ring-0 focus:shadow-none font-light resize-none ${className}`}
           autoFocus
           rows={4}
         />
@@ -128,7 +128,7 @@ export function EditableText({
           });
           onUpdateSections(updated);
         }}
-        className={`w-full bg-bg-inverse/95 text-slate-100 border border-primary rounded px-2 py-1 text-xs outline-none focus:ring-1 focus:ring-yellow-500 ${className}`}
+        className={`w-full bg-bg-inverse/95 text-slate-100 border border-primary rounded px-2 py-1 text-xs !outline-none focus:ring-0 focus:shadow-none ${className}`}
         autoFocus
       />
     );

@@ -135,7 +135,7 @@ export default function FiltersConfigTab() {
                     type="text"
                     value={item.id}
                     onChange={(e) => updateRow(idx, 'id', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-border-color rounded-md text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                    className="w-full appearance-none px-3 py-2 bg-white border border-border-color rounded-md text-sm focus:border-primary focus:ring-0 focus:shadow-none !outline-none transition-all"
                     placeholder="VD: under15m"
                   />
                 </div>
@@ -145,7 +145,7 @@ export default function FiltersConfigTab() {
                     type="text"
                     value={item.label}
                     onChange={(e) => updateRow(idx, 'label', e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-border-color rounded-md text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                    className="w-full appearance-none px-3 py-2 bg-white border border-border-color rounded-md text-sm focus:border-primary focus:ring-0 focus:shadow-none !outline-none transition-all"
                     placeholder="VD: Dưới 15 tỷ"
                   />
                 </div>
@@ -155,7 +155,7 @@ export default function FiltersConfigTab() {
                     type="number"
                     value={item.min}
                     onChange={(e) => updateRow(idx, 'min', e.target.value === '' ? 0 : Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-white border border-border-color rounded-md text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                    className="w-full appearance-none px-3 py-2 bg-white border border-border-color rounded-md text-sm focus:border-primary focus:ring-0 focus:shadow-none !outline-none transition-all"
                   />
                 </div>
                 <div className="col-span-6 sm:col-span-3">
@@ -164,7 +164,7 @@ export default function FiltersConfigTab() {
                     type="number"
                     value={item.max === null ? '' : item.max}
                     onChange={(e) => updateRow(idx, 'max', e.target.value === '' ? null : Number(e.target.value))}
-                    className="w-full px-3 py-2 bg-white border border-border-color rounded-md text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                    className="w-full appearance-none px-3 py-2 bg-white border border-border-color rounded-md text-sm focus:border-primary focus:ring-0 focus:shadow-none !outline-none transition-all"
                     placeholder="Vô cực"
                   />
                 </div>

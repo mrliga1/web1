@@ -7,6 +7,7 @@ import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
 import { recordContentEngagement } from "../lib/engagement";
 import { CategoryExt, GeneralSettingsData, News, Product, Project, RouteState } from "../types";
 import { useScrollDirection } from "../hooks/useScrollDirection";
+import { trackContentView, trackLead, trackShare } from "../lib/tracking";
 import {
   MapPin,
   Phone,
@@ -134,6 +135,7 @@ export default function ProductDetail({
     return readServerProduct();
   });
   const productRef = useRef<Product | null>(product);
+  const trackedProductIdRef = useRef("");
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
@@ -165,6 +167,13 @@ export default function ProductDetail({
   useEffect(() => {
     productRef.current = product;
   }, [product]);
+
+  useEffect(() => {
+    const itemId = product?.id || productId || slug || "";
+    if (!product || !itemId || trackedProductIdRef.current === itemId) return;
+    trackedProductIdRef.current = itemId;
+    trackContentView("product", itemId, product.title, product.category);
+  }, [product, productId, slug]);
 
   // Auto-scroll main image slider
   useEffect(() => {
@@ -404,6 +413,7 @@ export default function ProductDetail({
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,
       });
+      trackLead('product_inquiry', 'product_detail', product?.id || productId || slug);
 
       notifyAdminEmail({
         name: clientName.trim(),
@@ -750,6 +760,7 @@ export default function ProductDetail({
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(window.location.href);
+                          trackShare("copy_link", "product", product?.id || productId || slug || "unknown");
                           alert("Đã copy link!");
                           setShowShareMenu(false);
                         }}
@@ -762,7 +773,10 @@ export default function ProductDetail({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-blue-50 hover:text-blue-800 flex items-center gap-2 no-underline"
-                        onClick={() => setShowShareMenu(false)}
+                        onClick={() => {
+                          trackShare("facebook", "product", product?.id || productId || slug || "unknown");
+                          setShowShareMenu(false);
+                        }}
                       >
                         <Facebook className="w-4 h-4 text-[#1877F2]" /> Facebook
                       </a>
@@ -771,7 +785,10 @@ export default function ProductDetail({
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full px-4 py-2 text-left text-sm text-slate-800 hover:bg-sky-50 hover:text-sky-800 flex items-center gap-2 no-underline"
-                        onClick={() => setShowShareMenu(false)}
+                        onClick={() => {
+                          trackShare("zalo", "product", product?.id || productId || slug || "unknown");
+                          setShowShareMenu(false);
+                        }}
                       >
                         <MessageCircle className="w-4 h-4 text-[#0068FF]" /> Zalo
                       </a>

@@ -234,7 +234,7 @@ export function getRelatedNewsSuggestions(input: {
   );
   const normalizedCategory = normalizeText(input.category || "");
 
-  return input.targets
+  const rankedSuggestions = input.targets
     .filter((target) => target.type === "news")
     .map<RelatedNewsSuggestion>((target) => {
       const reasons: string[] = [];
@@ -272,8 +272,17 @@ export function getRelatedNewsSuggestions(input: {
 
       return { target, score, reasons };
     })
-    .filter((suggestion) => suggestion.score >= 6)
-    .sort((left, right) => right.score - left.score)
+    .sort((left, right) => right.score - left.score);
+
+  const relatedSuggestions = rankedSuggestions.filter((suggestion) => suggestion.score >= 6);
+  const recentFallbacks = rankedSuggestions
+    .filter((suggestion) => suggestion.score < 6)
+    .map((suggestion) => ({
+      ...suggestion,
+      reasons: suggestion.reasons.length ? suggestion.reasons : ["Bài viết gần đây"],
+    }));
+
+  return [...relatedSuggestions, ...recentFallbacks]
     .slice(0, Math.min(5, Math.max(1, input.limit || 5)));
 }
 
@@ -348,6 +357,14 @@ export function findAmbiguousInternalLinkMatches(html: string, targets: Internal
 function createAnchor(target: InternalLinkTarget, anchor: string, source: InternalLinkRecord["source"]) {
   const persistentUrl = `${target.url}#gh-il-${source}-${target.type}-${encodeURIComponent(target.id)}`;
   return `<a href="${escapeHtml(persistentUrl)}" data-internal-type="${target.type}" data-internal-id="${escapeHtml(target.id)}" data-internal-source="${source}" title="${escapeHtml(target.title)}">${escapeHtml(anchor)}</a>`;
+}
+
+export function createInternalLinkHtml(
+  target: InternalLinkTarget,
+  anchor?: string,
+  source: InternalLinkRecord["source"] = "manual",
+) {
+  return createAnchor(target, anchor?.trim() || target.title, source);
 }
 
 function getAutomaticLinkLimit(html: string) {
@@ -492,7 +509,10 @@ export function insertRelatedNewsLinks(
   if (!targets.length) return html;
   const list = `<ul data-related-links="true">${targets
     .slice(0, 5)
-    .map((target) => `<li>${createAnchor(target, target.title, "related")}</li>`)
+    .map(
+      (target) =>
+        `<li><span aria-hidden="true" data-related-link-bullet="true">•</span> ${createAnchor(target, target.title, "related")}</li>`,
+    )
     .join("")}</ul>`;
 
   if (typeof DOMParser === "undefined") return `${html}${list}`;

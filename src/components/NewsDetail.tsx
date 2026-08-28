@@ -9,6 +9,7 @@ import ProductCard from './ProductCard';
 import StarRatingInteractive from './StarRatingInteractive';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { sanitizeRichHtml } from '../lib/sanitizeRichHtml';
+import { trackContentView, trackLead } from '../lib/tracking';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
   if (event.key === "Enter" || event.key === " ") {
@@ -63,6 +64,7 @@ export default function NewsDetail({
     return null;
   });
   const articleRef = useRef<News | null>(article);
+  const trackedArticleIdRef = useRef("");
   const initialProductCategoriesExt = initialGeneralSettings.productCategoriesExt || [];
   const [allNews, setAllNews] = useState<News[]>(initialNews);
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -110,6 +112,13 @@ export default function NewsDetail({
   useEffect(() => {
     articleRef.current = article;
   }, [article]);
+
+  useEffect(() => {
+    const itemId = article?.id || newsId || slug || "";
+    if (!article || !itemId || trackedArticleIdRef.current === itemId) return;
+    trackedArticleIdRef.current = itemId;
+    trackContentView("article", itemId, article.title, article.category);
+  }, [article, newsId, slug]);
 
   useEffect(() => {
     if (isMarqueePaused) return;
@@ -317,6 +326,7 @@ export default function NewsDetail({
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,
       });
+      trackLead('news_consultation', 'news_detail', article?.id || newsId || slug);
 
       notifyAdminEmail({
         name: clientName.trim(),
@@ -764,7 +774,7 @@ export default function NewsDetail({
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="Họ tên *"
-                    className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                    className="w-full appearance-none bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-colors"
                     required
                   />
                 </div>
@@ -776,7 +786,7 @@ export default function NewsDetail({
                     value={clientPhone}
                     onChange={(e) => setClientPhone(e.target.value)}
                     placeholder="Số điện thoại *"
-                    className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                    className="w-full appearance-none bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-colors"
                     required
                   />
                 </div>
@@ -788,7 +798,7 @@ export default function NewsDetail({
                     value={clientEmail}
                     onChange={(e) => setClientEmail(e.target.value)}
                     placeholder="Email (Tùy chọn)"
-                    className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                    className="w-full appearance-none bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-colors"
                   />
                 </div>
 
@@ -799,7 +809,7 @@ export default function NewsDetail({
                     onChange={(e) => setClientDemand(e.target.value)}
                     placeholder="Nhu cầu của bạn (Tùy chọn)"
                     rows={3}
-                    className="w-full bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors resize-none"
+                    className="w-full appearance-none bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-colors resize-none"
                   />
                 </div>
 

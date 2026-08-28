@@ -7,7 +7,14 @@ import type { RouteState } from '../../src/types';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
-const AdminPanel = dynamic(() => import('../../src/components/AdminPanel'), { ssr: false });
+const AdminPanel = dynamic(() => import('../../src/components/AdminPanel'), {
+  ssr: false,
+  loading: () => (
+    <div className="flex min-h-screen items-center justify-center bg-white text-sm font-semibold text-slate-700">
+      Đang mở trang quản trị…
+    </div>
+  ),
+});
 
 export default function AdminPage() {
   const [logoUrl, setLogoUrl] = React.useState<string>('');

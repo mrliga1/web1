@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Phone, Mail, X, CheckCircle2 } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { useAppContext } from '../contexts/AppContext';
+import { trackLead } from '../lib/tracking';
 
 export default function FloatingActionButtons() {
   const { isQuotePopupOpen: showQuotePopup, setIsQuotePopupOpen: setShowQuotePopup } = useAppContext();
@@ -49,16 +50,12 @@ export default function FloatingActionButtons() {
         createdAt: new Date().toISOString(),
         source: 'quote_popup',
       });
+      trackLead('quote_popup', 'quote_popup');
       setFormSubmitted(true);
       setQuoteName('');
       setQuotePhone('');
       setQuoteEmail('');
       setQuoteDemand('');
-      try {
-        localStorage.setItem('greenia_quote_popup_submitted', 'true');
-      } catch {
-        // Sự kiện vẫn dừng lịch popup nếu trình duyệt không cho phép localStorage.
-      }
       window.dispatchEvent(new Event('greenia_quote_popup_submitted'));
       setTimeout(() => {
         setFormSubmitted(false);

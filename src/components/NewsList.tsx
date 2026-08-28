@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
@@ -15,6 +15,7 @@ import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { useScrollDirection } from '../hooks/useScrollDirection';
+import { trackContentListView, trackSearch } from '../lib/tracking';
 
 interface NewsListProps {
   onNavigate: (route: RouteState) => void;
@@ -107,6 +108,13 @@ export default function NewsList({
   // Bộ lọc và tab.
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('Tất cả');
+
+  useEffect(() => {
+    const normalizedQuery = searchQuery.trim();
+    if (normalizedQuery.length < 2) return;
+    const timer = window.setTimeout(() => trackSearch(normalizedQuery, 'article'), 800);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
 
 
   useEffect(() => {
@@ -217,6 +225,21 @@ export default function NewsList({
                            (n.description || '').toLowerCase().includes(searchQuery.toLowerCase());
     return matchesTab && matchesKeyword;
   });
+
+  const newsListTrackingRef = useRef('');
+  useEffect(() => {
+    if (loading) return;
+    const visibleNews = filteredNews.slice(0, 8);
+    const signature = visibleNews.map((article) => article.id).join('|');
+    if (!signature || newsListTrackingRef.current === signature) return;
+    newsListTrackingRef.current = signature;
+    trackContentListView(
+      'article',
+      categoryName ? `news_category_${categoryName}` : 'news_catalog',
+      categoryName || activeTab || 'Danh sách tin tức',
+      visibleNews.map((article) => ({ id: article.id, name: article.title })),
+    );
+  }, [activeTab, categoryName, filteredNews, loading]);
 
   const middleGridNews = filteredNews.slice(0, 8);
   const middleGridIds = new Set(middleGridNews.map(n => n.id));

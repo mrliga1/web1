@@ -3,6 +3,7 @@ import { Product, RouteState } from '../types';
 import { MapPin, Layers, Bookmark, Bath, Heart } from 'lucide-react';
 import { formatLocationName } from '../lib/locationMapping';
 import { generateSlug, optimizeImageUrl, generateSrcSet } from '../lib/utils';
+import { trackWishlist } from '../lib/tracking';
 
 interface ProductCardProps {
   key?: React.Key;
@@ -42,11 +43,13 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
       const newFavs = favs.filter(id => id !== item.id);
       localStorage.setItem('saved_favorites', JSON.stringify(newFavs));
       setIsFavorite(false);
+      trackWishlist(item.id, item.title, false);
       window.dispatchEvent(new Event('favorites_changed'));
     } else {
       favs.push(item.id);
       localStorage.setItem('saved_favorites', JSON.stringify(favs));
       setIsFavorite(true);
+      trackWishlist(item.id, item.title, true);
       window.dispatchEvent(new Event('favorites_changed'));
     }
   };

@@ -18,6 +18,7 @@ interface ContactPageProps {
 
 import { notifyAdminEmail } from '../lib/email';
 import { fetchClientIp } from '../lib/ip';
+import { trackLead } from '../lib/tracking';
 
 const MAX_CONTACT_IMAGES = 5;
 const MAX_CONTACT_IMAGE_SIZE = 3 * 1024 * 1024;
@@ -188,6 +189,7 @@ export default function ContactPage({
         sourceUrl: friendlyUrl,
         ipAddress: clientIp
       });
+      trackLead('contact_page', 'contact');
 
       notifyAdminEmail({
         name: contactName.trim(),

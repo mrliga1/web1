@@ -19,14 +19,13 @@ import {
   onSnapshot,
 } from "../firebase-realtime";
 import { authFetch } from '../lib/authFetch';
-import { getImageAltFromUrl } from '../lib/utils';
+import { generateSlug, getImageAltFromUrl } from '../lib/utils';
 import {
   PlusCircle,
   Trash2,
   Mail,
   ShieldAlert,
   CheckCircle,
-  Save,
   Image as ImageIcon,
   MapPin,
   Building2,
@@ -52,8 +51,6 @@ import {
   ChevronUp,
   ChevronLeft,
   ArrowLeft,
-  Activity,
-  TrendingUp,
   Users,
   MessageSquare,
   UserPlus,
@@ -61,7 +58,6 @@ import {
   Filter,
   Download,
   Share2,
-  Zap,
 } from "lucide-react";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import {
@@ -75,15 +71,6 @@ import {
   CustomSection,
   GeneralSettingsData,
 } from "../types";
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip,
-  CartesianGrid,
-} from "recharts";
 import { useAuth, type UserProfile } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
 import FiltersConfigTab from "./FiltersConfigTab";
@@ -95,6 +82,7 @@ import {
   extractInternalLinkRecords,
   findAmbiguousInternalLinkMatches,
   getRelatedNewsSuggestions,
+  createInternalLinkHtml,
   insertInternalLinkAtSelection,
   insertRelatedNewsLinks,
   linkFirstMatchingTerm,
@@ -124,7 +112,6 @@ type AdminTab =
   | "blocked_ips"
   | "gallery"
   | "new_wizard"
-  | "google"
   | "profile";
 
 type AdminUser = UserProfile & {
@@ -145,8 +132,13 @@ interface QuillLeaf {
 interface QuillEditorInstance {
   getSelection: () => { index: number; length: number } | null;
   getLength: () => number;
+  getText: (index: number, length: number) => string;
   getLeaf: (index: number) => [QuillLeaf | undefined];
   insertEmbed: (index: number, type: string, value: string, source?: string) => void;
+  deleteText: (index: number, length: number, source?: string) => void;
+  clipboard: {
+    dangerouslyPasteHTML: (index: number, html: string, source?: string) => void;
+  };
   setSelection: (index: number, length?: number, source?: string) => void;
 }
 
@@ -159,6 +151,7 @@ interface ReactQuillEditorProps {
   theme: string;
   value: string;
   onChange: (value: string) => void;
+  onChangeSelection?: (range: { index: number; length: number } | null) => void;
   modules: unknown;
   className?: string;
 }
@@ -187,7 +180,7 @@ export default function AdminPanel({
   logoUrl,
 }: AdminPanelProps) {
   const RichTextEditor = ReactQuill as unknown as React.ComponentType<ReactQuillEditorProps>;
-  const { currentUser, userProfile, logout } = useAuth();
+  const { currentUser, userProfile, loading: authLoading, logout } = useAuth();
 
   // Authentication, passwords, and security contexts
   const isLoggedIn = !!currentUser;
@@ -224,9 +217,6 @@ export default function AdminPanel({
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(null);
   const [editingEmployeeName, setEditingEmployeeName] = useState("");
-  const [googleServiceTab, setGoogleServiceTab] = useState<
-    "ga4" | "gtm" | "ads" | "adsense" | "fb" | "tiktok" | "cookie"
-  >("ga4");
   const [crmSelectedLead, setCrmSelectedLead] = useState<Consultation | null>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -266,6 +256,7 @@ export default function AdminPanel({
   });
   const quillRef = useRef<ReactQuill>(null);
   const activeQuillInstance = useRef<QuillEditorInstance | null>(null);
+  const quillSelectionRef = useRef<{ index: number; length: number } | null>(null);
 
   const quillModules = useMemo(
     () => ({
@@ -907,19 +898,11 @@ export default function AdminPanel({
   const [itemBaseRating, setItemBaseRating] = useState("5.0");
   const [itemBaseReviewCount, setItemBaseReviewCount] = useState("0");
 
-  // Google & Meta Integrated Analytics & Ads States
-  const [googleAnalyticsId, setGoogleAnalyticsId] = useState("");
-  const [googleTagId, setGoogleTagId] = useState("");
-  const [googleAdsId, setGoogleAdsId] = useState("");
-  const [googleAdSenseCode, setGoogleAdSenseCode] = useState("");
-  const [facebookPixelId, setFacebookPixelId] = useState("");
-  const [tiktokPixelId, setTiktokPixelId] = useState("");
   const [cookieConsentEnabled, setCookieConsentEnabled] = useState(false);
   const [quotePopupEnabled, setQuotePopupEnabled] = useState(false);
-  const [quotePopupDelaySeconds, setQuotePopupDelaySeconds] = useState(8);
-  const [quotePopupFrequency, setQuotePopupFrequency] = useState<
-    "page-load" | "session" | "daily"
-  >("session");
+  const [quotePopupVersion, setQuotePopupVersion] = useState(2);
+  const [tiktokPixelEnabled, setTiktokPixelEnabled] = useState(false);
+  const [tiktokPixelId, setTiktokPixelId] = useState("");
 
   // General Contact Settings
   const [contactHotline, setContactHotline] = useState("");
@@ -945,53 +928,6 @@ export default function AdminPanel({
     [],
   );
   const [selectedGalleryImages, setSelectedGalleryImages] = useState<string[]>([]);
-
-  // Mock Chart Data for Tracking Services
-  const ga4ChartData = [
-    { name: "Mon", views: 800 },
-    { name: "Tue", views: 1200 },
-    { name: "Wed", views: 900 },
-    { name: "Thu", views: 1500 },
-    { name: "Fri", views: 1800 },
-    { name: "Sat", views: 2400 },
-    { name: "Sun", views: 2100 },
-  ];
-  const adsChartData = [
-    { name: "Mon", conversions: 12 },
-    { name: "Tue", conversions: 18 },
-    { name: "Wed", conversions: 15 },
-    { name: "Thu", conversions: 22 },
-    { name: "Fri", conversions: 24 },
-    { name: "Sat", conversions: 35 },
-    { name: "Sun", conversions: 28 },
-  ];
-  const adsenseChartData = [
-    { name: "Mon", revenue: 20 },
-    { name: "Tue", revenue: 35 },
-    { name: "Wed", revenue: 25 },
-    { name: "Thu", revenue: 45 },
-    { name: "Fri", revenue: 50 },
-    { name: "Sat", revenue: 80 },
-    { name: "Sun", revenue: 65 },
-  ];
-  const fbPixelChartData = [
-    { name: "Mon", events: 120 },
-    { name: "Tue", events: 190 },
-    { name: "Wed", events: 150 },
-    { name: "Thu", events: 210 },
-    { name: "Fri", events: 280 },
-    { name: "Sat", events: 350 },
-    { name: "Sun", events: 320 },
-  ];
-  const tkPixelChartData = [
-    { name: "Mon", events: 80 },
-    { name: "Tue", events: 140 },
-    { name: "Wed", events: 110 },
-    { name: "Thu", events: 180 },
-    { name: "Fri", events: 250 },
-    { name: "Sat", events: 310 },
-    { name: "Sun", events: 300 },
-  ];
 
   // Editor special interactions:
   const [editorCursorMatch, setEditorCursorMatch] = useState<{
@@ -1094,6 +1030,10 @@ export default function AdminPanel({
   };
 
   const openManualInternalLinkModal = () => {
+    if (editorMode === "visual" && quillRef.current) {
+      const editor = quillRef.current.getEditor() as unknown as QuillEditorInstance;
+      quillSelectionRef.current = editor.getSelection() || quillSelectionRef.current;
+    }
     setInternalLinkModalMode("manual");
     setInternalLinkSearch("");
     setIsInternalLinkModalOpen(true);
@@ -1111,14 +1051,32 @@ export default function AdminPanel({
       setHtmlContent((currentHtml) =>
         linkFirstMatchingTerm(currentHtml, activeAmbiguousTerm, target),
       );
+    } else if (editorMode === "visual" && quillRef.current) {
+      const editor = quillRef.current.getEditor() as unknown as QuillEditorInstance;
+      const range = quillSelectionRef.current || editor.getSelection() || {
+        index: Math.max(0, editor.getLength() - 1),
+        length: 0,
+      };
+      const selectedText = range.length > 0
+        ? editor.getText(range.index, range.length).trim()
+        : "";
+      if (range.length > 0) editor.deleteText(range.index, range.length, "user");
+      const anchor = selectedText || target.title;
+      editor.clipboard.dangerouslyPasteHTML(
+        range.index,
+        createInternalLinkHtml(target, anchor, "manual"),
+        "user",
+      );
+      editor.setSelection(range.index + anchor.length, 0, "silent");
     } else if (editorCursorMatch) {
       const { start, end, text } = editorCursorMatch;
-      setHtmlContent(
+      setHtmlContent((currentHtml) =>
         insertInternalLinkAtSelection({
-          html: text,
+          html: currentHtml,
           start,
           end,
           target,
+          anchor: text.slice(start, end),
         }),
       );
     } else {
@@ -1130,6 +1088,7 @@ export default function AdminPanel({
       );
     }
     onShowNotification("Đã chèn liên kết nội bộ bằng URL chuẩn.", "success");
+    quillSelectionRef.current = null;
     closeInternalLinkModal();
   };
 
@@ -1329,6 +1288,7 @@ export default function AdminPanel({
       },
       (error) => {
         handleFirestoreError(error, OperationType.GET, "consultations");
+        setLoading(false);
       },
     );
 
@@ -1342,35 +1302,20 @@ export default function AdminPanel({
           if (data.metaDesc !== undefined) setSeoDesc(getSettingString(data.metaDesc));
           if (data.metaKeywords !== undefined)
             setSeoKeywords(getSettingString(data.metaKeywords));
-          if (data.googleAnalyticsId !== undefined)
-            setGoogleAnalyticsId(getSettingString(data.googleAnalyticsId));
-          if (data.googleTagId !== undefined)
-            setGoogleTagId(getSettingString(data.googleTagId));
-          if (data.googleAdsId !== undefined)
-            setGoogleAdsId(getSettingString(data.googleAdsId));
-          if (data.googleAdSenseCode !== undefined)
-            setGoogleAdSenseCode(getSettingString(data.googleAdSenseCode));
-          if (data.facebookPixelId !== undefined)
-            setFacebookPixelId(getSettingString(data.facebookPixelId));
-          if (data.tiktokPixelId !== undefined)
-            setTiktokPixelId(getSettingString(data.tiktokPixelId));
           if (data.cookieConsentEnabled !== undefined)
             setCookieConsentEnabled(Boolean(data.cookieConsentEnabled));
           if (data.quotePopupEnabled !== undefined)
             setQuotePopupEnabled(Boolean(data.quotePopupEnabled));
-          if (data.quotePopupDelaySeconds !== undefined) {
-            const popupDelay = Number(data.quotePopupDelaySeconds);
-            if (Number.isFinite(popupDelay)) {
-              setQuotePopupDelaySeconds(Math.min(60, Math.max(0, popupDelay)));
+          if (data.quotePopupVersion !== undefined) {
+            const popupVersion = Number(data.quotePopupVersion);
+            if (Number.isFinite(popupVersion) && popupVersion > 0) {
+              setQuotePopupVersion(popupVersion);
             }
           }
-          if (
-            data.quotePopupFrequency === "page-load" ||
-            data.quotePopupFrequency === "session" ||
-            data.quotePopupFrequency === "daily"
-          ) {
-            setQuotePopupFrequency(data.quotePopupFrequency);
-          }
+          if (data.tiktokPixelEnabled !== undefined)
+            setTiktokPixelEnabled(Boolean(data.tiktokPixelEnabled));
+          if (data.tiktokPixelId !== undefined)
+            setTiktokPixelId(getSettingString(data.tiktokPixelId));
 
           if (data.contactHotline !== undefined) setContactHotline(getSettingString(data.contactHotline));
           if (data.contactEmail !== undefined) setContactEmail(getSettingString(data.contactEmail));
@@ -2440,16 +2385,11 @@ export default function AdminPanel({
           metaTitle: seoTitle,
           metaDesc: seoDesc,
           metaKeywords: seoKeywords,
-          googleAnalyticsId: googleAnalyticsId.trim(),
-          googleTagId: googleTagId.trim(),
-          googleAdsId: googleAdsId.trim(),
-          googleAdSenseCode: googleAdSenseCode.trim(),
-          facebookPixelId: facebookPixelId.trim(),
-          tiktokPixelId: tiktokPixelId.trim(),
           cookieConsentEnabled,
           quotePopupEnabled,
-          quotePopupDelaySeconds,
-          quotePopupFrequency,
+          quotePopupVersion,
+          tiktokPixelEnabled,
+          tiktokPixelId: tiktokPixelId.trim(),
         },
         { merge: true },
       );
@@ -2460,13 +2400,13 @@ export default function AdminPanel({
         metaKeywords: seoKeywords,
       });
       onShowNotification(
-        "Đã lưu thiết lập SEO, Google Analytics, Tags & AdSense thành công!",
+        "Đã lưu thiết lập SEO, cookie và popup tư vấn thành công!",
         "success",
       );
     } catch (err) {
       console.error(err);
       onShowNotification(
-        "Không thể ghi nhận thiết lập SEO và Google Trackers.",
+        "Không thể ghi nhận thiết lập SEO và popup.",
         "error",
       );
     } finally {
@@ -2751,6 +2691,17 @@ export default function AdminPanel({
   }, [consultations, currentUserRole, currentMemberEmail]);
 
   // If unauthorized -> Show prompt to login
+  if (authLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white" role="status" aria-live="polite">
+        <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 px-5 py-4 text-sm font-semibold text-slate-700 shadow-sm">
+          <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+          Đang khôi phục phiên quản trị…
+        </div>
+      </div>
+    );
+  }
+
   if (!isLoggedIn) {
     return (
       <div
@@ -2967,7 +2918,7 @@ export default function AdminPanel({
                     }`}
                 >
                   <Share2 className="w-4 h-4 shrink-0 text-primary" />
-                  <span>Ai & Auto-Post</span>
+                  <span>Auto-Post</span>
                 </button>
 
                 <button
@@ -2982,20 +2933,6 @@ export default function AdminPanel({
                 >
                   <Settings className="w-4 h-4 shrink-0 text-primary" />
                   <span>Cấu hình SEO & Logo</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setActiveTab("google");
-                    setSidebarOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "google"
-                      ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
-                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
-                    }`}
-                >
-                  <Activity className="w-4 h-4 shrink-0 text-primary" />
-                  <span>Google Tracking & Ads</span>
                 </button>
 
                 <button
@@ -3194,6 +3131,39 @@ export default function AdminPanel({
           </div>
         </header>
 
+        <nav
+          className="border-b border-slate-200 bg-white px-3 py-2 sm:px-6"
+          aria-label="Nhóm nội dung quản trị"
+        >
+          <div className="flex gap-2 overflow-x-auto" role="tablist" aria-label="Chuyển khu vực quản trị">
+            {([
+              { id: "listings" as AdminTab, label: "Sản phẩm", icon: LayoutGrid, visible: true },
+              { id: "projects" as AdminTab, label: "Dự án", icon: Compass, visible: ["admin", "editor"].includes(currentUserRole) },
+              { id: "articles" as AdminTab, label: "Tin tức", icon: FileText, visible: true },
+              { id: "leads" as AdminTab, label: "Liên hệ", icon: Mail, visible: currentUserRole !== "user" },
+            ]).filter((item) => item.visible).map((item) => {
+              const Icon = item.icon;
+              const selected = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${selected
+                    ? "border-primary bg-primary text-white"
+                    : "border-slate-200 bg-slate-50 text-slate-700 hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
         {/* Complete main workspace workspace panels */}
         <main
           className="flex-1 min-w-0 px-3 py-3 sm:p-6 md:p-8 overflow-y-auto overflow-x-hidden space-y-4 md:space-y-8"
@@ -3373,7 +3343,7 @@ export default function AdminPanel({
                                 </div>
                                 <div className="flex items-center gap-1.5 sm:hidden mt-1">
                                   <button
-                                    onClick={() => onNavigate({ screen: "product-detail", productId: item.id })}
+                                    onClick={() => onNavigate({ screen: "product-detail", productId: item.id, slug: generateSlug(item.title) })}
                                     className="text-[10px] bg-slate-100 hover:bg-slate-300 text-slate-800 px-2 py-[3px] rounded transition-colors"
                                   >Xem</button>
                                   <button
@@ -3407,7 +3377,7 @@ export default function AdminPanel({
                             <td className="px-5 py-3 text-right hidden sm:table-cell">
                               <div className="flex items-center gap-2 justify-end">
                                 <button
-                                  onClick={() => onNavigate({ screen: "product-detail", productId: item.id })}
+                                  onClick={() => onNavigate({ screen: "product-detail", productId: item.id, slug: generateSlug(item.title) })}
                                   className="text-[10px] bg-slate-100 hover:bg-slate-300 text-slate-800 px-2 py-1.5 rounded transition-colors"
                                 >Xem</button>
                                 <button
@@ -3507,6 +3477,7 @@ export default function AdminPanel({
                                       onNavigate({
                                         screen: "project-detail",
                                         projectId: proj.id,
+                                        slug: generateSlug(proj.title),
                                       })
                                     }
                                     className="text-[10px] bg-slate-100 hover:bg-slate-300 text-slate-800 px-2 py-[3px] rounded transition-colors"
@@ -3536,6 +3507,7 @@ export default function AdminPanel({
                                     onNavigate({
                                       screen: "project-detail",
                                       projectId: proj.id,
+                                      slug: generateSlug(proj.title),
                                     })
                                   }
                                   className="text-[10px] bg-slate-100 hover:bg-slate-300 text-slate-800 px-2 py-1.5 rounded transition-colors"
@@ -3907,7 +3879,7 @@ export default function AdminPanel({
                                 </div>
                                 <div className="flex items-center gap-1.5 sm:hidden mt-1">
                                   <button
-                                    onClick={() => onNavigate({ screen: "news-detail", newsId: n.id })}
+                                    onClick={() => onNavigate({ screen: "news-detail", newsId: n.id, slug: generateSlug(n.title) })}
                                     className="text-[10px] bg-slate-100 hover:bg-slate-300 text-slate-800 px-2 py-[3px] rounded transition-colors"
                                   >Mở bài</button>
                                   <button
@@ -3943,7 +3915,7 @@ export default function AdminPanel({
                             <td className="px-5 py-3 text-right hidden sm:table-cell">
                               <div className="flex items-center gap-2 justify-end">
                                 <button
-                                  onClick={() => onNavigate({ screen: "news-detail", newsId: n.id })}
+                                  onClick={() => onNavigate({ screen: "news-detail", newsId: n.id, slug: generateSlug(n.title) })}
                                   className="text-[10px] bg-slate-100 hover:bg-slate-300 text-slate-800 pr-[8px] pl-2 py-[3px] rounded transition-colors"
                                 >Mở bài</button>
                                 <button
@@ -4013,11 +3985,11 @@ export default function AdminPanel({
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Tên Danh Mục</label>
-                          <input autoFocus type="text" value={catModal.data.name} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, name: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none" placeholder="VD: Biệt thự nghỉ dưỡng" />
+                          <input autoFocus type="text" value={catModal.data.name} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, name: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none" placeholder="VD: Biệt thự nghỉ dưỡng" />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Danh Mục Cha (ID)</label>
-                          <select value={catModal.data.parentId} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, parentId: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none">
+                          <select value={catModal.data.parentId} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, parentId: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none">
                             <option value="">-- Để trống (Cấp 1) --</option>
                             {categories.filter(c => c !== catModal.data.name).map(c => (
                               <option key={c} value={c}>{c}</option>
@@ -4026,15 +3998,15 @@ export default function AdminPanel({
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">SEO Title</label>
-                          <input type="text" value={catModal.data.seoTitle} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoTitle: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none" placeholder="Tiêu đề SEO..." />
+                          <input type="text" value={catModal.data.seoTitle} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoTitle: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none" placeholder="Tiêu đề SEO..." />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">SEO Description</label>
-                          <textarea rows={2} value={catModal.data.seoDesc} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoDesc: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none resize-none" placeholder="Mô tả SEO..." />
+                          <textarea rows={2} value={catModal.data.seoDesc} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoDesc: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none resize-none" placeholder="Mô tả SEO..." />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">SEO Keywords</label>
-                          <input type="text" value={catModal.data.seoKeywords || ""} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoKeywords: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none" placeholder="Từ khóa SEO..." />
+                          <input type="text" value={catModal.data.seoKeywords || ""} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoKeywords: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-emerald-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none" placeholder="Từ khóa SEO..." />
                         </div>
                         <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                            <button onClick={() => setCatModal(prev => ({ ...prev, isOpen: false }))} className="px-4 py-2 mt-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">Hủy</button>
@@ -4135,11 +4107,11 @@ export default function AdminPanel({
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Tên Danh Mục</label>
-                          <input autoFocus type="text" value={catModal.data.name} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, name: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none" placeholder="VD: Tin thị trường" />
+                          <input autoFocus type="text" value={catModal.data.name} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, name: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none" placeholder="VD: Tin thị trường" />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">Danh Mục Cha (ID)</label>
-                          <select value={catModal.data.parentId} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, parentId: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none">
+                          <select value={catModal.data.parentId} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, parentId: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none">
                             <option value="">-- Để trống (Cấp 1) --</option>
                             {newsCategories.filter(c => c !== catModal.data.name).map(c => (
                               <option key={c} value={c}>{c}</option>
@@ -4148,15 +4120,15 @@ export default function AdminPanel({
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">SEO Title</label>
-                          <input type="text" value={catModal.data.seoTitle} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoTitle: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none" placeholder="Tiêu đề SEO..." />
+                          <input type="text" value={catModal.data.seoTitle} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoTitle: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none" placeholder="Tiêu đề SEO..." />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">SEO Description</label>
-                          <textarea rows={2} value={catModal.data.seoDesc} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoDesc: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none resize-none" placeholder="Mô tả SEO..." />
+                          <textarea rows={2} value={catModal.data.seoDesc} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoDesc: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none resize-none" placeholder="Mô tả SEO..." />
                         </div>
                         <div>
                           <label className="block text-xs font-semibold text-slate-700 mb-1">SEO Keywords</label>
-                          <input type="text" value={catModal.data.seoKeywords || ""} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoKeywords: e.target.value } }))} className="w-full bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-3 py-2 text-sm text-slate-900 transition-all outline-none" placeholder="Từ khóa SEO..." />
+                          <input type="text" value={catModal.data.seoKeywords || ""} onChange={(e) => setCatModal(prev => ({ ...prev, data: { ...prev.data, seoKeywords: e.target.value } }))} className="w-full appearance-none bg-slate-50 hover:bg-white border border-slate-200 focus:border-blue-500 focus:ring-0 focus:shadow-none rounded-xl px-3 py-2 text-sm text-slate-900 transition-all !outline-none" placeholder="Từ khóa SEO..." />
                         </div>
                         <div className="flex justify-end gap-2 pt-2 border-t border-slate-100">
                            <button onClick={() => setCatModal(prev => ({ ...prev, isOpen: false }))} className="px-4 py-2 mt-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer">Hủy</button>
@@ -4368,30 +4340,6 @@ export default function AdminPanel({
             ========================================================= */}
             {activeTab === "integrations" && (
               <div className="space-y-6 max-w-3xl mx-auto" id="integrations-workspace">
-                {/* AI / Gemini */}
-                <div className="bg-slate-50 border border-slate-200 px-[15px] py-[15px] rounded-lg">
-                  <h3 className="font-display font-medium text-slate-900 text-base text-left border-b border-slate-200 pb-2 mb-4 tracking-wider flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-primary" />
-                    Cấu Hình AI (Trợ lý Content)
-                  </h3>
-                  <div className="space-y-3">
-                    <p className="text-xs text-slate-700 text-left">Kết nối Gemini API để tự động viết bài SEO, sinh mô tả dự án và tự động điền thông số.</p>
-                    <div className="space-y-1 text-left">
-                      <label className="text-[10px] font-bold text-slate-700">
-                        Google Gemini API Key
-                      </label>
-                      <input
-                        type="password"
-                        placeholder="AIzaSyB..."
-                        className="w-full bg-white border border-slate-200 rounded-lg px-3 py-[10px] text-[10px] text-slate-900 outline-none"
-                      />
-                    </div>
-                    <button className="bg-primary text-white font-bold px-4 py-2 text-xs rounded hover:bg-primary-light transition-colors">
-                      Lưu & Kích hoạt AI
-                    </button>
-                  </div>
-                </div>
-
                 {/* Auto Post */}
                 <div className="bg-slate-50 border border-slate-200 px-[15px] py-[15px] rounded-lg">
                   <h3 className="font-display font-medium text-slate-900 text-base text-left border-b border-slate-200 pb-2 mb-4 tracking-wider flex items-center gap-2">
@@ -4497,6 +4445,77 @@ export default function AdminPanel({
                       />
                     </div>
 
+                    <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4">
+                      <h4 className="text-xs font-bold text-slate-900">Quyền riêng tư và popup tư vấn</h4>
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-semibold text-slate-800">Popup chấp thuận cookie</p>
+                          <p className="mt-0.5 text-[9px] text-slate-600">Chỉ nạp mã đo lường sau khi khách truy cập đồng ý.</p>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Bật hoặc tắt popup cookie"
+                          aria-pressed={cookieConsentEnabled}
+                          onClick={() => setCookieConsentEnabled((enabled) => !enabled)}
+                          className={`relative flex h-6 w-12 shrink-0 items-center rounded-full transition-colors ${cookieConsentEnabled ? "bg-primary" : "bg-slate-500"}`}
+                        >
+                          <span className={`absolute h-5 w-5 rounded-full bg-white transition-transform ${cookieConsentEnabled ? "translate-x-6" : "translate-x-1"}`} />
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between gap-4 border-t border-slate-200 pt-3">
+                        <div>
+                          <p className="text-xs font-semibold text-slate-800">Tự động mở popup tư vấn</p>
+                          <p className="mt-0.5 text-[9px] text-slate-600">Mở sau 60 giây; nếu đóng sẽ lặp lại sau 90 giây rồi mỗi 60 giây.</p>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Bật hoặc tắt popup tư vấn"
+                          aria-pressed={quotePopupEnabled}
+                          onClick={() => {
+                            const nextEnabled = !quotePopupEnabled;
+                            setQuotePopupEnabled(nextEnabled);
+                            if (nextEnabled) setQuotePopupVersion(Date.now());
+                          }}
+                          className={`relative flex h-6 w-12 shrink-0 items-center rounded-full transition-colors ${quotePopupEnabled ? "bg-primary" : "bg-slate-500"}`}
+                        >
+                          <span className={`absolute h-5 w-5 rounded-full bg-white transition-transform ${quotePopupEnabled ? "translate-x-6" : "translate-x-1"}`} />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900">TikTok Pixel (cấu hình chờ)</h4>
+                          <p className="mt-0.5 text-[9px] text-slate-600">Giữ trạng thái tắt cho đến khi bắt đầu chạy quảng cáo TikTok.</p>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Bật hoặc tắt TikTok Pixel"
+                          aria-pressed={tiktokPixelEnabled}
+                          onClick={() => setTiktokPixelEnabled((enabled) => !enabled)}
+                          className={`relative flex h-6 w-12 shrink-0 items-center rounded-full transition-colors ${tiktokPixelEnabled ? "bg-primary" : "bg-slate-500"}`}
+                        >
+                          <span className={`absolute h-5 w-5 rounded-full bg-white transition-transform ${tiktokPixelEnabled ? "translate-x-6" : "translate-x-1"}`} />
+                        </button>
+                      </div>
+                      <div className="space-y-1 border-t border-slate-200 pt-3">
+                        <label htmlFor="tiktok-pixel-id" className="text-[10px] font-bold text-slate-700">
+                          TikTok Pixel ID
+                        </label>
+                        <input
+                          id="tiktok-pixel-id"
+                          type="text"
+                          value={tiktokPixelId}
+                          onChange={(event) => setTiktokPixelId(event.target.value.trim())}
+                          placeholder="Nhập Pixel ID khi cần sử dụng"
+                          autoComplete="off"
+                          className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-900 outline-none focus:border-primary"
+                        />
+                        <p className="text-[9px] text-slate-500">Không cấu hình cùng Pixel này trong GTM để tránh ghi nhận trùng.</p>
+                      </div>
+                    </div>
+
                     <div className="pt-2">
                       <button
                         type="submit"
@@ -4596,740 +4615,6 @@ export default function AdminPanel({
                         (transparent).
                       </p>
                     </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* =========================================================
-            TAB 6: Google Services configuration
-            ========================================================= */}
-            {activeTab === "google" && (
-              <div className="space-y-6 mx-auto" id="google-workspace">
-                {/* Header and Service Tabs */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-200 pb-3 md:pb-4">
-                  <h3 className="font-display font-medium text-slate-900 text-base md:text-lg flex items-center gap-2 tracking-wider">
-                    <Activity className="w-5 h-5 md:w-6 md:h-6 text-primary" />
-                    <span>Google Tracking & Quản Trị</span>
-                  </h3>
-                  <div className="flex bg-slate-50 border border-slate-200 rounded-lg p-1 overflow-x-auto w-full md:w-auto [&::-webkit-scrollbar]:hidden">
-                    {(
-                      [
-                        "ga4",
-                        "gtm",
-                        "ads",
-                        "adsense",
-                        "fb",
-                        "tiktok",
-                        "cookie",
-                      ] as const
-                    ).map((tab) => (
-                      <button
-                        key={tab}
-                        onClick={() => setGoogleServiceTab(tab)}
-                        className={`px-3 py-1.5 md:px-4 md:py-2 text-[10px] md:text-xs font-bold tracking-wider rounded-md transition-all whitespace-nowrap ${googleServiceTab === tab
-                            ? "bg-primary text-white shadow-sm"
-                            : "text-slate-500 hover:text-slate-700"
-                          }`}
-                      >
-                        {tab === "ga4"
-                          ? "Analytics (GA4)"
-                          : tab === "gtm"
-                            ? "Tag Manager"
-                            : tab === "ads"
-                              ? "Google Ads"
-                              : tab === "adsense"
-                                ? "AdSense"
-                                : tab === "fb"
-                                  ? "Facebook Pixel"
-                                  : tab === "tiktok"
-                                    ? "TikTok Pixel"
-                                    : "Cookie Consent"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Left Column: Config Form */}
-                  <div className="lg:col-span-1 border-slate-200 rounded-lg flex flex-col justify-start space-y-4 text-left">
-                    <form
-                      onSubmit={handleSaveSEO}
-                      className="bg-slate-50 border border-slate-200 p-4 md:p-6 rounded-lg space-y-4 md:space-y-5"
-                    >
-                      <div className="pb-3 border-b border-slate-200">
-                        <h4 className="text-slate-900 text-sm font-bold tracking-wider text-primary-light">
-                          {googleServiceTab === "ga4" &&
-                            "Cấu hình Google Analytics"}
-                          {googleServiceTab === "gtm" && "Cấu hình Tag Manager"}
-                          {googleServiceTab === "ads" && "Cấu hình Google Ads"}
-                          {googleServiceTab === "adsense" && "Cấu hình AdSense"}
-                          {googleServiceTab === "fb" &&
-                            "Cấu hình Facebook Pixel"}
-                          {googleServiceTab === "tiktok" &&
-                            "Cấu hình TikTok Pixel"}
-                          {googleServiceTab === "cookie" &&
-                            "Popup Phân quyền Cookie"}
-                        </h4>
-                        <p className="text-[10px] text-slate-700 font-light mt-1">
-                          Đảm bảo nhập mã chính xác từ tài khoản của bạn để hệ
-                          thống tracking đúng.
-                        </p>
-                      </div>
-
-                      {googleServiceTab === "ga4" && (
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-800 flex items-center gap-2">
-                            GA4 Measurement ID
-                          </label>
-                          <input
-                            type="text"
-                            value={googleAnalyticsId}
-                            onChange={(e) =>
-                              setGoogleAnalyticsId(e.target.value)
-                            }
-                            placeholder="Ví dụ: G-XXXXXXXXXX"
-                            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 md:py-3 md:px-4 text-xs md:text-sm text-slate-900 outline-none font-mono focus:border-primary/50 transition-all shadow-inner"
-                          />
-                        </div>
-                      )}
-
-                      {googleServiceTab === "gtm" && (
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-800">
-                            Container ID (GTM)
-                          </label>
-                          <input
-                            type="text"
-                            value={googleTagId}
-                            onChange={(e) => setGoogleTagId(e.target.value)}
-                            placeholder="Ví dụ: GTM-XXXXXXX"
-                            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 md:py-3 md:px-4 text-xs md:text-sm text-slate-900 outline-none font-mono focus:border-primary/50 transition-all shadow-inner"
-                          />
-                        </div>
-                      )}
-
-                      {googleServiceTab === "ads" && (
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-800">
-                            Conversion ID
-                          </label>
-                          <input
-                            type="text"
-                            value={googleAdsId}
-                            onChange={(e) => setGoogleAdsId(e.target.value)}
-                            placeholder="Ví dụ: AW-XXXXXXXXXX"
-                            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 md:py-3 md:px-4 text-xs md:text-sm text-slate-900 outline-none font-mono focus:border-primary/50 transition-all shadow-inner"
-                          />
-                          <p className="text-[10px] text-slate-700 font-light mt-1">
-                            ID tự động gắn cho các sự kiện Conversion (Contact,
-                            Signup).
-                          </p>
-                        </div>
-                      )}
-
-                      {googleServiceTab === "adsense" && (
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-800">
-                            Mã nhúng vùng quảng cáo
-                          </label>
-                          <textarea
-                            value={googleAdSenseCode}
-                            onChange={(e) =>
-                              setGoogleAdSenseCode(e.target.value)
-                            }
-                            placeholder="<script async src='https://pagead2...></script>"
-                            rows={6}
-                            className="w-full bg-white border border-emerald-900/50 rounded-lg py-2 px-3 md:py-3 md:px-4 text-emerald-400 outline-none font-mono text-[10px] md:text-xs leading-relaxed focus:border-primary/30 transition-all shadow-inner"
-                          />
-                        </div>
-                      )}
-
-                      {googleServiceTab === "fb" && (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-800 flex items-center gap-2">
-                              Facebook Meta Pixel ID
-                            </label>
-                            <input
-                              type="text"
-                              value={facebookPixelId}
-                              onChange={(e) => setFacebookPixelId(e.target.value)}
-                              placeholder="Ví dụ: 1042XXXXXXXXXX"
-                              className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 md:py-3 md:px-4 text-xs md:text-sm text-slate-900 outline-none font-mono focus:border-primary/50 transition-all shadow-inner"
-                            />
-                            <p className="text-[10px] text-slate-700 font-light mt-1">
-                              Hệ thống Pixel tự động theo dõi PageView,
-                              ViewContent.
-                            </p>
-                          </div>
-
-
-                        </div>
-                      )}
-
-                      {googleServiceTab === "tiktok" && (
-                        <div className="space-y-2">
-                          <label className="text-[10px] font-bold text-slate-800 flex items-center gap-2">
-                            TikTok Pixel ID
-                          </label>
-                          <input
-                            type="text"
-                            value={tiktokPixelId}
-                            onChange={(e) => setTiktokPixelId(e.target.value)}
-                            placeholder="Ví dụ: C3T4XXXXXXXXXX"
-                            className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 md:py-3 md:px-4 text-xs md:text-sm text-slate-900 outline-none font-mono focus:border-primary/50 transition-all shadow-inner"
-                          />
-                        </div>
-                      )}
-
-                      {googleServiceTab === "cookie" && (
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-lg">
-                            <div>
-                              <label className="text-sm font-bold text-slate-900 mb-1 block">
-                                Bật Popup Cookie Consent
-                              </label>
-                              <p className="text-[10px] text-slate-700 font-light">
-                                Bắt buộc người dùng chấp nhận chính sách trước
-                                khi chèn tracking (Theo luật GDPR/CCPA).
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setCookieConsentEnabled(!cookieConsentEnabled)
-                              }
-                              className={`w-12 h-6 rounded-full transition-colors relative flex items-center ${cookieConsentEnabled ? "bg-primary" : "bg-slate-700"}`}
-                            >
-                              <div
-                                className={`w-5 h-5 bg-white rounded-full transition-transform absolute ${cookieConsentEnabled ? "translate-x-6" : "translate-x-1"}`}
-                              />
-                            </button>
-                          </div>
-
-                          <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4">
-                            <div className="flex items-center justify-between gap-4">
-                              <div>
-                                <label className="text-sm font-bold text-slate-900 mb-1 block">
-                                  Tự động mở Popup tư vấn
-                                </label>
-                                <p className="text-[10px] text-slate-700 font-light">
-                                  Popup chỉ mở trên trang công khai và không chồng lên thông báo cookie.
-                                </p>
-                              </div>
-                              <button
-                                type="button"
-                                aria-label="Bật hoặc tắt tự động mở popup tư vấn"
-                                aria-pressed={quotePopupEnabled}
-                                onClick={() => setQuotePopupEnabled(!quotePopupEnabled)}
-                                className={`w-12 h-6 shrink-0 rounded-full transition-colors relative flex items-center ${quotePopupEnabled ? "bg-primary" : "bg-slate-700"}`}
-                              >
-                                <div
-                                  className={`w-5 h-5 bg-white rounded-full transition-transform absolute ${quotePopupEnabled ? "translate-x-6" : "translate-x-1"}`}
-                                />
-                              </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                              <label className="space-y-1.5 text-left">
-                                <span className="text-xs font-semibold text-slate-800">
-                                  Thời gian chờ (giây)
-                                </span>
-                                <input
-                                  type="number"
-                                  min={0}
-                                  max={60}
-                                  step={1}
-                                  value={quotePopupDelaySeconds}
-                                  onChange={(event) => {
-                                    const nextDelay = Number(event.target.value);
-                                    setQuotePopupDelaySeconds(
-                                      Number.isFinite(nextDelay)
-                                        ? Math.min(60, Math.max(0, nextDelay))
-                                        : 8,
-                                    );
-                                  }}
-                                  disabled={!quotePopupEnabled}
-                                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none transition-all focus:border-primary/50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60"
-                                />
-                              </label>
-
-                              <label className="space-y-1.5 text-left">
-                                <span className="text-xs font-semibold text-slate-800">
-                                  Tần suất hiển thị
-                                </span>
-                                <select
-                                  value={quotePopupFrequency}
-                                  onChange={(event) =>
-                                    setQuotePopupFrequency(
-                                      event.target.value as
-                                        | "page-load"
-                                        | "session"
-                                        | "daily",
-                                    )
-                                  }
-                                  disabled={!quotePopupEnabled}
-                                  className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 outline-none transition-all focus:border-primary/50 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-60"
-                                >
-                                  <option value="page-load">Mỗi lần tải trang</option>
-                                  <option value="session">Một lần mỗi phiên truy cập</option>
-                                  <option value="daily">Một lần mỗi ngày</option>
-                                </select>
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      <div className="pt-2">
-                        <button
-                          type="submit"
-                          disabled={loading}
-                          className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-accent text-white font-bold py-3 px-4 rounded-lg text-xs transition-all tracking-wider disabled:opacity-50"
-                        >
-                          {loading ? (
-                            <RefreshCw className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Save className="w-4 h-4" />
-                          )}
-                          Lưu Mã Tracking
-                        </button>
-                      </div>
-                    </form>
-
-                    <div className="bg-blue-500/5 border border-blue-500/10 p-4 rounded-lg flex items-start gap-3">
-                      <Activity className="w-5 h-5 text-blue-400 shrink-0" />
-                      <div className="text-left">
-                        <p className="text-xs font-bold text-blue-300 mb-1">
-                          Mô phỏng dữ liệu Tracking
-                        </p>
-                        <p className="text-[10px] text-slate-700 font-light leading-relaxed">
-                          Vì mục đích bảo mật, dữ liệu biểu đồ bên phải là thông
-                          số mô phỏng hiển thị cho {googleServiceTab}. Để xem
-                          đầy đủ báo cáo thời gian thực, vui lòng truy cập trang
-                          quản trị gốc của dịch vụ.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Column: Chart & Metrics */}
-                  <div className="lg:col-span-2 space-y-4">
-                    {/* Micro metrics card top row */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-                      {googleServiceTab === "ga4" && (
-                        <>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Kích hoạt
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                45.2K
-                              </span>
-                              <TrendingUp className="w-3 h-3 text-emerald-400 mb-1.5" />
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Thời gian
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                2m 14s
-                              </span>
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Tỷ lệ thoát
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                41.8%
-                              </span>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                      {googleServiceTab === "gtm" && (
-                        <>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left col-span-2 md:col-span-3">
-                            <span className="text-[9px] text-emerald-400 tracking-widest font-bold block mb-1 flex items-center gap-1.5">
-                              <CheckCircle className="w-3 h-3" /> GTM: ACTIVE
-                            </span>
-                            <p className="text-xs md:text-sm text-slate-800 mt-2 font-light">
-                              Các sự kiện cấu hình: Page View, Button Clicks.
-                            </p>
-                          </div>
-                        </>
-                      )}
-                      {googleServiceTab === "ads" && (
-                        <>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Lượt Nhấp
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                12.4K
-                              </span>
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Chi Phí
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                1.2tr
-                              </span>
-                              <span className="text-[10px] text-slate-700 mb-1 hidden md:inline">
-                                VND
-                              </span>
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left relative col-span-2 md:col-span-1">
-                            <div className="absolute top-0 right-0 bg-blue-500/10 border-b border-l border-blue-500/25 text-[8px] text-blue-400 px-1.5 py-0.5 rounded-bl font-bold">
-                              ROAS
-                            </div>
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Chuyển đổi
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-rose-400">
-                                238
-                              </span>
-                              <TrendingUp className="w-3 h-3 text-emerald-400 mb-1.5" />
-                            </div>
-                          </div>
-                        </>
-                      )}
-                      {googleServiceTab === "adsense" && (
-                        <>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Lượt hiển thị
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                89.1K
-                              </span>
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              RPM Trang
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                $4.20
-                              </span>
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left relative col-span-2 md:col-span-1">
-                            <div className="absolute top-0 right-0 bg-primary/10 border-b border-l border-primary/25 text-[8px] text-primary px-1.5 py-0.5 rounded-bl font-bold">
-                              HOT
-                            </div>
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Tổng Doanh Thu
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-primary-light">
-                                $374.5
-                              </span>
-                              <TrendingUp className="w-3 h-3 text-emerald-400 mb-1.5" />
-                            </div>
-                          </div>
-                        </>
-                      )}
-                      {googleServiceTab === "fb" && (
-                        <>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Tổng Sự kiện
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                1,520
-                              </span>
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Chuyển đổi
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                3.4%
-                              </span>
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left relative col-span-2 md:col-span-1">
-                            <div className="absolute top-0 right-0 bg-blue-500/10 border-b border-l border-blue-500/25 text-[8px] text-blue-400 px-1.5 py-0.5 rounded-bl font-bold">
-                              META
-                            </div>
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              KH Mới
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-blue-400">
-                                54
-                              </span>
-                              <TrendingUp className="w-3 h-3 text-emerald-400 mb-1.5" />
-                            </div>
-                          </div>
-                        </>
-                      )}
-                      {googleServiceTab === "tiktok" && (
-                        <>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Tổng Sự kiện
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                980
-                              </span>
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left">
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              Chuyển đổi
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-slate-900">
-                                2.8%
-                              </span>
-                            </div>
-                          </div>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left relative col-span-2 md:col-span-1">
-                            <div className="absolute top-0 right-0 bg-purple-500/10 border-b border-l border-purple-500/25 text-[8px] text-purple-400 px-1.5 py-0.5 rounded-bl font-bold">
-                              TIKTOK
-                            </div>
-                            <span className="text-[9px] text-slate-700 tracking-widest block mb-1">
-                              KH Mới
-                            </span>
-                            <div className="flex items-end gap-2">
-                              <span className="text-xl md:text-2xl font-bold text-purple-400">
-                                28
-                              </span>
-                              <TrendingUp className="w-3 h-3 text-emerald-400 mb-1.5" />
-                            </div>
-                          </div>
-                        </>
-                      )}
-                      {googleServiceTab === "cookie" && (
-                        <>
-                          <div className="bg-slate-50 border border-slate-200 p-3 md:p-4 rounded-lg text-left col-span-2 md:col-span-3">
-                            <span className="text-[9px] text-emerald-400 tracking-widest font-bold block mb-1 flex items-center gap-1.5">
-                              <CheckCircle className="w-3 h-3" /> GDPR/CCPA
-                              Compliance{" "}
-                            </span>
-                            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 mt-3">
-                              <div className="flex-1 bg-white rounded p-2 md:p-3 text-center border border-slate-200">
-                                <span className="block text-xl md:text-2xl font-bold text-slate-900 mb-1">
-                                  84%
-                                </span>
-                                <span className="text-[10px] text-slate-700 ">
-                                  Chấp nhận
-                                </span>
-                              </div>
-                              <div className="flex-1 bg-white rounded p-2 md:p-3 text-center border border-slate-200">
-                                <span className="block text-xl md:text-2xl font-bold text-slate-900 mb-1">
-                                  16%
-                                </span>
-                                <span className="text-[10px] text-slate-700 ">
-                                  Từ chối
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Main Graph Area */}
-                    {googleServiceTab !== "cookie" &&
-                      googleServiceTab !== "gtm" && (
-                        <div className="bg-slate-50 border border-slate-200 p-4 md:p-6 rounded-lg text-left">
-                          <h4 className="font-bold text-slate-900 text-xs md:text-sm mb-4 md:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-0">
-                            <span>
-                              {googleServiceTab === "ga4" &&
-                                "Biểu Đồ Lưu Lượng Báo Cáo"}
-                              {googleServiceTab === "ads" &&
-                                "Lượt Nhấp & Chuyển Đổi"}
-                              {googleServiceTab === "adsense" &&
-                                "Doanh Thu Ước Tính"}
-                              {googleServiceTab === "fb" &&
-                                "Sự kiện Facebook Pixel"}
-                              {googleServiceTab === "tiktok" &&
-                                "Sự kiện TikTok Pixel"}
-                            </span>
-                            <span className="text-[10px] text-slate-700 font-mono font-medium px-2 py-1 bg-white rounded self-start sm:self-auto">
-                              7 NGÀY GẦN NHẤT
-                            </span>
-                          </h4>
-                          <div className="h-[200px] md:h-[250px] w-full mt-2 md:mt-4">
-                            <ResponsiveContainer width="100%" height="100%">
-                              <AreaChart
-                                data={
-                                  (googleServiceTab === "ads"
-                                    ? adsChartData
-                                    : googleServiceTab === "adsense"
-                                      ? adsenseChartData
-                                      : googleServiceTab === "fb"
-                                        ? fbPixelChartData
-                                        : googleServiceTab === "tiktok"
-                                          ? tkPixelChartData
-                                          : ga4ChartData) as Array<Record<string, string | number>>
-                                }
-                                margin={{
-                                  top: 10,
-                                  right: 10,
-                                  left: -20,
-                                  bottom: 0,
-                                }}
-                              >
-                                <defs>
-                                  <linearGradient
-                                    id="colorMain"
-                                    x1="0"
-                                    y1="0"
-                                    x2="0"
-                                    y2="1"
-                                  >
-                                    {googleServiceTab === "adsense" ? (
-                                      <>
-                                        <stop
-                                          offset="5%"
-                                          stopColor="#d4af37"
-                                          stopOpacity={0.3}
-                                        />
-                                        <stop
-                                          offset="95%"
-                                          stopColor="#d4af37"
-                                          stopOpacity={0}
-                                        />
-                                      </>
-                                    ) : googleServiceTab === "ads" ? (
-                                      <>
-                                        <stop
-                                          offset="5%"
-                                          stopColor="#fb7185"
-                                          stopOpacity={0.3}
-                                        />
-                                        <stop
-                                          offset="95%"
-                                          stopColor="#fb7185"
-                                          stopOpacity={0}
-                                        />
-                                      </>
-                                    ) : googleServiceTab === "fb" ? (
-                                      <>
-                                        <stop
-                                          offset="5%"
-                                          stopColor="#3b82f6"
-                                          stopOpacity={0.3}
-                                        />
-                                        <stop
-                                          offset="95%"
-                                          stopColor="#3b82f6"
-                                          stopOpacity={0}
-                                        />
-                                      </>
-                                    ) : googleServiceTab === "tiktok" ? (
-                                      <>
-                                        <stop
-                                          offset="5%"
-                                          stopColor="#c084fc"
-                                          stopOpacity={0.3}
-                                        />
-                                        <stop
-                                          offset="95%"
-                                          stopColor="#c084fc"
-                                          stopOpacity={0}
-                                        />
-                                      </>
-                                    ) : (
-                                      <>
-                                        <stop
-                                          offset="5%"
-                                          stopColor="#3b82f6"
-                                          stopOpacity={0.3}
-                                        />
-                                        <stop
-                                          offset="95%"
-                                          stopColor="#3b82f6"
-                                          stopOpacity={0}
-                                        />
-                                      </>
-                                    )}
-                                  </linearGradient>
-                                </defs>
-                                <CartesianGrid
-                                  strokeDasharray="3 3"
-                                  stroke="#1e293b"
-                                  vertical={false}
-                                />
-                                <XAxis
-                                  dataKey="name"
-                                  stroke="#475569"
-                                  fontSize={10}
-                                  tickLine={false}
-                                  axisLine={false}
-                                />
-                                <YAxis
-                                  stroke="#475569"
-                                  fontSize={10}
-                                  tickLine={false}
-                                  axisLine={false}
-                                />
-                                <Tooltip
-                                  contentStyle={{
-                                    backgroundColor: "#020617",
-                                    borderColor: "#1e293b",
-                                    borderRadius: "8px",
-                                    fontSize: "12px",
-                                  }}
-                                  itemStyle={{
-                                    color: "#fff",
-                                    fontWeight: "bold",
-                                  }}
-                                />
-                                <Area
-                                  type="monotone"
-                                  dataKey={
-                                    googleServiceTab === "ads"
-                                      ? "conversions"
-                                      : googleServiceTab === "adsense"
-                                        ? "revenue"
-                                        : googleServiceTab === "fb" ||
-                                          googleServiceTab === "tiktok"
-                                          ? "events"
-                                          : "views"
-                                  }
-                                  stroke={
-                                    googleServiceTab === "adsense"
-                                      ? "#d4af37"
-                                      : googleServiceTab === "ads"
-                                        ? "#fb7185"
-                                        : googleServiceTab === "fb"
-                                          ? "#3b82f6"
-                                          : googleServiceTab === "tiktok"
-                                            ? "#c084fc"
-                                            : "#3b82f6"
-                                  }
-                                  strokeWidth={2}
-                                  fillOpacity={1}
-                                  fill="url(#colorMain)"
-                                />
-                              </AreaChart>
-                            </ResponsiveContainer>
-                          </div>
-                        </div>
-                      )}
                   </div>
                 </div>
               </div>
@@ -7419,6 +6704,9 @@ export default function AdminPanel({
                                 theme="snow"
                                 value={htmlContent}
                                 onChange={handleEditorContentChange}
+                                onChangeSelection={(range) => {
+                                  if (range) quillSelectionRef.current = range;
+                                }}
                                 modules={quillModules}
                                 className={`text-zinc-900 flex flex-col ${isEditorFullscreen ? "flex-1" : ""}`}
                               />

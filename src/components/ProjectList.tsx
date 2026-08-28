@@ -16,6 +16,7 @@ import { EditableText, EditableImage } from './EditableComponent';
 import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import ProductCard from './ProductCard';
+import { trackContentListView, trackSearch } from '../lib/tracking';
 
 interface ProjectListProps {
   onNavigate: (route: RouteState) => void;
@@ -106,6 +107,21 @@ export default function ProjectList({
     }
     return matchStatus && matchKw;
   });
+
+  const projectListTrackingRef = useRef('');
+  useEffect(() => {
+    if (loading) return;
+    const visibleProjects = filteredProjects.slice(0, limitCount);
+    const signature = visibleProjects.map((project) => project.id).join('|');
+    if (!signature || projectListTrackingRef.current === signature) return;
+    projectListTrackingRef.current = signature;
+    trackContentListView(
+      'project',
+      currentStatus ? `project_status_${currentStatus}` : 'project_catalog',
+      currentStatus ? `Dự án ${currentStatus}` : 'Danh sách dự án',
+      visibleProjects.map((project) => ({ id: project.id, name: project.title })),
+    );
+  }, [currentStatus, filteredProjects, limitCount, loading]);
 
   useEffect(() => {
     if (initialProjects.length > 0) {
@@ -281,7 +297,9 @@ export default function ProjectList({
                       <form 
                         onSubmit={(e) => {
                           e.preventDefault();
-                          setKeyword(searchInput.trim());
+                          const normalizedSearch = searchInput.trim();
+                          setKeyword(normalizedSearch);
+                          trackSearch(normalizedSearch, 'project');
                         }}
                         className={`relative ${isSearchOpen ? 'w-full pr-8' : 'w-full md:w-[150px] inline-block h-[26px]'}`}
                       >

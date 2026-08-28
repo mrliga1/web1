@@ -11,6 +11,7 @@ import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { locationTree, parseLocation, LocationNode, formatLocationName } from '../lib/locationMapping';
+import { trackContentListView, trackSearch, trackShare, trackWishlist } from '../lib/tracking';
 
 interface ProductListProps {
   onNavigate: (route: RouteState) => void;
@@ -100,7 +101,9 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
         ? favorites.filter((id) => id !== item.id)
         : [...favorites, item.id];
       localStorage.setItem('saved_favorites', JSON.stringify(nextFavorites));
-      setIsFavorite(nextFavorites.includes(item.id));
+      const added = nextFavorites.includes(item.id);
+      setIsFavorite(added);
+      trackWishlist(item.id, item.title, added);
       window.dispatchEvent(new Event('favorites_changed'));
     } catch {
       onShowNotification('Không thể cập nhật danh sách yêu thích trên trình duyệt này.', 'error');
@@ -110,6 +113,7 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
   const copyProductLink = async () => {
     try {
       await navigator.clipboard.writeText(productUrl);
+      trackShare('copy_link', 'product', item.id);
       setShowShareMenu(false);
       onShowNotification('Đã sao chép liên kết sản phẩm.', 'success');
     } catch {
@@ -176,7 +180,11 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
               {item.title}
             </h2>
           </button>
-          <p className="mt-3 line-clamp-4 text-xs leading-relaxed text-text-secondary">
+          <p className="mt-1.5 flex items-center gap-1 text-[11px] text-text-secondary">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
+            <span className="truncate">{[item.street, item.district].filter(Boolean).join(', ') || 'Vị trí đang cập nhật'}</span>
+          </p>
+          <p className="mt-2 line-clamp-4 text-xs leading-relaxed text-text-secondary">
             {description || 'Thông tin chi tiết sản phẩm đang được Greenia Homes cập nhật.'}
           </p>
           <div className="mt-3 text-base font-bold text-primary">{item.priceText || 'Giá đang cập nhật'}</div>
@@ -213,10 +221,10 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
                     <button type="button" onClick={copyProductLink} className="flex w-full cursor-pointer items-center gap-2 border-0 bg-transparent px-3 py-2 text-left text-xs text-slate-800 hover:bg-emerald-50 hover:text-primary">
                       <LinkIcon className="h-4 w-4" /> Sao chép liên kết
                     </button>
-                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}`} target="_blank" rel="noopener noreferrer" onClick={() => setShowShareMenu(false)} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-800 no-underline hover:bg-blue-50 hover:text-blue-800">
+                    <a href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}`} target="_blank" rel="noopener noreferrer" onClick={() => { trackShare('facebook', 'product', item.id); setShowShareMenu(false); }} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-800 no-underline hover:bg-blue-50 hover:text-blue-800">
                       <Facebook className="h-4 w-4 text-[#1877F2]" /> Facebook
                     </a>
-                    <a href={`https://zalo.me/share?url=${encodeURIComponent(productUrl)}`} target="_blank" rel="noopener noreferrer" onClick={() => setShowShareMenu(false)} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-800 no-underline hover:bg-sky-50 hover:text-sky-800">
+                    <a href={`https://zalo.me/share?url=${encodeURIComponent(productUrl)}`} target="_blank" rel="noopener noreferrer" onClick={() => { trackShare('zalo', 'product', item.id); setShowShareMenu(false); }} className="flex w-full items-center gap-2 px-3 py-2 text-xs text-slate-800 no-underline hover:bg-sky-50 hover:text-sky-800">
                       <MessageCircle className="h-4 w-4 text-[#0068FF]" /> Zalo
                     </a>
                   </div>
@@ -261,6 +269,13 @@ export default function ProductList({
 
   // Điều kiện lọc.
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const normalizedQuery = searchQuery.trim();
+    if (normalizedQuery.length < 2) return;
+    const timer = window.setTimeout(() => trackSearch(normalizedQuery, 'product'), 800);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery]);
   const [selectedType, setSelectedType] = useState<'all' | 'sale' | 'rent'>(initialType || 'all');
   const [selectedDistrict, setSelectedDistrict] = useState(initialLocation || 'all');
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'all');
@@ -617,6 +632,21 @@ export default function ProductList({
 
     return matchesSearch && matchesType && matchesDistrict && matchesCategory && matchesPrice && matchesArea;
   }), [products, searchQuery, selectedType, selectedDistrict, selectedCategory, selectedPriceRange, selectedAreaRange, priceSaleConfig, priceRentConfig, areaConfig, productCategoriesExt]);
+
+  const productListTrackingRef = useRef('');
+  useEffect(() => {
+    if (loading) return;
+    const visibleProducts = filteredProducts.slice(0, mainGridLimit);
+    const signature = visibleProducts.map((product) => product.id).join('|');
+    if (!signature || productListTrackingRef.current === signature) return;
+    productListTrackingRef.current = signature;
+    trackContentListView(
+      'product',
+      isCategoryView ? `product_category_${selectedCategory}` : 'product_catalog',
+      initialCategoryTitle || 'Danh sách sản phẩm',
+      visibleProducts.map((product) => ({ id: product.id, name: product.title })),
+    );
+  }, [filteredProducts, initialCategoryTitle, isCategoryView, loading, mainGridLimit, selectedCategory]);
 
   const displayedProductIds = React.useMemo(() => {
     return new Set(filteredProducts.slice(0, mainGridLimit).map(p => p.id));
@@ -1176,15 +1206,15 @@ export default function ProductList({
                                 </div>
                                 <div className="min-w-0 flex-1">
                                   <h3 className="line-clamp-2 text-xs font-semibold leading-snug text-text-primary group-hover:text-primary">{item.title}</h3>
+                                  <p className="mt-1 flex items-center gap-1 truncate text-[10px] text-text-secondary">
+                                    <MapPin className="h-3 w-3 shrink-0 text-primary" />{item.district || 'Vị trí đang cập nhật'}
+                                  </p>
                                   <p className="mt-1 text-[11px] font-bold text-primary">{item.priceText || 'Giá đang cập nhật'}</p>
                                   <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[9px] text-text-secondary">
                                     <span className="flex items-center gap-0.5"><Layers className="h-3 w-3" />{item.area ? `${item.area}m²` : '--m²'}</span>
                                     <span className="flex items-center gap-0.5"><BedDouble className="h-3 w-3" />{item.bedrooms ? `${item.bedrooms} PN` : '-- PN'}</span>
                                     <span className="flex items-center gap-0.5"><Bath className="h-3 w-3" />{item.toilets ? `${item.toilets} WC` : '-- WC'}</span>
                                   </div>
-                                  <p className="mt-1 flex items-center gap-1 truncate text-[10px] text-text-secondary">
-                                    <MapPin className="h-3 w-3 shrink-0" />{item.district}
-                                  </p>
                                 </div>
                               </a>
                             ))}

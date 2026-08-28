@@ -229,6 +229,9 @@ export interface GeneralSettingsData extends Record<string, unknown> {
   quotePopupEnabled?: boolean;
   quotePopupDelaySeconds?: number;
   quotePopupFrequency?: "page-load" | "session" | "daily";
+  quotePopupVersion?: number;
+  tiktokPixelEnabled?: boolean;
+  tiktokPixelId?: string;
 }
 
 export interface FilterSettingsData extends Record<string, unknown> {

@@ -59,16 +59,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const user = session?.user || null;
-      setCurrentUser(user);
-      if (user) {
-        fetchProfile(user);
-      } else {
-        setLoading(false);
+    let active = true;
+
+    // Khôi phục đầy đủ phiên và hồ sơ trước khi cho giao diện quản trị hiển thị.
+    const initializeSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        if (!active) return;
+
+        const user = session?.user || null;
+        setCurrentUser(user);
+        if (user) {
+          await fetchProfile(user);
+        } else {
+          setUserProfile(null);
+        }
+      } catch (error) {
+        console.error("Không thể khôi phục phiên đăng nhập", error);
+        if (active) {
+          setCurrentUser(null);
+          setUserProfile(null);
+        }
+      } finally {
+        if (active) setLoading(false);
       }
-    });
+    };
+
+    void initializeSession();
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
@@ -83,6 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => {
+      active = false;
       subscription.unsubscribe();
     };
   }, []);

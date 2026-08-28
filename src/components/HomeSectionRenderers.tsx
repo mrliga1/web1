@@ -11,9 +11,10 @@ import {
 import { Product, Project, News, RouteState, VisualSection } from '../types';
 import { EditableText } from './EditableComponent';
 import ProductCard from './ProductCard';
+import { trackLead } from '../lib/tracking';
 
 const HOME_CONSULTATION_FIELD_CLASS =
-  'w-full bg-bg-base border border-border-color rounded-[10px] focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-[12px] px-3.5 text-text-primary placeholder-text-secondary';
+  'w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-[12px] px-3.5 text-text-primary placeholder-text-secondary';
 
 interface SectionRendererProps {
   sec: VisualSection;
@@ -79,6 +80,7 @@ const HeroConsultationForm: React.FC<{
         sourceUrl: friendlyUrl,
         ipAddress: clientIp
       });
+      trackLead('homepage_consultation', 'homepage');
 
       notifyAdminEmail({
         name: clientName.trim(),

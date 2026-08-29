@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Home, Building2, ShieldCheck, LogOut, User as UserIcon, Menu, X, Compass, Newspaper, Mail, Phone, Heart } from 'lucide-react';
 import { RouteState, ScreenType } from '../types';
@@ -26,8 +26,22 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
   const theme: string = 'light';
   const router = useRouter();
 
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Nạp trước tuyến và mã giao diện quản trị để mở trực tiếp khi người dùng bấm vào.
+    router.prefetch('/admin');
+    void import('./AdminPanel');
+  }, [currentUser, router]);
+
   const handleNavigate = (route: RouteState) => {
     router.push(getRouteUrl(route));
+  };
+
+  const openAuthModal = () => {
+    router.prefetch('/admin');
+    void import('./AdminPanel');
+    setAuthModalOpen(true);
   };
 
   const handleSignOut = async () => {
@@ -236,7 +250,7 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
               ) : (
                 <button
                   id="login-btn"
-                  onClick={() => setAuthModalOpen(true)}
+                  onClick={openAuthModal}
                   className={`border font-semibold py-1.5 px-3 rounded-full text-[11px] transition-transform hover:scale-[1.01] cursor-pointer ${
                     theme === 'dark'
                       ? 'bg-bg-inverse border-slate-850 text-zinc-200 hover:text-white hover:border-slate-705'
@@ -336,7 +350,7 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
                 ) : (
                   <button
                     onClick={() => {
-                      setAuthModalOpen(true);
+                      openAuthModal();
                       setMobileMenuOpen(false);
                     }}
                     className="w-full bg-bg-inverse hover:bg-slate-850 text-zinc-200 py-2.5 rounded-lg text-xs font-bold border border-slate-850 cursor-pointer"

@@ -12,6 +12,46 @@ const IMAGE_EXTENSIONS: Record<string, string> = {
   'image/webp': 'webp',
 };
 
+interface ImagePayload {
+  name: string;
+  mimeType: string;
+  binaryData: Buffer;
+}
+
+async function readImagePayload(req: NextRequest): Promise<ImagePayload> {
+  const contentType = req.headers.get('content-type') || '';
+
+  if (contentType.includes('multipart/form-data')) {
+    const formData = await req.formData();
+    const uploadedFile = formData.get('file');
+    if (!uploadedFile || typeof uploadedFile === 'string') {
+      throw new Error('Thiếu tệp ảnh');
+    }
+
+    return {
+      name: uploadedFile.name || 'img',
+      mimeType: uploadedFile.type,
+      binaryData: Buffer.from(await uploadedFile.arrayBuffer()),
+    };
+  }
+
+  const { name, base64 } = await req.json();
+  if (typeof base64 !== 'string') {
+    throw new Error('Thiếu dữ liệu ảnh');
+  }
+
+  const matches = base64.match(/^data:(image\/(?:avif|gif|jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+  if (!matches) {
+    throw new Error('Định dạng ảnh không hợp lệ');
+  }
+
+  return {
+    name: typeof name === 'string' ? name : 'img',
+    mimeType: matches[1],
+    binaryData: Buffer.from(matches[2], 'base64'),
+  };
+}
+
 export async function POST(req: NextRequest) {
   try {
     const authResult = await verifyAdmin(req);
@@ -19,18 +59,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: authResult.error }, { status: 401 });
     }
 
-    const { name, base64 } = await req.json();
-    if (typeof base64 !== 'string') {
-      return NextResponse.json({ error: 'Thiếu dữ liệu ảnh' }, { status: 400 });
-    }
-
-    const matches = base64.match(/^data:(image\/(?:avif|gif|jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
-    if (!matches) {
-      return NextResponse.json({ error: 'Định dạng ảnh không hợp lệ' }, { status: 400 });
-    }
-
-    const mimeType = matches[1];
-    const binaryData = Buffer.from(matches[2], 'base64');
+    const { name, mimeType, binaryData } = await readImagePayload(req);
     if (!IMAGE_EXTENSIONS[mimeType] || binaryData.length === 0 || binaryData.length > MAX_IMAGE_SIZE) {
       return NextResponse.json({ error: 'Ảnh không hợp lệ hoặc vượt quá 10 MB' }, { status: 400 });
     }
@@ -44,7 +73,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Máy chủ chưa được cấu hình Cloudflare R2' }, { status: 503 });
     }
 
-    const originalName = typeof name === 'string' ? path.parse(name).name : 'img';
+    const originalName = path.parse(name).name;
     const safeName = originalName.replace(/[^a-zA-Z0-9-_]/g, '').slice(0, 80) || 'img';
     const finalFilename = `${safeName}-${Date.now()}.${IMAGE_EXTENSIONS[mimeType]}`;
     const s3 = new S3Client({

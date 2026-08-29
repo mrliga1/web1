@@ -171,8 +171,51 @@ const getErrorMessage = (error: unknown, fallback = "Lỗi không xác định")
 };
 
 const getSettingString = (value: unknown) => (typeof value === "string" ? value : "");
+const withoutDocumentId = <T extends { id?: string }>(item: T) => {
+  const { id, ...data } = item;
+  void id;
+  return data;
+};
 
 const ASSET_PRESETS: { label: string; url: string }[] = [];
+const MAX_PARALLEL_IMAGE_UPLOADS = 3;
+const MAX_IMAGE_EDGE = 2560;
+
+const optimizeImageForUpload = async (file: File): Promise<File> => {
+  if (['image/webp', 'image/avif', 'image/gif'].includes(file.type)) return file;
+
+  const objectUrl = URL.createObjectURL(file);
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const preview = new globalThis.Image();
+      preview.onload = () => resolve(preview);
+      preview.onerror = () => reject(new Error(`Không thể đọc ảnh ${file.name}`));
+      preview.src = objectUrl;
+    });
+
+    const ratio = Math.min(1, MAX_IMAGE_EDGE / Math.max(image.width, image.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(image.width * ratio));
+    canvas.height = Math.max(1, Math.round(image.height * ratio));
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error(`Không thể tối ưu ảnh ${file.name}`);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+
+    const blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob(
+        (result) => result ? resolve(result) : reject(new Error(`Không thể chuyển đổi ảnh ${file.name}`)),
+        'image/webp',
+        0.85,
+      );
+    });
+    const baseName = file.name.includes('.')
+      ? file.name.substring(0, file.name.lastIndexOf('.'))
+      : file.name;
+    return new File([blob], `${baseName}.webp`, { type: 'image/webp' });
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+};
 
 export default function AdminPanel({
   onShowNotification,
@@ -341,71 +384,61 @@ export default function AdminPanel({
   ) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
+    const selectedFiles = Array.from(files);
+    const inputElement = e.currentTarget;
 
     try {
       setIsUploading(true);
-      const uploadedUrls: string[] = [];
+      const uploadedUrls = new Array<string>(selectedFiles.length);
+      let nextFileIndex = 0;
+      let completedCount = 0;
+      let firstUploadError: unknown = null;
 
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        setUploadStatus(files.length > 1 ? `Đang xử lý ảnh ${i + 1}/${files.length}...` : "Đang đọc dữ liệu ảnh...");
+      const uploadWorker = async () => {
+        while (nextFileIndex < selectedFiles.length) {
+          const fileIndex = nextFileIndex;
+          nextFileIndex += 1;
+          const file = selectedFiles[fileIndex];
 
-        const reader = new FileReader();
-        const base64Promise = new Promise<string>((resolve, reject) => {
-          reader.onload = (event) => resolve(event.target?.result as string);
-          reader.onerror = (error) => reject(error);
-        });
-        reader.readAsDataURL(file);
-        let base64 = await base64Promise;
-        let uploadFileName = file.name;
+          try {
+            setUploadStatus(
+              selectedFiles.length > 1
+                ? `Đang tối ưu và tải ảnh ${fileIndex + 1}/${selectedFiles.length}...`
+                : 'Đang tối ưu và tải ảnh lên R2...',
+            );
+            const optimizedFile = await optimizeImageForUpload(file);
+            const formData = new FormData();
+            formData.append('file', optimizedFile, optimizedFile.name);
 
-        if (!file.type.includes("webp")) {
-          setUploadStatus(files.length > 1 ? `Đang tối ưu hóa ảnh ${i + 1}/${files.length} sang WebP...` : "Đang tối ưu hóa ảnh sang định dạng WebP...");
-          const convertedBase64 = await new Promise<string>((resolve) => {
-            const img = new globalThis.Image();
-            img.onload = () => {
-              const canvas = document.createElement("canvas");
-              canvas.width = img.width;
-              canvas.height = img.height;
-              const ctx = canvas.getContext("2d");
-              if (!ctx) return resolve(base64);
-              ctx.drawImage(img, 0, 0);
-              const webpDataUrl = canvas.toDataURL("image/webp", 0.85);
-              resolve(webpDataUrl);
+            const response = await authFetch('/api/upload', {
+              method: 'POST',
+              body: formData,
+            });
+            const responseData = await response.json().catch(() => ({})) as {
+              url?: string;
+              error?: string;
+              message?: string;
             };
-            img.onerror = () => resolve(base64);
-            img.src = base64;
-          });
+            if (!response.ok || !responseData.url) {
+              throw new Error(
+                responseData.message ||
+                responseData.error ||
+                `Máy chủ tải ảnh trả về lỗi ${response.status}.`,
+              );
+            }
 
-          base64 = convertedBase64;
-          const nameWithoutExt = file.name.includes(".")
-            ? file.name.substring(0, file.name.lastIndexOf("."))
-            : file.name;
-          uploadFileName = nameWithoutExt + ".webp";
+            uploadedUrls[fileIndex] = responseData.url;
+            completedCount += 1;
+            setUploadStatus(`Đã tải ${completedCount}/${selectedFiles.length} ảnh lên R2`);
+          } catch (error) {
+            if (!firstUploadError) firstUploadError = error;
+          }
         }
+      };
 
-        setUploadStatus(files.length > 1 ? `Đang tải ảnh ${i + 1}/${files.length} lên R2...` : "Đang tải ảnh lên R2...");
-
-        const response = await authFetch("/api/upload", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: uploadFileName, base64 }),
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const message =
-            errorData.message ||
-            errorData.error ||
-            `Máy chủ tải ảnh trả về lỗi ${response.status}.`;
-          throw new Error(message);
-        }
-
-        const responseData = await response.json();
-        if (responseData.url) {
-          uploadedUrls.push(responseData.url);
-        }
-      }
+      const workerCount = Math.min(MAX_PARALLEL_IMAGE_UPLOADS, selectedFiles.length);
+      await Promise.all(Array.from({ length: workerCount }, () => uploadWorker()));
+      if (firstUploadError) throw firstUploadError;
 
       if (uploadedUrls.length > 0) {
         if (targetField.startsWith("subdivisionCardImage:")) {
@@ -466,7 +499,7 @@ export default function AdminPanel({
     } finally {
       setIsUploading(false);
       setUploadStatus("");
-      e.target.value = '';
+      inputElement.value = '';
     }
   };
 
@@ -1627,6 +1660,18 @@ export default function AdminPanel({
   void handleToggleApproval;
   void appendRichHtml;
 
+  const revalidateSavedContent = async (type: "product" | "project" | "article") => {
+    const response = await authFetch('/api/revalidate-content', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type }),
+    });
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({})) as { error?: string };
+      throw new Error(data.error || 'Không thể làm mới dữ liệu công khai');
+    }
+  };
+
   // Main Creating Content wizard
   const handleCreateContent = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1685,13 +1730,16 @@ export default function AdminPanel({
     const finalArticleContent = automaticLinkResult.html;
     const trackedInternalLinks = extractInternalLinkRecords(finalArticleContent);
 
+    let savedContentType: "product" | "project" | "article" | null = null;
+
     try {
       setLoading(true);
       if (isEditing) {
         if (createType === "product") {
+          const currentProduct = products.find((product) => product.id === editingItemId);
+          if (!currentProduct) throw new Error("Không tìm thấy sản phẩm cần cập nhật");
           if (currentUserRole === "member" || currentUserRole === "user") {
-            const found = products.find((p) => p.id === editingItemId);
-            if (found && found.createdBy !== currentMemberEmail) {
+            if (currentProduct.createdBy !== currentMemberEmail) {
               onShowNotification(
                 "Lỗi phân quyền: Bạn chỉ có thể sửa sản phẩm do chính bạn đăng!",
                 "error",
@@ -1730,9 +1778,25 @@ export default function AdminPanel({
             metaDesc: itemSeoDesc.trim(),
             metaKeywords: itemSeoKeywords.trim(),
           };
-          await updateDoc(doc(db, "products", editingItemId), updatePayload);
+          const updatedProduct = {
+            ...currentProduct,
+            ...updatePayload,
+            id: editingItemId,
+          } as Product;
+          await setDoc(
+            doc(db, "products", editingItemId),
+            withoutDocumentId(updatedProduct),
+          );
+          setProducts((currentProducts) =>
+            currentProducts.map((product) =>
+              product.id === editingItemId ? updatedProduct : product,
+            ),
+          );
+          savedContentType = "product";
           // Removed success notification when editing product as requested
         } else if (createType === "project") {
+          const currentProject = projects.find((project) => project.id === editingItemId);
+          if (!currentProject) throw new Error("Không tìm thấy dự án cần cập nhật");
           if (currentUserRole === "member" || currentUserRole === "user") {
             onShowNotification(
               "Thành viên thường không có quyền chỉnh sửa quy hoạch dự án.",
@@ -1789,12 +1853,27 @@ export default function AdminPanel({
             metaDesc: itemSeoDesc.trim(),
             metaKeywords: itemSeoKeywords.trim(),
           };
-          await updateDoc(doc(db, "projects", editingItemId), updatePayload);
+          const updatedProject = {
+            ...currentProject,
+            ...updatePayload,
+            id: editingItemId,
+          } as Project;
+          await setDoc(
+            doc(db, "projects", editingItemId),
+            withoutDocumentId(updatedProject),
+          );
+          setProjects((currentProjects) =>
+            currentProjects.map((project) =>
+              project.id === editingItemId ? updatedProject : project,
+            ),
+          );
+          savedContentType = "project";
           // Removed success notification when editing project as requested
         } else if (createType === "article") {
+          const currentArticle = news.find((article) => article.id === editingItemId);
+          if (!currentArticle) throw new Error("Không tìm thấy bài viết cần cập nhật");
           if (currentUserRole === "member" || currentUserRole === "user") {
-            const found = news.find((n) => n.id === editingItemId);
-            if (found && found.createdBy !== currentMemberEmail) {
+            if (currentArticle.createdBy !== currentMemberEmail) {
               onShowNotification(
                 "Lỗi phân quyền: Bạn chỉ có thể sửa bài viết do chính bạn đăng!",
                 "error",
@@ -1819,7 +1898,21 @@ export default function AdminPanel({
             metaDesc: itemSeoDesc.trim(),
             metaKeywords: itemSeoKeywords.trim(),
           };
-          await updateDoc(doc(db, "news", editingItemId), updatePayload);
+          const updatedArticle = {
+            ...currentArticle,
+            ...updatePayload,
+            id: editingItemId,
+          } as News;
+          await setDoc(
+            doc(db, "news", editingItemId),
+            withoutDocumentId(updatedArticle),
+          );
+          setNews((currentNews) =>
+            currentNews.map((article) =>
+              article.id === editingItemId ? updatedArticle : article,
+            ),
+          );
+          savedContentType = "article";
           onShowNotification(
             automaticLinkResult.links.length
               ? `Đã cập nhật bài viết và tự động tạo ${automaticLinkResult.links.length} liên kết nội bộ phù hợp.`
@@ -1868,7 +1961,13 @@ export default function AdminPanel({
             metaKeywords: itemSeoKeywords.trim(),
           };
 
-          await addDoc(collection(db, "products"), prodPayload);
+          const createdProduct = await addDoc(collection(db, "products"), prodPayload);
+          const newProduct = { ...prodPayload, id: createdProduct.id } as Product;
+          setProducts((currentProducts) => [
+            newProduct,
+            ...currentProducts.filter((product) => product.id !== createdProduct.id),
+          ]);
+          savedContentType = "product";
           onShowNotification(
             currentUserRole === "member" || currentUserRole === "user"
               ? "Đăng ký bán/thuê thành công! Tin của bạn đang chờ Admin kiểm duyệt."
@@ -1938,7 +2037,13 @@ export default function AdminPanel({
             metaKeywords: itemSeoKeywords.trim(),
           };
 
-          await addDoc(collection(db, "projects"), projPayload);
+          const createdProject = await addDoc(collection(db, "projects"), projPayload);
+          const newProject = { ...projPayload, id: createdProject.id } as Project;
+          setProjects((currentProjects) => [
+            newProject,
+            ...currentProjects.filter((project) => project.id !== createdProject.id),
+          ]);
+          savedContentType = "project";
           onShowNotification(
             "Đã xuất bản dự án đại đô thị thành công!",
             "success",
@@ -1974,12 +2079,30 @@ export default function AdminPanel({
             metaKeywords: itemSeoKeywords.trim(),
           };
 
-          await addDoc(collection(db, "news"), newsPayload);
+          const createdArticle = await addDoc(collection(db, "news"), newsPayload);
+          const newArticle = { ...newsPayload, id: createdArticle.id } as News;
+          setNews((currentNews) => [
+            newArticle,
+            ...currentNews.filter((article) => article.id !== createdArticle.id),
+          ]);
+          savedContentType = "article";
           onShowNotification(
             automaticLinkResult.links.length
               ? `Đăng bài thành công và tự động tạo ${automaticLinkResult.links.length} liên kết nội bộ phù hợp.`
               : "Đăng tải chuyên mục tin bài thành công!",
             "success",
+          );
+        }
+      }
+
+      if (savedContentType) {
+        try {
+          await revalidateSavedContent(savedContentType);
+        } catch (error) {
+          console.warn("Nội dung đã lưu nhưng chưa thể làm mới cache công khai", error);
+          onShowNotification(
+            "Nội dung đã được lưu, nhưng dữ liệu công khai có thể cần thêm ít giây để đồng bộ.",
+            "error",
           );
         }
       }
@@ -3135,32 +3258,46 @@ export default function AdminPanel({
           className="border-b border-slate-200 bg-white px-3 py-2 sm:px-6"
           aria-label="Nhóm nội dung quản trị"
         >
-          <div className="flex gap-2 overflow-x-auto" role="tablist" aria-label="Chuyển khu vực quản trị">
-            {([
-              { id: "listings" as AdminTab, label: "Sản phẩm", icon: LayoutGrid, visible: true },
-              { id: "projects" as AdminTab, label: "Dự án", icon: Compass, visible: ["admin", "editor"].includes(currentUserRole) },
-              { id: "articles" as AdminTab, label: "Tin tức", icon: FileText, visible: true },
-              { id: "leads" as AdminTab, label: "Liên hệ", icon: Mail, visible: currentUserRole !== "user" },
-            ]).filter((item) => item.visible).map((item) => {
-              const Icon = item.icon;
-              const selected = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => setActiveTab(item.id)}
-                  className={`inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${selected
-                    ? "border-primary bg-primary text-white"
-                    : "border-slate-200 bg-slate-50 text-slate-700 hover:border-primary hover:text-primary"
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </button>
-              );
-            })}
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 gap-2 overflow-x-auto" role="tablist" aria-label="Chuyển khu vực quản trị">
+              {([
+                { id: "listings" as AdminTab, label: "Sản phẩm", icon: LayoutGrid, visible: true },
+                { id: "projects" as AdminTab, label: "Dự án", icon: Compass, visible: ["admin", "editor"].includes(currentUserRole) },
+                { id: "articles" as AdminTab, label: "Tin tức", icon: FileText, visible: true },
+                { id: "leads" as AdminTab, label: "Liên hệ", icon: Mail, visible: currentUserRole !== "user" },
+              ]).filter((item) => item.visible).map((item) => {
+                const Icon = item.icon;
+                const selected = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => setActiveTab(item.id)}
+                    className={`inline-flex shrink-0 items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors ${selected
+                      ? "border-primary bg-primary text-white"
+                      : "border-slate-200 bg-slate-50 text-slate-700 hover:border-primary hover:text-primary"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCreateType("product");
+                setActiveTab("new_wizard");
+              }}
+              className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-bold text-white transition-colors hover:bg-primary-light sm:px-4"
+            >
+              <Plus className="h-4 w-4" />
+              <span>Đăng tin</span>
+            </button>
           </div>
         </nav>
 
@@ -3169,119 +3306,6 @@ export default function AdminPanel({
           className="flex-1 min-w-0 px-3 py-3 sm:p-6 md:p-8 overflow-y-auto overflow-x-hidden space-y-4 md:space-y-8"
           id="wp-inner-body"
         >
-
-          {/* Quick Stats overview panel only displaying for listings tab */}
-          {activeTab === "listings" && (
-            <div className="flex flex-col xl:flex-row gap-3 mb-4 items-stretch xl:items-start w-full">
-              <div
-                className="grid grid-cols-2 lg:grid-cols-4 gap-3 flex-1"
-                id="wp-stats-grid"
-              >
-              <div
-                onClick={() => setActiveTab("listings")}
-                className="bg-slate-50 border px-3 py-2 h-[43.5px] rounded-lg cursor-pointer transition-colors border-slate-200 hover:border-primary hover:bg-primary/5 group"
-              >
-                <div className="flex justify-between items-center mb-0.5">
-                  <span className="text-[9px] font-bold tracking-wider text-slate-700 group-hover:text-primary transition-colors">
-                    Sản Phẩm
-                  </span>
-                  <div className="text-[12px] leading-[12px] font-bold text-primary-light">
-                    {currentUserRole === "member" || currentUserRole === "user"
-                      ? products.filter(
-                        (p) => p.createdBy === currentMemberEmail,
-                      ).length
-                      : products.length}
-                  </div>
-                </div>
-                <span className="text-[8px] text-slate-500 truncate block">
-                  Sản phẩm bất động sản vinh hoa
-                </span>
-              </div>
-
-              <div
-                onClick={() => setActiveTab("projects")}
-                className="bg-slate-50 border px-3 py-2 h-[43.5px] rounded-lg cursor-pointer transition-colors border-slate-200 hover:border-primary hover:bg-primary/5 group"
-              >
-                <div className="flex justify-between items-center mb-0.5">
-                  <span className="text-[9px] font-bold tracking-wider text-slate-700 group-hover:text-primary transition-colors">
-                    Dự Án
-                  </span>
-                  <div className="text-[12px] leading-[12px] font-bold text-primary-light">
-                    {currentUserRole === "member" || currentUserRole === "user"
-                      ? projects.filter(
-                        (p) => p.createdBy === currentMemberEmail,
-                      ).length
-                      : projects.length}
-                  </div>
-                </div>
-                <span className="text-[8px] text-slate-500 truncate block">
-                  Công trình thế kỷ lấn biển
-                </span>
-              </div>
-
-              <div
-                onClick={() => setActiveTab("articles")}
-                className="bg-slate-50 border px-3 py-2 h-[43.5px] rounded-lg cursor-pointer transition-colors border-slate-200 hover:border-indigo-500 hover:bg-indigo-500/5 group"
-              >
-                <div className="flex justify-between items-center mb-0.5">
-                  <span className="text-[9px] font-bold tracking-wider text-slate-700 group-hover:text-indigo-500 transition-colors">
-                    Tin Tức
-                  </span>
-                  <div className="text-[12px] leading-[12px] font-bold text-indigo-400">
-                    {currentUserRole === "member" || currentUserRole === "user"
-                      ? news.filter((n) => n.createdBy === currentMemberEmail)
-                        .length
-                      : news.length}
-                  </div>
-                </div>
-                <span className="text-[8px] text-slate-500 truncate block">
-                  Chuyên mục khai thái vận tài
-                </span>
-              </div>
-
-              <div
-                onClick={() => setActiveTab("leads")}
-                className="bg-slate-50 border px-3 py-2 h-[43.5px] rounded-lg cursor-pointer transition-colors border-slate-200 hover:border-rose-500 hover:bg-rose-500/5 group"
-              >
-                <div className="flex justify-between items-center mb-0.5">
-                  <span className="text-[9px] font-bold tracking-wider text-slate-700 group-hover:text-rose-500 transition-colors">
-                    Liên Hệ
-                  </span>
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[12px] leading-[12px] font-bold text-rose-500">
-                      {
-                        displayConsultations.filter(
-                          (c) => c.status === "pending",
-                        ).length
-                      }
-                    </span>
-                    <span className="text-[9px] text-slate-500">
-                      / {displayConsultations.length}
-                    </span>
-                  </div>
-                </div>
-                <span className="text-[8px] text-slate-500 truncate block">
-                  Khách hàng cần liên hệ gấp
-                </span>
-              </div>
-            </div>
-
-            {/* Đăng tin button beside the grid */}
-            <div className="flex-shrink-0 flex items-center justify-end">
-                <button
-                  onClick={() => {
-                    setCreateType("product");
-                    setActiveTab("new_wizard");
-                  }}
-                  className="inline-flex items-center gap-1.5 bg-primary text-white font-bold text-xs py-2 px-4 h-[43.5px] rounded-lg cursor-pointer w-full xl:w-auto justify-center"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Đăng tin</span>
-                </button>
-            </div>
-          </div>
-          )}
-
           {/* Main Tab content router wrapper */}
           <div className="space-y-8">
             {/* =========================================================

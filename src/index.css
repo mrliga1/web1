@@ -119,6 +119,32 @@ a:focus:not(:focus-visible) {
   outline: none;
 }
 
+/*
+ * Trường nhập liệu dùng chính đường viền của ô làm chỉ báo focus.
+ * Loại bỏ outline và box-shadow mặc định để không tạo hiệu ứng viền kép.
+ */
+:where(
+  input:not([type]),
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"],
+  input[type="time"],
+  textarea,
+  select
+):is(:focus, :focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+  border-color: var(--color-primary) !important;
+}
+
 /* =========================================================
    RICH TEXT RENDERING (.prose)
    ========================================================= */

@@ -13,11 +13,20 @@ export async function GET(request: NextRequest) {
   const publicKey = getWebPushPublicKey();
   if (!publicKey) return NextResponse.json({ configured: false, subscribed: false });
 
+  const endpoint = request.nextUrl.searchParams.get('endpoint')?.trim() || '';
+  if (!endpoint) {
+    return NextResponse.json({ configured: true, subscribed: false, publicKey });
+  }
+  if (endpoint.length > 2048) {
+    return NextResponse.json({ error: 'Subscription không hợp lệ' }, { status: 400 });
+  }
+
   const supabase = createServiceRoleClient();
   const { count, error } = await supabase
     .from('push_subscriptions')
     .select('id', { count: 'exact', head: true })
-    .eq('user_uid', authResult.profile.uid);
+    .eq('user_uid', authResult.profile.uid)
+    .eq('endpoint', endpoint);
   if (error) return NextResponse.json({ error: 'Không thể kiểm tra subscription' }, { status: 502 });
   return NextResponse.json({ configured: true, subscribed: Boolean(count), publicKey });
 }
@@ -54,8 +63,19 @@ export async function DELETE(request: NextRequest) {
   if (!authResult.authorized || !authResult.profile) {
     return NextResponse.json({ error: authResult.error }, { status: 401 });
   }
+  const body = await request.json().catch(() => null) as { endpoint?: string } | null;
+  const endpoint = body?.endpoint?.trim() || '';
+  if (!endpoint) return NextResponse.json({ success: true });
+  if (endpoint.length > 2048) {
+    return NextResponse.json({ error: 'Subscription không hợp lệ' }, { status: 400 });
+  }
+
   const supabase = createServiceRoleClient();
-  const { error } = await supabase.from('push_subscriptions').delete().eq('user_uid', authResult.profile.uid);
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .delete()
+    .eq('user_uid', authResult.profile.uid)
+    .eq('endpoint', endpoint);
   if (error) return NextResponse.json({ error: 'Không thể xóa subscription' }, { status: 502 });
   return NextResponse.json({ success: true });
 }

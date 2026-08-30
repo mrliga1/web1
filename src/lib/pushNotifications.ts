@@ -22,21 +22,26 @@ export async function getPushSubscriptionStatus(): Promise<SubscriptionStatus> {
   if (typeof window === 'undefined' || !('Notification' in window) || !('PushManager' in window)) {
     return { configured: false, subscribed: false };
   }
-  const response = await authFetch('/api/push/subscription', { cache: 'no-store' });
+  const registration = await getRegistration();
+  const currentSubscription = await registration.pushManager.getSubscription();
+  const endpointQuery = currentSubscription
+    ? `?endpoint=${encodeURIComponent(currentSubscription.endpoint)}`
+    : '';
+  const response = await authFetch(`/api/push/subscription${endpointQuery}`, { cache: 'no-store' });
   const result = await response.json() as SubscriptionStatus & { error?: string };
   if (!response.ok) throw new Error(result.error || 'Không thể kiểm tra Web Push');
-  return result;
+  return { ...result, subscribed: Boolean(currentSubscription && result.subscribed) };
 }
 
 export async function subscribeToPush() {
   if (!('Notification' in window) || !('PushManager' in window)) {
     throw new Error('Trình duyệt này chưa hỗ trợ Web Push');
   }
+  const status = await getPushSubscriptionStatus();
+  if (!status.configured || !status.publicKey) throw new Error('Máy chủ chưa cấu hình khóa Web Push');
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') throw new Error('Bạn chưa cho phép trình duyệt gửi thông báo');
 
-  const status = await getPushSubscriptionStatus();
-  if (!status.configured || !status.publicKey) throw new Error('Máy chủ chưa cấu hình khóa Web Push');
   const registration = await getRegistration();
   const existing = await registration.pushManager.getSubscription();
   const subscription = existing || await registration.pushManager.subscribe({
@@ -58,7 +63,11 @@ export async function unsubscribeFromPush() {
   const registration = await getRegistration();
   const subscription = await registration.pushManager.getSubscription();
   if (subscription) await subscription.unsubscribe();
-  const response = await authFetch('/api/push/subscription', { method: 'DELETE' });
+  const response = await authFetch('/api/push/subscription', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ endpoint: subscription?.endpoint || '' }),
+  });
   if (!response.ok) throw new Error('Không thể tắt Web Push');
 }
 

@@ -559,6 +559,30 @@ html:not([data-has-recently-viewed]) .recently-viewed-shell {
   color: rgb(209 250 229 / 0.76) !important;
 }
 
+/* Huy hiệu số lượng cần tách khỏi màu chữ kế thừa của sidebar để luôn nhìn rõ. */
+#wp-admin-sidebar .admin-count-badge {
+  display: inline-flex;
+  min-width: 1.5rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(52 211 153 / 0.45);
+  border-radius: 9999px;
+  background: #d1fae5 !important;
+  color: #064e3b !important;
+  padding-inline: 0.5rem;
+  font-size: 9px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+#wp-admin-sidebar .admin-count-badge--alert {
+  border-color: #f87171;
+  background: #dc2626 !important;
+  color: #ffffff !important;
+}
+
 #wp-inner-body input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
 #wp-inner-body textarea,
 #wp-inner-body select {

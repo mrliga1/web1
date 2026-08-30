@@ -3086,7 +3086,10 @@ export default function AdminPanel({
                 >
                   <ImageIcon className="w-4 h-4 shrink-0 text-primary" />
                   <span>Kho Hình Ảnh</span>
-                  <span className="ml-auto text-[9px] bg-white px-2 py-0.5 rounded-full text-slate-500 font-mono">
+                  <span
+                    className="admin-count-badge ml-auto font-mono"
+                    aria-label={`${libraryImages.length} hình ảnh`}
+                  >
                     {libraryImages.length}
                   </span>
                 </button>
@@ -3103,7 +3106,10 @@ export default function AdminPanel({
                 >
                   <UserPlus className="w-4 h-4 shrink-0 text-primary" />
                   <span>Quản Lý Người Dùng</span>
-                  <span className="ml-auto text-[9px] bg-white px-2 py-0.5 rounded-full text-slate-500 font-mono">
+                  <span
+                    className="admin-count-badge ml-auto font-mono"
+                    aria-label={`${users.length} người dùng`}
+                  >
                     {users.length}
                   </span>
                 </button>
@@ -3125,7 +3131,10 @@ export default function AdminPanel({
                 <span>Kho Khách Hàng (CRM)</span>
                 {displayConsultations.filter((c) => c.status === "pending")
                   .length > 0 && (
-                    <span className="ml-auto text-[9px] bg-red-500 text-white font-extrabold px-2 py-0.5 rounded-full font-mono animate-pulse">
+                    <span
+                      className="admin-count-badge admin-count-badge--alert ml-auto font-mono animate-pulse"
+                      aria-label={`${displayConsultations.filter((c) => c.status === "pending").length} khách hàng đang chờ`}
+                    >
                       {
                         displayConsultations.filter((c) => c.status === "pending")
                           .length

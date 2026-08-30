@@ -232,9 +232,38 @@ export interface GeneralSettingsData extends Record<string, unknown> {
   quotePopupVersion?: number;
   tiktokPixelEnabled?: boolean;
   tiktokPixelId?: string;
-  staticSeoPages?: Record<string, import('./lib/staticSeo').StaticSeoPageConfig>;
-  locationSeoPages?: Record<string, import('./lib/staticSeo').StaticSeoPageConfig>;
+  staticSeoPages?: Record<string, import('./lib/staticSeoConfig').StaticSeoPageConfig>;
+  locationSeoPages?: Record<string, import('./lib/staticSeoConfig').StaticSeoPageConfig>;
+  sitemapSettings?: SitemapSettingsData;
 }
+
+export interface SitemapSettingsData {
+  enabled: boolean;
+  includeProducts: boolean;
+  includeProjects: boolean;
+  includeNews: boolean;
+  includeCategories: boolean;
+  includeLastModified: boolean;
+  changeFrequency: import('./lib/internalLinks').SitemapChangeFrequency;
+  productPriority: number;
+  projectPriority: number;
+  newsPriority: number;
+  categoryPriority: number;
+}
+
+export const DEFAULT_SITEMAP_SETTINGS: SitemapSettingsData = {
+  enabled: true,
+  includeProducts: true,
+  includeProjects: true,
+  includeNews: true,
+  includeCategories: true,
+  includeLastModified: true,
+  changeFrequency: 'weekly',
+  productPriority: 0.8,
+  projectPriority: 0.7,
+  newsPriority: 0.7,
+  categoryPriority: 0.6,
+};
 
 export interface FilterSettingsData extends Record<string, unknown> {
   districts?: string[];

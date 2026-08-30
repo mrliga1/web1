@@ -173,8 +173,8 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
                   {/* Micro avatar */}
                   <button
                     id="user-menu-btn"
-                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    aria-label="Tài khoản người dùng"
+                    onClick={() => handleNavigate({ screen: 'admin' })}
+                    aria-label="Mở khu vực quản trị"
                     className={`motion-button flex items-center justify-center border p-0.5 rounded-full cursor-pointer select-none ${
                       theme === 'dark'
                         ? 'bg-bg-inverse border-border-inverse hover:border-yellow-500/50'

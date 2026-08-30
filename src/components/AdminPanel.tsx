@@ -68,7 +68,9 @@ import {
   FloorPlanTab,
   CategoryExt,
   CustomSection,
+  DEFAULT_SITEMAP_SETTINGS,
   GeneralSettingsData,
+  SitemapSettingsData,
 } from "../types";
 import { useAuth, type UserProfile } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
@@ -76,7 +78,7 @@ import FiltersConfigTab from "./FiltersConfigTab";
 import WebPushControl from "./WebPushControl";
 import StaticSeoSettings from "./StaticSeoSettings";
 import LocationSeoSettings from "./LocationSeoSettings";
-import type { StaticSeoPageConfig } from "../lib/staticSeo";
+import { STATIC_SEO_DEFAULTS, type StaticSeoPageConfig } from "../lib/staticSeoConfig";
 import { allLocationsList } from "../lib/locationMapping";
 import {
   applyAutomaticContextualLinks,
@@ -270,6 +272,7 @@ export default function AdminPanel({
   });
   const [staticSeoPages, setStaticSeoPages] = useState<Record<string, StaticSeoPageConfig>>({});
   const [locationSeoPages, setLocationSeoPages] = useState<Record<string, StaticSeoPageConfig>>({});
+  const [sitemapSettings, setSitemapSettings] = useState<SitemapSettingsData>(DEFAULT_SITEMAP_SETTINGS);
 
   const [loading, setLoading] = useState(false);
 
@@ -438,6 +441,42 @@ export default function AdminPanel({
     setHtmlContent((prev) => prev + tagOpen + "Nội dung mẫu" + tagClose);
   };
 
+  const applySeoSocialImage = (targetField: string, imageUrl: string) => {
+    const [scope, encodedKey] = targetField.split(":", 2);
+    if (!encodedKey || (scope !== "seo-static" && scope !== "seo-location")) return false;
+
+    let key = "";
+    try {
+      key = decodeURIComponent(encodedKey);
+    } catch {
+      onShowNotification("Không thể xác định trang SEO cần cập nhật ảnh.", "error");
+      return true;
+    }
+
+    if (scope === "seo-static") {
+      const defaults = STATIC_SEO_DEFAULTS[key] || STATIC_SEO_DEFAULTS["/"];
+      setStaticSeoPages((previous) => ({
+        ...previous,
+        [key]: { ...defaults, ...previous[key], socialImage: imageUrl },
+      }));
+    } else {
+      setLocationSeoPages((previous) => {
+        const current = previous[key];
+        return {
+          ...previous,
+          [key]: {
+            title: current?.title ?? `Bất động sản tại ${key}`,
+            description: current?.description ?? `Danh sách căn hộ, nhà phố, biệt thự mua bán và cho thuê tại ${key}, cập nhật từ Greenia Homes.`,
+            keywords: current?.keywords ?? `bất động sản ${key}, nhà đất ${key}, căn hộ ${key}`,
+            index: current?.index ?? true,
+            socialImage: imageUrl,
+          },
+        };
+      });
+    }
+    return true;
+  };
+
   const handleImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>,
     targetField: string,
@@ -524,6 +563,8 @@ export default function AdminPanel({
             ),
           );
           onShowNotification(`Tải ${uploadedUrls.length} ảnh tab mặt bằng thành công!`, "success");
+        } else if (applySeoSocialImage(targetField, uploadedUrls[0])) {
+          onShowNotification("Cập nhật ảnh chia sẻ SEO thành công!", "success");
         } else if (targetField === "imageUrl") {
           setImageUrl(uploadedUrls[0]);
           onShowNotification("Tải ảnh đại diện thành công vào hệ thống!", "success");
@@ -596,6 +637,11 @@ export default function AdminPanel({
         "Đã chèn thêm ảnh tab mặt bằng từ kho thư viện!",
         "success",
       );
+    } else if (
+      typeof libraryTargetField === "string" &&
+      applySeoSocialImage(libraryTargetField, pickedUrl)
+    ) {
+      onShowNotification("Đã chọn ảnh chia sẻ SEO từ kho thư viện!", "success");
     } else if (libraryTargetField === "imageUrl") {
       setImageUrl(pickedUrl);
       onShowNotification("Đã nối ảnh bìa chính từ kho thư viện!", "success");
@@ -1404,6 +1450,12 @@ export default function AdminPanel({
           }
           if (data.locationSeoPages && typeof data.locationSeoPages === "object") {
             setLocationSeoPages(data.locationSeoPages as Record<string, StaticSeoPageConfig>);
+          }
+          if (data.sitemapSettings && typeof data.sitemapSettings === "object") {
+            setSitemapSettings({
+              ...DEFAULT_SITEMAP_SETTINGS,
+              ...(data.sitemapSettings as Partial<SitemapSettingsData>),
+            });
           }
 
           if (data.contactHotline !== undefined) setContactHotline(getSettingString(data.contactHotline));
@@ -2573,6 +2625,7 @@ export default function AdminPanel({
           tiktokPixelId: tiktokPixelId.trim(),
           staticSeoPages,
           locationSeoPages,
+          sitemapSettings,
         },
         { merge: true },
       );
@@ -4454,8 +4507,91 @@ export default function AdminPanel({
                       </div>
                     </div>
 
-                    <StaticSeoSettings value={staticSeoPages} onChange={setStaticSeoPages} />
-                    <LocationSeoSettings value={locationSeoPages} onChange={setLocationSeoPages} />
+                    <StaticSeoSettings
+                      value={staticSeoPages}
+                      onChange={setStaticSeoPages}
+                      isUploading={isUploading}
+                      onUploadImage={handleImageUpload}
+                      onSelectImage={(target) => {
+                        setLibraryTargetField(target);
+                        setSelectedLibraryImages([]);
+                        setIsLibraryOpen(true);
+                      }}
+                    />
+                    <LocationSeoSettings
+                      value={locationSeoPages}
+                      onChange={setLocationSeoPages}
+                      isUploading={isUploading}
+                      onUploadImage={handleImageUpload}
+                      onSelectImage={(target) => {
+                        setLibraryTargetField(target);
+                        setSelectedLibraryImages([]);
+                        setIsLibraryOpen(true);
+                      }}
+                    />
+
+                    <section className="space-y-4 rounded-xl border border-emerald-900/15 bg-white p-4" aria-labelledby="sitemap-settings-title">
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <h4 id="sitemap-settings-title" className="text-sm font-bold text-emerald-950">Cài đặt Sitemap</h4>
+                          <p className="mt-1 text-[10px] text-slate-600">Kiểm soát các nhóm URL động được đưa vào sitemap dành cho công cụ tìm kiếm.</p>
+                        </div>
+                        <a href="/sitemap.xml" target="_blank" rel="noreferrer" className="rounded-lg border border-emerald-800/25 bg-emerald-50 px-3 py-2 text-[10px] font-bold text-emerald-900 hover:bg-emerald-100">
+                          Xem sitemap.xml
+                        </a>
+                      </div>
+
+                      <label className="flex items-center justify-between gap-4 rounded-lg border border-slate-200 p-3">
+                        <span>
+                          <span className="block text-xs font-semibold text-slate-800">Bật sitemap</span>
+                          <span className="mt-0.5 block text-[9px] text-slate-600">Nên luôn bật trên website đang hoạt động.</span>
+                        </span>
+                        <input type="checkbox" checked={sitemapSettings.enabled} onChange={(event) => setSitemapSettings((current) => ({ ...current, enabled: event.target.checked }))} className="h-4 w-4 accent-emerald-800" />
+                      </label>
+
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        {([
+                          ["includeProducts", "Chi tiết sản phẩm"],
+                          ["includeProjects", "Chi tiết dự án"],
+                          ["includeNews", "Chi tiết tin tức"],
+                          ["includeCategories", "Trang danh mục"],
+                        ] as Array<[keyof SitemapSettingsData, string]>).map(([field, label]) => (
+                          <label key={field} className="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 text-[10px] font-semibold text-slate-700">
+                            <input type="checkbox" checked={Boolean(sitemapSettings[field])} onChange={(event) => setSitemapSettings((current) => ({ ...current, [field]: event.target.checked }))} className="h-4 w-4 accent-emerald-800" />
+                            {label}
+                          </label>
+                        ))}
+                      </div>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <label className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-700">Tần suất cập nhật nội dung động</span>
+                          <select value={sitemapSettings.changeFrequency} onChange={(event) => setSitemapSettings((current) => ({ ...current, changeFrequency: event.target.value as SitemapSettingsData["changeFrequency"] }))} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-700">
+                            <option value="daily">Hằng ngày</option>
+                            <option value="weekly">Hằng tuần</option>
+                            <option value="monthly">Hằng tháng</option>
+                          </select>
+                        </label>
+                        <label className="flex items-center gap-2 self-end rounded-lg border border-slate-200 p-3 text-[10px] font-semibold text-slate-700">
+                          <input type="checkbox" checked={sitemapSettings.includeLastModified} onChange={(event) => setSitemapSettings((current) => ({ ...current, includeLastModified: event.target.checked }))} className="h-4 w-4 accent-emerald-800" />
+                          Gửi ngày cập nhật gần nhất cho Google
+                        </label>
+                      </div>
+
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        {([
+                          ["productPriority", "Ưu tiên sản phẩm"],
+                          ["projectPriority", "Ưu tiên dự án"],
+                          ["newsPriority", "Ưu tiên tin tức"],
+                          ["categoryPriority", "Ưu tiên danh mục"],
+                        ] as Array<[keyof SitemapSettingsData, string]>).map(([field, label]) => (
+                          <label key={field} className="space-y-1">
+                            <span className="text-[10px] font-bold text-slate-700">{label}</span>
+                            <input type="number" min="0.1" max="1" step="0.1" value={Number(sitemapSettings[field])} onChange={(event) => setSitemapSettings((current) => ({ ...current, [field]: Math.min(1, Math.max(0.1, Number(event.target.value) || 0.1)) }))} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-700" />
+                          </label>
+                        ))}
+                      </div>
+                    </section>
 
                     <div className="pt-2">
                       <button

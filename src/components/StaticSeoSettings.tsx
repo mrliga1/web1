@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { StaticSeoPageConfig } from '../lib/staticSeo';
+import type { StaticSeoPageConfig } from '../lib/staticSeoConfig';
 
 const PAGES: Array<{ path: string; label: string; defaults: StaticSeoPageConfig }> = [
   { path: '/', label: 'Trang chủ', defaults: { title: 'Greenia Homes - Cố vấn đầu tư bất động sản chuyên sâu', description: 'Đồng hành tư vấn đầu tư bất động sản cá nhân hóa, từ pháp lý sổ hồng đến phân tích thị trường.', keywords: 'Greenia Homes, bất động sản, tư vấn đầu tư bất động sản', socialImage: 'https://greeniahomes.vn/og-image.jpg', index: true } },
@@ -17,15 +17,19 @@ const PAGES: Array<{ path: string; label: string; defaults: StaticSeoPageConfig 
 type Props = {
   value: Record<string, StaticSeoPageConfig>;
   onChange: (value: Record<string, StaticSeoPageConfig>) => void;
+  onUploadImage?: (event: React.ChangeEvent<HTMLInputElement>, target: string) => void;
+  onSelectImage?: (target: string) => void;
+  isUploading?: boolean;
 };
 
-export default function StaticSeoSettings({ value, onChange }: Props) {
+export default function StaticSeoSettings({ value, onChange, onUploadImage, onSelectImage, isUploading = false }: Props) {
   const [selectedPath, setSelectedPath] = useState('/');
   const page = PAGES.find(item => item.path === selectedPath) || PAGES[0];
   const config = { ...page.defaults, ...value[selectedPath] };
   const update = (field: keyof StaticSeoPageConfig, fieldValue: string | boolean) => {
     onChange({ ...value, [selectedPath]: { ...config, [field]: fieldValue } });
   };
+  const imageTarget = `seo-static:${encodeURIComponent(selectedPath)}`;
 
   return (
     <section className="space-y-4 rounded-xl border border-emerald-900/15 bg-white p-4" aria-labelledby="static-seo-title">
@@ -62,10 +66,22 @@ export default function StaticSeoSettings({ value, onChange }: Props) {
             <span className="text-[10px] font-bold text-slate-700">Từ khóa, phân tách bằng dấu phẩy</span>
             <input value={config.keywords} onChange={event => update('keywords', event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700" />
           </label>
-          <label className="space-y-1">
+          <div className="space-y-2">
             <span className="text-[10px] font-bold text-slate-700">Ảnh chia sẻ 1200×630</span>
+            {config.socialImage && (
+              <img src={config.socialImage} alt={`Ảnh chia sẻ ${page.label}`} className="aspect-[1200/630] w-full rounded-lg border border-slate-200 object-cover" />
+            )}
             <input type="url" value={config.socialImage} onChange={event => update('socialImage', event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700" />
-          </label>
+            <div className="flex flex-wrap gap-2">
+              <label className="relative inline-flex cursor-pointer items-center rounded-lg bg-emerald-800 px-3 py-2 text-[10px] font-bold text-white hover:bg-emerald-900">
+                {isUploading ? 'Đang tải ảnh...' : 'Tải ảnh mới'}
+                <input type="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" disabled={isUploading} onChange={event => onUploadImage?.(event, imageTarget)} />
+              </label>
+              <button type="button" onClick={() => onSelectImage?.(imageTarget)} className="rounded-lg border border-emerald-800/25 bg-white px-3 py-2 text-[10px] font-bold text-emerald-900 hover:bg-emerald-50">
+                Chọn ảnh trong kho
+              </button>
+            </div>
+          </div>
           {selectedPath !== '/yeu-thich' && (
             <label className="inline-flex items-center gap-2 text-[11px] font-semibold text-slate-700 md:col-span-2">
               <input type="checkbox" checked={config.index} onChange={event => update('index', event.target.checked)} className="h-4 w-4 rounded border-slate-300 accent-emerald-800" />

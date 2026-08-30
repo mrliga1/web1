@@ -7,6 +7,10 @@ import {
 import { createCoreSitemapRoutes, SITE_URL } from "../src/lib/internalLinks";
 import { generateSlug } from "../src/lib/utils";
 import { supabase } from "../src/supabase";
+import {
+  DEFAULT_SITEMAP_SETTINGS,
+  type SitemapSettingsData,
+} from "../src/types";
 
 function getLastModified(item: { createdAt?: string; updatedAt?: string }) {
   const source = item.updatedAt || item.createdAt;
@@ -20,18 +24,37 @@ function createContentRoute(
   path: string,
   item: { createdAt?: string; updatedAt?: string },
   priority: number,
+  settings: SitemapSettingsData,
 ): MetadataRoute.Sitemap[number] {
   const lastModified = getLastModified(item);
 
   return {
     url: `${SITE_URL}${path}`,
-    ...(lastModified ? { lastModified } : {}),
-    changeFrequency: "weekly",
+    ...(settings.includeLastModified && lastModified ? { lastModified } : {}),
+    changeFrequency: settings.changeFrequency,
     priority,
   };
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const { data: settingsDocument, error: settingsError } = await supabase
+    .from("settings")
+    .select("data")
+    .eq("id", "general")
+    .maybeSingle();
+  if (settingsError) {
+    console.error("Không thể tải cài đặt sitemap:", settingsError);
+  }
+
+  const rawSitemapSettings = settingsDocument?.data?.sitemapSettings;
+  const sitemapSettings: SitemapSettingsData = {
+    ...DEFAULT_SITEMAP_SETTINGS,
+    ...(rawSitemapSettings && typeof rawSitemapSettings === "object"
+      ? rawSitemapSettings as Partial<SitemapSettingsData>
+      : {}),
+  };
+  if (!sitemapSettings.enabled) return [];
+
   const staticRoutes: MetadataRoute.Sitemap = createCoreSitemapRoutes();
 
   const [products, news, projects] = await Promise.all([
@@ -40,49 +63,44 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getPublishedProjects(),
   ]);
 
-  const productRoutes = products.map(({ data }) =>
+  const productRoutes = sitemapSettings.includeProducts ? products.map(({ data }) =>
     createContentRoute(
       `/san-pham/${generateSlug(data.title)}`,
       data as typeof data & { updatedAt?: string },
-      0.8,
+      sitemapSettings.productPriority,
+      sitemapSettings,
     ),
-  );
+  ) : [];
 
-  const newsRoutes = news.map(({ data }) =>
+  const newsRoutes = sitemapSettings.includeNews ? news.map(({ data }) =>
     createContentRoute(
       `/tin-tuc/${generateSlug(data.title)}`,
       data as typeof data & { updatedAt?: string },
-      0.7,
+      sitemapSettings.newsPriority,
+      sitemapSettings,
     ),
-  );
+  ) : [];
 
-  const projectRoutes = projects.map(({ data }) =>
+  const projectRoutes = sitemapSettings.includeProjects ? projects.map(({ data }) =>
     createContentRoute(
       `/du-an/${generateSlug(data.title)}`,
       data as typeof data & { updatedAt?: string },
-      0.7,
+      sitemapSettings.projectPriority,
+      sitemapSettings,
     ),
-  );
+  ) : [];
 
   const categoryRoutes: MetadataRoute.Sitemap = [];
-  const { data: settings, error } = await supabase
-    .from("settings")
-    .select("data")
-    .eq("id", "general")
-    .maybeSingle();
-
-  if (error) {
-    console.error("Không thể tải danh mục để tạo sitemap:", error);
-  } else {
-    const productCategories = settings?.data?.productCategoriesExt || [];
-    const newsCategories = settings?.data?.newsCategoriesExt || [];
+  if (sitemapSettings.includeCategories && !settingsError) {
+    const productCategories = settingsDocument?.data?.productCategoriesExt || [];
+    const newsCategories = settingsDocument?.data?.newsCategoriesExt || [];
 
     productCategories.forEach((category: { name?: string }) => {
       if (!category.name?.trim()) return;
       categoryRoutes.push({
         url: `${SITE_URL}/category-product/${generateSlug(category.name)}`,
-        changeFrequency: "weekly",
-        priority: 0.6,
+        changeFrequency: sitemapSettings.changeFrequency,
+        priority: sitemapSettings.categoryPriority,
       });
     });
 
@@ -90,8 +108,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       if (!category.name?.trim()) return;
       categoryRoutes.push({
         url: `${SITE_URL}/category-news/${generateSlug(category.name)}`,
-        changeFrequency: "weekly",
-        priority: 0.6,
+        changeFrequency: sitemapSettings.changeFrequency,
+        priority: sitemapSettings.categoryPriority,
       });
     });
   }

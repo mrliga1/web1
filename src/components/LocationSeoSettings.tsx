@@ -1,13 +1,16 @@
 import React, { useMemo, useState } from 'react';
 import { locationTree, formatLocationName } from '../lib/locationMapping';
-import type { StaticSeoPageConfig } from '../lib/staticSeo';
+import type { StaticSeoPageConfig } from '../lib/staticSeoConfig';
 
 type Props = {
   value: Record<string, StaticSeoPageConfig>;
   onChange: (value: Record<string, StaticSeoPageConfig>) => void;
+  onUploadImage?: (event: React.ChangeEvent<HTMLInputElement>, target: string) => void;
+  onSelectImage?: (target: string) => void;
+  isUploading?: boolean;
 };
 
-export default function LocationSeoSettings({ value, onChange }: Props) {
+export default function LocationSeoSettings({ value, onChange, onUploadImage, onSelectImage, isUploading = false }: Props) {
   const provinces = useMemo(() => locationTree.map(item => formatLocationName(item.name)), []);
   const [selectedLocation, setSelectedLocation] = useState(provinces[0] || 'TP. HCM');
   const defaults: StaticSeoPageConfig = {
@@ -21,6 +24,7 @@ export default function LocationSeoSettings({ value, onChange }: Props) {
   const update = (field: keyof StaticSeoPageConfig, fieldValue: string | boolean) => {
     onChange({ ...value, [selectedLocation]: { ...config, [field]: fieldValue } });
   };
+  const imageTarget = `seo-location:${encodeURIComponent(selectedLocation)}`;
 
   return (
     <section className="space-y-4 rounded-xl border border-emerald-900/15 bg-white p-4" aria-labelledby="location-seo-title">
@@ -47,10 +51,22 @@ export default function LocationSeoSettings({ value, onChange }: Props) {
           <span className="text-[10px] font-bold text-slate-700">Từ khóa</span>
           <input value={config.keywords} onChange={event => update('keywords', event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-700" />
         </label>
-        <label className="space-y-1">
+        <div className="space-y-2">
           <span className="text-[10px] font-bold text-slate-700">Ảnh chia sẻ 1200×630</span>
+          {config.socialImage && (
+            <img src={config.socialImage} alt={`Ảnh chia sẻ ${selectedLocation}`} className="aspect-[1200/630] w-full rounded-lg border border-slate-200 object-cover" />
+          )}
           <input type="url" value={config.socialImage} onChange={event => update('socialImage', event.target.value)} className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs outline-none focus:border-emerald-700" />
-        </label>
+          <div className="flex flex-wrap gap-2">
+            <label className="relative inline-flex cursor-pointer items-center rounded-lg bg-emerald-800 px-3 py-2 text-[10px] font-bold text-white hover:bg-emerald-900">
+              {isUploading ? 'Đang tải ảnh...' : 'Tải ảnh mới'}
+              <input type="file" accept="image/*" className="absolute inset-0 cursor-pointer opacity-0" disabled={isUploading} onChange={event => onUploadImage?.(event, imageTarget)} />
+            </label>
+            <button type="button" onClick={() => onSelectImage?.(imageTarget)} className="rounded-lg border border-emerald-800/25 bg-white px-3 py-2 text-[10px] font-bold text-emerald-900 hover:bg-emerald-50">
+              Chọn ảnh trong kho
+            </button>
+          </div>
+        </div>
         <label className="inline-flex items-center gap-2 text-[11px] font-semibold text-slate-700 md:col-span-2">
           <input type="checkbox" checked={config.index} onChange={event => update('index', event.target.checked)} className="h-4 w-4 accent-emerald-800" />
           Cho phép lập chỉ mục trang tỉnh/thành này

@@ -100,6 +100,7 @@ const PROJECT_CHECKBOX_CLASS =
 
 import { notifyAdminEmail } from "../lib/email";
 import { fetchClientIp } from "../lib/ip";
+import { notifyNewConsultation } from "../lib/pushNotifications";
 
 export default function ProjectDetail({
   projectId,
@@ -594,7 +595,7 @@ export default function ProjectDetail({
         friendlyUrl = window.location.href;
       }
 
-      await addDoc(collection(db, "consultations"), {
+      const createdConsultation = await addDoc(collection(db, "consultations"), {
         name: clientName.trim(),
         phone: clientPhone.trim(),
         email: clientEmail.trim(),
@@ -606,6 +607,7 @@ export default function ProjectDetail({
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,
       });
+      notifyNewConsultation(String(createdConsultation.id));
       trackLead('project_consultation', 'project_detail', project?.id || projectId || slug);
 
       notifyAdminEmail({
@@ -829,7 +831,7 @@ export default function ProjectDetail({
                   </>
                 ) : (
                   <NextImage
-                    priority={false}
+                    priority={isCenter && idx === 0}
                     decoding="async"
                     src={img || "/no-image.svg"}
                     sizes="(max-width: 1024px) 100vw, 1200px"
@@ -898,6 +900,8 @@ export default function ProjectDetail({
                   loading="lazy"
                   decoding="async"
                   src={getProjectOverviewThumbnail(img) || (img ? optimizeImageUrl(img, 200) : undefined)}
+                  srcSet={generateSrcSet(getProjectOverviewThumbnail(img) || img)}
+                  sizes="(max-width: 639px) 64px, (max-width: 1023px) 80px, 96px"
                   width={200}
                   height={150}
                   alt={`Hình thu nhỏ tổng quan ${project.title} - ${idx + 1}`}
@@ -1294,7 +1298,9 @@ export default function ProjectDetail({
                               <img
                                 loading="lazy"
                                 decoding="async"
-                                src={card.imageUrl || undefined}
+                                src={optimizeImageUrl(card.imageUrl, 600) || undefined}
+                                srcSet={generateSrcSet(card.imageUrl)}
+                                sizes="(max-width: 767px) calc(100vw - 48px), (max-width: 1023px) 50vw, 33vw"
                                 className="motion-media w-full h-full object-cover group-hover:scale-105"
                                 alt={card.name}
                                 width={800}
@@ -1553,6 +1559,8 @@ export default function ProjectDetail({
                               loading="lazy"
                               decoding="async"
                               src={optimizeImageUrl(img, 240) || undefined}
+                              srcSet={generateSrcSet(img)}
+                              sizes="96px"
                               width={240}
                               height={135}
                               alt={`Hình thu nhỏ tiện ích ${project.title} - ${idx + 1}`}
@@ -1792,6 +1800,8 @@ export default function ProjectDetail({
                                       loading="lazy"
                                       decoding="async"
                                       src={optimizeImageUrl(img, 240) || undefined}
+                                      srcSet={generateSrcSet(img)}
+                                      sizes="96px"
                                       width={240}
                                       height={135}
                                       alt={`Hình thu nhỏ mặt bằng ${tab.name} - ${idx + 1}`}
@@ -2059,7 +2069,9 @@ export default function ProjectDetail({
                         <img
                           loading="lazy"
                           decoding="async"
-                          src={news.imageUrl || undefined}
+                          src={optimizeImageUrl(news.imageUrl, 600) || undefined}
+                          srcSet={generateSrcSet(news.imageUrl)}
+                          sizes="(max-width: 639px) 85vw, (max-width: 1023px) 50vw, 33vw"
                           className="motion-media w-full h-full object-cover group-hover:scale-105"
                           alt={news.title}
                           width={800}
@@ -2358,6 +2370,8 @@ export default function ProjectDetail({
                           loading="lazy"
                           decoding="async"
                           src={optimizeImageUrl(proj.images?.[0] || proj.imageUrl, 400) || undefined}
+                          srcSet={generateSrcSet(proj.images?.[0] || proj.imageUrl)}
+                          sizes="(max-width: 767px) 260px, (max-width: 1023px) 240px, 223px"
                           className="motion-media w-full h-full object-cover group-hover:scale-105"
                           alt={proj.title}
                           width={800}
@@ -2438,6 +2452,8 @@ export default function ProjectDetail({
             <div className="w-full h-full p-4 sm:p-8 flex items-center justify-center cursor-pointer" onClick={() => setIsLightboxOpen(false)}>
               <img
                 src={galleryImages[lightboxIndex] ? optimizeImageUrl(galleryImages[lightboxIndex], 1920) : undefined}
+                srcSet={generateSrcSet(galleryImages[lightboxIndex])}
+                sizes="100vw"
                 alt={`Hình ảnh ${lightboxIndex + 1}`}
                 width={1920}
                 height={1080}
@@ -2469,6 +2485,8 @@ export default function ProjectDetail({
               >
                 <img
                   src={img ? optimizeImageUrl(img, 200) : undefined}
+                  srcSet={generateSrcSet(img)}
+                  sizes="128px"
                   width={200}
                   height={150}
                   className="w-full h-full object-cover"

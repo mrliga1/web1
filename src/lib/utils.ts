@@ -54,6 +54,18 @@ export function getImageAltFromUrl(url: string | undefined | null, fallback = "H
   }
 }
 
+const RESPONSIVE_IMAGE_WIDTHS = [100, 160, 200, 240, 300, 400, 600, 640, 800, 1024, 1200, 1600, 1920] as const;
+
+function getSupportedImageWidth(width: number) {
+  return RESPONSIVE_IMAGE_WIDTHS.find((candidate) => candidate >= width)
+    || RESPONSIVE_IMAGE_WIDTHS[RESPONSIVE_IMAGE_WIDTHS.length - 1];
+}
+
+function getLocalOptimizedImageUrl(url: string, width: number) {
+  const supportedWidth = getSupportedImageWidth(width);
+  return `/_next/image?url=${encodeURIComponent(url)}&w=${supportedWidth}&q=65`;
+}
+
 export function optimizeImageUrl(url: string | undefined | null, width?: number): string {
   if (!url) return '';
   let finalUrl = url;
@@ -69,6 +81,11 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
     } catch {
       // Bỏ qua lỗi parse URL.
     }
+  }
+
+  // Ảnh nội bộ dùng bộ tối ưu của Next.js để tạo đúng kích thước theo thiết bị.
+  if (finalUrl.startsWith('/') && !finalUrl.startsWith('//') && !finalUrl.endsWith('.svg')) {
+    return width ? getLocalOptimizedImageUrl(finalUrl, width) : finalUrl;
   }
   
   if (finalUrl.includes('raw.githubusercontent.com')) {
@@ -113,8 +130,10 @@ export function optimizeImageUrl(url: string | undefined | null, width?: number)
 }
 
 export function generateSrcSet(url: string | undefined | null): string | undefined {
-  if (!url) return undefined;
-  return `${optimizeImageUrl(url, 100)} 100w, ${optimizeImageUrl(url, 160)} 160w, ${optimizeImageUrl(url, 200)} 200w, ${optimizeImageUrl(url, 240)} 240w, ${optimizeImageUrl(url, 300)} 300w, ${optimizeImageUrl(url, 400)} 400w, ${optimizeImageUrl(url, 600)} 600w, ${optimizeImageUrl(url, 800)} 800w, ${optimizeImageUrl(url, 1200)} 1200w, ${optimizeImageUrl(url, 1600)} 1600w`;
+  if (!url || /^(data:|blob:)/i.test(url) || url.endsWith('.svg')) return undefined;
+  return RESPONSIVE_IMAGE_WIDTHS
+    .map((width) => `${optimizeImageUrl(url, width)} ${width}w`)
+    .join(', ');
 }
 
 export function getSocialImageUrl(url: string | undefined | null): string {
@@ -153,8 +172,10 @@ export function getRouteUrl(route: import('../types').RouteState): string {
   if (route.screen === "news-detail" && (route.slug || route.newsId))
     return `/tin-tuc/${route.slug || route.newsId}`;
   if (route.screen === "admin") return "/admin";
-  if (route.screen === "category-product" && route.categoryName)
-    return `/category-product/${generateSlug(route.categoryName)}`;
+  if (route.screen === "category-product" && route.categoryName) {
+    const categoryPath = `/category-product/${generateSlug(route.categoryName)}`;
+    return route.categoryLayout === "split" ? `${categoryPath}?view=split` : categoryPath;
+  }
   if (route.screen === "category-product") return "/category-product";
   if (route.screen === "category-news" && route.categoryName)
     return `/category-news/${generateSlug(route.categoryName)}`;

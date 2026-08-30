@@ -1,4 +1,4 @@
-import { createStaticPageMetadata } from '../../src/lib/internalLinks';
+import { getManagedStaticMetadata } from '../../src/lib/staticSeo';
 import SchemaMarkup from '../../src/components/SchemaMarkup';
 import { createWebPageSchemas } from '../../src/lib/contentSchemas';
 
@@ -14,11 +14,7 @@ const { webPage, breadcrumb } = createWebPageSchemas({
   ],
 });
 
-export const metadata = createStaticPageMetadata({
-  title: 'Liên hệ',
-  description: pageDescription,
-  path: '/lien-he',
-});
+export const generateMetadata = () => getManagedStaticMetadata('/lien-he');
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

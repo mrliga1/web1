@@ -3,6 +3,7 @@ import { Phone, Mail, X, CheckCircle2 } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { useAppContext } from '../contexts/AppContext';
 import { trackLead } from '../lib/tracking';
+import { notifyNewConsultation } from '../lib/pushNotifications';
 
 export default function FloatingActionButtons() {
   const { isQuotePopupOpen: showQuotePopup, setIsQuotePopupOpen: setShowQuotePopup } = useAppContext();
@@ -41,7 +42,7 @@ export default function FloatingActionButtons() {
     setIsSubmitting(true);
     try {
       const { db, addDoc, collection } = await import('../firebase');
-      await addDoc(collection(db, 'consultations'), {
+      const createdConsultation = await addDoc(collection(db, 'consultations'), {
         name: quoteName,
         phone: quotePhone,
         email: quoteEmail,
@@ -50,6 +51,7 @@ export default function FloatingActionButtons() {
         createdAt: new Date().toISOString(),
         source: 'quote_popup',
       });
+      notifyNewConsultation(String(createdConsultation.id));
       trackLead('quote_popup', 'quote_popup');
       setFormSubmitted(true);
       setQuoteName('');

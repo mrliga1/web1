@@ -1,10 +1,6 @@
-import { createStaticPageMetadata } from '../../src/lib/internalLinks';
+import { getManagedStaticMetadata } from '../../src/lib/staticSeo';
 
-export const metadata = createStaticPageMetadata({
-  title: 'Bất động sản chuyển nhượng mới nhất',
-  description: 'Danh sách bất động sản chuyển nhượng mới nhất. Tìm kiếm căn hộ, nhà phố, biệt thự giá tốt tại Greenia Homes.',
-  path: '/latest-sales',
-});
+export const generateMetadata = () => getManagedStaticMetadata('/latest-sales');
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;

@@ -8,8 +8,21 @@ import {
 import SchemaMarkup from "../../src/components/SchemaMarkup";
 import { createCollectionPageSchemas } from "../../src/lib/contentSchemas";
 import { generateSlug } from "../../src/lib/utils";
+import { getManagedLocationMetadata, getManagedStaticMetadata } from "../../src/lib/staticSeo";
 
 export const revalidate = 60;
+
+export async function generateMetadata({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const location = typeof params.location === 'string' ? params.location : '';
+  return location
+    ? getManagedLocationMetadata(location)
+    : getManagedStaticMetadata('/san-pham');
+}
 
 export default async function SanPhamPage({
   searchParams,

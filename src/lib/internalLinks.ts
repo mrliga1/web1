@@ -221,6 +221,8 @@ interface StaticPageMetadataOptions {
   description: string;
   path: string;
   keywords?: Metadata["keywords"];
+  socialImage?: string;
+  index?: boolean;
 }
 
 export function createStaticPageMetadata({
@@ -228,6 +230,8 @@ export function createStaticPageMetadata({
   description,
   path,
   keywords,
+  socialImage = DEFAULT_SOCIAL_IMAGE,
+  index = true,
 }: StaticPageMetadataOptions): Metadata {
   const canonical = getAbsoluteUrl(path);
   const brandedTitle = `${title} | ${SITE_NAME}`;
@@ -242,6 +246,7 @@ export function createStaticPageMetadata({
     description: searchDescription,
     keywords: keywords || getSemanticTerms({ path, title }),
     alternates: { canonical },
+    robots: { index, follow: index },
     openGraph: {
       type: "website",
       locale: "vi_VN",
@@ -251,7 +256,7 @@ export function createStaticPageMetadata({
       url: canonical,
       images: [
         {
-          url: DEFAULT_SOCIAL_IMAGE,
+          url: socialImage,
           width: 1200,
           height: 630,
           alt: SITE_NAME,
@@ -262,7 +267,7 @@ export function createStaticPageMetadata({
       card: "summary_large_image",
       title: brandedTitle,
       description: searchDescription,
-      images: [DEFAULT_SOCIAL_IMAGE],
+      images: [socialImage],
     },
   };
 }

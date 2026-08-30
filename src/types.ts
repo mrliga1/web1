@@ -232,6 +232,8 @@ export interface GeneralSettingsData extends Record<string, unknown> {
   quotePopupVersion?: number;
   tiktokPixelEnabled?: boolean;
   tiktokPixelId?: string;
+  staticSeoPages?: Record<string, import('./lib/staticSeo').StaticSeoPageConfig>;
+  locationSeoPages?: Record<string, import('./lib/staticSeo').StaticSeoPageConfig>;
 }
 
 export interface FilterSettingsData extends Record<string, unknown> {
@@ -248,6 +250,7 @@ export interface RouteState {
   newsId?: string;
   slug?: string;         // for URL generation
   categoryName?: string; // dynamically view by category name
+  categoryLayout?: 'grid' | 'split'; // Bố cục danh mục sản phẩm theo nguồn điều hướng
   location?: string;     // filter by location
   priceRange?: string;   // filter by price range
   areaRange?: string;    // filter by area range

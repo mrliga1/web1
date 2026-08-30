@@ -5,6 +5,9 @@ const nextConfig = {
   serverExternalPackages: ['nodemailer'],
   images: {
     formats: ['image/avif', 'image/webp'],
+    deviceSizes: [640, 800, 1024, 1200, 1600, 1920],
+    imageSizes: [100, 160, 200, 240, 300, 400, 600],
+    minimumCacheTTL: 2592000,
     remotePatterns: [
       { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
       { protocol: 'https', hostname: 'wsrv.nl' },

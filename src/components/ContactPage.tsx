@@ -18,7 +18,9 @@ interface ContactPageProps {
 
 import { notifyAdminEmail } from '../lib/email';
 import { fetchClientIp } from '../lib/ip';
+import { notifyNewConsultation } from '../lib/pushNotifications';
 import { trackLead } from '../lib/tracking';
+import { generateSrcSet, optimizeImageUrl } from '../lib/utils';
 
 const MAX_CONTACT_IMAGES = 5;
 const MAX_CONTACT_IMAGE_SIZE = 3 * 1024 * 1024;
@@ -177,7 +179,7 @@ export default function ContactPage({
         friendlyUrl = window.location.href;
       }
 
-      await addDoc(collection(db, 'consultations'), {
+      const createdConsultation = await addDoc(collection(db, 'consultations'), {
         name: contactName.trim(),
         phone: contactPhone.trim(),
         email: contactEmail.trim(),
@@ -189,6 +191,7 @@ export default function ContactPage({
         sourceUrl: friendlyUrl,
         ipAddress: clientIp
       });
+      notifyNewConsultation(String(createdConsultation.id));
       trackLead('contact_page', 'contact');
 
       notifyAdminEmail({
@@ -445,7 +448,7 @@ export default function ContactPage({
                               <div className="flex flex-wrap gap-2 mt-1">
                                 {contactImages.map((url, idx) => (
                                   <div key={idx} className="relative w-14 h-14 rounded overflow-hidden border border-border-color shrink-0">
-                                    <img loading="lazy" decoding="async" src={(url) || undefined} alt={`upload-${idx}`} width={56} height={56} className="w-full h-full object-cover" />
+                                    <img loading="lazy" decoding="async" src={optimizeImageUrl(url, 100) || undefined} srcSet={generateSrcSet(url)} sizes="56px" alt={`Ảnh liên hệ ${idx + 1}`} width={56} height={56} className="w-full h-full object-cover" />
                                     <button
                                       type="button"
                                       onClick={() => handleRemoveImage(idx)}

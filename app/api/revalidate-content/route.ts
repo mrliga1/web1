@@ -2,7 +2,7 @@ import { revalidatePath, revalidateTag } from 'next/cache';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdmin } from '../lib/auth';
 
-type ContentType = 'product' | 'project' | 'article';
+type ContentType = 'product' | 'project' | 'article' | 'settings';
 
 const CONTENT_PATHS: Record<ContentType, string[]> = {
   product: [
@@ -15,6 +15,10 @@ const CONTENT_PATHS: Record<ContentType, string[]> = {
   ],
   project: ['/', '/du-an', '/du-an/[slug]'],
   article: ['/', '/tin-tuc', '/tin-tuc/[slug]', '/category-news/[name]'],
+  settings: [
+    '/', '/san-pham', '/du-an', '/tin-tuc', '/lien-he', '/latest-sales',
+    '/latest-rents', '/dieu-khoan-su-dung', '/chinh-sach-bao-mat', '/yeu-thich',
+  ],
 };
 
 export async function POST(req: NextRequest) {

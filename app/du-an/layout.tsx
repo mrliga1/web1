@@ -1,10 +1,6 @@
-import { createStaticPageMetadata } from '../../src/lib/internalLinks';
+import { getManagedStaticMetadata } from '../../src/lib/staticSeo';
 
-export const metadata = createStaticPageMetadata({
-  title: 'Dự án bất động sản',
-  description: 'Các dự án bất động sản nổi bật tại TP.HCM. Thông tin chi tiết, tiến độ, giá bán từ Greenia Homes.',
-  path: '/du-an',
-});
+export const generateMetadata = () => getManagedStaticMetadata('/du-an');
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;

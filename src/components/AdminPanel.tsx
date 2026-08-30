@@ -57,7 +57,6 @@ import {
   User,
   Filter,
   Download,
-  Share2,
 } from "lucide-react";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import {
@@ -74,6 +73,10 @@ import {
 import { useAuth, type UserProfile } from "../contexts/AuthContext";
 import UserProfileTab from "./UserProfileTab";
 import FiltersConfigTab from "./FiltersConfigTab";
+import WebPushControl from "./WebPushControl";
+import StaticSeoSettings from "./StaticSeoSettings";
+import LocationSeoSettings from "./LocationSeoSettings";
+import type { StaticSeoPageConfig } from "../lib/staticSeo";
 import { allLocationsList } from "../lib/locationMapping";
 import {
   applyAutomaticContextualLinks,
@@ -105,7 +108,6 @@ type AdminTab =
   | "categories"
   | "filters"
   | "general"
-  | "integrations"
   | "users"
   | "seo"
   | "leads"
@@ -113,6 +115,11 @@ type AdminTab =
   | "gallery"
   | "new_wizard"
   | "profile";
+
+const ADMIN_TABS: AdminTab[] = [
+  "listings", "projects", "articles", "categories", "filters", "general",
+  "users", "seo", "leads", "blocked_ips", "gallery", "new_wizard", "profile",
+];
 
 type AdminUser = UserProfile & {
   id: string;
@@ -179,10 +186,13 @@ const withoutDocumentId = <T extends { id?: string }>(item: T) => {
 
 const ASSET_PRESETS: { label: string; url: string }[] = [];
 const MAX_PARALLEL_IMAGE_UPLOADS = 3;
-const MAX_IMAGE_EDGE = 2560;
+const MAX_IMAGE_EDGE = 1920;
+const MAX_PASSTHROUGH_IMAGE_SIZE = 450 * 1024;
 
 const optimizeImageForUpload = async (file: File): Promise<File> => {
-  if (['image/webp', 'image/avif', 'image/gif'].includes(file.type)) return file;
+  // GIF được giữ nguyên để không làm mất chuyển động. Các định dạng còn lại đều
+  // được kiểm tra kích thước, kể cả WebP/AVIF đã nén nhưng có độ phân giải quá lớn.
+  if (file.type === 'image/gif') return file;
 
   const objectUrl = URL.createObjectURL(file);
   try {
@@ -194,6 +204,14 @@ const optimizeImageForUpload = async (file: File): Promise<File> => {
     });
 
     const ratio = Math.min(1, MAX_IMAGE_EDGE / Math.max(image.width, image.height));
+    if (
+      ratio === 1
+      && ['image/webp', 'image/avif'].includes(file.type)
+      && file.size <= MAX_PASSTHROUGH_IMAGE_SIZE
+    ) {
+      return file;
+    }
+
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round(image.width * ratio));
     canvas.height = Math.max(1, Math.round(image.height * ratio));
@@ -205,7 +223,7 @@ const optimizeImageForUpload = async (file: File): Promise<File> => {
       canvas.toBlob(
         (result) => result ? resolve(result) : reject(new Error(`Không thể chuyển đổi ảnh ${file.name}`)),
         'image/webp',
-        0.85,
+        0.8,
       );
     });
     const baseName = file.name.includes('.')
@@ -231,9 +249,7 @@ export default function AdminPanel({
   const currentMemberEmail = userProfile?.email || "";
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(false);
-  const [isSidebarHovered, setIsSidebarHovered] = useState(false);
-  const isSidebarExpanded = desktopSidebarOpen || isSidebarHovered;
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   // Dữ liệu chính được đồng bộ vào state.
   const [products, setProducts] = useState<Product[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -252,11 +268,55 @@ export default function AdminPanel({
     metaKeywords:
       "greenia homes, biệt thự thảo điền, chuyển nhượng biệt thự, phong thủy nhà ở tphcm",
   });
+  const [staticSeoPages, setStaticSeoPages] = useState<Record<string, StaticSeoPageConfig>>({});
+  const [locationSeoPages, setLocationSeoPages] = useState<Record<string, StaticSeoPageConfig>>({});
 
   const [loading, setLoading] = useState(false);
 
   // Điều hướng layout: tab quản trị đang mở.
   const [activeTab, setActiveTab] = useState<AdminTab>("listings");
+  const [adminStateReady, setAdminStateReady] = useState(false);
+  const mainWorkspaceRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestedTab = params.get("section") || sessionStorage.getItem("greenia_admin_tab") || "";
+    if (ADMIN_TABS.includes(requestedTab as AdminTab)) {
+      setActiveTab(requestedTab as AdminTab);
+    }
+    setDesktopSidebarOpen(localStorage.getItem("greenia_admin_sidebar") !== "closed");
+    setAdminStateReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!adminStateReady) return;
+    sessionStorage.setItem("greenia_admin_tab", activeTab);
+    const url = new URL(window.location.href);
+    url.searchParams.set("section", activeTab);
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+
+    const savedScroll = Number(sessionStorage.getItem(`greenia_admin_scroll_${activeTab}`) || 0);
+    const frame = window.requestAnimationFrame(() => {
+      if (mainWorkspaceRef.current) mainWorkspaceRef.current.scrollTop = savedScroll;
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeTab, adminStateReady]);
+
+  useEffect(() => {
+    if (!adminStateReady) return;
+    const workspace = mainWorkspaceRef.current;
+    if (!workspace) return;
+    const saveScroll = () => {
+      sessionStorage.setItem(`greenia_admin_scroll_${activeTab}`, String(workspace.scrollTop));
+    };
+    workspace.addEventListener("scroll", saveScroll, { passive: true });
+    return () => workspace.removeEventListener("scroll", saveScroll);
+  }, [activeTab, adminStateReady]);
+
+  useEffect(() => {
+    if (!adminStateReady) return;
+    localStorage.setItem("greenia_admin_sidebar", desktopSidebarOpen ? "open" : "closed");
+  }, [desktopSidebarOpen, adminStateReady]);
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(null);
   const [editingEmployeeName, setEditingEmployeeName] = useState("");
@@ -718,8 +778,6 @@ export default function AdminPanel({
     setItemSeoTitle(item.seoTitle || item.metaTitle || "");
     setItemSeoDesc(item.seoDesc || item.metaDesc || "");
     setItemSeoKeywords(item.seoKeywords || item.metaKeywords || "");
-    setItemBaseRating(String(item.baseRating ?? 5.0));
-    setItemBaseReviewCount(String(item.baseReviewCount ?? 0));
 
     setIsEditing(true);
     setEditingItemId(item.id);
@@ -779,8 +837,6 @@ export default function AdminPanel({
     setItemSeoTitle(proj.seoTitle || proj.metaTitle || "");
     setItemSeoDesc(proj.seoDesc || proj.metaDesc || "");
     setItemSeoKeywords(proj.seoKeywords || proj.metaKeywords || "");
-    setItemBaseRating(String(proj.baseRating ?? 5.0));
-    setItemBaseReviewCount(String(proj.baseReviewCount ?? 0));
 
     setIsEditing(true);
     setEditingItemId(proj.id);
@@ -810,8 +866,6 @@ export default function AdminPanel({
     setItemSeoTitle(n.seoTitle || n.metaTitle || "");
     setItemSeoDesc(n.seoDesc || n.metaDesc || "");
     setItemSeoKeywords(n.seoKeywords || n.metaKeywords || "");
-    setItemBaseRating(String(n.baseRating ?? 5.0));
-    setItemBaseReviewCount(String(n.baseReviewCount ?? 0));
 
     setIsEditing(true);
     setEditingItemId(n.id);
@@ -875,8 +929,6 @@ export default function AdminPanel({
     setItemSeoTitle("");
     setItemSeoDesc("");
     setItemSeoKeywords("");
-    setItemBaseRating("5.0");
-    setItemBaseReviewCount("0");
 
     setActiveTab("listings");
   };
@@ -928,8 +980,6 @@ export default function AdminPanel({
   const [itemSeoTitle, setItemSeoTitle] = useState("");
   const [itemSeoDesc, setItemSeoDesc] = useState("");
   const [itemSeoKeywords, setItemSeoKeywords] = useState("");
-  const [itemBaseRating, setItemBaseRating] = useState("5.0");
-  const [itemBaseReviewCount, setItemBaseReviewCount] = useState("0");
 
   const [cookieConsentEnabled, setCookieConsentEnabled] = useState(false);
   const [quotePopupEnabled, setQuotePopupEnabled] = useState(false);
@@ -1349,6 +1399,12 @@ export default function AdminPanel({
             setTiktokPixelEnabled(Boolean(data.tiktokPixelEnabled));
           if (data.tiktokPixelId !== undefined)
             setTiktokPixelId(getSettingString(data.tiktokPixelId));
+          if (data.staticSeoPages && typeof data.staticSeoPages === "object") {
+            setStaticSeoPages(data.staticSeoPages as Record<string, StaticSeoPageConfig>);
+          }
+          if (data.locationSeoPages && typeof data.locationSeoPages === "object") {
+            setLocationSeoPages(data.locationSeoPages as Record<string, StaticSeoPageConfig>);
+          }
 
           if (data.contactHotline !== undefined) setContactHotline(getSettingString(data.contactHotline));
           if (data.contactEmail !== undefined) setContactEmail(getSettingString(data.contactEmail));
@@ -1513,6 +1569,22 @@ export default function AdminPanel({
 
       await purgeImageUrlsFromDB([imgUrl]);
       setUploadedLibraryImages(prev => prev.filter(u => u !== imgUrl));
+      setProducts(prev => prev.map(product => ({
+        ...product,
+        imageUrl: product.imageUrl === imgUrl ? "" : product.imageUrl,
+        imageUrls: product.imageUrls?.filter(url => url !== imgUrl),
+      })));
+      setProjects(prev => prev.map(project => ({
+        ...project,
+        imageUrl: project.imageUrl === imgUrl ? "" : project.imageUrl,
+        imageUrls: project.imageUrls?.filter(url => url !== imgUrl),
+      })));
+      setNews(prev => prev.map(article => ({
+        ...article,
+        imageUrl: article.imageUrl === imgUrl ? "" : article.imageUrl,
+        thumbnail: article.thumbnail === imgUrl ? "" : article.thumbnail,
+        imageUrls: article.imageUrls?.filter(url => url !== imgUrl),
+      })));
 
       setSelectedGalleryImages(prev => prev.filter(u => u !== imgUrl));
       onShowNotification("Đã xóa ảnh thành công!", "success");
@@ -1772,8 +1844,6 @@ export default function AdminPanel({
             seoTitle: itemSeoTitle.trim(),
             seoDesc: itemSeoDesc.trim(),
             seoKeywords: itemSeoKeywords.trim(),
-            baseRating: Number(itemBaseRating) || 5.0,
-            baseReviewCount: Number(itemBaseReviewCount) || 0,
             metaTitle: itemSeoTitle.trim(),
             metaDesc: itemSeoDesc.trim(),
             metaKeywords: itemSeoKeywords.trim(),
@@ -1847,8 +1917,6 @@ export default function AdminPanel({
             seoTitle: itemSeoTitle.trim(),
             seoDesc: itemSeoDesc.trim(),
             seoKeywords: itemSeoKeywords.trim(),
-            baseRating: Number(itemBaseRating) || 5.0,
-            baseReviewCount: Number(itemBaseReviewCount) || 0,
             metaTitle: itemSeoTitle.trim(),
             metaDesc: itemSeoDesc.trim(),
             metaKeywords: itemSeoKeywords.trim(),
@@ -1892,8 +1960,6 @@ export default function AdminPanel({
             seoTitle: itemSeoTitle.trim(),
             seoDesc: itemSeoDesc.trim(),
             seoKeywords: itemSeoKeywords.trim(),
-            baseRating: Number(itemBaseRating) || 5.0,
-            baseReviewCount: Number(itemBaseReviewCount) || 0,
             metaTitle: itemSeoTitle.trim(),
             metaDesc: itemSeoDesc.trim(),
             metaKeywords: itemSeoKeywords.trim(),
@@ -1954,8 +2020,6 @@ export default function AdminPanel({
             seoTitle: itemSeoTitle.trim(),
             seoDesc: itemSeoDesc.trim(),
             seoKeywords: itemSeoKeywords.trim(),
-            baseRating: Number(itemBaseRating) || 5.0,
-            baseReviewCount: Number(itemBaseReviewCount) || 0,
             metaTitle: itemSeoTitle.trim(),
             metaDesc: itemSeoDesc.trim(),
             metaKeywords: itemSeoKeywords.trim(),
@@ -2030,8 +2094,6 @@ export default function AdminPanel({
             seoTitle: itemSeoTitle.trim(),
             seoDesc: itemSeoDesc.trim(),
             seoKeywords: itemSeoKeywords.trim(),
-            baseRating: Number(itemBaseRating) || 5.0,
-            baseReviewCount: Number(itemBaseReviewCount) || 0,
             metaTitle: itemSeoTitle.trim(),
             metaDesc: itemSeoDesc.trim(),
             metaKeywords: itemSeoKeywords.trim(),
@@ -2072,8 +2134,6 @@ export default function AdminPanel({
             seoTitle: itemSeoTitle.trim(),
             seoDesc: itemSeoDesc.trim(),
             seoKeywords: itemSeoKeywords.trim(),
-            baseRating: Number(itemBaseRating) || 5.0,
-            baseReviewCount: Number(itemBaseReviewCount) || 0,
             metaTitle: itemSeoTitle.trim(),
             metaDesc: itemSeoDesc.trim(),
             metaKeywords: itemSeoKeywords.trim(),
@@ -2163,8 +2223,6 @@ export default function AdminPanel({
       setItemSeoTitle("");
       setItemSeoDesc("");
       setItemSeoKeywords("");
-      setItemBaseRating("5.0");
-      setItemBaseReviewCount("0");
 
       // Navigate to corresponding tab depending on creation/updating type
       if (createType === "product") setActiveTab("listings");
@@ -2513,6 +2571,8 @@ export default function AdminPanel({
           quotePopupVersion,
           tiktokPixelEnabled,
           tiktokPixelId: tiktokPixelId.trim(),
+          staticSeoPages,
+          locationSeoPages,
         },
         { merge: true },
       );
@@ -2522,6 +2582,14 @@ export default function AdminPanel({
         metaDesc: seoDesc,
         metaKeywords: seoKeywords,
       });
+      const revalidateResponse = await authFetch("/api/revalidate-content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "settings" }),
+      });
+      if (!revalidateResponse.ok) {
+        console.warn("Đã lưu SEO nhưng chưa thể làm mới cache trang tĩnh.");
+      }
       onShowNotification(
         "Đã lưu thiết lập SEO, cookie và popup tư vấn thành công!",
         "success",
@@ -2651,6 +2719,21 @@ export default function AdminPanel({
           }),
         });
         onShowNotification("Email đã được gửi đến nhân viên", "success");
+
+        try {
+          const pushResponse = await authFetch("/api/push/notify-assignment", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ leadId, email }),
+          });
+          if (!pushResponse.ok) {
+            const pushResult = await pushResponse.json().catch(() => ({})) as { error?: string };
+            console.warn("Không thể gửi Web Push giao khách:", pushResult.error || pushResponse.statusText);
+          }
+        } catch (pushError) {
+          // Không để lỗi Web Push làm thất bại thao tác giao khách đã lưu thành công.
+          console.warn("Không thể kết nối Web Push giao khách:", pushError);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -2866,28 +2949,26 @@ export default function AdminPanel({
     >
       {/* 1. wordpress left sidebar navigation panel */}
       <aside
-        onMouseEnter={() => setIsSidebarHovered(true)}
-        onMouseLeave={() => setIsSidebarHovered(false)}
-        className={`group fixed inset-y-0 left-0 z-50 bg-slate-50 border-r border-slate-200 flex flex-col transition-all duration-300 lg:translate-x-0 lg:static overflow-hidden shrink-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
-          } ${isSidebarExpanded ? "w-64" : "w-64 lg:w-16"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r border-emerald-900/15 bg-emerald-950 text-white transition-[width,transform] duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          } ${desktopSidebarOpen ? "lg:w-64" : "lg:w-0 lg:border-r-0"}`}
         id="wp-admin-sidebar"
       >
         {/* Sidebar Header branding */}
         <div
-          className={`p-4 bg-white border-b border-slate-200 flex items-center shrink-0 h-[72px] ${isSidebarExpanded ? "justify-between" : "justify-center lg:px-2"}`}
+          className="flex h-[72px] shrink-0 items-center justify-between border-b border-white/10 bg-emerald-950 p-4"
         >
           <div
-            className={`flex items-center gap-2.5 overflow-hidden transition-all duration-300 ${isSidebarExpanded ? "w-auto opacity-100" : "lg:w-0 lg:opacity-0 w-auto opacity-100"}`}
+            className="flex items-center gap-2.5 overflow-hidden"
           >
             <div className="bg-primary text-white p-2 rounded-lg font-bold font-display flex items-center justify-center min-w-[32px] h-d+ shrink-0">
               W
             </div>
             <div className="whitespace-nowrap">
-              <span className="font-display text-[15px] font-bold tracking-tight text-slate-900 block">
-                Greenia <span className="text-primary">Homes</span>
+              <span className="block font-display text-[15px] font-bold tracking-tight text-white">
+                Greenia <span className="text-emerald-300">Homes</span>
               </span>
-              <span className="text-[8px] font-bold text-slate-500 tracking-widest block font-mono">
-                WordPress Console
+              <span className="block font-mono text-[8px] font-bold tracking-widest text-emerald-100/70">
+                Bảng quản trị
               </span>
             </div>
           </div>
@@ -2895,7 +2976,7 @@ export default function AdminPanel({
           {/* Desktop collapse toggle */}
           <button
             onClick={() => setDesktopSidebarOpen(!desktopSidebarOpen)}
-            className="hidden lg:flex text-slate-700 hover:text-primary p-1.5 rounded-lg hover:bg-slate-200 shrink-0"
+            className="hidden shrink-0 rounded-lg p-1.5 text-emerald-100 hover:bg-white/10 hover:text-white lg:flex"
             title={desktopSidebarOpen ? "Thu gọn menu" : "Mở rộng menu"}
           >
             <Menu className="w-5 h-8" />
@@ -2912,76 +2993,11 @@ export default function AdminPanel({
 
         {/* Sidebar Nav Items */}
         <div
-          className={`flex-1 overflow-y-auto overflow-x-hidden py-4 space-y-6 transition-all duration-300 ${isSidebarExpanded ? "px-3" : "px-3 lg:px-2 lg:[&_span]:hidden lg:[&_p]:opacity-0 lg:[&_button]:justify-center lg:[&_button]:px-0"}`}
+          className="flex-1 space-y-6 overflow-y-auto overflow-x-hidden px-3 py-4"
           id="wp-sidebar-links"
         >
           <div className="space-y-1.5">
-            <p className="px-3 text-[9px] font-black text-slate-500 tracking-wider">
-              Hệ Thống
-            </p>
-
-            <button
-              onClick={() => {
-                setActiveTab("listings");
-                setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "listings"
-                  ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
-                  : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
-                }`}
-            >
-              <LayoutGrid className="w-4 h-4 shrink-0 text-primary" />
-              <span>Kho Sản Phẩm BĐS</span>
-              <span className="ml-auto text-[9px] bg-white px-2 py-0.5 rounded-full text-slate-500 font-mono">
-                {currentUserRole === "member" || currentUserRole === "user"
-                  ? products.filter((p) => p.createdBy === currentMemberEmail)
-                    .length
-                  : products.length}
-              </span>
-            </button>
-
-            {["admin", "editor"].includes(currentUserRole) && (
-              <button
-                onClick={() => {
-                  setActiveTab("projects");
-                  setSidebarOpen(false);
-                }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "projects"
-                    ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
-                    : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
-                  }`}
-              >
-                <Compass className="w-4 h-4 shrink-0 text-primary" />
-                <span>Dự Án Quy Hoạch</span>
-                <span className="ml-auto text-[9px] bg-white px-2 py-0.5 rounded-full text-slate-500 font-mono">
-                  {projects.length}
-                </span>
-              </button>
-            )}
-
-            <button
-              onClick={() => {
-                setActiveTab("articles");
-                setSidebarOpen(false);
-              }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "articles"
-                  ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
-                  : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
-                }`}
-            >
-              <FileText className="w-4 h-4 shrink-0 text-primary" />
-              <span>Tin Tức Phong Thủy</span>
-              <span className="ml-auto text-[9px] bg-white px-2 py-0.5 rounded-full text-slate-500 font-mono">
-                {currentUserRole === "member" || currentUserRole === "user"
-                  ? news.filter((n) => n.createdBy === currentMemberEmail)
-                    .length
-                  : news.length}
-              </span>
-            </button>
-          </div>
-
-          <div className="space-y-1.5">
-            <p className="px-3 text-[9px] font-black text-slate-500 tracking-wider">
+            <p className="px-3 text-[9px] font-black tracking-wider text-emerald-100/65">
               Cơ cấu & SEO
             </p>
 
@@ -3028,20 +3044,6 @@ export default function AdminPanel({
                 >
                   <MapPin className="w-4 h-4 shrink-0 text-primary" />
                   <span>Liên Hệ & MXH</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setActiveTab("integrations");
-                    setSidebarOpen(false);
-                  }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "integrations"
-                      ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
-                      : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
-                    }`}
-                >
-                  <Share2 className="w-4 h-4 shrink-0 text-primary" />
-                  <span>Auto-Post</span>
                 </button>
 
                 <button
@@ -3186,13 +3188,13 @@ export default function AdminPanel({
 
         {/* Sidebar Footer metadata user indicator */}
         <div
-          className={`p-4 bg-white border-t border-slate-200 shrink-0 text-left transition-all duration-300 overflow-hidden ${isSidebarExpanded ? "h-auto opacity-100" : "lg:h-0 lg:p-0 lg:opacity-0 lg:pointer-events-none border-t-0"}`}
+          className="shrink-0 overflow-hidden border-t border-white/10 bg-emerald-950 p-4 text-left"
         >
           <p className="text-[10px] text-slate-500 whitespace-nowrap">
             Email đăng nhập:
           </p>
           <p
-            className="text-[11px] font-mono font-bold text-slate-800 truncate"
+            className="truncate font-mono text-[11px] font-bold text-white"
             title={currentMemberEmail}
           >
             {currentMemberEmail}
@@ -3229,6 +3231,16 @@ export default function AdminPanel({
             >
               <Menu className="w-5 h-5" />
             </button>
+            <button
+              type="button"
+              onClick={() => setDesktopSidebarOpen(open => !open)}
+              className="hidden rounded-lg border border-emerald-900/15 bg-white p-2 text-emerald-900 hover:bg-emerald-50 lg:inline-flex"
+              title={desktopSidebarOpen ? "Ẩn thanh điều hướng" : "Hiện thanh điều hướng"}
+              aria-expanded={desktopSidebarOpen}
+              aria-controls="wp-admin-sidebar"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-semibold text-primary-light">
                 Dashboard
@@ -3241,6 +3253,7 @@ export default function AdminPanel({
           </div>
 
           <div className="flex items-center gap-3.5">
+            <WebPushControl onShowNotification={onShowNotification} />
             <div className="w-px h-6 bg-slate-100 hidden sm:block" />
 
             <div className="flex items-center gap-2">
@@ -3290,7 +3303,7 @@ export default function AdminPanel({
             <button
               type="button"
               onClick={() => {
-                setCreateType("product");
+                setCreateType(activeTab === "projects" ? "project" : activeTab === "articles" ? "article" : "product");
                 setActiveTab("new_wizard");
               }}
               className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-bold text-white transition-colors hover:bg-primary-light sm:px-4"
@@ -3303,6 +3316,7 @@ export default function AdminPanel({
 
         {/* Complete main workspace workspace panels */}
         <main
+          ref={mainWorkspaceRef}
           className="flex-1 min-w-0 px-3 py-3 sm:p-6 md:p-8 overflow-y-auto overflow-x-hidden space-y-4 md:space-y-8"
           id="wp-inner-body"
         >
@@ -3433,31 +3447,6 @@ export default function AdminPanel({
             ========================================================= */}
             {activeTab === "projects" && (
               <div className="space-y-6" id="projects-workspace">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setActiveTab("listings")}
-                      className="p-1.5 bg-slate-100 hover:bg-slate-300 text-slate-800 rounded-lg transition-colors cursor-pointer"
-                      title="Quay lại Bảng Thống Kê"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                    </button>
-                    <h3 className="text-slate-900 font-display font-medium text-base">
-                      Dự án
-                    </h3>
-                  </div>
-
-                  <button
-                    onClick={() => {
-                      setCreateType("project");
-                      setActiveTab("new_wizard");
-                    }}
-                    className="inline-flex items-center gap-1 bg-primary text-white font-bold text-xs py-[5px] px-4 rounded-lg cursor-pointer"
-                  >
-                    <span>Thêm</span>
-                  </button>
-                </div>
-
                 <div className="bg-slate-50 border border-slate-200 rounded-xl shadow-lg shadow-black/50 overflow-hidden w-full">
                   <table className="w-full text-left text-sm text-slate-800">
                     <thead className="bg-slate-200 text-slate-700 text-[10px] font-bold tracking-widest border-b border-slate-200">
@@ -3839,30 +3828,6 @@ export default function AdminPanel({
             ========================================================= */}
             {activeTab === "articles" && (
               <div className="space-y-6" id="news-blogs-workspace">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setActiveTab("listings")}
-                      className="p-1.5 bg-slate-100 hover:bg-slate-300 text-slate-800 rounded-lg transition-colors cursor-pointer"
-                      title="Quay lại Bảng Thống Kê"
-                    >
-                      <ArrowLeft className="w-4 h-4" />
-                    </button>
-                    <h3 className="text-slate-900 font-display font-medium text-base">
-                      Danh sách tin tức
-                    </h3>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setCreateType("article");
-                      setActiveTab("new_wizard");
-                    }}
-                    className="inline-flex items-center gap-1 bg-primary text-white font-bold text-xs py-[5px] px-4 rounded-lg cursor-pointer"
-                  >
-                    <span>Thêm bài viết</span>
-                  </button>
-                </div>
-
                 <div className="bg-slate-50 border border-slate-200 rounded-xl shadow-lg shadow-black/50 overflow-hidden w-full">
                   <table className="w-full text-left text-sm text-slate-800">
                     <thead className="bg-slate-200 text-slate-700 text-[10px] font-bold tracking-widest border-b border-slate-200">
@@ -4226,7 +4191,7 @@ export default function AdminPanel({
             TAB 4.5: GENERAL SETTINGS
             ========================================================= */}
             {activeTab === "general" && (
-              <div className="space-y-6 max-w-2xl mx-auto" id="general-settings-workspace">
+              <div className="w-full space-y-6" id="general-settings-workspace">
                 <div className="bg-slate-50 border border-slate-200 px-[10px] py-[10px] rounded-lg">
                   <h3 className="font-display font-medium text-slate-900 text-base text-left border-b border-slate-200 pb-0 tracking-wider">
                     Cấu Hình Liên Hệ & Mạng Xã Hội
@@ -4360,70 +4325,10 @@ export default function AdminPanel({
             )}
 
             {/* =========================================================
-            TAB 4.8: AI & AUTO-POST SETTINGS
-            ========================================================= */}
-            {activeTab === "integrations" && (
-              <div className="space-y-6 max-w-3xl mx-auto" id="integrations-workspace">
-                {/* Auto Post */}
-                <div className="bg-slate-50 border border-slate-200 px-[15px] py-[15px] rounded-lg">
-                  <h3 className="font-display font-medium text-slate-900 text-base text-left border-b border-slate-200 pb-2 mb-4 tracking-wider flex items-center gap-2">
-                    <Share2 className="w-5 h-5 text-indigo-500" />
-                    Auto-Post (Đăng tin đa nền tảng)
-                  </h3>
-                  <div className="space-y-5 text-left">
-                    <p className="text-xs text-slate-700">Thiết lập tài khoản để tự động đồng bộ hóa tin đăng dự án/bài viết lên các trang bên ngoài khi xuất bản.</p>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Batdongsan.com.vn */}
-                      <div className="p-4 border border-slate-200 rounded-lg bg-black/50">
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="font-bold text-sm text-red-500">BatDongSan.com.vn</span>
-                          <span className="px-2 py-0.5 bg-slate-100 text-[10px] rounded text-slate-700 uppercase">Chưa kết nối</span>
-                        </div>
-                        <input type="text" placeholder="Access Token / API Key" className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs mb-2 outline-none text-slate-900" />
-                        <button className="w-full bg-slate-100 hover:bg-slate-300 text-slate-900 font-medium px-4 py-2 text-[11px] rounded transition-colors">
-                          Lưu Cấu Hình
-                        </button>
-                      </div>
-
-                      {/* Chotot */}
-                      <div className="p-4 border border-slate-200 rounded-lg bg-black/50">
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="font-bold text-sm text-primary">ChoTot.com</span>
-                          <span className="px-2 py-0.5 bg-slate-100 text-[10px] rounded text-slate-700 uppercase">Chưa kết nối</span>
-                        </div>
-                        <input type="text" placeholder="Access Token / API Key" className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs mb-2 outline-none text-slate-900" />
-                        <button className="w-full bg-slate-100 hover:bg-slate-300 text-slate-900 font-medium px-4 py-2 text-[11px] rounded transition-colors">
-                          Lưu Cấu Hình
-                        </button>
-                      </div>
-
-                      {/* Facebook */}
-                      <div className="p-4 border border-slate-200 rounded-lg bg-black/50 md:col-span-2">
-                        <div className="flex justify-between items-center mb-3">
-                          <span className="font-bold text-sm text-blue-500">Facebook Page (Auto-Post)</span>
-                          <span className="px-2 py-0.5 bg-slate-100 text-[10px] rounded text-slate-700 uppercase">Chưa kết nối</span>
-                        </div>
-                        <input type="text" placeholder="Facebook Page Access Token" className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs mb-2 outline-none text-slate-900" />
-                        <button className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium px-4 py-2 text-[11px] rounded transition-colors">
-                          Kết Nối Facebook Graph API
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-lg text-xs leading-relaxed text-indigo-300">
-                      <strong>Lưu ý:</strong> Tính năng Auto-Post đòi hỏi các nền tảng thứ 3 cấp quyền truy cập API (Thường dành cho tài khoản Đại lý/Doanh nghiệp). Nếu bạn chưa có API Key, liên hệ bộ phận hỗ trợ của nền tảng đó để được cấp.
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* =========================================================
             TAB 5: SEO global metas settings
             ========================================================= */}
             {activeTab === "seo" && (
-              <div className="space-y-6 max-w-xl mx-auto" id="seo-workspace">
+              <div className="w-full space-y-6" id="seo-workspace">
                 <div className="bg-slate-50 border border-slate-200 px-[10px] py-[10px] rounded-lg">
                   <h3 className="font-display font-medium text-slate-900 text-base text-left border-b border-slate-200 pb-0 tracking-wider">
                     Thiết Lập SEO
@@ -4539,6 +4444,9 @@ export default function AdminPanel({
                         <p className="text-[9px] text-slate-500">Không cấu hình cùng Pixel này trong GTM để tránh ghi nhận trùng.</p>
                       </div>
                     </div>
+
+                    <StaticSeoSettings value={staticSeoPages} onChange={setStaticSeoPages} />
+                    <LocationSeoSettings value={locationSeoPages} onChange={setLocationSeoPages} />
 
                     <div className="pt-2">
                       <button
@@ -7742,36 +7650,6 @@ export default function AdminPanel({
                         />
                       </div>
 
-                      <div className="space-y-1 md:col-span-1">
-                        <label className="text-[10px] font-bold text-slate-500">
-                          Schema Rating (Số sao ban đầu)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          min="0"
-                          max="5"
-                          value={itemBaseRating}
-                          onChange={(e) => setItemBaseRating(e.target.value)}
-                          placeholder="Mặc định: 5.0"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 min-h-[32px] text-[10px] text-slate-900 outline-none focus:border-primary font-sans"
-                        />
-                        <p className="text-[9px] text-slate-500 font-sans mt-1">Từ 1 đến 5.</p>
-                      </div>
-
-                      <div className="space-y-1 md:col-span-1">
-                        <label className="text-[10px] font-bold text-slate-500">
-                          Schema Review Count (Khởi điểm)
-                        </label>
-                        <input
-                          type="number"
-                          value={itemBaseReviewCount}
-                          onChange={(e) => setItemBaseReviewCount(e.target.value)}
-                          placeholder="Mặc định: 0"
-                          className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 min-h-[32px] text-[10px] text-slate-900 outline-none focus:border-primary font-sans"
-                        />
-                        <p className="text-[9px] text-slate-500 font-sans mt-1">Sẽ cộng dồn khi khách hàng đánh giá thật.</p>
-                      </div>
                     </div>
                   </div>
 
@@ -7780,23 +7658,6 @@ export default function AdminPanel({
                     <div className="bg-white border border-slate-200 p-3.5 rounded-lg flex items-center gap-3 text-xs text-amber-500 font-mono my-3 shadow-inner">
                       <span className="w-2 h-d+ rounded-full bg-amber-500 animate-ping"></span>
                       <span className="font-semibold">{uploadStatus}</span>
-                    </div>
-                  )}
-
-                  {isEditing && (
-                    <div className="bg-primary/10 border border-primary/20 text-amber-300 p-4 rounded-lg text-xs flex items-center justify-between">
-                      <span>
-                        Bạn đang sửa bài viết có ID:{" "}
-                        <strong>{editingItemId}</strong>. Ấn hủy để biến dọn
-                        sạch.
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleCancelWizard}
-                        className="bg-slate-200 text-slate-800 hover:bg-slate-300 px-3 py-1 rounded-lg font-bold transition-colors"
-                      >
-                        Hủy sửa
-                      </button>
                     </div>
                   )}
 

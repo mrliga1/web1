@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import NextImage from 'next/image';
-import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
+import { optimizeImageUrl, generateSlug, generateSrcSet, formatVietnamDate } from '../lib/utils';
 import { recordContentEngagement } from '../lib/engagement';
 import { CategoryExt, GeneralSettingsData, News, Product, Project, RouteState } from '../types';
 import { Calendar, User, Eye, CheckCircle2, Bookmark, ArrowRight, Tag, Building, MapPin, Layers, Bath, Building2, Phone, FolderOpen, ChevronDown, Pause, Play } from 'lucide-react';
@@ -43,6 +43,7 @@ interface NewsDetailProps {
 
 import { notifyAdminEmail } from '../lib/email';
 import { fetchClientIp } from '../lib/ip';
+import { notifyNewConsultation } from '../lib/pushNotifications';
 
 export default function NewsDetail({
   newsId,
@@ -314,7 +315,7 @@ export default function NewsDetail({
         friendlyUrl = window.location.href;
       }
 
-      await addDoc(collection(db, "consultations"), {
+      const createdConsultation = await addDoc(collection(db, "consultations"), {
         name: clientName.trim(),
         phone: clientPhone.trim(),
         email: clientEmail.trim(),
@@ -326,6 +327,7 @@ export default function NewsDetail({
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,
       });
+      notifyNewConsultation(String(createdConsultation.id));
       trackLead('news_consultation', 'news_detail', article?.id || newsId || slug);
 
       notifyAdminEmail({
@@ -548,7 +550,7 @@ export default function NewsDetail({
                     onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
                     className="basis-[85%] sm:basis-[calc(50%-0.5rem)] lg:basis-[calc(33.333%-0.75rem)] shrink-0 snap-start bg-bg-surface/30 border border-border-color hover:border-primary/40 rounded-lg p-3 space-y-3 cursor-pointer transition-all"
                   >
-                    <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-28 object-cover rounded-lg" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} srcSet={generateSrcSet(n.imageUrl)} sizes="(max-width: 639px) 80vw, (max-width: 1023px) 45vw, 400px" alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-28 object-cover rounded-lg" referrerPolicy="no-referrer" />
                     <div className="text-left space-y-1 whitespace-normal">
                       <h3 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h3>
                       <span className="text-[10px] lg:text-[9px] text-text-secondary font-mono block mt-1">
@@ -584,7 +586,7 @@ export default function NewsDetail({
                   onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
                   className="flex gap-2.5 text-left group cursor-pointer border-b border-black pb-2 last:border-0 items-start"
                 >
-                  <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={45} height={45} className="w-[45px] h-[45px] object-cover rounded shrink-0" referrerPolicy="no-referrer" />
+                  <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 100) || undefined} srcSet={generateSrcSet(n.imageUrl)} sizes="45px" alt={n.title} width={45} height={45} className="w-[45px] h-[45px] object-cover rounded shrink-0" referrerPolicy="no-referrer" />
                   <div className="flex-1 space-y-0.5 mt-[-1px]">
                     <h3 className="text-[11px] font-semibold text-text-secondary group-hover:text-primary leading-[14px] line-clamp-2">
                       {n.title}
@@ -683,7 +685,7 @@ export default function NewsDetail({
                     <span className={`absolute top-0 left-0 px-[5px] py-[3px] text-[10px] font-semibold text-white z-10 rounded-br-[5px] ${p.type === 'rent' ? 'bg-primary' : 'bg-rose-700'}`}>
                       {p.type === 'rent' ? 'Cho thuê' : 'Bán'}
                     </span>
-                    <img loading="lazy" decoding="async" src={optimizeImageUrl(p.imageUrl || (p.imageUrls && p.imageUrls[0]), 400) || undefined} alt={p.title} width={400} height={340} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                    <img loading="lazy" decoding="async" src={optimizeImageUrl(p.imageUrl || (p.imageUrls && p.imageUrls[0]), 200) || undefined} srcSet={generateSrcSet(p.imageUrl || (p.imageUrls && p.imageUrls[0]))} sizes="100px" alt={p.title} width={400} height={340} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center min-w-0">
@@ -897,7 +899,7 @@ export default function NewsDetail({
                 onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
                 className="w-full bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
               >
-                <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
+                <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} srcSet={generateSrcSet(n.imageUrl)} sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 767px) 50vw, (max-width: 1023px) 33vw, 20vw" alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
                 <div className="text-left space-y-1">
                   <h3 className="text-sm lg:text-xs font-semibold text-text-primary line-clamp-2">{n.title}</h3>
                   <span className="text-[10px] lg:text-[9px] text-white/70 font-mono block mt-1">
@@ -1001,6 +1003,8 @@ export default function NewsDetail({
                       <div className="relative aspect-[16/10] overflow-hidden">
                         <img loading="lazy" decoding="async"
                           src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                          srcSet={generateSrcSet(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800")}
+                          sizes="(max-width: 767px) 260px, (max-width: 1023px) 240px, 223px"
                           alt={p.title}
                           width={800}
                           height={500}

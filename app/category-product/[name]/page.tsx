@@ -14,10 +14,17 @@ import {
 
 export const revalidate = 60;
 
-export default async function CategoryProductPage({ params }: { params: Promise<{ name: string }> }) {
-  const { name } = await params;
+export default async function CategoryProductPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ name: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const [{ name }, query] = await Promise.all([params, searchParams]);
   const decodedName = decodeURIComponent(name);
   const requestSlug = generateSlug(decodedName);
+  const initialCategoryLayout = query.view === 'split' ? 'split' : 'grid';
 
   if (name !== requestSlug) {
     permanentRedirect(`/category-product/${requestSlug}`);
@@ -100,6 +107,7 @@ export default async function CategoryProductPage({ params }: { params: Promise<
         initialCategoryTitle={initialCategoryTitle}
         initialCategoryDesc={initialCategoryDesc}
         initialCategoryName={initialCategoryName}
+        initialCategoryLayout={initialCategoryLayout}
         initialProducts={productRows.map(({ id, data }) => ({ ...data, id }))}
         initialProjects={projectRows.map(({ id, data }) => ({ ...data, id }))}
         initialSections={initialSections}

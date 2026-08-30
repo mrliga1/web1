@@ -151,10 +151,9 @@ function addListingDetails(
     };
   }
 
-  const baseRating = item.baseRating || 5;
-  const baseCount = item.baseReviewCount || 0;
-  const totalStars = baseRating * baseCount + (item.userTotalRating || 0);
-  const totalCount = baseCount + (item.userReviewCount || 0);
+  // Chỉ xuất đánh giá thực do người dùng gửi; không tạo số sao khởi điểm giả.
+  const totalStars = item.userTotalRating || 0;
+  const totalCount = item.userReviewCount || 0;
 
   if (totalCount > 0) {
     schema.aggregateRating = {

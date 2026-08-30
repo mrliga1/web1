@@ -14,8 +14,6 @@ interface StarRatingInteractiveProps {
 export default function StarRatingInteractive({
   collectionName,
   documentId,
-  baseRating,
-  baseReviewCount,
   userTotalRating,
   userReviewCount,
 }: StarRatingInteractiveProps) {
@@ -33,12 +31,8 @@ export default function StarRatingInteractive({
     setRatingCount(userReviewCount || 0);
   }, [documentId, userReviewCount, userTotalRating]);
 
-  const rawBaseRating = baseRating || 5;
-  const rawBaseCount = baseReviewCount || 0;
-  const totalStars = rawBaseRating * rawBaseCount + ratingTotal;
-  const totalCount = rawBaseCount + ratingCount;
-  
-  const currentAvg = totalCount === 0 ? rawBaseRating : totalStars / totalCount;
+  const totalCount = ratingCount;
+  const currentAvg = totalCount === 0 ? 0 : ratingTotal / totalCount;
   
   const handleRate = async (rating: number) => {
     if (hasRated) return;
@@ -83,8 +77,8 @@ export default function StarRatingInteractive({
         </div>
         <div className="text-[11px] text-text-secondary font-medium flex items-center space-x-1 border-l border-border-inverse/50 pl-3">
           <span className="text-text-primary bg-[#064E3B]/10 text-primary pr-1.5 rounded font-bold text-[10px] mr-1 py-[1px] pl-[6px]">{currentAvg.toFixed(1)}</span>
-          <span className="text-white/70">/ 5</span>
-          <span className="text-white/70 ml-1">({totalCount} đánh giá)</span>
+          <span className="text-text-secondary">/ 5</span>
+          <span className="ml-1 text-text-secondary">({totalCount} đánh giá)</span>
         </div>
       </div>
       {hasRated && (

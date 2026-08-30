@@ -523,6 +523,86 @@ html:not([data-has-recently-viewed]) .recently-viewed-shell {
   text-wrap: balance;
 }
 
+/* Giao diện quản trị: tương phản cao, không ảnh hưởng các trang công khai. */
+#wp-admin-root {
+  background: #eef4f1;
+  color: #17231f;
+}
+
+#wp-workspace,
+#wp-inner-body {
+  min-width: 0;
+  background: #f4f8f6;
+}
+
+#wp-topbar {
+  background: #ffffff;
+  border-color: rgb(6 78 59 / 0.16);
+}
+
+#wp-admin-sidebar button {
+  color: #d1fae5;
+}
+
+#wp-admin-sidebar button:hover,
+#wp-admin-sidebar button:focus-visible {
+  color: #ffffff;
+  background: rgb(255 255 255 / 0.1);
+}
+
+#wp-admin-sidebar button .text-primary {
+  color: #6ee7b7 !important;
+}
+
+#wp-admin-sidebar .text-slate-500,
+#wp-admin-sidebar .text-slate-700 {
+  color: rgb(209 250 229 / 0.76) !important;
+}
+
+#wp-inner-body input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+#wp-inner-body textarea,
+#wp-inner-body select {
+  appearance: none;
+  border: 1px solid #b9c9c2 !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background-color: #ffffff;
+  color: #17231f;
+}
+
+#wp-inner-body input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+#wp-inner-body textarea:focus,
+#wp-inner-body select:focus {
+  border-color: #047857 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+#wp-inner-body input[type="checkbox"],
+#wp-inner-body input[type="radio"] {
+  accent-color: #047857;
+}
+
+#wp-inner-body table {
+  max-width: 100%;
+}
+
+@media (max-width: 767px) {
+  #wp-topbar {
+    padding-inline: 0.75rem;
+  }
+
+  #wp-inner-body {
+    padding-inline: 0.75rem;
+  }
+
+  #wp-inner-body .shadow-2xl,
+  #wp-inner-body .shadow-xl,
+  #wp-inner-body .shadow-lg {
+    box-shadow: 0 8px 24px rgb(6 78 59 / 0.08);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;

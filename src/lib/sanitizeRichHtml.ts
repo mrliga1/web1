@@ -1,4 +1,4 @@
-import { optimizeImageUrl } from "./utils";
+import { generateSrcSet, optimizeImageUrl } from "./utils";
 
 const BLOCKED_CONTAINER_TAGS = /<\s*(script|object|embed)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi;
 const BLOCKED_STANDALONE_TAGS = /<\s*\/?\s*(script|object|embed|base|meta|link)\b[^>]*>/gi;
@@ -12,7 +12,7 @@ const IMAGE_WITHOUT_WIDTH_ATTRIBUTE = /<img\b(?![^>]*\bwidth\s*=)([^>]*)>/gi;
 const IMAGE_WITHOUT_HEIGHT_ATTRIBUTE = /<img\b(?![^>]*\bheight\s*=)([^>]*)>/gi;
 const IFRAME_WITHOUT_TITLE_ATTRIBUTE = /<iframe\b(?![^>]*\btitle\s*=)([^>]*)>/gi;
 const IFRAME_WITHOUT_LOADING_ATTRIBUTE = /<iframe\b(?![^>]*\bloading\s*=)([^>]*)>/gi;
-const IMAGE_SRC_ATTRIBUTE = /(<img\b[^>]*\bsrc\s*=\s*)(["'])([^"']+)\2/gi;
+const IMAGE_TAG = /<img\b[^>]*>/gi;
 const HEADING_OPEN_TAG = /<(h[1-6])\b([^>]*)>/gi;
 
 function getAltFromImageAttributes(attributes: string) {
@@ -63,12 +63,30 @@ export function sanitizeRichHtml(value: unknown) {
     .replace(URI_ATTRIBUTE, (attribute, name: string, uri: string) => {
       return isUnsafeUri(uri) ? "" : ` ${name}=${uri}`;
     })
-    .replace(IMAGE_SRC_ATTRIBUTE, (_attribute, prefix: string, quote: string, source: string) => {
-      const optimizedSource = /^https?:/i.test(source) ? optimizeImageUrl(source, 1200) : source;
-      return `${prefix}${quote}${optimizedSource}${quote}`;
-    })
     .replace(IMAGE_WITHOUT_ALT_ATTRIBUTE, (_tag, attributes: string) => {
       return `<img alt="${getAltFromImageAttributes(attributes)}"${attributes}>`;
+    })
+    .replace(IMAGE_TAG, (tag: string) => {
+      const sourceMatch = tag.match(/\bsrc\s*=\s*(["'])([^"']+)\1/i);
+      const source = sourceMatch?.[2];
+      if (!source || /^(data:|blob:)/i.test(source)) return tag;
+
+      const optimizedSource = optimizeImageUrl(source, 1200) || source;
+      let responsiveTag = tag.replace(
+        /\bsrc\s*=\s*(["'])[^"']+\1/i,
+        `src="${optimizedSource}"`,
+      );
+      const srcSet = generateSrcSet(source);
+      if (srcSet && !/\bsrcset\s*=/i.test(responsiveTag)) {
+        responsiveTag = responsiveTag.replace(/\s*\/>$|>$/, ` srcset="${srcSet}">`);
+      }
+      if (!/\bsizes\s*=/i.test(responsiveTag)) {
+        responsiveTag = responsiveTag.replace(
+          /\s*\/>$|>$/,
+          ' sizes="(max-width: 767px) 100vw, (max-width: 1279px) 90vw, 1200px">',
+        );
+      }
+      return responsiveTag;
     })
     .replace(IMAGE_WITHOUT_WIDTH_ATTRIBUTE, '<img width="1200"$1>')
     .replace(IMAGE_WITHOUT_HEIGHT_ATTRIBUTE, '<img height="675"$1>')

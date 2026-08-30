@@ -1,16 +1,6 @@
-import type { Metadata } from 'next';
+import { getManagedStaticMetadata } from '../../src/lib/staticSeo';
 
-export const metadata: Metadata = {
-  title: 'Tin đã lưu',
-  description: 'Danh sách bất động sản yêu thích của bạn tại Greenia Homes.',
-  alternates: {
-    canonical: 'https://greeniahomes.vn/yeu-thich'
-  },
-  robots: {
-    index: false,
-    follow: false,
-  },
-};
+export const generateMetadata = () => getManagedStaticMetadata('/yeu-thich');
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return <>{children}</>;

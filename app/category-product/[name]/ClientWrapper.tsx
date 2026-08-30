@@ -13,6 +13,7 @@ export default function ClientWrapper({
   initialCategoryTitle,
   initialCategoryDesc,
   initialCategoryName,
+  initialCategoryLayout,
   initialProducts,
   initialProjects,
   initialSections,
@@ -23,6 +24,7 @@ export default function ClientWrapper({
   initialCategoryTitle?: string,
   initialCategoryDesc?: string,
   initialCategoryName?: string,
+  initialCategoryLayout: 'grid' | 'split',
   initialProducts: Product[],
   initialProjects: Project[],
   initialSections: VisualSection[],
@@ -57,6 +59,7 @@ export default function ClientWrapper({
       initialCategoryTitle={initialCategoryTitle}
       initialCategoryDesc={initialCategoryDesc}
       initialCategoryName={initialCategoryName}
+      initialCategoryLayout={initialCategoryLayout}
       initialProducts={initialProducts}
       initialProjects={initialProjects}
       initialGeneralSettings={initialGeneralSettings}

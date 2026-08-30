@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
+import { optimizeImageUrl, generateSlug, generateSrcSet, formatVietnamDate } from '../lib/utils';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { fetchClientIp } from '../lib/ip';
 import { notifyAdminEmail } from '../lib/email';
@@ -12,6 +12,7 @@ import { Product, Project, News, RouteState, VisualSection } from '../types';
 import { EditableText } from './EditableComponent';
 import ProductCard from './ProductCard';
 import { trackLead } from '../lib/tracking';
+import { notifyNewConsultation } from '../lib/pushNotifications';
 
 const HOME_CONSULTATION_FIELD_CLASS =
   'w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-[12px] px-3.5 text-text-primary placeholder-text-secondary';
@@ -68,7 +69,7 @@ const HeroConsultationForm: React.FC<{
         friendlyUrl = window.location.href;
       }
 
-      await addDoc(collection(db, 'consultations'), {
+      const createdConsultation = await addDoc(collection(db, 'consultations'), {
         name: clientName.trim(),
         phone: clientPhone.trim(),
         email: clientEmail.trim(),
@@ -80,6 +81,7 @@ const HeroConsultationForm: React.FC<{
         sourceUrl: friendlyUrl,
         ipAddress: clientIp
       });
+      notifyNewConsultation(String(createdConsultation.id));
       trackLead('homepage_consultation', 'homepage');
 
       notifyAdminEmail({
@@ -887,6 +889,8 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
                     <div className="relative aspect-[16/10] overflow-hidden">
                       <img loading="lazy" decoding="async"
                         src={optimizeImageUrl(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                        srcSet={generateSrcSet(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800")}
+                        sizes="(max-width: 767px) 260px, (max-width: 1023px) 240px, 223px"
                         alt={proj.title}
                         width="800"
                         height="500"
@@ -1016,6 +1020,8 @@ export const NewsBody: React.FC<NewsProps> = ({
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <img loading="lazy" decoding="async"
                       src={optimizeImageUrl(article.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                      srcSet={generateSrcSet(article.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800")}
+                      sizes="(max-width: 767px) 260px, (max-width: 1023px) 240px, 223px"
                       alt={article.title}
                       width="800"
                       height="500"

@@ -1,4 +1,4 @@
-import { createStaticPageMetadata } from '../../src/lib/internalLinks';
+import { getManagedStaticMetadata } from '../../src/lib/staticSeo';
 import SchemaMarkup from '../../src/components/SchemaMarkup';
 import { createWebPageSchemas } from '../../src/lib/contentSchemas';
 
@@ -14,11 +14,7 @@ const { webPage, breadcrumb } = createWebPageSchemas({
   ],
 });
 
-export const metadata = createStaticPageMetadata({
-  title: 'Điều khoản sử dụng',
-  description: pageDescription,
-  path: '/dieu-khoan-su-dung',
-});
+export const generateMetadata = () => getManagedStaticMetadata('/dieu-khoan-su-dung');
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (

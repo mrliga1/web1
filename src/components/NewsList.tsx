@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { optimizeImageUrl, generateSlug, formatVietnamDate } from '../lib/utils';
+import { optimizeImageUrl, generateSlug, generateSrcSet, formatVietnamDate } from '../lib/utils';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
   if (event.key === "Enter" || event.key === " ") {
@@ -67,6 +67,13 @@ function getFeaturedNewsAvifUrl(url: string) {
   }
   if (url === '/uploads/kiem-tra-bai-viet-moi-lcp.webp') {
     return '/uploads/kiem-tra-bai-viet-moi-lcp.avif';
+  }
+  return null;
+}
+
+function getFeaturedNewsMobileUrl(url: string) {
+  if (url === '/uploads/kiem-tra-bai-viet-moi-lcp.webp') {
+    return '/uploads/kiem-tra-bai-viet-moi-lcp-mobile.webp';
   }
   return null;
 }
@@ -251,6 +258,7 @@ export default function NewsList({
     displayArticle?.imageUrl || "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600",
   );
   const displayArticleAvif = getFeaturedNewsAvifUrl(displayArticleImage);
+  const displayArticleMobileImage = getFeaturedNewsMobileUrl(displayArticleImage);
 
   const trendingNews = [...contextNews]
     .filter(n => !middleGridIds.has(n.id))
@@ -468,11 +476,15 @@ export default function NewsList({
                     {/* Cover highlight */}
                     <div className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors">
                       <div className="h-[260px] overflow-hidden relative">
-                        <link rel="preload" as="image" href={displayArticleAvif || displayArticleImage} type={displayArticleAvif ? 'image/avif' : undefined} fetchPriority="high" />
+                        {displayArticleMobileImage && <link rel="preload" as="image" href={displayArticleMobileImage} type="image/webp" media="(max-width: 767px)" fetchPriority="high" />}
+                        <link rel="preload" as="image" href={displayArticleAvif || displayArticleImage} type={displayArticleAvif ? 'image/avif' : undefined} media={displayArticleAvif ? '(min-width: 768px)' : undefined} fetchPriority="high" />
                         <picture className="block w-full h-full">
-                          {displayArticleAvif && <source srcSet={displayArticleAvif} type="image/avif" />}
+                          {displayArticleMobileImage && <source srcSet={displayArticleMobileImage} type="image/webp" media="(max-width: 767px)" />}
+                          {displayArticleAvif && <source srcSet={displayArticleAvif} type="image/avif" media="(min-width: 768px)" />}
                           <img
                             src={displayArticleImage}
+                            srcSet={generateSrcSet(displayArticleImage)}
+                            sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1023px) 50vw, 520px"
                             alt={displayArticle?.title || 'Tin tức bất động sản nổi bật'}
                             width={520}
                             height={293}
@@ -541,7 +553,7 @@ export default function NewsList({
                             className="cursor-pointer group flex items-center gap-2.5 mb-4"
                           >
                             <div className="w-[70px] h-[50px] shrink-0 rounded overflow-hidden border border-border-inverse">
-                              <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 800) || undefined} alt={`Ảnh thu nhỏ bài viết: ${article.title}`} width="70" height="50" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                              <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 100) || undefined} srcSet={generateSrcSet(article.thumbnail)} sizes="70px" alt={`Ảnh thu nhỏ bài viết: ${article.title}`} width="70" height="50" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                             </div>
                             <div className="flex-1 min-w-0 flex flex-col justify-center">
                               <h4 className="text-[12px] text-text-primary hover:text-primary transition-colors font-semibold line-clamp-2 m-0 mb-1 leading-snug">
@@ -581,7 +593,7 @@ export default function NewsList({
                           className="flex gap-3 pb-[15px] border-b border-dashed border-border-color transition-colors cursor-pointer group hover:border-b-yellow-500 items-center"
                         >
                           <div className="w-[90px] h-[65px] rounded overflow-hidden shrink-0 border border-border-color relative">
-                            <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 400) || undefined} alt={article.title} width="90" height="65" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                            <img loading="lazy" decoding="async" src={optimizeImageUrl(article.thumbnail, 100) || undefined} srcSet={generateSrcSet(article.thumbnail)} sizes="90px" alt={article.title} width="90" height="65" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                           </div>
 
                           <div className="flex-1 flex flex-col justify-center">
@@ -638,7 +650,7 @@ export default function NewsList({
                                       {p.type === 'rent' ? 'Cho thuê' : 'Bán'}
                                     </span>
                                   )}
-                                  <img loading="lazy" decoding="async" src={getNewsSupportingImageUrl(p.imageUrl || p.imageUrls?.[0], 200)} alt={p.title} width="100" height="85" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
+                                  <img loading="lazy" decoding="async" src={getNewsSupportingImageUrl(p.imageUrl || p.imageUrls?.[0], 200)} srcSet={generateSrcSet(p.imageUrl || p.imageUrls?.[0])} sizes="100px" alt={p.title} width="100" height="85" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 block" referrerPolicy="no-referrer" />
                                 </div>
 
                                 <div className="flex-1 flex flex-col justify-center min-w-0">
@@ -753,6 +765,8 @@ export default function NewsList({
                                 <div className="relative aspect-[16/10] overflow-hidden">
                                   <img loading="lazy" decoding="async"
                                     src={getNewsSupportingImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400)}
+                                    srcSet={generateSrcSet(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800")}
+                                    sizes="(max-width: 767px) 260px, (max-width: 1023px) 240px, 223px"
                                     alt={p.title}
                                     width="800"
                                     height="500"

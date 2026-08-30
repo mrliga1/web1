@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import NextImage from "next/image";
-import { generateSlug, optimizeImageUrl } from "../lib/utils";
+import { generateSlug, generateSrcSet, optimizeImageUrl } from "../lib/utils";
 import { parseLocation, formatLocationName } from "../lib/locationMapping";
 import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
 import { recordContentEngagement } from "../lib/engagement";
 import { CategoryExt, GeneralSettingsData, News, Product, Project, RouteState } from "../types";
 import { useScrollDirection } from "../hooks/useScrollDirection";
 import { trackContentView, trackLead, trackShare } from "../lib/tracking";
+import { notifyNewConsultation } from "../lib/pushNotifications";
 import {
   MapPin,
   Phone,
@@ -401,7 +402,7 @@ export default function ProductDetail({
         friendlyUrl = window.location.href;
       }
 
-      await addDoc(collection(db, "consultations"), {
+      const createdConsultation = await addDoc(collection(db, "consultations"), {
         name: clientName.trim(),
         phone: clientPhone.trim(),
         email: clientEmail.trim(),
@@ -413,6 +414,7 @@ export default function ProductDetail({
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,
       });
+      notifyNewConsultation(String(createdConsultation.id));
       trackLead('product_inquiry', 'product_detail', product?.id || productId || slug);
 
       notifyAdminEmail({
@@ -591,7 +593,11 @@ export default function ProductDetail({
           </button>
           <span>/</span>
           <button
-            onClick={() => onNavigate({ screen: "category-product", categoryName: product.category })}
+            onClick={() => onNavigate({
+              screen: "category-product",
+              categoryName: product.category,
+              categoryLayout: "split",
+            })}
             className="text-primary max-w-[120px] sm:max-w-none truncate hover:underline cursor-pointer"
           >
             {product.category}
@@ -723,6 +729,8 @@ export default function ProductDetail({
                     loading="lazy"
                     decoding="async"
                     src={imgUrl ? optimizeImageUrl(imgUrl, 200) : undefined}
+                    srcSet={generateSrcSet(imgUrl)}
+                    sizes="(max-width: 1023px) 64px, 80px"
                     alt={`${product.title} - ảnh thu nhỏ ${thumbIdx + 1}`}
                     width={200}
                     height={150}
@@ -1522,6 +1530,8 @@ export default function ProductDetail({
                     <div className="relative aspect-[16/10] overflow-hidden">
                       <img loading="lazy" decoding="async"
                         src={optimizeImageUrl(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                        srcSet={generateSrcSet(p.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800")}
+                        sizes="(max-width: 767px) 260px, (max-width: 1023px) 240px, 223px"
                         alt={p.title}
                         width={800}
                         height={500}
@@ -1583,7 +1593,9 @@ export default function ProductDetail({
           
           <figure className="relative w-full max-w-6xl max-h-[90vh] flex items-center justify-center px-4">
             <img 
-              src={selectedImage}
+              src={optimizeImageUrl(selectedImage, 1600) || undefined}
+              srcSet={generateSrcSet(selectedImage)}
+              sizes="100vw"
               alt={product.title}
               width={1600}
               height={900}

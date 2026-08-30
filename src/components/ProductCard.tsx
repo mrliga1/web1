@@ -67,7 +67,7 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
         <img 
           src={safeImageUrl || undefined}
           srcSet={generateSrcSet(item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : null))}
-          sizes="(max-width: 640px) 90px, (max-width: 1024px) 50vw, 400px"
+          sizes="(max-width: 640px) 90px, (max-width: 1023px) 50vw, (max-width: 1279px) 25vw, 400px"
           alt={item.title || 'Product'} 
           width="400"
           height="300"

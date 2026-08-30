@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
-import { formatVietnamDate, generateSlug, optimizeImageUrl, getRouteUrl } from '../lib/utils';
+import { formatVietnamDate, generateSlug, generateSrcSet, optimizeImageUrl, getRouteUrl } from '../lib/utils';
 import { useRouter } from 'next/navigation';
 import { collection, getDocs, getDoc, doc, db, type LegacyDocSnapshot } from '../firebase';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
@@ -29,6 +29,7 @@ interface ProductListProps {
   initialCategoryTitle?: string;
   initialCategoryDesc?: string;
   initialCategoryName?: string;
+  initialCategoryLayout?: 'grid' | 'split';
   initialProducts?: Product[];
   initialProjects?: Project[];
   initialGeneralSettings?: GeneralSettingsData;
@@ -133,6 +134,8 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
           >
             <img
               src={optimizeImageUrl(mainImage, 800) || undefined}
+              srcSet={generateSrcSet(mainImage)}
+              sizes="(max-width: 767px) 66vw, (max-width: 1023px) 35vw, 320px"
               alt={item.title}
               width={800}
               height={600}
@@ -157,6 +160,8 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
             >
               <img
                 src={optimizeImageUrl(image, 300) || undefined}
+                srcSet={generateSrcSet(image)}
+                sizes="(max-width: 767px) 33vw, 150px"
                 alt={`${item.title} - ảnh ${index + 2}`}
                 width={300}
                 height={200}
@@ -254,6 +259,7 @@ export default function ProductList({
   initialCategoryTitle,
   initialCategoryDesc,
   initialCategoryName,
+  initialCategoryLayout = 'grid',
   initialProducts = [],
   initialProjects = [],
   initialGeneralSettings = {},
@@ -266,6 +272,7 @@ export default function ProductList({
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
   const [loading, setLoading] = useState(initialProducts.length === 0);
   const isCategoryView = Boolean(initialCategory && initialCategory !== 'all');
+  const isSplitCategoryView = isCategoryView && initialCategoryLayout === 'split';
 
   // Điều kiện lọc.
   const [searchQuery, setSearchQuery] = useState('');
@@ -1163,8 +1170,11 @@ export default function ProductList({
                   <div className="text-center py-12 text-white/70 text-xs">Không tìm thấy sản phẩm nào khớp bộ lọc lựa chọn của bạn.</div>
                 ) : (
                   <div className="space-y-6">
-                    {isCategoryView ? (
-                      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(280px,3fr)]">
+                    {isSplitCategoryView ? (
+                      <div
+                        data-category-layout="split"
+                        className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(280px,3fr)]"
+                      >
                         <div className="space-y-5">
                           {filteredProducts.slice(0, mainGridLimit).map((item, index) => (
                             <CategoryProductRow
@@ -1195,6 +1205,8 @@ export default function ProductList({
                                 <div className="relative h-[72px] w-[92px] shrink-0 overflow-hidden rounded-lg bg-bg-base">
                                   <img
                                     src={optimizeImageUrl(item.imageUrl || item.imageUrls?.[0] || '/no-image.svg', 300) || undefined}
+                                    srcSet={generateSrcSet(item.imageUrl || item.imageUrls?.[0] || '/no-image.svg')}
+                                    sizes="92px"
                                     alt={item.title}
                                     width={300}
                                     height={220}
@@ -1222,7 +1234,10 @@ export default function ProductList({
                         </aside>
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]">
+                      <div
+                        data-category-layout="grid"
+                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5 p-[10px]"
+                      >
                         {filteredProducts.slice(0, mainGridLimit).map((item, index) => (
                           <ProductCard key={item.id} item={item} priority={index < 2} headingLevel={2} onNavigate={onNavigate} />
                         ))}
@@ -1442,6 +1457,8 @@ export default function ProductList({
                                   decoding="async"
                                   fetchPriority="low"
                                   src={optimizeImageUrl(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800", 400) || undefined}
+                                  srcSet={generateSrcSet(proj.imageUrl || "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&q=80&w=800")}
+                                  sizes="(max-width: 767px) 260px, (max-width: 1023px) 240px, 223px"
                                   alt={proj.title}
                                   width="800"
                                   height="500"

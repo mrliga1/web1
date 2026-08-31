@@ -232,10 +232,48 @@ export interface GeneralSettingsData extends Record<string, unknown> {
   quotePopupVersion?: number;
   tiktokPixelEnabled?: boolean;
   tiktokPixelId?: string;
+  adSenseSettings?: AdSenseSettingsData;
   staticSeoPages?: Record<string, import('./lib/staticSeoConfig').StaticSeoPageConfig>;
   locationSeoPages?: Record<string, import('./lib/staticSeoConfig').StaticSeoPageConfig>;
   sitemapSettings?: SitemapSettingsData;
 }
+
+export const ADSENSE_SLOT_KEYS = [
+  'home-top',
+  'home-middle',
+  'prods-hub-interstitial',
+  'product-detail-deep',
+  'project-hub-middle',
+  'project-detail-bottom',
+  'news-catalog-interstitial',
+  'news-detail-mid',
+] as const;
+
+export type AdSenseSlotKey = (typeof ADSENSE_SLOT_KEYS)[number];
+export type AdSenseMode = 'auto' | 'manual';
+
+export interface AdSenseSettingsData {
+  enabled: boolean;
+  publisherId: string;
+  mode: AdSenseMode;
+  slots: Record<AdSenseSlotKey, string>;
+}
+
+export const DEFAULT_ADSENSE_SETTINGS: AdSenseSettingsData = {
+  enabled: true,
+  publisherId: 'ca-pub-3011026316612541',
+  mode: 'auto',
+  slots: {
+    'home-top': '',
+    'home-middle': '',
+    'prods-hub-interstitial': '',
+    'product-detail-deep': '',
+    'project-hub-middle': '',
+    'project-detail-bottom': '',
+    'news-catalog-interstitial': '',
+    'news-detail-mid': '',
+  },
+};
 
 export interface SitemapSettingsData {
   enabled: boolean;

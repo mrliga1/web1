@@ -1,69 +1,72 @@
-import React, { useState, useEffect } from 'react';
-import { dbLite } from '../firebase';
-import { doc as docLite, getDoc as getDocLite } from '../firebase';
-import type { GeneralSettingsData } from '../types';
+'use client';
+
+import { useEffect, useRef } from 'react';
+import { useAppContext } from '../contexts/AppContext';
+import {
+  isValidAdSensePublisherId,
+  isValidAdSenseSlotId,
+} from '../lib/adsense';
+import type { AdSenseSlotKey } from '../types';
 
 interface AdBannerProps {
-  slot?: string;
+  slot?: AdSenseSlotKey;
   className?: string;
+  containerClassName?: string;
 }
 
-export default function AdBanner({ slot = "default-ad-slot", className = "", containerClassName = "" }: AdBannerProps & { containerClassName?: string }) {
-  const [googleAdSenseCode, setGoogleAdSenseCode] = useState<string>('');
-  const [loading, setLoading] = useState(true);
+interface AdSenseWindow extends Window {
+  adsbygoogle?: Array<Record<string, never>>;
+}
+
+export default function AdBanner({
+  slot = 'home-top',
+  className = '',
+  containerClassName = '',
+}: AdBannerProps) {
+  const { adSenseSettings } = useAppContext();
+  const adRef = useRef<HTMLModElement>(null);
+  const slotId = adSenseSettings.slots[slot];
+  const canRender = adSenseSettings.enabled
+    && adSenseSettings.mode === 'manual'
+    && isValidAdSensePublisherId(adSenseSettings.publisherId)
+    && isValidAdSenseSlotId(slotId);
 
   useEffect(() => {
-    getDocLite(docLite(dbLite, 'settings', 'general')).then((snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data() as GeneralSettingsData;
-        const adCode = typeof data.googleAdSenseCode === 'string' ? data.googleAdSenseCode : '';
-        setGoogleAdSenseCode(adCode);
-      }
-      setLoading(false);
-    }).catch(err => {
-      console.error("Lỗi AdBanner:", err);
-      setLoading(false);
-    });
-  }, []);
+    if (!canRender || !adRef.current) return;
+    if (adRef.current.getAttribute('data-ad-status')) return;
 
-  const containerRef = React.useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!loading && googleAdSenseCode.trim() && containerRef.current) {
-      // Tìm và kích hoạt lại script được chèn qua dangerouslySetInnerHTML.
-      const scripts = containerRef.current.querySelectorAll('script');
-      scripts.forEach(oldScript => {
-        const newScript = document.createElement('script');
-        Array.from(oldScript.attributes).forEach((attr: Attr) => {
-          newScript.setAttribute(attr.name, attr.value);
-        });
-        newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-        oldScript.parentNode?.replaceChild(newScript, oldScript);
-      });
+    try {
+      const adsenseWindow = window as AdSenseWindow;
+      adsenseWindow.adsbygoogle = adsenseWindow.adsbygoogle || [];
+      adsenseWindow.adsbygoogle.push({});
+    } catch (error) {
+      console.error(`Không thể khởi tạo vị trí quảng cáo ${slot}:`, error);
     }
-  }, [loading, googleAdSenseCode]);
+  }, [canRender, slot, slotId]);
 
-  // Hiển thị AdSense khi đã có mã cấu hình.
-  if (!loading && googleAdSenseCode.trim()) {
-    return (
-      <div className={containerClassName}>
-        <div 
-          className={`relative overflow-hidden w-full bg-[#0B1F16]/40 border border-border-color rounded-lg p-4 flex flex-col justify-center items-center gap-2 shadow-sm ${className}`}
-          id={`ad-banner-${slot}`}
-        >
-          <div className="absolute top-0 right-0 bg-[#064E3B]/10 border-b border-l border-primary/25 text-[8px] text-primary font-mono px-2 py-0.5 rounded-bl font-semibold uppercase tracking-widest">
-            Google AdSense Live
-          </div>
-          <div 
-            ref={containerRef}
-            className="w-full text-center flex justify-center items-center [&_iframe]:mx-auto" 
-            dangerouslySetInnerHTML={{ __html: googleAdSenseCode }}
-          />
-        </div>
+  // Auto Ads tự chọn vị trí; các khung thủ công chỉ xuất hiện khi có ad slot hợp lệ.
+  if (!canRender) return null;
+
+  return (
+    <aside
+      className={containerClassName}
+      aria-label="Quảng cáo"
+      data-adsense-placement={slot}
+    >
+      <div className={`relative w-full overflow-hidden rounded-lg bg-slate-50 ${className}`}>
+        <span className="absolute right-2 top-1 z-10 text-[8px] font-medium uppercase tracking-wider text-slate-500">
+          Quảng cáo
+        </span>
+        <ins
+          ref={adRef}
+          className="adsbygoogle block min-h-[120px] w-full sm:min-h-[180px] lg:min-h-[250px]"
+          style={{ display: 'block' }}
+          data-ad-client={adSenseSettings.publisherId}
+          data-ad-slot={slotId}
+          data-ad-format="auto"
+          data-full-width-responsive="true"
+        />
       </div>
-    );
-  }
-
-  // Ẩn hoàn toàn khi chưa cấu hình Google AdSense.
-  return null;
+    </aside>
+  );
 }

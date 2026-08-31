@@ -68,7 +68,11 @@ import {
   FloorPlanTab,
   CategoryExt,
   CustomSection,
+  ADSENSE_SLOT_KEYS,
+  DEFAULT_ADSENSE_SETTINGS,
   DEFAULT_SITEMAP_SETTINGS,
+  type AdSenseSettingsData,
+  type AdSenseSlotKey,
   GeneralSettingsData,
   SitemapSettingsData,
 } from "../types";
@@ -80,6 +84,11 @@ import StaticSeoSettings from "./StaticSeoSettings";
 import LocationSeoSettings from "./LocationSeoSettings";
 import { STATIC_SEO_DEFAULTS, type StaticSeoPageConfig } from "../lib/staticSeoConfig";
 import { allLocationsList } from "../lib/locationMapping";
+import {
+  isValidAdSensePublisherId,
+  isValidAdSenseSlotId,
+  normalizeAdSenseSettings,
+} from "../lib/adsense";
 import {
   applyAutomaticContextualLinks,
   buildInternalLinkTargets,
@@ -102,6 +111,17 @@ interface AdminPanelProps {
 }
 
 export type UserRole = "admin" | "editor" | "member" | "user";
+
+const ADSENSE_SLOT_LABELS: Record<AdSenseSlotKey, string> = {
+  "home-top": "Trang chủ – sau Hero",
+  "home-middle": "Trang chủ – giữa nội dung",
+  "prods-hub-interstitial": "Danh sách sản phẩm",
+  "product-detail-deep": "Chi tiết sản phẩm",
+  "project-hub-middle": "Danh sách dự án",
+  "project-detail-bottom": "Chi tiết dự án",
+  "news-catalog-interstitial": "Danh sách tin tức",
+  "news-detail-mid": "Chi tiết tin tức",
+};
 
 type AdminTab =
   | "listings"
@@ -1032,6 +1052,7 @@ export default function AdminPanel({
   const [quotePopupVersion, setQuotePopupVersion] = useState(2);
   const [tiktokPixelEnabled, setTiktokPixelEnabled] = useState(false);
   const [tiktokPixelId, setTiktokPixelId] = useState("");
+  const [adSenseSettings, setAdSenseSettings] = useState<AdSenseSettingsData>(DEFAULT_ADSENSE_SETTINGS);
 
   // General Contact Settings
   const [contactHotline, setContactHotline] = useState("");
@@ -1445,6 +1466,8 @@ export default function AdminPanel({
             setTiktokPixelEnabled(Boolean(data.tiktokPixelEnabled));
           if (data.tiktokPixelId !== undefined)
             setTiktokPixelId(getSettingString(data.tiktokPixelId));
+          if (data.adSenseSettings !== undefined)
+            setAdSenseSettings(normalizeAdSenseSettings(data.adSenseSettings));
           if (data.staticSeoPages && typeof data.staticSeoPages === "object") {
             setStaticSeoPages(data.staticSeoPages as Record<string, StaticSeoPageConfig>);
           }
@@ -2610,6 +2633,19 @@ export default function AdminPanel({
   // SEO configuration save
   const handleSaveSEO = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (adSenseSettings.enabled && !isValidAdSensePublisherId(adSenseSettings.publisherId)) {
+      onShowNotification("Publisher ID AdSense phải có dạng ca-pub- và 16 chữ số.", "error");
+      return;
+    }
+    const invalidSlot = ADSENSE_SLOT_KEYS.find((key) => {
+      const value = adSenseSettings.slots[key].trim();
+      return value.length > 0 && !isValidAdSenseSlotId(value);
+    });
+    if (invalidSlot) {
+      onShowNotification(`Mã ad slot tại ${ADSENSE_SLOT_LABELS[invalidSlot]} không hợp lệ.`, "error");
+      return;
+    }
+    const normalizedAdSenseSettings = normalizeAdSenseSettings(adSenseSettings);
     try {
       setLoading(true);
       await setDoc(
@@ -2623,6 +2659,7 @@ export default function AdminPanel({
           quotePopupVersion,
           tiktokPixelEnabled,
           tiktokPixelId: tiktokPixelId.trim(),
+          adSenseSettings: normalizedAdSenseSettings,
           staticSeoPages,
           locationSeoPages,
           sitemapSettings,
@@ -2635,6 +2672,7 @@ export default function AdminPanel({
         metaDesc: seoDesc,
         metaKeywords: seoKeywords,
       });
+      setAdSenseSettings(normalizedAdSenseSettings);
       const revalidateResponse = await authFetch("/api/revalidate-content", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -2644,7 +2682,7 @@ export default function AdminPanel({
         console.warn("Đã lưu SEO nhưng chưa thể làm mới cache trang tĩnh.");
       }
       onShowNotification(
-        "Đã lưu thiết lập SEO, cookie và popup tư vấn thành công!",
+        "Đã lưu thiết lập SEO, AdSense, cookie và popup tư vấn thành công!",
         "success",
       );
     } catch (err) {
@@ -4472,6 +4510,80 @@ export default function AdminPanel({
                           <span className={`absolute h-5 w-5 rounded-full bg-white transition-transform ${quotePopupEnabled ? "translate-x-6" : "translate-x-1"}`} />
                         </button>
                       </div>
+                    </div>
+
+                    <div className="space-y-4 rounded-lg border border-slate-200 bg-white p-4">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-900">Google AdSense</h4>
+                          <p className="mt-0.5 text-[9px] text-slate-600">Mã chính thức được tải một lần trong phần đầu trang; không sử dụng mã HTML thô.</p>
+                        </div>
+                        <button
+                          type="button"
+                          aria-label="Bật hoặc tắt Google AdSense"
+                          aria-pressed={adSenseSettings.enabled}
+                          onClick={() => setAdSenseSettings((current) => ({ ...current, enabled: !current.enabled }))}
+                          className={`relative flex h-6 w-12 shrink-0 items-center rounded-full transition-colors ${adSenseSettings.enabled ? "bg-primary" : "bg-slate-500"}`}
+                        >
+                          <span className={`absolute h-5 w-5 rounded-full bg-white transition-transform ${adSenseSettings.enabled ? "translate-x-6" : "translate-x-1"}`} />
+                        </button>
+                      </div>
+
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <label className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-700">Publisher ID</span>
+                          <input
+                            type="text"
+                            value={adSenseSettings.publisherId}
+                            onChange={(event) => setAdSenseSettings((current) => ({ ...current, publisherId: event.target.value }))}
+                            placeholder="ca-pub-XXXXXXXXXXXXXXXX"
+                            autoComplete="off"
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-900 outline-none focus:border-primary"
+                          />
+                        </label>
+                        <label className="space-y-1">
+                          <span className="text-[10px] font-bold text-slate-700">Chế độ hiển thị</span>
+                          <select
+                            value={adSenseSettings.mode}
+                            onChange={(event) => setAdSenseSettings((current) => ({ ...current, mode: event.target.value === "manual" ? "manual" : "auto" }))}
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-900 outline-none focus:border-primary"
+                          >
+                            <option value="auto">Auto Ads – Google tự chọn vị trí</option>
+                            <option value="manual">Thủ công – dùng mã ad slot riêng</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      <div className="rounded-lg border border-emerald-900/15 bg-emerald-50 p-3 text-[9px] text-emerald-950">
+                        <p className="font-semibold">Mã đang cài: {adSenseSettings.publisherId}</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <a href="/ads.txt" target="_blank" rel="noreferrer" className="rounded-md border border-emerald-800/25 bg-white px-2.5 py-1.5 font-bold hover:bg-emerald-100">Kiểm tra ads.txt</a>
+                          <a href="https://www.google.com/adsense/" target="_blank" rel="noreferrer" className="rounded-md border border-emerald-800/25 bg-white px-2.5 py-1.5 font-bold hover:bg-emerald-100">Mở Google AdSense</a>
+                        </div>
+                      </div>
+
+                      {adSenseSettings.mode === "manual" && (
+                        <div className="grid gap-3 border-t border-slate-200 pt-4 md:grid-cols-2">
+                          {ADSENSE_SLOT_KEYS.map((key) => (
+                            <label key={key} className="space-y-1">
+                              <span className="text-[10px] font-bold text-slate-700">{ADSENSE_SLOT_LABELS[key]}</span>
+                              <input
+                                type="text"
+                                inputMode="numeric"
+                                value={adSenseSettings.slots[key]}
+                                onChange={(event) => setAdSenseSettings((current) => ({
+                                  ...current,
+                                  slots: { ...current.slots, [key]: event.target.value.replace(/\D/g, "") },
+                                }))}
+                                placeholder="Nhập data-ad-slot"
+                                autoComplete="off"
+                                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] text-slate-900 outline-none focus:border-primary"
+                              />
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                      <p className="text-[9px] text-slate-500">Tài khoản hiện dùng Auto Ads. Chỉ chuyển sang thủ công sau khi đã tạo các đơn vị quảng cáo và nhập đúng mã slot.</p>
                     </div>
 
                     <div className="space-y-3 rounded-lg border border-slate-200 bg-white p-4">

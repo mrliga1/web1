@@ -5,8 +5,13 @@ import { db, doc, getDoc, setDoc } from '../firebase';
 import { serializeSectionsForDatabase, deserializeSectionsFromDatabase, sanitizeHomeSections } from '../lib/layoutUtils';
 import { getPageDefaultSections } from '../lib/layouts';
 import { optimizeImageUrl } from '../lib/utils';
-import type { VisualSection } from '../types';
+import {
+  DEFAULT_ADSENSE_SETTINGS,
+  type AdSenseSettingsData,
+  type VisualSection,
+} from '../types';
 import { pushTrackingEvent, setTrackingConsent, trackContactClick } from '../lib/tracking';
+import { normalizeAdSenseSettings } from '../lib/adsense';
 
 interface AppContextType {
   sections: VisualSection[];
@@ -15,6 +20,7 @@ interface AppContextType {
   setIsEditMode: React.Dispatch<React.SetStateAction<boolean>>;
   isQuotePopupOpen: boolean;
   setIsQuotePopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  adSenseSettings: AdSenseSettingsData;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -38,6 +44,7 @@ interface ClientSettingsData {
   quotePopupVersion?: number;
   tiktokPixelEnabled?: boolean;
   tiktokPixelId?: string;
+  adSenseSettings?: AdSenseSettingsData;
 }
 
 interface QuotePopupSettings {
@@ -90,6 +97,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     enabled: true,
     version: 2,
   });
+  const [adSenseSettings, setAdSenseSettings] = useState<AdSenseSettingsData>(DEFAULT_ADSENSE_SETTINGS);
   const previousTrackedPath = useRef<string | null>(null);
 
 
@@ -200,6 +208,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       if (cancelled) return;
       if (snapshot.exists()) {
         const data = (snapshot.data() || {}) as ClientSettingsData;
+        setAdSenseSettings(normalizeAdSenseSettings(data.adSenseSettings));
         if (data.logoUrl) {
           localStorage.setItem('greenia_logoUrl', optimizeImageUrl(data.logoUrl, 100));
         }
@@ -361,7 +370,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     <AppContext.Provider value={{
       sections, setSections,
       isEditMode, setIsEditMode,
-      isQuotePopupOpen, setIsQuotePopupOpen
+      isQuotePopupOpen, setIsQuotePopupOpen,
+      adSenseSettings,
     }}>
       {children}
     </AppContext.Provider>

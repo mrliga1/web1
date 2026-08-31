@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import { usePathname } from 'next/navigation';
@@ -23,6 +23,7 @@ export default function ClientLayout({
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(
     initialSettingsLoaded || Boolean(initialLogoUrl),
   );
+  const notificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pathname = usePathname();
   
   useEffect(() => {
@@ -38,11 +39,21 @@ export default function ClientLayout({
     setIsSettingsLoaded(true);
   }, [initialLogoUrl]);
 
+  useEffect(() => () => {
+    if (notificationTimerRef.current) {
+      clearTimeout(notificationTimerRef.current);
+    }
+  }, []);
+
   const triggerNotification = (message: string, type: 'success' | 'error' = 'success') => {
+    if (notificationTimerRef.current) {
+      clearTimeout(notificationTimerRef.current);
+    }
     setNotification({ message, type });
-    setTimeout(() => {
+    notificationTimerRef.current = setTimeout(() => {
       setNotification(null);
-    }, 3000);
+      notificationTimerRef.current = null;
+    }, 5000);
   };
 
   return (
@@ -66,9 +77,15 @@ export default function ClientLayout({
       {!pathname?.startsWith('/admin') && <FloatingActionButtons />}
 
       {notification && (
-        <div className={`fixed bottom-4 right-4 p-4 rounded-lg shadow-lg z-[120] animate-slide-up text-white font-medium ${
-          notification.type === 'success' ? 'bg-emerald-600' : 'bg-red-500'
-        }`}>
+        <div
+          role={notification.type === 'error' ? 'alert' : 'status'}
+          aria-live={notification.type === 'error' ? 'assertive' : 'polite'}
+          className={`fixed left-4 right-4 top-[calc(env(safe-area-inset-top)+1rem)] z-[11000] rounded-xl border px-4 py-3 text-sm font-semibold text-white shadow-2xl sm:left-auto sm:max-w-md animate-slide-up ${
+            notification.type === 'success'
+              ? 'border-emerald-300/40 bg-[#075c47]'
+              : 'border-red-200/50 bg-[#b42318]'
+          }`}
+        >
           {notification.message}
         </div>
       )}

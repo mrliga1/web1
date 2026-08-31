@@ -4,12 +4,10 @@ import { createPortal } from 'react-dom';
 import { X, Mail, Phone, User as UserIcon, Lock, Key, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { 
-  createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   signInWithPopup,
-  GoogleAuthProvider,
-  fetchSignInMethodsForEmail
+  GoogleAuthProvider
 } from '../firebase';
 import { doc, setDoc, getDoc } from '../firebase';
 
@@ -32,6 +30,26 @@ const toAuthError = (err: unknown): AuthError => {
   return new Error(String(err)) as AuthError;
 };
 
+const AUTH_INPUT_CLASS = 'w-full rounded-xl border border-slate-300 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#0b6b53] focus:ring-2 focus:ring-[#0b6b53]/20 transition-colors';
+const AUTH_PRIMARY_BUTTON_CLASS = 'w-full flex items-center justify-center gap-2 rounded-xl bg-[#075c47] py-2.5 font-bold text-white shadow-sm transition-colors hover:bg-[#064838] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b6b53] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+const AUTH_SECONDARY_BUTTON_CLASS = 'w-full flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white py-2.5 font-bold text-slate-900 transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b6b53] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+const AUTH_LINK_CLASS = 'font-bold text-[#075c47] underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b6b53]/40';
+
+type OtpApiResponse = {
+  success?: boolean;
+  challenge?: string;
+  expiresInSeconds?: number;
+  error?: string;
+};
+
+async function readOtpResponse(response: Response): Promise<OtpApiResponse> {
+  try {
+    return await response.json() as OtpApiResponse;
+  } catch {
+    return { error: 'Máy chủ trả về dữ liệu không hợp lệ.' };
+  }
+}
+
 export default function AuthModal({ isOpen, onClose, onShowNotification, onLoginSuccess }: AuthModalProps) {
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<'login' | 'register' | 'otp' | 'forgot_password' | 'complete_profile'>('login');
@@ -40,7 +58,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
   const [phone, setPhone] = useState('');
   const [username, setUsername] = useState('');
   const [otp, setOtp] = useState('');
-  const [generatedOtp, setGeneratedOtp] = useState('');
+  const [otpChallenge, setOtpChallenge] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -49,47 +67,48 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
 
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || !phone || !username) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedPhone = phone.replace(/[\s.()-]/g, '');
+    if (!normalizedEmail || !password || !normalizedPhone || !username.trim()) {
       onShowNotification('Vui lòng điền đầy đủ thông tin.', 'error');
       return;
     }
+    if (password.length < 8 || password.length > 72) {
+      onShowNotification('Mật khẩu phải có từ 8 đến 72 ký tự.', 'error');
+      return;
+    }
+    if (!/^\+?\d{9,15}$/.test(normalizedPhone)) {
+      onShowNotification('Số điện thoại không hợp lệ.', 'error');
+      return;
+    }
+
     setLoading(true);
     try {
-      try {
-        const methods = await fetchSignInMethodsForEmail(auth, email);
-        if (methods && methods.length > 0) {
-          onShowNotification('Email này đã được sử dụng. Vui lòng đăng nhập.', 'error');
-          setMode('login');
-          setLoading(false);
-          return;
-        }
-      } catch {
-        // Bỏ qua lỗi kiểm tra nếu Supabase bật bảo vệ email enumeration.
-      }
-
-      // MOCK sending OTP via email instead of SMS as real SMS requires provider setup
-      const code = Math.floor(100000 + Math.random() * 900000).toString();
-      setGeneratedOtp(code);
-      
-      const res = await fetch('/api/send-email', {
+      const response = await fetch('/api/auth/register-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: email,
-          subject: 'Mã OTP Xác Thực Greenia',
-          html: `<p>Xin chào ${username},</p><p>Mã OTP đăng ký tài khoản của bạn là: <strong>${code}</strong></p><p>Vui lòng không chia sẻ mã này.</p>`
-        })
+          action: 'send',
+          email: normalizedEmail,
+          username: username.trim(),
+          phone: normalizedPhone,
+        }),
       });
-      
-      const data = await res.json();
-      if (data.success) {
-        onShowNotification('Mã OTP đã được gửi đến email của bạn!', 'success');
-        setMode('otp');
-      } else {
-        onShowNotification('Lỗi khi gửi OTP: ' + data.error, 'error');
+
+      const data = await readOtpResponse(response);
+      if (!response.ok || !data.success || !data.challenge) {
+        throw new Error(data.error || 'Không thể gửi mã OTP.');
       }
-    } catch {
-      onShowNotification('Sự cố đường truyền.', 'error');
+
+      setEmail(normalizedEmail);
+      setPhone(normalizedPhone);
+      setOtp('');
+      setOtpChallenge(data.challenge);
+      setMode('otp');
+      onShowNotification('Mã OTP đã được gửi đến email của bạn và có hiệu lực trong 10 phút.', 'success');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Sự cố đường truyền.';
+      onShowNotification(message, 'error');
     } finally {
       setLoading(false);
     }
@@ -97,45 +116,50 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
 
   const handleVerifyOTPAndRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (otp.replace(/\s+/g, '') !== generatedOtp) {
-      onShowNotification('Mã OTP không chính xác!', 'error');
+    const normalizedOtp = otp.replace(/\D/g, '');
+    if (!otpChallenge) {
+      onShowNotification('Phiên xác thực đã mất. Vui lòng yêu cầu mã OTP mới.', 'error');
+      setMode('register');
       return;
     }
-    
+    if (!/^\d{6}$/.test(normalizedOtp)) {
+      onShowNotification('Mã OTP phải gồm đúng 6 chữ số.', 'error');
+      return;
+    }
+
     setLoading(true);
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-      
-      await setDoc(doc(db, 'users', user.uid), {
-        uid: user.uid,
-        email: user.email,
-        username,
-        phone,
-        role: 'user',
-        createdAt: new Date().toISOString()
+      const response = await fetch('/api/auth/register-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'verify',
+          challenge: otpChallenge,
+          otp: normalizedOtp,
+          password,
+        }),
       });
-      
+
+      const data = await readOtpResponse(response);
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Không thể xác thực mã OTP.');
+      }
+
+      await signInWithEmailAndPassword(auth, email, password);
+      setOtpChallenge('');
       onShowNotification('Đăng ký thành công! Bạn có thể bắt đầu sử dụng hệ thống.', 'success');
       onClose();
       if (onLoginSuccess) onLoginSuccess();
     } catch (err: unknown) {
       const authError = toAuthError(err);
       console.error(authError);
-      const errCode = authError.code || '';
       const errMsg = authError.message || '';
-      if (errCode === 'auth/email-already-in-use' || errMsg.includes('email-already-in-use')) {
+      if (/đã được sử dụng|already|registered|exists/i.test(errMsg)) {
         onShowNotification('Email này đã được sử dụng. Vui lòng đăng nhập.', 'error');
         setMode('login');
         setOtp('');
-      } else if (errCode === 'auth/operation-not-allowed' || errMsg.includes('operation-not-allowed')) {
-        onShowNotification('Phương thức đăng nhập bằng Email/Mật khẩu chưa được bật trong Supabase Auth.', 'error');
-      } else if (errCode === 'auth/weak-password' || errMsg.includes('weak-password')) {
-        onShowNotification('Mật khẩu quá yếu. Vui lòng sử dụng ít nhất 6 ký tự.', 'error');
-      } else if (errCode === 'auth/invalid-email' || errMsg.includes('invalid-email')) {
-        onShowNotification('Địa chỉ email không hợp lệ.', 'error');
       } else {
-        onShowNotification('Đăng ký không thành công: ' + (errMsg || 'Lỗi xác thực'), 'error');
+        onShowNotification(errMsg || 'Đăng ký không thành công.', 'error');
       }
     } finally {
       setLoading(false);
@@ -281,7 +305,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
       {isOpen && (
         <div role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" className="fixed inset-0 z-[9999] flex items-center justify-center p-4 mt-10 md:mt-0">
           <div 
-            className="absolute inset-0 bg-bg-inverse/80 backdrop-blur-sm animate-in fade-in"
+            className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm animate-in fade-in"
             onClick={onClose}
           />
           
@@ -289,25 +313,25 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
             role="dialog"
             aria-modal="true"
             aria-label="Đăng nhập"
-            className="relative w-full max-w-md max-h-[85vh] overflow-y-auto bg-bg-surface border border-border-color rounded-2xl shadow-2xl p-5 md:p-6 animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl md:p-6 animate-in zoom-in-95 duration-200"
           >
             <button 
               onClick={onClose}
               aria-label="Đóng"
-              className="absolute top-4 right-4 text-text-secondary hover:text-text-primary transition-colors p-2"
+              className="absolute right-4 top-4 rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0b6b53]"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="text-center mb-4">
-              <h2 id="auth-modal-title" className="text-2xl font-display font-bold text-text-primary mb-2">
+              <h2 id="auth-modal-title" className="mb-2 text-2xl font-display font-bold text-[#073f32]">
                 {mode === 'login' && 'Đăng Nhập'}
                 {mode === 'register' && 'Khởi Tạo Tài Khoản'}
                 {mode === 'otp' && 'Xác Thực Mã OTP'}
                 {mode === 'forgot_password' && 'Khôi phục mật khẩu'}
                 {mode === 'complete_profile' && 'Cập Nhật Thông Tin'}
               </h2>
-              <p className="text-text-secondary text-sm">
+              <p className="text-sm text-slate-600">
                 {mode === 'login' && 'Chào mừng bạn trở lại với Greenia Hệ sinh thái BĐS'}
                 {mode === 'register' && 'Đăng ký nhanh chóng để quản lý BĐS của bạn'}
                 {mode === 'otp' && 'Vui lòng kiểm tra hộp thư email (hoặc thư rác) để lấy mã'}
@@ -319,46 +343,46 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
             {mode === 'complete_profile' && (
               <form onSubmit={handleCompleteProfile} className="space-y-3">
                 <div className="space-y-1">
-                  <label htmlFor="auth-cp-username" className="text-xs text-text-secondary font-medium">Tên hiển thị</label>
+                  <label htmlFor="auth-cp-username" className="text-xs font-semibold text-slate-700">Tên hiển thị</label>
                   <div className="relative">
-                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       id="auth-cp-username"
                       required
                       type="text"
                       value={username}
                       onChange={e => setUsername(e.target.value)}
-                      className="w-full bg-transparent border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-primary text-sm outline-none focus:border-primary transition-colors"
+                      className={AUTH_INPUT_CLASS}
                       placeholder="Nguyen Van A"
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="auth-cp-phone" className="text-xs text-text-secondary font-medium">Số điện thoại</label>
+                  <label htmlFor="auth-cp-phone" className="text-xs font-semibold text-slate-700">Số điện thoại</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       id="auth-cp-phone"
                       required
                       type="tel"
                       value={phone}
                       onChange={e => setPhone(e.target.value)}
-                      className="w-full bg-transparent border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-primary text-sm outline-none focus:border-primary transition-colors"
+                      className={AUTH_INPUT_CLASS}
                       placeholder="0912..."
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="auth-cp-email" className="text-xs text-text-secondary font-medium">Email</label>
+                  <label htmlFor="auth-cp-email" className="text-xs font-semibold text-slate-700">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       id="auth-cp-email"
                       required
                       type="email"
                       value={email}
                       disabled
-                      className="w-full bg-bg-surface/50 border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-secondary text-sm outline-none cursor-not-allowed opacity-70"
+                      className="w-full cursor-not-allowed rounded-xl border border-slate-300 bg-slate-100 py-2.5 pl-10 pr-4 text-sm text-slate-600 outline-none"
                     />
                   </div>
                 </div>
@@ -366,7 +390,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-accent text-black font-bold rounded-xl py-2.5 mt-4 transition-all disabled:opacity-50"
+                  className={`${AUTH_PRIMARY_BUTTON_CLASS} mt-4`}
                 >
                   {loading ? 'Đang xử lý...' : 'Xác nhận thông tin'}
                   <CheckCircle2 className="w-4 h-4" />
@@ -377,15 +401,15 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
             {mode === 'forgot_password' && (
               <form onSubmit={handleResetPassword} className="space-y-3">
                 <div className="space-y-1">
-                  <label htmlFor="auth-fp-email" className="text-xs text-text-secondary font-medium">Email của bạn</label>
+                  <label htmlFor="auth-fp-email" className="text-xs font-semibold text-slate-700">Email của bạn</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       id="auth-fp-email"
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full bg-transparent border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-primary text-sm outline-none focus:border-primary transition-colors"
+                      className={AUTH_INPUT_CLASS}
                       placeholder="mail@domain.com"
                     />
                   </div>
@@ -394,7 +418,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-accent text-black font-bold rounded-xl py-2.5 mt-4 transition-all disabled:opacity-50"
+                  className={`${AUTH_PRIMARY_BUTTON_CLASS} mt-4`}
                 >
                   {loading ? 'Đang gửi...' : 'Gửi mã khôi phục'}
                   <ArrowRight className="w-4 h-4" />
@@ -404,7 +428,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                   <button 
                     type="button"
                     onClick={() => setMode('login')}
-                    className="text-text-secondary font-bold text-sm hover:underline"
+                    className={`${AUTH_LINK_CLASS} text-sm`}
                   >
                     Quay lại đăng nhập
                   </button>
@@ -415,38 +439,38 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
             {mode === 'login' && (
               <form onSubmit={handleLogin} className="space-y-3">
                 <div className="space-y-1">
-                  <label htmlFor="auth-login-email" className="text-xs text-text-secondary font-medium">Email</label>
+                  <label htmlFor="auth-login-email" className="text-xs font-semibold text-slate-700">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       id="auth-login-email"
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full bg-transparent border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-primary text-sm outline-none focus:border-primary transition-colors"
+                      className={AUTH_INPUT_CLASS}
                       placeholder="mail@domain.com"
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
                   <div className="flex justify-between items-center">
-                    <label htmlFor="auth-login-password" className="text-xs text-text-secondary font-medium">Mật khẩu</label>
+                    <label htmlFor="auth-login-password" className="text-xs font-semibold text-slate-700">Mật khẩu</label>
                     <button
                       type="button"
                       onClick={() => setMode('forgot_password')}
-                      className="text-xs text-primary hover:underline border-none bg-transparent cursor-pointer"
+                      className={`${AUTH_LINK_CLASS} cursor-pointer border-none bg-transparent text-xs`}
                     >
                       Quên mật khẩu?
                     </button>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       id="auth-login-password"
                       type="password"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="w-full bg-transparent border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-primary text-sm outline-none focus:border-primary transition-colors"
+                      className={AUTH_INPUT_CLASS}
                       placeholder="••••••••"
                     />
                   </div>
@@ -454,23 +478,23 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-accent text-black font-bold rounded-xl py-2.5 mt-4 transition-all disabled:opacity-50"
+                  className={`${AUTH_PRIMARY_BUTTON_CLASS} mt-4`}
                 >
                   {loading ? 'Đang xử lý...' : 'Đăng nhập vào hệ thống'}
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
                 <div className="relative flex py-2 items-center">
-                  <div className="flex-grow border-t border-border-inverse"></div>
-                  <span className="flex-shrink-0 mx-4 text-text-secondary text-xs">Hoặc</span>
-                  <div className="flex-grow border-t border-border-inverse"></div>
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="mx-4 flex-shrink-0 text-xs text-slate-500">Hoặc</span>
+                  <div className="flex-grow border-t border-slate-200"></div>
                 </div>
 
                 <button
                   type="button"
                   disabled={loading}
                   onClick={handleGoogleLogin}
-                  className="w-full flex items-center justify-center gap-2 bg-bg-surface text-zinc-900 hover:bg-bg-base font-bold rounded-xl py-2.5 mt-2 transition-all disabled:opacity-50"
+                  className={`${AUTH_SECONDARY_BUTTON_CLASS} mt-2`}
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path
@@ -494,11 +518,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                 </button>
 
                 <div className="text-center mt-4">
-                  <span className="text-text-secondary text-sm">Chưa có tài khoản? </span>
+                  <span className="text-sm text-slate-600">Chưa có tài khoản? </span>
                   <button 
                     type="button"
                     onClick={() => setMode('register')}
-                    className="text-primary font-bold text-sm hover:underline"
+                    className={`${AUTH_LINK_CLASS} text-sm`}
                   >
                     Đăng ký ngay
                   </button>
@@ -508,64 +532,64 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
 
             {mode === 'register' && (
               <form onSubmit={handleSendOTP} className="space-y-3">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                   <div className="space-y-1">
-                    <label htmlFor="auth-reg-username" className="text-xs text-text-secondary font-medium">Tên hiển thị</label>
+                    <label htmlFor="auth-reg-username" className="text-xs font-semibold text-slate-700">Tên hiển thị</label>
                     <div className="relative">
-                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                      <UserIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                       <input
                         id="auth-reg-username"
                         required
                         type="text"
                         value={username}
                         onChange={e => setUsername(e.target.value)}
-                        className="w-full bg-transparent border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-primary text-sm outline-none focus:border-primary transition-colors"
+                        className={AUTH_INPUT_CLASS}
                         placeholder="Nguyen Van A"
                       />
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <label htmlFor="auth-reg-phone" className="text-xs text-text-secondary font-medium">Số điện thoại</label>
+                    <label htmlFor="auth-reg-phone" className="text-xs font-semibold text-slate-700">Số điện thoại</label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                      <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                       <input
                         id="auth-reg-phone"
                         required
                         type="tel"
                         value={phone}
                         onChange={e => setPhone(e.target.value)}
-                        className="w-full bg-transparent border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-primary text-sm outline-none focus:border-primary transition-colors"
+                        className={AUTH_INPUT_CLASS}
                         placeholder="0912..."
                       />
                     </div>
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="auth-reg-email" className="text-xs text-text-secondary font-medium">Email (Nhận OTP)</label>
+                  <label htmlFor="auth-reg-email" className="text-xs font-semibold text-slate-700">Email (Nhận OTP)</label>
                   <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       id="auth-reg-email"
                       required
                       type="email"
                       value={email}
                       onChange={e => setEmail(e.target.value)}
-                      className="w-full bg-transparent border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-primary text-sm outline-none focus:border-primary transition-colors"
+                      className={AUTH_INPUT_CLASS}
                       placeholder="mail@domain.com"
                     />
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="auth-reg-password" className="text-xs text-text-secondary font-medium">Mật khẩu (Sẽ dùng để đăng nhập truy cập)</label>
+                  <label htmlFor="auth-reg-password" className="text-xs font-semibold text-slate-700">Mật khẩu (Từ 8 ký tự)</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       id="auth-reg-password"
                       required
                       type="password"
                       value={password}
                       onChange={e => setPassword(e.target.value)}
-                      className="w-full bg-transparent border border-border-color rounded-xl py-2.5 pl-10 pr-4 text-text-primary text-sm outline-none focus:border-primary transition-colors"
+                      className={AUTH_INPUT_CLASS}
                       placeholder="••••••••"
                     />
                   </div>
@@ -574,23 +598,23 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-accent text-black font-bold rounded-xl py-2.5 mt-4 transition-all disabled:opacity-50"
+                  className={`${AUTH_PRIMARY_BUTTON_CLASS} mt-4`}
                 >
                   {loading ? 'Đang xử lý...' : 'Gửi mã OTP (Qua Email)'}
                   <ArrowRight className="w-4 h-4" />
                 </button>
 
                 <div className="relative flex py-2 items-center mt-4">
-                  <div className="flex-grow border-t border-border-inverse"></div>
-                  <span className="flex-shrink-0 mx-4 text-text-secondary text-xs">Hoặc đăng ký bằng</span>
-                  <div className="flex-grow border-t border-border-inverse"></div>
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="mx-4 flex-shrink-0 text-xs text-slate-500">Hoặc đăng ký bằng</span>
+                  <div className="flex-grow border-t border-slate-200"></div>
                 </div>
 
                 <button
                   type="button"
                   disabled={loading}
                   onClick={handleGoogleLogin}
-                  className="w-full flex items-center justify-center gap-2 bg-bg-surface text-zinc-900 hover:bg-bg-base font-bold rounded-xl py-2.5 transition-all disabled:opacity-50"
+                  className={AUTH_SECONDARY_BUTTON_CLASS}
                 >
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
                     <path
@@ -614,11 +638,11 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                 </button>
 
                 <div className="text-center mt-4">
-                  <span className="text-text-secondary text-sm">Đã có tài khoản? </span>
+                  <span className="text-sm text-slate-600">Đã có tài khoản? </span>
                   <button 
                     type="button"
                     onClick={() => setMode('login')}
-                    className="text-primary font-bold text-sm hover:underline"
+                    className={`${AUTH_LINK_CLASS} text-sm`}
                   >
                     Đăng nhập
                   </button>
@@ -629,17 +653,20 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
             {mode === 'otp' && (
               <form onSubmit={handleVerifyOTPAndRegister} className="space-y-4">
                 <div className="space-y-1">
-                  <label htmlFor="auth-otp-code" className="text-xs text-text-secondary font-medium text-center block">Nhập mã OTP gồm 6 chữ số</label>
+                  <label htmlFor="auth-otp-code" className="block text-center text-xs font-semibold text-slate-700">Nhập mã OTP gồm 6 chữ số</label>
                   <div className="relative max-w-[200px] mx-auto">
-                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary" />
+                    <Key className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
                     <input
                       id="auth-otp-code"
                       required
                       type="text"
                       value={otp}
-                      onChange={e => setOtp(e.target.value.replace(/\s+/g, ''))}
+                      onChange={e => setOtp(e.target.value.replace(/\D/g, ''))}
                       maxLength={6}
-                      className="w-full bg-transparent border border-border-color rounded-xl py-4 pl-10 pr-4 text-text-primary text-center text-xl tracking-[0.5em] font-mono outline-none focus:border-primary transition-colors"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      pattern="[0-9]{6}"
+                      className="w-full rounded-xl border border-slate-300 bg-white py-4 pl-10 pr-4 text-center font-mono text-xl tracking-[0.5em] text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-[#0b6b53] focus:ring-2 focus:ring-[#0b6b53]/20"
                       placeholder="------"
                     />
                   </div>
@@ -648,7 +675,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-primary text-text-primary font-bold rounded-xl py-2.5 mt-4 transition-all disabled:opacity-50"
+                  className={`${AUTH_PRIMARY_BUTTON_CLASS} mt-4`}
                 >
                   {loading ? 'Đang xử lý...' : 'Xác thực & Tạo tài khoản'}
                   <CheckCircle2 className="w-4 h-4" />
@@ -657,10 +684,14 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
                 <div className="text-center mt-4">
                   <button 
                     type="button"
-                    onClick={() => setMode('register')}
-                    className="text-text-secondary font-bold text-sm hover:underline"
+                    onClick={() => {
+                      setOtp('');
+                      setOtpChallenge('');
+                      setMode('register');
+                    }}
+                    className={`${AUTH_LINK_CLASS} text-sm`}
                   >
-                    Quay lại đăng ký
+                    Yêu cầu mã OTP mới
                   </button>
                 </div>
               </form>

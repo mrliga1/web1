@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { optimizeImageUrl, generateSlug, generateSrcSet, formatVietnamDate } from '../lib/utils';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { fetchClientIp } from '../lib/ip';
-import { notifyAdminEmail } from '../lib/email';
 import { 
   ArrowRight, Phone, CheckCircle2,
   MapPin, ChevronRight, Compass, Shield, Award, Calendar,
@@ -83,15 +82,6 @@ const HeroConsultationForm: React.FC<{
       });
       notifyNewConsultation(String(createdConsultation.id));
       trackLead('homepage_consultation', 'homepage');
-
-      notifyAdminEmail({
-        name: clientName.trim(),
-        phone: clientPhone.trim(),
-        email: clientEmail.trim(),
-        message: clientDemand.trim(),
-        propertyTitle: 'Tư vấn chuyên sâu trang chủ',
-        sourceUrl: friendlyUrl
-      });
 
       setFormSubmitted(true);
       setClientName('');

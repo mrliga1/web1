@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyStaff } from '../../lib/auth';
 import { createServiceRoleClient } from '../../../../src/lib/serverSupabase';
-import { reservePushEvent, sendPushNotifications } from '../../../../src/lib/webPushServer';
+import { releasePushEvent, reservePushEvent, sendPushNotifications } from '../../../../src/lib/webPushServer';
 
 export const runtime = 'nodejs';
 
@@ -25,12 +25,20 @@ export async function POST(request: NextRequest) {
     if (!(await reservePushEvent(eventKey))) return NextResponse.json({ success: true, duplicate: true });
 
     const lead = (data.data || {}) as { name?: string; propertyTitle?: string };
-    const result = await sendPushNotifications({
-      title: 'Bạn được giao khách hàng mới',
-      body: `${lead.name || 'Khách hàng'}${lead.propertyTitle ? ` – ${lead.propertyTitle}` : ''}.`,
-      url: `/admin?section=leads&lead=${encodeURIComponent(leadId)}`,
-      tag: `assignment-${leadId}`,
-    }, { email });
+    let result: Record<string, unknown>;
+    try {
+      result = await sendPushNotifications({
+        title: 'Bạn được giao khách hàng mới',
+        body: `${lead.name || 'Khách hàng'}${lead.propertyTitle ? ` – ${lead.propertyTitle}` : ''}.`,
+        url: `/admin?section=leads&lead=${encodeURIComponent(leadId)}`,
+        tag: `assignment-${leadId}`,
+      }, { email });
+    } catch (pushError) {
+      await releasePushEvent(eventKey).catch((releaseError) => {
+        console.error('Không thể mở khóa thông báo giao khách:', releaseError);
+      });
+      throw pushError;
+    }
     return NextResponse.json({ success: true, ...result });
   } catch (error) {
     console.error('Không thể phát Web Push giao khách:', error);

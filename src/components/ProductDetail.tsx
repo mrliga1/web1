@@ -7,7 +7,7 @@ import { sanitizeRichHtml } from "../lib/sanitizeRichHtml";
 import { recordContentEngagement } from "../lib/engagement";
 import { CategoryExt, GeneralSettingsData, News, Product, Project, RouteState } from "../types";
 import { useScrollDirection } from "../hooks/useScrollDirection";
-import { trackContentView, trackLead, trackShare } from "../lib/tracking";
+import { trackContentView, trackLead, trackSchedule, trackShare } from "../lib/tracking";
 import { notifyNewConsultation } from "../lib/pushNotifications";
 import {
   MapPin,
@@ -34,7 +34,6 @@ import {
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
 import StarRatingInteractive from "./StarRatingInteractive";
-import { notifyAdminEmail } from "../lib/email";
 import { fetchClientIp } from "../lib/ip";
 
 interface ProductDetailProps {
@@ -416,15 +415,7 @@ export default function ProductDetail({
       });
       notifyNewConsultation(String(createdConsultation.id));
       trackLead('product_inquiry', 'product_detail', product?.id || productId || slug);
-
-      notifyAdminEmail({
-        name: clientName.trim(),
-        phone: clientPhone.trim(),
-        email: clientEmail.trim(),
-        message: clientDemand.trim(),
-        propertyTitle: `Đăng ký xem căn hộ: ${product?.title}`,
-        sourceUrl: friendlyUrl,
-      });
+      trackSchedule('product_detail', product?.id || productId || slug);
 
       setIsBooked(true);
       setClientName("");

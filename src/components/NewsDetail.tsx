@@ -41,7 +41,6 @@ interface NewsDetailProps {
   onShowNotification: (message: string, type: 'success' | 'error') => void;
 }
 
-import { notifyAdminEmail } from '../lib/email';
 import { fetchClientIp } from '../lib/ip';
 import { notifyNewConsultation } from '../lib/pushNotifications';
 
@@ -329,15 +328,6 @@ export default function NewsDetail({
       });
       notifyNewConsultation(String(createdConsultation.id));
       trackLead('news_consultation', 'news_detail', article?.id || newsId || slug);
-
-      notifyAdminEmail({
-        name: clientName.trim(),
-        phone: clientPhone.trim(),
-        email: clientEmail.trim(),
-        message: "Yêu cầu tư vấn từ bài viết: " + (article?.title || ""),
-        propertyTitle: "Từ bài viết: " + (article?.title || ""),
-        sourceUrl: friendlyUrl,
-      });
 
       setFormSubmitted(true);
       setClientName('');

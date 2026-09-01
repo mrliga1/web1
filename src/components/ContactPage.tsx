@@ -16,7 +16,6 @@ interface ContactPageProps {
   setSelectedSectionId: (id: string | null) => void;
 }
 
-import { notifyAdminEmail } from '../lib/email';
 import { fetchClientIp } from '../lib/ip';
 import { notifyNewConsultation } from '../lib/pushNotifications';
 import { trackLead } from '../lib/tracking';
@@ -95,6 +94,11 @@ export default function ContactPage({
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [contactErrors, setContactErrors] = useState<{
+    name?: string;
+    phone?: string;
+    email?: string;
+  }>({});
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
@@ -162,10 +166,23 @@ export default function ContactPage({
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!contactName.trim() || !contactPhone.trim()) {
-      onShowNotification('Vui lòng cung cấp đầy đủ tên và số điện thoại liên lạc.', 'error');
+    const normalizedPhone = contactPhone.replace(/[\s().-]/g, '');
+    const nextErrors: typeof contactErrors = {};
+    if (contactName.trim().length < 2) {
+      nextErrors.name = 'Vui lòng nhập họ tên có ít nhất 2 ký tự.';
+    }
+    if (!/^(?:\+84|0)\d{9}$/.test(normalizedPhone)) {
+      nextErrors.phone = 'Số điện thoại Việt Nam phải bắt đầu bằng 0 hoặc +84 và đủ số.';
+    }
+    if (contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
+      nextErrors.email = 'Địa chỉ email không đúng định dạng.';
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setContactErrors(nextErrors);
+      onShowNotification(Object.values(nextErrors)[0] || 'Thông tin liên hệ chưa hợp lệ.', 'error');
       return;
     }
+    setContactErrors({});
 
     setContactSubmitting(true);
     try {
@@ -193,15 +210,6 @@ export default function ContactPage({
       });
       notifyNewConsultation(String(createdConsultation.id));
       trackLead('contact_page', 'contact');
-
-      notifyAdminEmail({
-        name: contactName.trim(),
-        phone: contactPhone.trim(),
-        email: contactEmail.trim(),
-        message: contactMessage.trim() + (contactImages.length > 0 ? ` [Đính kèm ${contactImages.length} ảnh]` : ''),
-        propertyTitle: `Giao diện liên hệ: ${contactMessage.trim() || 'Cần tư vấn trực tiếp'}`,
-        sourceUrl: friendlyUrl
-      });
 
       setContactSuccess(true);
       setContactName('');
@@ -375,12 +383,18 @@ export default function ContactPage({
                               id="contact-name"
                               type="text"
                               value={contactName}
-                              onChange={(e) => setContactName(e.target.value)}
+                              onChange={(e) => {
+                                setContactName(e.target.value);
+                                setContactErrors((current) => ({ ...current, name: undefined }));
+                              }}
                               placeholder="Ông / Bà..."
                               className={CONTACT_FIELD_CLASS}
+                              aria-invalid={Boolean(contactErrors.name)}
+                              aria-describedby={contactErrors.name ? 'contact-name-error' : undefined}
                               required
                               disabled={contactSubmitting}
                             />
+                            {contactErrors.name && <p id="contact-name-error" className="text-[10px] font-semibold text-error">{contactErrors.name}</p>}
                           </div>
 
                           <div className="space-y-1">
@@ -389,12 +403,20 @@ export default function ContactPage({
                               id="contact-phone"
                               type="tel"
                               value={contactPhone}
-                              onChange={(e) => setContactPhone(e.target.value)}
+                              onChange={(e) => {
+                                setContactPhone(e.target.value);
+                                setContactErrors((current) => ({ ...current, phone: undefined }));
+                              }}
                               placeholder="Nhập số di động..."
                               className={CONTACT_FIELD_CLASS}
+                              inputMode="tel"
+                              autoComplete="tel"
+                              aria-invalid={Boolean(contactErrors.phone)}
+                              aria-describedby={contactErrors.phone ? 'contact-phone-error' : undefined}
                               required
                               disabled={contactSubmitting}
                             />
+                            {contactErrors.phone && <p id="contact-phone-error" className="text-[10px] font-semibold text-error">{contactErrors.phone}</p>}
                           </div>
                           
                           <div className="space-y-1 sm:col-span-2">
@@ -403,11 +425,18 @@ export default function ContactPage({
                               id="contact-email"
                               type="email"
                               value={contactEmail}
-                              onChange={(e) => setContactEmail(e.target.value)}
+                              onChange={(e) => {
+                                setContactEmail(e.target.value);
+                                setContactErrors((current) => ({ ...current, email: undefined }));
+                              }}
                               placeholder="Nhập địa chỉ email..."
                               className={CONTACT_FIELD_CLASS}
+                              autoComplete="email"
+                              aria-invalid={Boolean(contactErrors.email)}
+                              aria-describedby={contactErrors.email ? 'contact-email-error' : undefined}
                               disabled={contactSubmitting}
                             />
+                            {contactErrors.email && <p id="contact-email-error" className="text-[10px] font-semibold text-error">{contactErrors.email}</p>}
                           </div>
                         </div>
 

@@ -32,6 +32,13 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
     // Nạp trước tuyến và mã giao diện quản trị để mở trực tiếp khi người dùng bấm vào.
     router.prefetch('/admin');
     void import('./AdminPanel');
+
+    // Hoàn tất chuyển hướng OAuth nếu nhà cung cấp trả người dùng về trang chủ.
+    if (sessionStorage.getItem('redirect_after_login') === 'admin') {
+      sessionStorage.removeItem('redirect_after_login');
+      setAuthModalOpen(false);
+      router.replace('/admin');
+    }
   }, [currentUser, router]);
 
   const handleNavigate = (route: RouteState) => {
@@ -47,7 +54,6 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
   const handleSignOut = async () => {
     try {
       await logout();
-      onShowNotification('Bạn đã đăng xuất tài khoản.', 'success');
       handleNavigate({ screen: 'home' });
       setUserDropdownOpen(false);
     } catch {
@@ -368,7 +374,13 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
           isOpen
           onClose={() => setAuthModalOpen(false)}
           onShowNotification={onShowNotification}
-          onLoginSuccess={() => handleNavigate({ screen: 'admin' })}
+          onLoginSuccess={() => {
+            sessionStorage.removeItem('redirect_after_login');
+            setAuthModalOpen(false);
+            setMobileMenuOpen(false);
+            setUserDropdownOpen(false);
+            router.replace('/admin');
+          }}
         />
       )}
     </header>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import NextImage from "next/image";
 import { formatVietnamDate, generateSlug } from "../lib/utils";
 import { News, Product, Project, RouteState } from "../types";
-import { trackContentView, trackLead, trackShare } from "../lib/tracking";
+import { trackContentView, trackLead, trackSchedule, trackShare } from "../lib/tracking";
 import {
   X,
   ChevronLeft,
@@ -98,7 +98,6 @@ const PROJECT_FORM_FIELD_CLASS =
 const PROJECT_CHECKBOX_CLASS =
   "mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer rounded border-border-color bg-bg-surface text-primary focus:ring-transparent";
 
-import { notifyAdminEmail } from "../lib/email";
 import { fetchClientIp } from "../lib/ip";
 import { notifyNewConsultation } from "../lib/pushNotifications";
 
@@ -609,15 +608,7 @@ export default function ProjectDetail({
       });
       notifyNewConsultation(String(createdConsultation.id));
       trackLead('project_consultation', 'project_detail', project?.id || projectId || slug);
-
-      notifyAdminEmail({
-        name: clientName.trim(),
-        phone: clientPhone.trim(),
-        email: clientEmail.trim(),
-        message: clientDemand.trim(),
-        propertyTitle: `Đăng ký xem dự án: ${project?.title}`,
-        sourceUrl: friendlyUrl,
-      });
+      trackSchedule('project_detail', project?.id || projectId || slug);
 
       setFormSubmitted(true);
       setClientName("");

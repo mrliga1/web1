@@ -7,7 +7,6 @@ import {
   doc,
   getDoc,
   updateDoc,
-  deleteDoc,
   db,
   setDoc,
   type LegacyDocSnapshot,
@@ -428,6 +427,12 @@ export default function AdminPanel({
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
+
+  useEffect(() => {
+    if (!isEditing && !contactPhone.trim() && userProfile?.phone?.trim()) {
+      setContactPhone(userProfile.phone.trim());
+    }
+  }, [contactPhone, isEditing, userProfile?.phone]);
 
   // Selection editor formatting helper
   const formatSelectedText = (tagOpen: string, tagClose: string) => {
@@ -945,6 +950,10 @@ export default function AdminPanel({
     setTitle("");
     setPriceText("");
     setPriceVal("");
+    setDistrict("");
+    setStreet("");
+    setContactPhone(userProfile?.phone?.trim() || "");
+    setCategory("");
     setImageUrl("");
     setImageUrls([]);
     setAvatarUrl("");
@@ -997,6 +1006,14 @@ export default function AdminPanel({
     setItemSeoKeywords("");
 
     setActiveTab("listings");
+  };
+
+  const handleStartCreate = (type: "product" | "project" | "article") => {
+    handleCancelWizard();
+    setCreateType(type);
+    setContactPhone(type === "product" ? userProfile?.phone?.trim() || "" : "");
+    setActiveTab("new_wizard");
+    setSidebarOpen(false);
   };
 
   // Subpage tabs for projects
@@ -1549,7 +1566,6 @@ export default function AdminPanel({
   const handleSignOut = async () => {
     try {
       await logout();
-      onShowNotification("Bạn đã đăng xuất khỏi hệ thống.", "success");
       onNavigate({ screen: "home" });
     } catch {
       onShowNotification("Lỗi đăng xuất", "error");
@@ -1773,14 +1789,32 @@ export default function AdminPanel({
     }
 
     try {
-      await deleteDoc(doc(db, path, id));
+      const response = await authFetch(
+        `/api/admin/content/${encodeURIComponent(path)}/${encodeURIComponent(id)}`,
+        { method: "DELETE" },
+      );
+      const result = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) throw new Error(result.error || "Máy chủ từ chối thao tác xóa");
+
+      if (path === "products") {
+        setProducts((current) => current.filter((item) => item.id !== id));
+      } else if (path === "projects") {
+        setProjects((current) => current.filter((item) => item.id !== id));
+      } else {
+        setNews((current) => current.filter((item) => item.id !== id));
+      }
+
       onShowNotification(
-        "Đã gãi phóng và xóa tài sản khỏi cơ sở dữ liệu thành công!",
+        "Đã xóa nội dung khỏi cơ sở dữ liệu thành công!",
         "success",
       );
+      const contentType = path === "products" ? "product" : path === "projects" ? "project" : "article";
+      void revalidateSavedContent(contentType).catch((error) => {
+        console.warn("Đã xóa dữ liệu nhưng chưa thể làm mới cache công khai:", error);
+      });
     } catch (err) {
       console.error(err);
-      onShowNotification("Lỗi khi xóa tài sản trên cloud.", "error");
+      onShowNotification(getErrorMessage(err, "Lỗi khi xóa dữ liệu trên máy chủ."), "error");
     }
   };
 
@@ -1828,6 +1862,17 @@ export default function AdminPanel({
         "error",
       );
       return;
+    }
+
+    if (createType === "product") {
+      const normalizedPhone = contactPhone.replace(/[\s().-]/g, "");
+      if (!/^(?:\+84|0)\d{9}$/.test(normalizedPhone)) {
+        onShowNotification(
+          "Vui lòng nhập số điện thoại người đăng đúng định dạng Việt Nam.",
+          "error",
+        );
+        return;
+      }
     }
 
     const priceNumerical = Number(priceVal.trim());
@@ -2706,7 +2751,15 @@ export default function AdminPanel({
     }
 
     try {
-      await deleteDoc(doc(db, "consultations", id));
+      const response = await authFetch(
+        `/api/admin/content/consultations/${encodeURIComponent(id)}`,
+        { method: "DELETE" },
+      );
+      const result = await response.json().catch(() => ({})) as { error?: string };
+      if (!response.ok) throw new Error(result.error || "Máy chủ từ chối thao tác xóa");
+
+      setConsultations((current) => current.filter((lead) => lead.id !== id));
+      setSelectedLeadIds((current) => current.filter((leadId) => leadId !== id));
       onShowNotification("Đã xóa dữ liệu khách hàng thành công!", "success");
       if (crmSelectedLead?.id === id) {
         setCrmSelectedLead(null);
@@ -2850,8 +2903,25 @@ export default function AdminPanel({
         careHistory: newHistory,
       });
 
+      setConsultations((current) =>
+        current.map((item) => item.id === lead.id ? { ...item, careHistory: newHistory } : item),
+      );
       onShowNotification("Đã cập nhật lịch sử chăm sóc", "success");
       setCrmSelectedLead({ ...lead, careHistory: newHistory });
+
+      try {
+        const pushResponse = await authFetch("/api/push/notify-care-history", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ leadId: lead.id, historyTime: historyItem.time }),
+        });
+        if (!pushResponse.ok) {
+          const pushResult = await pushResponse.json().catch(() => ({})) as { error?: string };
+          console.warn("Không thể gửi thông báo lịch sử chăm sóc:", pushResult.error || pushResponse.statusText);
+        }
+      } catch (pushError) {
+        console.warn("Không thể kết nối dịch vụ thông báo lịch sử chăm sóc:", pushError);
+      }
     } catch (err) {
       console.error(err);
       onShowNotification("Lỗi khi cập nhật lịch sử", "error");
@@ -2933,45 +3003,36 @@ export default function AdminPanel({
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
+  const handleDeleteUser = async (user: AdminUser): Promise<boolean> => {
     setLoading(true);
     try {
       if (currentUserRole !== "admin") {
         throw new Error("Chỉ Admin mới có quyền xóa tài khoản");
       }
 
-      // Xóa bên Auth ĐẦU TIÊN để đảm bảo xóa triệt để
-      let authWarning = "";
-      try {
-        const fetchRes = await authFetch(`/api/users/${userId}`, { method: 'DELETE' });
-        const resData = await fetchRes.json();
-
-        if (!fetchRes.ok) {
-          if (resData.error && resData.error.includes('no user record')) {
-            console.log("Ignored missing auth user.");
-          } else if (resData.error && resData.error.includes('service role')) {
-            throw new Error("Xóa thất bại: Máy chủ chưa được cấu hình Supabase service-role.");
-          } else {
-            throw new Error(`Xóa Auth thất bại: ${resData.error || 'Unknown error'}`);
-          }
-        }
-      } catch (e: unknown) {
-        const message = getErrorMessage(e);
-        if (message.includes('Xóa thất bại')) {
-          throw e; // Ném tiếp để dừng lại.
-        }
-        console.warn("Lỗi kết nối mạng tới Server khi xóa Auth", e);
-        authWarning = " (Cảnh báo: Không thể kết nối đến máy chủ để xóa Auth)";
-        throw new Error("Không thể kết nối đến server để xóa Auth: " + message);
+      const authUid = user.uid || user.id;
+      if (!authUid) {
+        throw new Error("Tài khoản không có mã Supabase Auth hợp lệ");
       }
 
-      // Xóa hồ sơ người dùng trong Supabase.
-      await deleteDoc(doc(db, "users", userId));
+      const fetchRes = await authFetch(`/api/users/${encodeURIComponent(authUid)}`, {
+        method: "DELETE",
+      });
+      const resData = await fetchRes.json().catch(() => ({})) as { error?: string };
+      if (!fetchRes.ok) {
+        throw new Error(resData.error || "Máy chủ không thể xóa tài khoản");
+      }
 
-      onShowNotification("Đã xóa người dùng thành công khỏi hệ thống." + authWarning, "success");
+      // Cập nhật ngay giao diện; Realtime sẽ tiếp tục xác nhận trạng thái từ Supabase.
+      setUsers((currentUsers) => currentUsers.filter((item) => (
+        item.id !== user.id && item.uid !== authUid
+      )));
+      onShowNotification("Đã xóa tài khoản Auth và hồ sơ người dùng.", "success");
+      return true;
     } catch (err: unknown) {
       console.error(err);
       onShowNotification("Không thể xóa người dùng: " + getErrorMessage(err, 'Lỗi Supabase'), "error");
+      return false;
     } finally {
       setLoading(false);
     }
@@ -3238,11 +3299,7 @@ export default function AdminPanel({
 
 
             <button
-              onClick={() => {
-                setCreateType("product");
-                setActiveTab("new_wizard");
-                setSidebarOpen(false);
-              }}
+              onClick={() => handleStartCreate("product")}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-left font-semibold tracking-wide transition-all cursor-pointer ${activeTab === "new_wizard"
                   ? "text-slate-900 bg-primary/10 border-l-[3px] border-primary font-bold"
                   : "text-slate-700 hover:text-slate-900 hover:bg-slate-200"
@@ -3402,10 +3459,7 @@ export default function AdminPanel({
 
             <button
               type="button"
-              onClick={() => {
-                setCreateType(activeTab === "projects" ? "project" : activeTab === "articles" ? "article" : "product");
-                setActiveTab("new_wizard");
-              }}
+              onClick={() => handleStartCreate(activeTab === "projects" ? "project" : activeTab === "articles" ? "article" : "product")}
               className="inline-flex h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-bold text-white transition-colors hover:bg-primary-light sm:px-4"
             >
               <Plus className="h-4 w-4" />
@@ -3785,9 +3839,11 @@ export default function AdminPanel({
                             <span className="text-[10px] text-red-500 font-bold px-1">Chắc chắn xóa?</span>
                             <button
                               onClick={async () => {
-                                await handleDeleteUser(selectedUser.id);
-                                setShowDeleteConfirm(false);
-                                setSelectedUser(null);
+                                const deleted = await handleDeleteUser(selectedUser);
+                                if (deleted) {
+                                  setShowDeleteConfirm(false);
+                                  setSelectedUser(null);
+                                }
                               }}
                               className="cursor-pointer text-[10px] text-white bg-red-500 hover:bg-red-600 px-2 py-1 rounded font-bold transition-colors"
                             >
@@ -5712,10 +5768,13 @@ export default function AdminPanel({
                             Nhu cầu
                           </div>
                           <div className="bg-white p-2 sm:p-3 border-b lg:border-b-0 border-slate-300 font-medium text-slate-900 break-words text-[11px] sm:text-xs flex items-center">
-                            {crmSelectedLead.propertyTitle?.replace?.(
-                              /Giao diện liên hệ:\s*/i,
-                              "",
-                            ) || "Chưa xác định"}
+                            {crmSelectedLead.message?.trim() ||
+                              crmSelectedLead.demand?.trim() ||
+                              crmSelectedLead.propertyTitle?.replace?.(
+                                /Giao diện liên hệ:\s*/i,
+                                "",
+                              ) ||
+                              "Chưa xác định"}
                           </div>
                         </div>
 
@@ -6076,6 +6135,27 @@ export default function AdminPanel({
                           placeholder="Số 12, Đường Nguyễn Hoàng"
                           className="w-full bg-white border border-slate-200 rounded-lg px-3 min-h-[32px] py-1.5 text-[10px] text-slate-900 outline-none"
                         />
+                      </div>
+                    )}
+
+                    {createType === "product" && (
+                      <div className="space-y-1">
+                        <label htmlFor="product-contact-phone" className="text-[10px] text-slate-700 font-bold font-display block">
+                          Số điện thoại người đăng
+                        </label>
+                        <input
+                          id="product-contact-phone"
+                          type="tel"
+                          value={contactPhone}
+                          onChange={(event) => setContactPhone(event.target.value)}
+                          placeholder="Ví dụ: 0932 966 700"
+                          autoComplete="tel"
+                          required
+                          className="w-full bg-white border border-slate-200 rounded-lg px-3 min-h-[32px] py-1.5 text-[10px] text-slate-900 outline-none focus:border-primary"
+                        />
+                        <p className="text-[9px] text-slate-500">
+                          Mặc định lấy từ hồ sơ cá nhân và có thể thay đổi cho từng sản phẩm.
+                        </p>
                       </div>
                     )}
 

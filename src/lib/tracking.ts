@@ -7,6 +7,11 @@ interface TrackingWindow extends Window {
   dataLayer?: Array<Record<string, unknown> | unknown[]>;
   fbq?: (...args: unknown[]) => void;
   ttq?: { track?: (event: string, payload?: Record<string, unknown>) => void };
+  __greeniaPendingMetaEvents?: Array<{
+    method: "track" | "trackCustom";
+    event: string;
+    payload: Record<string, TrackingValue>;
+  }>;
 }
 
 const SENSITIVE_KEYS = new Set([
@@ -33,6 +38,36 @@ function sanitizePayload(payload: TrackingPayload) {
   );
 }
 
+function emitMetaEvent(
+  method: "track" | "trackCustom",
+  event: string,
+  payload: Record<string, TrackingValue>,
+) {
+  const trackingWindow = window as TrackingWindow;
+  if (typeof trackingWindow.fbq === "function") {
+    trackingWindow.fbq(method, event, payload);
+    return;
+  }
+
+  const pending = trackingWindow.__greeniaPendingMetaEvents || [];
+  trackingWindow.__greeniaPendingMetaEvents = [
+    ...pending.slice(-49),
+    { method, event, payload },
+  ];
+}
+
+export function flushPendingMetaEvents() {
+  if (typeof window === "undefined") return;
+  const trackingWindow = window as TrackingWindow;
+  if (typeof trackingWindow.fbq !== "function") return;
+
+  const pending = trackingWindow.__greeniaPendingMetaEvents || [];
+  trackingWindow.__greeniaPendingMetaEvents = [];
+  pending.forEach(({ method, event, payload }) => {
+    trackingWindow.fbq?.(method, event, payload);
+  });
+}
+
 export function pushTrackingEvent(event: string, payload: TrackingPayload = {}) {
   if (typeof window === "undefined" || !event.trim()) return;
   const cleanPayload = sanitizePayload(payload);
@@ -41,7 +76,6 @@ export function pushTrackingEvent(event: string, payload: TrackingPayload = {}) 
     event: event.trim(),
     ...cleanPayload,
   });
-  dataLayer.push(["event", event.trim(), cleanPayload]);
 
   const trackingWindow = window as TrackingWindow;
   const metaEventMap: Record<string, string> = {
@@ -51,10 +85,14 @@ export function pushTrackingEvent(event: string, payload: TrackingPayload = {}) 
     add_to_wishlist: "AddToWishlist",
     generate_lead: "Lead",
     contact_click: "Contact",
+    complete_registration: "CompleteRegistration",
+    schedule: "Schedule",
   };
   const metaEvent = metaEventMap[event];
-  if (metaEvent && typeof trackingWindow.fbq === "function") {
-    trackingWindow.fbq("track", metaEvent, cleanPayload);
+  if (metaEvent) {
+    emitMetaEvent("track", metaEvent, cleanPayload);
+  } else if (event === "share") {
+    emitMetaEvent("trackCustom", "Share", cleanPayload);
   }
 
   const tiktokEventMap: Record<string, string> = {
@@ -157,4 +195,18 @@ export function trackShare(method: string, contentType: string, itemId: string) 
 
 export function trackContactClick(channel: "phone" | "email" | "zalo") {
   pushTrackingEvent("contact_click", { channel });
+}
+
+export function trackCompleteRegistration(method: "email" | "google") {
+  pushTrackingEvent("complete_registration", {
+    registration_method: method,
+    status: "completed",
+  });
+}
+
+export function trackSchedule(source: string, itemId?: string) {
+  pushTrackingEvent("schedule", {
+    schedule_source: source,
+    item_id: itemId,
+  });
 }

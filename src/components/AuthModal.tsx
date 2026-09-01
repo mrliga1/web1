@@ -10,6 +10,7 @@ import {
   GoogleAuthProvider
 } from '../firebase';
 import { doc, setDoc, getDoc } from '../firebase';
+import { trackCompleteRegistration } from '../lib/tracking';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -147,6 +148,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
 
       await signInWithEmailAndPassword(auth, email, password);
       setOtpChallenge('');
+      trackCompleteRegistration('email');
       onShowNotification('Đăng ký thành công! Bạn có thể bắt đầu sử dụng hệ thống.', 'success');
       onClose();
       if (onLoginSuccess) onLoginSuccess();
@@ -196,7 +198,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
-      sessionStorage.setItem('redirect_after_login', 'true');
+      sessionStorage.setItem('redirect_after_login', 'admin');
       const result = await signInWithPopup(auth, provider);
       
       const user = result?.user as {
@@ -268,6 +270,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
         createdAt: new Date().toISOString()
       }, { merge: true });
       
+      trackCompleteRegistration('google');
       onShowNotification('Cập nhật thông tin và đăng nhập thành công!', 'success');
       onClose();
       if (onLoginSuccess) onLoginSuccess();

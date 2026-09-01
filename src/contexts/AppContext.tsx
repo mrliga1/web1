@@ -10,7 +10,7 @@ import {
   type AdSenseSettingsData,
   type VisualSection,
 } from '../types';
-import { pushTrackingEvent, setTrackingConsent, trackContactClick } from '../lib/tracking';
+import { flushPendingMetaEvents, pushTrackingEvent, setTrackingConsent, trackContactClick } from '../lib/tracking';
 import { normalizeAdSenseSettings } from '../lib/adsense';
 
 interface AppContextType {
@@ -181,6 +181,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     let removeConsentListener: () => void = () => undefined;
+    const trackingFlushTimers: number[] = [];
 
     const loadTrackingScripts = () => {
       const tagManagerId = getSettingString(
@@ -201,6 +202,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           })(window,document,'script','dataLayer','${tagManagerId}');
         `;
         document.head.appendChild(gtmScript);
+        trackingFlushTimers.push(window.setTimeout(flushPendingMetaEvents, 1500));
+        trackingFlushTimers.push(window.setTimeout(flushPendingMetaEvents, 5000));
       }, 2000);
     };
 
@@ -270,6 +273,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       cancelled = true;
+      trackingFlushTimers.forEach((timer) => window.clearTimeout(timer));
       removeConsentListener();
     };
   }, []);

@@ -226,7 +226,7 @@ export const signInWithPopup = async (_auth: unknown, _provider: unknown) => {
   void _provider;
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin },
+    options: { redirectTo: new URL('/admin', window.location.origin).toString() },
   });
   if (error) throw new Error(error.message);
 

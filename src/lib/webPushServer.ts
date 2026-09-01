@@ -81,3 +81,9 @@ export async function reservePushEvent(eventKey: string) {
   if (error.code === '23505') return false;
   throw error;
 }
+
+export async function releasePushEvent(eventKey: string) {
+  const supabase = createServiceRoleClient();
+  const { error } = await supabase.from('push_events').delete().eq('event_key', eventKey);
+  if (error) throw error;
+}

@@ -8,7 +8,7 @@ import {
 } from 'node:crypto';
 import nodemailer from 'nodemailer';
 import { NextRequest, NextResponse } from 'next/server';
-import { getBlockedIpsForRequest } from '../../lib/blockedIps';
+import { getBlockedIpsForRequest, getClientIp, isBlockedIp } from '../../lib/blockedIps';
 import { getEnv } from '../../lib/env';
 import { createServiceRoleClient } from '../../../../src/lib/serverSupabase';
 
@@ -63,10 +63,6 @@ function escapeHtml(value: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
-}
-
-function getClientIp(req: NextRequest): string {
-  return (req.headers.get('x-forwarded-for') || '127.0.0.1').split(',')[0].trim();
 }
 
 function isRateLimited(key: string, maximum: number): boolean {
@@ -305,7 +301,7 @@ export async function POST(req: NextRequest) {
   try {
     const ip = getClientIp(req);
     const blockedIps = await getBlockedIpsForRequest();
-    if (blockedIps.includes(ip)) {
+    if (isBlockedIp(ip, blockedIps)) {
       return NextResponse.json({ error: 'Địa chỉ IP đã bị chặn.' }, { status: 403 });
     }
 

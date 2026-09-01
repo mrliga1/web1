@@ -4,7 +4,7 @@ import { createHmac, randomUUID } from "node:crypto";
 import { isIP } from "node:net";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { getBlockedIpsForRequest } from "../lib/blockedIps";
+import { getBlockedIpsForRequest, isBlockedIp } from "../lib/blockedIps";
 import { getEnv } from "../lib/env";
 
 export const runtime = "nodejs";
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
 
   const clientIp = getClientIp(request);
   const blockedIps = await getBlockedIpsForRequest();
-  if (clientIp !== "unknown" && blockedIps.includes(clientIp)) {
+  if (isBlockedIp(clientIp, blockedIps)) {
     return NextResponse.json({ error: "Yêu cầu đã bị từ chối" }, { status: 403 });
   }
 

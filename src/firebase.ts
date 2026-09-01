@@ -104,6 +104,19 @@ export const getDoc = async (docRef: LegacyDocRef): Promise<LegacyDocSnapshot> =
 };
 
 export const addDoc = async (collectionRef: LegacyCollectionRef, data: unknown) => {
+  if (collectionRef.path === 'consultations' && typeof window !== 'undefined') {
+    const response = await fetch('/api/consultations', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json().catch(() => ({})) as { id?: string; error?: string };
+    if (!response.ok || !result.id) {
+      throw new Error(result.error || 'Không thể gửi yêu cầu tư vấn');
+    }
+    return { id: result.id };
+  }
+
   const payload = normalizePayload(collectionRef.path, data);
   const { data: result, error } = await supabase.from(collectionRef.path).insert(payload).select().single();
   if (error) throw error;

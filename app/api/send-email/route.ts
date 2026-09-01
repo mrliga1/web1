@@ -1,6 +1,6 @@
 import nodemailer from 'nodemailer';
 import { NextRequest, NextResponse } from 'next/server';
-import { getBlockedIpsForRequest } from '../lib/blockedIps';
+import { getBlockedIpsForRequest, getClientIp, isBlockedIp } from '../lib/blockedIps';
 import { getEnv } from '../lib/env';
 
 function cleanText(value: unknown, maxLength = 500): string {
@@ -18,9 +18,9 @@ function escapeHtml(value: string): string {
 
 export async function POST(req: NextRequest) {
   try {
-    const ip = (req.headers.get('x-forwarded-for') || '127.0.0.1').split(',')[0].trim();
+    const ip = getClientIp(req);
     const blockedIps = await getBlockedIpsForRequest();
-    if (blockedIps.includes(ip)) {
+    if (isBlockedIp(ip, blockedIps)) {
       return NextResponse.json({ error: 'Địa chỉ IP đã bị chặn' }, { status: 403 });
     }
 

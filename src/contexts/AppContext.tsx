@@ -10,7 +10,13 @@ import {
   type AdSenseSettingsData,
   type VisualSection,
 } from '../types';
-import { flushPendingMetaEvents, pushTrackingEvent, setTrackingConsent, trackContactClick } from '../lib/tracking';
+import {
+  flushPendingMetaEvents,
+  notifyTrackingConsentGranted,
+  pushTrackingEvent,
+  setTrackingConsent,
+  trackContactClick,
+} from '../lib/tracking';
 import { normalizeAdSenseSettings } from '../lib/adsense';
 
 interface AppContextType {
@@ -183,6 +189,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     let removeConsentListener: () => void = () => undefined;
     const trackingFlushTimers: number[] = [];
 
+    const scheduleMetaFlush = (delays = [1500, 5000, 12000]) => {
+      delays.forEach((delay) => {
+        trackingFlushTimers.push(window.setTimeout(flushPendingMetaEvents, delay));
+      });
+    };
+
     const loadTrackingScripts = () => {
       const tagManagerId = getSettingString(
         process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID,
@@ -202,8 +214,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           })(window,document,'script','dataLayer','${tagManagerId}');
         `;
         document.head.appendChild(gtmScript);
-        trackingFlushTimers.push(window.setTimeout(flushPendingMetaEvents, 1500));
-        trackingFlushTimers.push(window.setTimeout(flushPendingMetaEvents, 5000));
+        scheduleMetaFlush();
       }, 2000);
     };
 
@@ -241,9 +252,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         const requiresConsent = data.cookieConsentEnabled === true;
         const consentAccepted = localStorage.getItem('cookie_consent') === 'accepted';
-        setTrackingConsent(requiresConsent && !consentAccepted ? 'denied' : 'granted', true);
-        if (!requiresConsent || consentAccepted) {
-          loadTrackingScripts();
+        const initialConsentGranted = !requiresConsent || consentAccepted;
+        setTrackingConsent(initialConsentGranted ? 'granted' : 'denied', true);
+        // Luôn nạp GTM để Google Consent Mode gửi tín hiệu không cookie khi chưa được đồng ý.
+        loadTrackingScripts();
+        if (initialConsentGranted) {
+          notifyTrackingConsentGranted();
+          scheduleMetaFlush([3000, 7000, 14000]);
           loadTikTokPixel();
         }
 
@@ -252,7 +267,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const accepted = consentEvent.detail?.status === 'accepted';
           setTrackingConsent(accepted ? 'granted' : 'denied');
           if (accepted) {
-            loadTrackingScripts();
+            notifyTrackingConsentGranted();
+            scheduleMetaFlush([500, 2000, 7000]);
             loadTikTokPixel();
           }
         };
@@ -263,12 +279,16 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setQuotePopupSettings({ enabled: true, version: 2 });
         setTrackingConsent('granted', true);
         loadTrackingScripts();
+        notifyTrackingConsentGranted();
+        scheduleMetaFlush([3000, 7000, 14000]);
       }
     }).catch((error) => {
       console.error("Không thể tải cấu hình popup tư vấn:", error);
       setQuotePopupSettings({ enabled: true, version: 2 });
       setTrackingConsent('granted', true);
       loadTrackingScripts();
+      notifyTrackingConsentGranted();
+      scheduleMetaFlush([3000, 7000, 14000]);
     });
 
     return () => {

@@ -1336,7 +1336,7 @@ export default function AdminPanel({
       });
       const data = await resp.json();
       if (data.success) {
-        setBlockedIps(ips);
+        setBlockedIps(Array.isArray(data.ips) ? data.ips : ips);
         onShowNotification("Đã lưu danh sách chặn IP", "success");
       } else {
         onShowNotification("Lỗi khi lưu IP", "error");
@@ -1361,6 +1361,7 @@ export default function AdminPanel({
   };
 
   const handleRemoveBlockedIp = (ip: string) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn bỏ chặn địa chỉ IP ${ip}?`)) return;
     saveBlockedIps(blockedIps.filter((i) => i !== ip));
   };
 
@@ -1785,6 +1786,15 @@ export default function AdminPanel({
         "Lỗi phân quyền: Biên tập viên không có quyền xóa dữ liệu.",
         "error",
       );
+      return;
+    }
+
+    const contentLabel = path === "products"
+      ? "sản phẩm"
+      : path === "projects"
+        ? "dự án"
+        : "bài viết";
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa ${contentLabel} này? Dữ liệu đã xóa không thể tự khôi phục.`)) {
       return;
     }
 
@@ -2533,6 +2543,9 @@ export default function AdminPanel({
   };
 
   const handleDeleteCategory = async (catIndex: number) => {
+    const categoryName = productCategoriesExt[catIndex]?.name || categories[catIndex] || "danh mục này";
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa danh mục sản phẩm “${categoryName}”?`)) return;
+
     try {
       let newExts = Array.isArray(productCategoriesExt)
         ? [...productCategoriesExt]
@@ -2612,6 +2625,9 @@ export default function AdminPanel({
   };
 
   const handleDeleteNewsCategory = async (catIndex: number) => {
+    const categoryName = newsCategoriesExt[catIndex]?.name || newsCategories[catIndex] || "danh mục này";
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa danh mục tin tức “${categoryName}”?`)) return;
+
     try {
       let newExts = Array.isArray(newsCategoriesExt)
         ? [...newsCategoriesExt]
@@ -2747,6 +2763,10 @@ export default function AdminPanel({
         "Lỗi phân quyền: Bạn không được phép xóa khách hàng khỏi hệ thống CRM.",
         "error",
       );
+      return;
+    }
+
+    if (!window.confirm("Bạn có chắc chắn muốn xóa khách hàng này khỏi CRM? Dữ liệu lịch sử chăm sóc đi kèm cũng sẽ bị mất.")) {
       return;
     }
 

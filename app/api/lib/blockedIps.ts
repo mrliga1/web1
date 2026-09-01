@@ -1,8 +1,10 @@
 import "server-only";
 
 import { createClient } from "@supabase/supabase-js";
-import { isIP } from "node:net";
 import { getEnv } from "./env";
+import { normalizeIpAddress } from "./ipAddress";
+
+export { getClientIp, isBlockedIp } from "./ipAddress";
 
 const MAX_BLOCKED_IPS = 500;
 
@@ -17,8 +19,8 @@ export function normalizeBlockedIps(value: unknown): string[] {
     new Set(
       entries
         .filter((entry): entry is string => typeof entry === "string")
-        .map((entry) => entry.trim())
-        .filter((entry) => isIP(entry) !== 0),
+        .map(normalizeIpAddress)
+        .filter(Boolean),
     ),
   ).slice(0, MAX_BLOCKED_IPS);
 }
@@ -28,7 +30,7 @@ export function isValidBlockedIpList(value: unknown): value is string[] {
     Array.isArray(value) &&
     value.length <= MAX_BLOCKED_IPS &&
     value.every(
-      (entry) => typeof entry === "string" && isIP(entry.trim()) !== 0,
+      (entry) => typeof entry === "string" && Boolean(normalizeIpAddress(entry)),
     )
   );
 }

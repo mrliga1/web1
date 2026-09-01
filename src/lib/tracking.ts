@@ -7,6 +7,7 @@ interface TrackingWindow extends Window {
   dataLayer?: Array<Record<string, unknown> | unknown[]>;
   fbq?: (...args: unknown[]) => void;
   ttq?: { track?: (event: string, payload?: Record<string, unknown>) => void };
+  __greeniaTrackingConsent?: ConsentStatus;
   __greeniaPendingMetaEvents?: Array<{
     method: "track" | "trackCustom";
     event: string;
@@ -44,6 +45,8 @@ function emitMetaEvent(
   payload: Record<string, TrackingValue>,
 ) {
   const trackingWindow = window as TrackingWindow;
+  if (trackingWindow.__greeniaTrackingConsent !== "granted") return;
+
   if (typeof trackingWindow.fbq === "function") {
     trackingWindow.fbq(method, event, payload);
     return;
@@ -110,6 +113,8 @@ export function pushTrackingEvent(event: string, payload: TrackingPayload = {}) 
 
 export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false) {
   if (typeof window === "undefined") return;
+  const trackingWindow = window as TrackingWindow;
+  trackingWindow.__greeniaTrackingConsent = status;
   const dataLayer = getDataLayer();
   const consent: Record<string, ConsentStatus | number> = {
     analytics_storage: status,
@@ -119,6 +124,11 @@ export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false)
   };
   if (waitForUpdate) consent.wait_for_update = 500;
   dataLayer.push(["consent", waitForUpdate ? "default" : "update", consent]);
+}
+
+export function notifyTrackingConsentGranted() {
+  if (typeof window === "undefined") return;
+  getDataLayer().push({ event: "consent_granted" });
 }
 
 export function trackLead(formName: string, source: string, itemId?: string) {

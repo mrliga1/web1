@@ -286,7 +286,9 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
                 id="mobile-toggle"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 aria-label="Menu di động"
-                className="text-slate-405 hover:text-white p-2 rounded-lg"
+                aria-expanded={mobileMenuOpen}
+                aria-controls="mobile-dropdown"
+                className="flex items-center justify-center rounded-lg border border-primary/20 bg-primary/10 p-2 text-primary transition-all duration-200 hover:bg-primary hover:text-white active:scale-95"
               >
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
@@ -301,24 +303,26 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
         <nav 
           aria-label="Điều hướng di động"
           id="mobile-dropdown"
-          style={{ animation: 'slideDown 0.2s ease-out' }}
-          className={`lg:hidden border-b text-left ${theme === 'dark' ? 'bg-[#0B1F16]/95 border-zinc-900' : 'bg-white border-border-color shadow-md'}`}
+          style={{ animation: 'slideDown 0.24s cubic-bezier(0.22, 1, 0.36, 1)', transformOrigin: 'top' }}
+          className="lg:hidden border-b border-primary/15 bg-[#f4faf7]/98 text-left shadow-[0_18px_40px_rgba(5,92,69,0.14)] backdrop-blur-xl"
         >
-            <div className="px-4 pt-2 pb-6 space-y-1 bg-white">
+            <div className="space-y-1 px-4 pb-6 pt-3 sm:px-6">
               <ul className="m-0 p-0 list-none space-y-1">
               {menuItems.map((item) => {
                 const active = currentRoute.screen === item.screen;
+                const Icon = item.icon;
                 return (
                   <li key={item.screen}>
                     <Link
                       href={getRouteUrl({ screen: item.screen })}
                       onClick={() => setMobileMenuOpen(false)}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-semibold text-sm transition-colors ${
+                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border font-semibold text-sm transition-all duration-200 ${
                         active 
-                          ? (theme === 'dark' ? 'text-accent bg-accent/10' : 'text-primary bg-primary/10')
-                          : (theme === 'dark' ? 'text-zinc-200 hover:bg-bg-inverse hover:text-white' : 'text-text-secondary hover:bg-slate-50 hover:text-text-primary')
+                          ? 'border-primary/20 bg-primary text-white shadow-sm'
+                          : 'border-transparent text-text-primary hover:border-primary/15 hover:bg-white hover:text-primary'
                       }`}
                     >
+                      <Icon className="h-4 w-4 shrink-0" />
                       <span>{item.label}</span>
                     </Link>
                   </li>
@@ -326,28 +330,28 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
               })}
               </ul>
 
-              <div className="pt-4 border-t border-zinc-900 space-y-3">
+              <div className="mt-3 space-y-3 border-t border-primary/15 pt-4">
                 <a 
                   href="tel:0932966700"
-                  className="flex items-center justify-center gap-2 w-full bg-accent text-black font-bold py-3 rounded-lg text-xs"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary py-3 text-xs font-bold text-white shadow-sm transition-colors hover:bg-primary-light"
                 >
-                  <Phone className="w-4 h-4 fill-black" />
+                  <Phone className="h-4 w-4 fill-white" />
                   <span>HOTLINE: 0932 966 700</span>
                 </a>
 
                 {currentUser ? (
-                  <div className="p-3 bg-bg-inverse rounded-lg space-y-2">
-                    <p className="text-[10px] text-white/70 truncate">Email: {currentUser.email}</p>
+                  <div className="space-y-2 rounded-xl border border-primary/15 bg-white p-3 shadow-sm">
+                    <p className="truncate text-[10px] font-medium text-text-secondary">Email: {currentUser.email}</p>
                     <div className="flex gap-2">
                       <button 
                         onClick={() => { handleNavigate({ screen: 'admin' }); setMobileMenuOpen(false); }}
-                        className="flex-1 bg-bg-inverse text-accent text-xs py-2 rounded font-bold border border-slate-850"
+                        className="flex-1 rounded-lg border border-primary bg-primary py-2 text-xs font-bold text-white transition-colors hover:bg-primary-light"
                       >
                         Quản lý
                       </button>
                       <button 
                         onClick={handleSignOut}
-                        className="flex-grow bg-error/15 text-error text-xs py-2 rounded font-bold"
+                        className="flex-grow rounded-lg border border-error/25 bg-error/10 py-2 text-xs font-bold text-error transition-colors hover:bg-error hover:text-white"
                       >
                         Thoát
                       </button>
@@ -359,7 +363,7 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
                       openAuthModal();
                       setMobileMenuOpen(false);
                     }}
-                    className="w-full bg-bg-inverse hover:bg-slate-850 text-zinc-200 py-2.5 rounded-lg text-xs font-bold border border-slate-850 cursor-pointer"
+                    className="w-full cursor-pointer rounded-xl border border-primary bg-primary py-2.5 text-xs font-bold text-white transition-colors hover:bg-primary-light"
                   >
                     Đăng nhập / Đăng ký
                   </button>

@@ -95,11 +95,8 @@ const PROJECT_READ_MORE_BUTTON_CLASS =
   "flex items-center gap-2 text-primary hover:text-primary-light font-medium text-[13px] md:text-sm transition-colors mt-3";
 const PROJECT_FORM_FIELD_CLASS =
   "w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-[13px] py-2 px-3.5 text-text-primary placeholder-text-secondary";
-const PROJECT_CHECKBOX_CLASS =
-  "mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer rounded border-border-color bg-bg-surface text-primary focus:ring-transparent";
-
 import { fetchClientIp } from "../lib/ip";
-import { notifyNewConsultation } from "../lib/pushNotifications";
+import FormConsentFields from "./FormConsentFields";
 
 export default function ProjectDetail({
   projectId,
@@ -307,8 +304,8 @@ export default function ProjectDetail({
   const [clientDemand, setClientDemand] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(true);
-  const [agreePrivacy, setAgreePrivacy] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -580,6 +577,13 @@ export default function ProjectDetail({
       );
       return;
     }
+    if (!agreeTerms || !agreePrivacy) {
+      onShowNotification(
+        "Vui lòng đồng ý đủ hai nội dung trước khi gửi.",
+        "error",
+      );
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -605,16 +609,22 @@ export default function ProjectDetail({
         propertyTitle: `Đăng ký xem dự án: ${project?.title}`,
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,
+        termsAccepted: agreeTerms,
+        privacyAccepted: agreePrivacy,
+        marketingConsent: agreePrivacy,
       });
-      notifyNewConsultation(String(createdConsultation.id));
-      trackLead('project_consultation', 'project_detail', project?.id || projectId || slug);
-      trackSchedule('project_detail', project?.id || projectId || slug);
+      if (createdConsultation.trackingEligible) {
+        trackLead('project_consultation', 'project_detail', project?.id || projectId || slug);
+        trackSchedule('project_detail', project?.id || projectId || slug);
+      }
 
       setFormSubmitted(true);
       setClientName("");
       setClientPhone("");
       setClientEmail("");
       setClientDemand("");
+      setAgreeTerms(false);
+      setAgreePrivacy(false);
       onShowNotification(
         "Đăng ký nhận lịch trình tham quan dự án thành công!",
         "success",
@@ -2232,50 +2242,14 @@ export default function ProjectDetail({
                       />
                     </div>
 
-                    <div className="space-y-1.5 pt-1">
-                      <label className="flex items-start gap-2.5 cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={agreeTerms}
-                          onChange={(e) => setAgreeTerms(e.target.checked)}
-                          className={PROJECT_CHECKBOX_CLASS}
-                        />
-                        <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
-                          Tôi đã đọc và đồng ý với{" "}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onNavigate({ screen: "terms-of-use" })
-                            }
-                            className="underline text-primary hover:text-primary"
-                          >
-                            Điều khoản & Điều kiện
-                          </button>{" "}
-                          của Greenia Market.
-                        </span>
-                      </label>
-                      <label className="flex items-start gap-2.5 cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={agreePrivacy}
-                          onChange={(e) => setAgreePrivacy(e.target.checked)}
-                          className={PROJECT_CHECKBOX_CLASS}
-                        />
-                        <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
-                          Tôi đã đọc và đồng ý với{" "}
-                          <button
-                            type="button"
-                            onClick={() =>
-                              onNavigate({ screen: "privacy-policy" })
-                            }
-                            className="underline text-primary hover:text-primary"
-                          >
-                            Chính sách bảo mật dữ liệu cá nhân
-                          </button>{" "}
-                          của Greenia Market.
-                        </span>
-                      </label>
-                    </div>
+                    <FormConsentFields
+                      idPrefix="project-consultation"
+                      agreeTerms={agreeTerms}
+                      agreePrivacy={agreePrivacy}
+                      onTermsChange={setAgreeTerms}
+                      onPrivacyChange={setAgreePrivacy}
+                      className="pt-1"
+                    />
 
                     <button
                       type="submit"

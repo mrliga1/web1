@@ -11,7 +11,7 @@ import { Product, Project, News, RouteState, VisualSection } from '../types';
 import { EditableText } from './EditableComponent';
 import ProductCard from './ProductCard';
 import { trackLead } from '../lib/tracking';
-import { notifyNewConsultation } from '../lib/pushNotifications';
+import FormConsentFields from './FormConsentFields';
 
 const HOME_CONSULTATION_FIELD_CLASS =
   'w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-[12px] px-3.5 text-text-primary placeholder-text-secondary';
@@ -30,22 +30,25 @@ interface HeroProps extends SectionRendererProps {
 }
 
 const HeroConsultationForm: React.FC<{
-  onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
-}> = ({ onNavigate, onShowNotification }) => {
+}> = ({ onShowNotification }) => {
   const [clientName, setClientName] = useState('');
   const [clientPhone, setClientPhone] = useState('');
   const [clientEmail, setClientEmail] = useState('');
   const [clientDemand, setClientDemand] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(true);
-  const [agreePrivacy, setAgreePrivacy] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
 
   const handleConsultationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientName.trim() || !clientPhone.trim()) {
       onShowNotification('Vui lòng nhập họ tên và số điện thoại.', 'error');
+      return;
+    }
+    if (!agreeTerms || !agreePrivacy) {
+      onShowNotification('Vui lòng đồng ý đủ hai nội dung trước khi gửi.', 'error');
       return;
     }
 
@@ -78,16 +81,22 @@ const HeroConsultationForm: React.FC<{
         propertyId: 'homepage-consultation',
         propertyTitle: 'Tư vấn chuyên sâu trang chủ',
         sourceUrl: friendlyUrl,
-        ipAddress: clientIp
+        ipAddress: clientIp,
+        termsAccepted: agreeTerms,
+        privacyAccepted: agreePrivacy,
+        marketingConsent: agreePrivacy,
       });
-      notifyNewConsultation(String(createdConsultation.id));
-      trackLead('homepage_consultation', 'homepage');
+      if (createdConsultation.trackingEligible) {
+        trackLead('homepage_consultation', 'homepage');
+      }
 
       setFormSubmitted(true);
       setClientName('');
       setClientPhone('');
       setClientEmail('');
       setClientDemand('');
+      setAgreeTerms(false);
+      setAgreePrivacy(false);
       onShowNotification('Đã gửi thông tin yêu cầu tư vấn thành công!', 'success');
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, 'consultations');
@@ -168,46 +177,14 @@ const HeroConsultationForm: React.FC<{
             />
           </div>
 
-          <div className="space-y-2.5 pt-2 mt-[14px]">
-            <label className="flex items-start gap-2.5 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={agreeTerms}
-                onChange={(e) => setAgreeTerms(e.target.checked)}
-                className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
-              />
-              <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-primary">
-                Tôi đã đọc và đồng ý với{" "}
-                <button
-                  type="button"
-                  onClick={() => onNavigate({ screen: "terms-of-use" })}
-                  className="underline text-primary hover:text-primary-light"
-                >
-                  Điều khoản & Điều kiện
-                </button>{" "}
-                của Greenia Homes.
-              </span>
-            </label>
-            <label className="flex items-start gap-2.5 cursor-pointer group">
-              <input
-                type="checkbox"
-                checked={agreePrivacy}
-                onChange={(e) => setAgreePrivacy(e.target.checked)}
-                className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 cursor-pointer"
-              />
-              <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-primary">
-                Tôi đã đọc và đồng ý với{" "}
-                <button
-                  type="button"
-                  onClick={() => onNavigate({ screen: "privacy-policy" })}
-                  className="underline text-primary hover:text-primary-light"
-                >
-                  Chính sách bảo mật dữ liệu cá nhân
-                </button>{" "}
-                của Greenia Homes.
-              </span>
-            </label>
-          </div>
+          <FormConsentFields
+            idPrefix="home-consultation"
+            agreeTerms={agreeTerms}
+            agreePrivacy={agreePrivacy}
+            onTermsChange={setAgreeTerms}
+            onPrivacyChange={setAgreePrivacy}
+            className="pt-2 mt-[14px]"
+          />
 
           <button
             type="submit"
@@ -320,7 +297,7 @@ export const HeroSectionBody: React.FC<HeroProps> = ({
             className="relative z-10 w-full max-w-[420px] mx-auto lg:ml-auto lg:mr-0 bg-bg-base p-4 rounded-3xl border border-border-color"
             id="hero-banner-consultation-form"
           >
-            <HeroConsultationForm onNavigate={onNavigate} onShowNotification={onShowNotification} />
+            <HeroConsultationForm onShowNotification={onShowNotification} />
           </div>
         </div>
       </div>

@@ -17,9 +17,9 @@ interface ContactPageProps {
 }
 
 import { fetchClientIp } from '../lib/ip';
-import { notifyNewConsultation } from '../lib/pushNotifications';
 import { trackLead } from '../lib/tracking';
 import { generateSrcSet, optimizeImageUrl } from '../lib/utils';
+import FormConsentFields from './FormConsentFields';
 
 const MAX_CONTACT_IMAGES = 5;
 const MAX_CONTACT_IMAGE_SIZE = 3 * 1024 * 1024;
@@ -94,6 +94,8 @@ export default function ContactPage({
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [contactErrors, setContactErrors] = useState<{
     name?: string;
     phone?: string;
@@ -182,6 +184,10 @@ export default function ContactPage({
       onShowNotification(Object.values(nextErrors)[0] || 'Thông tin liên hệ chưa hợp lệ.', 'error');
       return;
     }
+    if (!agreeTerms || !agreePrivacy) {
+      onShowNotification('Vui lòng đồng ý đủ hai nội dung trước khi gửi.', 'error');
+      return;
+    }
     setContactErrors({});
 
     setContactSubmitting(true);
@@ -206,10 +212,14 @@ export default function ContactPage({
         status: 'pending',
         propertyTitle: `Giao diện liên hệ: ${contactMessage.trim() || 'Cần tư vấn trực tiếp'}`,
         sourceUrl: friendlyUrl,
-        ipAddress: clientIp
+        ipAddress: clientIp,
+        termsAccepted: agreeTerms,
+        privacyAccepted: agreePrivacy,
+        marketingConsent: agreePrivacy,
       });
-      notifyNewConsultation(String(createdConsultation.id));
-      trackLead('contact_page', 'contact');
+      if (createdConsultation.trackingEligible) {
+        trackLead('contact_page', 'contact');
+      }
 
       setContactSuccess(true);
       setContactName('');
@@ -217,6 +227,8 @@ export default function ContactPage({
       setContactEmail('');
       setContactMessage('');
       setContactImages([]);
+      setAgreeTerms(false);
+      setAgreePrivacy(false);
       onShowNotification('Gửi thông tin liên lạc thành công! Chuyên viên sẽ điện đàm ngay.', 'success');
     } catch (err) {
       console.error(err);
@@ -492,9 +504,17 @@ export default function ContactPage({
                           </div>
                         </div>
 
+                        <FormConsentFields
+                          idPrefix="contact-page"
+                          agreeTerms={agreeTerms}
+                          agreePrivacy={agreePrivacy}
+                          onTermsChange={setAgreeTerms}
+                          onPrivacyChange={setAgreePrivacy}
+                        />
+
                         <button
                           type="submit"
-                          disabled={contactSubmitting}
+                          disabled={contactSubmitting || !agreeTerms || !agreePrivacy}
                           className="motion-button w-full bg-primary hover:bg-primary-light active:scale-95 text-text-inverse font-bold py-2.5 rounded-lg text-xs uppercase tracking-wider cursor-pointer font-display shadow-lg flex items-center justify-center gap-1.5"
                         >
                           {contactSubmitting ? 'ĐANG PHÁT ĐI BẢO MẬT...' : (

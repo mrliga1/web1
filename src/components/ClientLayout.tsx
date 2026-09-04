@@ -6,6 +6,7 @@ import Footer from './Footer';
 import { usePathname } from 'next/navigation';
 
 import FloatingActionButtons from './FloatingActionButtons';
+import ContentRealtimeRefresh from './ContentRealtimeRefresh';
 
 interface ClientLayoutProps {
   children: React.ReactNode;
@@ -67,6 +68,7 @@ export default function ClientLayout({
         logoUrl={logoUrl}
         isSettingsLoaded={isSettingsLoaded}
       />
+      <ContentRealtimeRefresh />
       
       <main id="main-content" className="site-decorative-background flex-1 w-full bg-bg-surface">
         {children}

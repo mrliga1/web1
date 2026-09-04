@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyStaff } from '../../lib/auth';
 import { createServiceRoleClient } from '../../../../src/lib/serverSupabase';
-import { getWebPushPublicKey } from '../../../../src/lib/webPushServer';
+import { getWebPushPublicKey, isWebPushConfigured } from '../../../../src/lib/webPushServer';
 
 export const runtime = 'nodejs';
 
@@ -11,7 +11,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: authResult.error }, { status: 401 });
   }
   const publicKey = getWebPushPublicKey();
-  if (!publicKey) return NextResponse.json({ configured: false, subscribed: false });
+  if (!isWebPushConfigured()) return NextResponse.json({ configured: false, subscribed: false });
 
   const endpoint = request.nextUrl.searchParams.get('endpoint')?.trim() || '';
   if (!endpoint) {
@@ -40,6 +40,9 @@ export async function POST(request: NextRequest) {
     endpoint?: string;
     keys?: { p256dh?: string; auth?: string };
   } | null;
+  if (!isWebPushConfigured()) {
+    return NextResponse.json({ error: 'Máy chủ chưa cấu hình đủ khóa Web Push' }, { status: 503 });
+  }
   if (!body?.endpoint || !body.keys?.p256dh || !body.keys.auth || body.endpoint.length > 2048) {
     return NextResponse.json({ error: 'Subscription không hợp lệ' }, { status: 400 });
   }

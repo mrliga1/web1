@@ -42,7 +42,7 @@ interface NewsDetailProps {
 }
 
 import { fetchClientIp } from '../lib/ip';
-import { notifyNewConsultation } from '../lib/pushNotifications';
+import FormConsentFields from './FormConsentFields';
 
 export default function NewsDetail({
   newsId,
@@ -104,8 +104,8 @@ export default function NewsDetail({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [seeMoreClicks, setSeeMoreClicks] = useState(0);
-  const [agreeTerms, setAgreeTerms] = useState(true);
-  const [agreePrivacy, setAgreePrivacy] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [isMarqueePaused, setIsMarqueePaused] = useState(false);
   const relatedCarouselRef = useRef<HTMLDivElement>(null);
 
@@ -299,6 +299,10 @@ export default function NewsDetail({
       onShowNotification("Vui lòng cung cấp đầy đủ tên và số điện thoại", "error");
       return;
     }
+    if (!agreeTerms || !agreePrivacy) {
+      onShowNotification("Vui lòng đồng ý đủ hai nội dung trước khi gửi.", "error");
+      return;
+    }
 
     setIsSubmitting(true);
     try {
@@ -325,14 +329,20 @@ export default function NewsDetail({
         propertyTitle: "Từ bài viết: " + (article?.title || ""),
         sourceUrl: friendlyUrl,
         ipAddress: clientIp,
+        termsAccepted: agreeTerms,
+        privacyAccepted: agreePrivacy,
+        marketingConsent: agreePrivacy,
       });
-      notifyNewConsultation(String(createdConsultation.id));
-      trackLead('news_consultation', 'news_detail', article?.id || newsId || slug);
+      if (createdConsultation.trackingEligible) {
+        trackLead('news_consultation', 'news_detail', article?.id || newsId || slug);
+      }
 
       setFormSubmitted(true);
       setClientName('');
       setClientPhone('');
       setClientEmail('');
+      setAgreeTerms(false);
+      setAgreePrivacy(false);
       onShowNotification("Đã gửi yêu cầu tư vấn thành công!", "success");
     } catch (err) {
       console.error(err);
@@ -805,30 +815,14 @@ export default function NewsDetail({
                   />
                 </div>
 
-                <div className="space-y-1.5 pt-1">
-                  <label className="flex items-start gap-2.5 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 shrink-0 cursor-pointer"
-                    />
-                    <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
-                      Tôi đã đọc và đồng ý với <button type="button" onClick={() => onNavigate({ screen: "terms-of-use" })} className="underline text-primary hover:text-primary">Điều khoản & Điều kiện</button> của Greenia Market.
-                    </span>
-                  </label>
-                  <label className="flex items-start gap-2.5 cursor-pointer group">
-                    <input
-                      type="checkbox"
-                      checked={agreePrivacy}
-                      onChange={(e) => setAgreePrivacy(e.target.checked)}
-                      className="mt-0.5 rounded border-border-color bg-bg-surface text-primary focus:ring-transparent h-3.5 w-3.5 shrink-0 cursor-pointer"
-                    />
-                    <span className="text-[10px] text-text-secondary leading-snug group-hover:text-text-secondary">
-                      Tôi đã đọc và đồng ý với <button type="button" onClick={() => onNavigate({ screen: "privacy-policy" })} className="underline text-primary hover:text-primary">Chính sách bảo mật dữ liệu cá nhân</button> của Greenia Market.
-                    </span>
-                  </label>
-                </div>
+                <FormConsentFields
+                  idPrefix="news-consultation"
+                  agreeTerms={agreeTerms}
+                  agreePrivacy={agreePrivacy}
+                  onTermsChange={setAgreeTerms}
+                  onPrivacyChange={setAgreePrivacy}
+                  className="pt-1"
+                />
 
                 <button
                   type="submit"

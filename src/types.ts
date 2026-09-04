@@ -173,6 +173,14 @@ export interface Consultation {
   demand?: string;
   sourceUrl?: string;
   images?: string[];
+  termsAccepted?: boolean;
+  privacyAccepted?: boolean;
+  marketingConsent?: boolean;
+  consentRecordedAt?: string;
+  spamScore?: number;
+  spamStatus?: 'clean' | 'review' | 'blocked';
+  spamReasons?: string[];
+  remarketingEligible?: boolean;
 }
 
 export type ScreenType = 

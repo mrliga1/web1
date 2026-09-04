@@ -28,8 +28,8 @@ self.addEventListener('push', event => {
   const title = payload.title || 'Greenia Homes';
   const options = {
     body: payload.body || 'Bạn có thông báo mới.',
-    icon: payload.icon || '/icon-192.png',
-    badge: payload.badge || '/icon-192.png',
+    icon: payload.icon || '/favicon.webp',
+    badge: payload.badge || '/favicon.webp',
     tag: payload.tag || 'greenia-homes',
     renotify: true,
     data: { url: payload.url || '/admin' },

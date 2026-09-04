@@ -15,15 +15,39 @@ function urlBase64ToUint8Array(value: string) {
 
 async function getRegistration() {
   if (!('serviceWorker' in navigator)) throw new Error('Trình duyệt không hỗ trợ Service Worker');
-  return navigator.serviceWorker.ready;
+  return new Promise<ServiceWorkerRegistration>((resolve, reject) => {
+    const timeoutId = window.setTimeout(
+      () => reject(new Error('Service Worker chưa sẵn sàng')),
+      8000,
+    );
+    navigator.serviceWorker.ready.then((registration) => {
+      window.clearTimeout(timeoutId);
+      resolve(registration);
+    }).catch((error) => {
+      window.clearTimeout(timeoutId);
+      reject(error);
+    });
+  });
 }
 
 export async function getPushSubscriptionStatus(): Promise<SubscriptionStatus> {
-  if (typeof window === 'undefined' || !('Notification' in window) || !('PushManager' in window)) {
+  if (typeof window === 'undefined') {
     return { configured: false, subscribed: false };
   }
+
+  const configurationResponse = await authFetch('/api/push/subscription', { cache: 'no-store' });
+  const configuration = await configurationResponse.json() as SubscriptionStatus & { error?: string };
+  if (!configurationResponse.ok) {
+    throw new Error(configuration.error || 'Không thể kiểm tra cấu hình Web Push');
+  }
+  if (!configuration.configured || !('Notification' in window) || !('PushManager' in window)) {
+    return { ...configuration, subscribed: false };
+  }
+
   const registration = await getRegistration();
   const currentSubscription = await registration.pushManager.getSubscription();
+  if (!currentSubscription) return { ...configuration, subscribed: false };
+
   const endpointQuery = currentSubscription
     ? `?endpoint=${encodeURIComponent(currentSubscription.endpoint)}`
     : '';

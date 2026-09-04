@@ -3,7 +3,7 @@ import { Phone, Mail, X, CheckCircle2 } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { useAppContext } from '../contexts/AppContext';
 import { trackLead } from '../lib/tracking';
-import { notifyNewConsultation } from '../lib/pushNotifications';
+import FormConsentFields from './FormConsentFields';
 
 export default function FloatingActionButtons() {
   const { isQuotePopupOpen: showQuotePopup, setIsQuotePopupOpen: setShowQuotePopup } = useAppContext();
@@ -13,6 +13,8 @@ export default function FloatingActionButtons() {
   const [quoteDemand, setQuoteDemand] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePrivacy, setAgreePrivacy] = useState(false);
 
   const closeQuotePopup = useCallback(() => {
     if (!formSubmitted) {
@@ -37,7 +39,7 @@ export default function FloatingActionButtons() {
 
   const handleQuoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quoteName || !quotePhone) return;
+    if (!quoteName || !quotePhone || !agreeTerms || !agreePrivacy) return;
     
     setIsSubmitting(true);
     try {
@@ -50,14 +52,20 @@ export default function FloatingActionButtons() {
         status: 'new',
         createdAt: new Date().toISOString(),
         source: 'quote_popup',
+        termsAccepted: agreeTerms,
+        privacyAccepted: agreePrivacy,
+        marketingConsent: agreePrivacy,
       });
-      notifyNewConsultation(String(createdConsultation.id));
-      trackLead('quote_popup', 'quote_popup');
+      if (createdConsultation.trackingEligible) {
+        trackLead('quote_popup', 'quote_popup');
+      }
       setFormSubmitted(true);
       setQuoteName('');
       setQuotePhone('');
       setQuoteEmail('');
       setQuoteDemand('');
+      setAgreeTerms(false);
+      setAgreePrivacy(false);
       window.dispatchEvent(new Event('greenia_quote_popup_submitted'));
       setTimeout(() => {
         setFormSubmitted(false);
@@ -243,9 +251,17 @@ export default function FloatingActionButtons() {
                     />
                   </div>
 
+                  <FormConsentFields
+                    idPrefix="quote-popup"
+                    agreeTerms={agreeTerms}
+                    agreePrivacy={agreePrivacy}
+                    onTermsChange={setAgreeTerms}
+                    onPrivacyChange={setAgreePrivacy}
+                  />
+
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || !agreeTerms || !agreePrivacy}
                     className="w-full py-2.5 border-none cursor-pointer rounded-[10px] font-bold bg-primary text-white hover:bg-primary-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs mt-2 shadow-lg shadow-primary/30"
                   >
                     {isSubmitting ? "Đang gửi..." : "Nhận tư vấn ngay"}

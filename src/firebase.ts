@@ -103,24 +103,31 @@ export const getDoc = async (docRef: LegacyDocRef): Promise<LegacyDocSnapshot> =
   };
 };
 
-export const addDoc = async (collectionRef: LegacyCollectionRef, data: unknown) => {
+export const addDoc = async (
+  collectionRef: LegacyCollectionRef,
+  data: unknown,
+): Promise<{ id: string; trackingEligible?: boolean }> => {
   if (collectionRef.path === 'consultations' && typeof window !== 'undefined') {
     const response = await fetch('/api/consultations', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    const result = await response.json().catch(() => ({})) as { id?: string; error?: string };
+    const result = await response.json().catch(() => ({})) as {
+      id?: string;
+      error?: string;
+      trackingEligible?: boolean;
+    };
     if (!response.ok || !result.id) {
       throw new Error(result.error || 'Không thể gửi yêu cầu tư vấn');
     }
-    return { id: result.id };
+    return { id: result.id, trackingEligible: result.trackingEligible === true };
   }
 
   const payload = normalizePayload(collectionRef.path, data);
   const { data: result, error } = await supabase.from(collectionRef.path).insert(payload).select().single();
   if (error) throw error;
-  return { id: (result as LegacyRecord).id };
+  return { id: String((result as LegacyRecord).id) };
 };
 
 export const setDoc = async (docRef: LegacyDocRef, data: unknown, options?: { merge?: boolean }) => {

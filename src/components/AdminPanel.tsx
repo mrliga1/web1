@@ -18,6 +18,7 @@ import {
   onSnapshot,
 } from "../firebase-realtime";
 import { authFetch } from '../lib/authFetch';
+import { isLeadAssignedTo } from '../lib/crmAccess';
 import { generateSlug, getImageAltFromUrl } from '../lib/utils';
 import {
   PlusCircle,
@@ -2799,7 +2800,34 @@ export default function AdminPanel({
       await updateDoc(doc(db, "consultations", id), {
         status: newStatus,
       });
+      setConsultations((current) =>
+        current.map((lead) => lead.id === id ? { ...lead, status: newStatus } : lead),
+      );
+      setCrmSelectedLead((current) =>
+        current?.id === id ? { ...current, status: newStatus } : current,
+      );
       onShowNotification(`Đã chuyển trạng thái khách hàng ${name}`, "success");
+
+      if (currentUserRole === "member" || currentUserRole === "editor") {
+        try {
+          const pushResponse = await authFetch("/api/push/notify-care-history", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              leadId: id,
+              historyTime: Date.now(),
+              eventType: "status",
+              status: newStatus,
+            }),
+          });
+          if (!pushResponse.ok) {
+            const pushResult = await pushResponse.json().catch(() => ({})) as { error?: string };
+            console.warn("Không thể gửi thông báo trạng thái:", pushResult.error || pushResponse.statusText);
+          }
+        } catch (pushError) {
+          console.warn("Không thể kết nối dịch vụ thông báo trạng thái:", pushError);
+        }
+      }
     } catch (err) {
       console.error(err);
       onShowNotification("Không thể cập nhật trạng thái", "error");
@@ -2832,6 +2860,12 @@ export default function AdminPanel({
       await updateDoc(doc(db, "consultations", leadId), {
         assignee: newValue,
       });
+      setConsultations((current) =>
+        current.map((item) => item.id === leadId ? { ...item, assignee: newValue } : item),
+      );
+      setCrmSelectedLead((current) =>
+        current?.id === leadId ? { ...current, assignee: newValue } : current,
+      );
       onShowNotification("Đã lưu Người phụ trách", "success");
 
       // Tách email nếu trường người phụ trách có chứa email.
@@ -3062,9 +3096,7 @@ export default function AdminPanel({
     if (currentUserRole === "admin" || currentUserRole === "editor")
       return consultations;
     return consultations.filter(
-      (c: Consultation) =>
-        c.assignee &&
-        c.assignee.toLowerCase().includes(currentMemberEmail.toLowerCase()),
+      (c: Consultation) => isLeadAssignedTo(c.assignee, currentMemberEmail),
     );
   }, [consultations, currentUserRole, currentMemberEmail]);
 

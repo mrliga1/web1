@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     const smtpUser = getEnv('SMTP_USER');
     const smtpPass = getEnv('SMTP_PASS');
-    const smtpTo = getEnv('SMTP_TO') || 'thuannguyen.pigroup@gmail.com';
+    const smtpTo = getEnv('SMTP_TO') || 'thuankdbds@gmail.com';
     if (!smtpUser || !smtpPass) {
       return NextResponse.json({ error: 'Máy chủ chưa được cấu hình email' }, { status: 503 });
     }

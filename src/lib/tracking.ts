@@ -62,6 +62,7 @@ function emitMetaEvent(
 export function flushPendingMetaEvents() {
   if (typeof window === "undefined") return;
   const trackingWindow = window as TrackingWindow;
+  if (trackingWindow.__greeniaTrackingConsent !== "granted") return;
   if (typeof trackingWindow.fbq !== "function") return;
 
   const pending = trackingWindow.__greeniaPendingMetaEvents || [];
@@ -106,7 +107,7 @@ export function pushTrackingEvent(event: string, payload: TrackingPayload = {}) 
     contact_click: "Contact",
   };
   const tiktokEvent = tiktokEventMap[event];
-  if (tiktokEvent && typeof trackingWindow.ttq?.track === "function") {
+  if (trackingWindow.__greeniaTrackingConsent === "granted" && tiktokEvent && typeof trackingWindow.ttq?.track === "function") {
     trackingWindow.ttq.track(tiktokEvent, cleanPayload);
   }
 }
@@ -115,6 +116,7 @@ export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false)
   if (typeof window === "undefined") return;
   const trackingWindow = window as TrackingWindow;
   trackingWindow.__greeniaTrackingConsent = status;
+  if (status === "denied") trackingWindow.__greeniaPendingMetaEvents = [];
   const dataLayer = getDataLayer();
   const consent: Record<string, ConsentStatus | number> = {
     analytics_storage: status,

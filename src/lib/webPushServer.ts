@@ -23,10 +23,19 @@ export function getWebPushPublicKey() {
   return process.env.NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY?.trim() || '';
 }
 
+export function isWebPushConfigured() {
+  try {
+    configureWebPush();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function configureWebPush() {
   const publicKey = getWebPushPublicKey();
   const privateKey = process.env.WEB_PUSH_VAPID_PRIVATE_KEY?.trim() || '';
-  const subject = process.env.WEB_PUSH_SUBJECT?.trim() || 'mailto:sales.greeniahomes@gmail.com';
+  const subject = process.env.WEB_PUSH_SUBJECT?.trim() || 'mailto:thuankdbds@gmail.com';
   if (!publicKey || !privateKey) {
     throw new Error('Web Push chưa được cấu hình khóa VAPID');
   }
@@ -39,9 +48,17 @@ export async function sendPushNotifications(
 ) {
   configureWebPush();
   const supabase = createServiceRoleClient();
+  // Dùng quyền hiện tại, không dùng vai trò cũ lưu lúc đăng ký thiết bị.
+  let usersQuery = supabase.from('users').select('uid, email, role').in('role', ['admin', 'editor', 'member']);
+  if (filters.email) usersQuery = usersQuery.eq('email', filters.email.toLowerCase());
+  if (filters.roles?.length) usersQuery = usersQuery.in('role', filters.roles);
+  if (!filters.email && !filters.roles?.length) return { sent: 0, stale: 0 };
+  const { data: recipients, error: recipientsError } = await usersQuery;
+  if (recipientsError) throw recipientsError;
+  const recipientUids = (recipients || []).map((recipient) => String(recipient.uid));
+  if (!recipientUids.length) return { sent: 0, stale: 0 };
   let query = supabase.from('push_subscriptions').select('id, endpoint, p256dh, auth');
-  if (filters.email) query = query.eq('user_email', filters.email.toLowerCase());
-  if (filters.roles?.length) query = query.in('user_role', filters.roles);
+  query = query.in('user_uid', recipientUids);
 
   const { data, error } = await query;
   if (error) throw error;
@@ -55,7 +72,7 @@ export async function sendPushNotifications(
         keys: { p256dh: subscription.p256dh, auth: subscription.auth },
       };
       try {
-        await webPush.sendNotification(pushSubscription, JSON.stringify(payload), { TTL: 300 });
+        await webPush.sendNotification(pushSubscription, JSON.stringify(payload), { TTL: 300, timeout: 15000 });
         sent += 1;
       } catch (error) {
         const statusCode = (error as { statusCode?: number }).statusCode;
@@ -69,7 +86,8 @@ export async function sendPushNotifications(
   );
 
   if (staleIds.length) {
-    await supabase.from('push_subscriptions').delete().in('id', staleIds);
+    const { error: cleanupError } = await supabase.from('push_subscriptions').delete().in('id', staleIds);
+    if (cleanupError) console.error('Không thể dọn đăng ký Web Push hết hạn:', cleanupError.message);
   }
   return { sent, stale: staleIds.length };
 }

@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import NextImage from 'next/image';
+import Link from 'next/link';
 import { generateSlug } from '../lib/utils';
-
-function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
-  if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
-    action();
-  }
-}
 import { collection, getDocs, db } from '../firebase';
 import { Product, Project, RouteState, VisualSection } from '../types';
 import { MapPin, Compass, Building2, Layers, Search, X } from 'lucide-react';
@@ -366,12 +360,11 @@ export default function ProjectList({
                         if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
                         
                         return (
-                          <div
+                          <Link
                             key={p.id}
-                            role="link"
-                            tabIndex={0}
-                            onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
-                            onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) }))}
+                            href={`/du-an/${generateSlug(p.title)}`}
+                            prefetch
+                            data-content-link="project"
                             className="motion-card bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                           >
                             <div className="relative aspect-[16/10] overflow-hidden">
@@ -419,7 +412,7 @@ export default function ProjectList({
                                 </span>
                               </div>
                             </div>
-                          </div>
+                          </Link>
                         );
                       })}
                     </div>

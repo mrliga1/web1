@@ -4,6 +4,11 @@ import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { useAppContext } from '../contexts/AppContext';
 import { trackLead } from '../lib/tracking';
 import FormConsentFields from './FormConsentFields';
+import {
+  ConsultationErrors,
+  validateConsultation,
+  validateConsultationField,
+} from '../lib/consultationValidation';
 
 export default function FloatingActionButtons() {
   const { isQuotePopupOpen: showQuotePopup, setIsQuotePopupOpen: setShowQuotePopup } = useAppContext();
@@ -15,6 +20,12 @@ export default function FloatingActionButtons() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<ConsultationErrors>({});
+
+  const refreshFieldError = (field: 'name' | 'phone' | 'email', value: string) => {
+    const error = validateConsultationField(field, value);
+    setFieldErrors((current) => ({ ...current, [field]: error }));
+  };
 
   const closeQuotePopup = useCallback(() => {
     if (!formSubmitted) {
@@ -39,8 +50,18 @@ export default function FloatingActionButtons() {
 
   const handleQuoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!quoteName || !quotePhone || !agreeTerms || !agreePrivacy) return;
+    const errors = validateConsultation({
+      name: quoteName,
+      phone: quotePhone,
+      email: quoteEmail,
+    });
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
+    if (!agreeTerms || !agreePrivacy) return;
     
+    setFieldErrors({});
     setIsSubmitting(true);
     try {
       const { db, addDoc, collection } = await import('../firebase');
@@ -207,38 +228,61 @@ export default function FloatingActionButtons() {
                   </p>
                 </div>
               ) : (
-                <form onSubmit={handleQuoteSubmit} className="space-y-3">
+                <form onSubmit={handleQuoteSubmit} className="space-y-3" noValidate>
                   <div>
                     <input
                       type="text"
                       required
                       value={quoteName}
-                      onChange={(e) => setQuoteName(e.target.value)}
+                      onChange={(e) => {
+                        setQuoteName(e.target.value);
+                        if (fieldErrors.name) refreshFieldError('name', e.target.value);
+                      }}
+                      onBlur={(e) => refreshFieldError('name', e.target.value)}
                       aria-label="Họ tên"
+                      aria-invalid={Boolean(fieldErrors.name)}
+                      aria-describedby={fieldErrors.name ? 'quote-popup-name-error' : undefined}
                       className="w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary"
                       placeholder="Họ tên *"
                     />
+                    {fieldErrors.name && <p id="quote-popup-name-error" className="mt-1 text-[10px] font-semibold text-error">{fieldErrors.name}</p>}
                   </div>
                   <div>
                     <input
                       type="tel"
                       required
                       value={quotePhone}
-                      onChange={(e) => setQuotePhone(e.target.value)}
+                      onChange={(e) => {
+                        setQuotePhone(e.target.value);
+                        if (fieldErrors.phone) refreshFieldError('phone', e.target.value);
+                      }}
+                      onBlur={(e) => refreshFieldError('phone', e.target.value)}
                       aria-label="Số điện thoại"
+                      aria-invalid={Boolean(fieldErrors.phone)}
+                      aria-describedby={fieldErrors.phone ? 'quote-popup-phone-error' : undefined}
+                      inputMode="tel"
                       className="w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary"
                       placeholder="Số điện thoại *"
                     />
+                    {fieldErrors.phone && <p id="quote-popup-phone-error" className="mt-1 text-[10px] font-semibold text-error">{fieldErrors.phone}</p>}
                   </div>
                   <div>
                     <input
                       type="email"
                       value={quoteEmail}
-                      onChange={(e) => setQuoteEmail(e.target.value)}
+                      onChange={(e) => {
+                        setQuoteEmail(e.target.value);
+                        if (fieldErrors.email) refreshFieldError('email', e.target.value);
+                      }}
+                      onBlur={(e) => refreshFieldError('email', e.target.value)}
                       aria-label="Email"
+                      aria-invalid={Boolean(fieldErrors.email)}
+                      aria-describedby={fieldErrors.email ? 'quote-popup-email-error' : undefined}
+                      inputMode="email"
                       className="w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-xs px-3 py-2 text-text-primary placeholder-text-secondary"
                       placeholder="Email (Tùy chọn)"
                     />
+                    {fieldErrors.email && <p id="quote-popup-email-error" className="mt-1 text-[10px] font-semibold text-error">{fieldErrors.email}</p>}
                   </div>
                   <div>
                     <textarea

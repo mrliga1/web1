@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Home, Building2, ShieldCheck, LogOut, User as UserIcon, Menu, X, Compass, Newspaper, Mail, Phone, Heart } from 'lucide-react';
 import { RouteState, ScreenType } from '../types';
@@ -25,6 +25,34 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
   const scrollDirection = useScrollDirection();
   const theme: string = 'light';
   const router = useRouter();
+  const headerRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!mobileMenuOpen) {
+      root.removeAttribute('data-mobile-menu-open');
+      root.style.removeProperty('--greenia-mobile-nav-height');
+      return;
+    }
+
+    const updateMenuHeight = () => {
+      const height = Math.ceil(headerRef.current?.getBoundingClientRect().height || 40);
+      root.setAttribute('data-mobile-menu-open', 'true');
+      root.style.setProperty('--greenia-mobile-nav-height', `${height}px`);
+    };
+    const frame = window.requestAnimationFrame(updateMenuHeight);
+    const observer = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(updateMenuHeight)
+      : null;
+    if (headerRef.current) observer?.observe(headerRef.current);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      observer?.disconnect();
+      root.removeAttribute('data-mobile-menu-open');
+      root.style.removeProperty('--greenia-mobile-nav-height');
+    };
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -73,7 +101,7 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
   return (
     <>
       <div className="h-10 md:h-10 w-full shrink-0" />
-      <header className={`fixed top-0 w-full z-[110] transition-transform duration-300 border-b ${scrollDirection === 'down' ? '-translate-y-full' : 'translate-y-0'} ${theme === 'dark' ? 'bg-[#0B1F16]/70 backdrop-blur-lg border-border-inverse shadow-lg shadow-black/50' : 'bg-white/70 backdrop-blur-lg border-border-color shadow-sm'}`} id="main-nav">
+      <header ref={headerRef} className={`fixed top-0 w-full z-[110] transition-transform duration-300 border-b ${mobileMenuOpen || scrollDirection !== 'down' ? 'translate-y-0' : '-translate-y-full'} ${theme === 'dark' ? 'bg-[#0B1F16]/70 backdrop-blur-lg border-border-inverse shadow-lg shadow-black/50' : 'bg-white/70 backdrop-blur-lg border-border-color shadow-sm'}`} id="main-nav">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:bg-transparent`}>
         <div className="flex items-center justify-between h-10 md:h-10 relative">
           

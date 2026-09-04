@@ -43,6 +43,11 @@ interface NewsDetailProps {
 
 import { fetchClientIp } from '../lib/ip';
 import FormConsentFields from './FormConsentFields';
+import {
+  ConsultationErrors,
+  validateConsultation,
+  validateConsultationField,
+} from '../lib/consultationValidation';
 
 export default function NewsDetail({
   newsId,
@@ -106,6 +111,12 @@ export default function NewsDetail({
   const [seeMoreClicks, setSeeMoreClicks] = useState(0);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<ConsultationErrors>({});
+
+  const refreshFieldError = (field: 'name' | 'phone' | 'email', value: string) => {
+    const error = validateConsultationField(field, value);
+    setFieldErrors((current) => ({ ...current, [field]: error }));
+  };
   const [isMarqueePaused, setIsMarqueePaused] = useState(false);
   const relatedCarouselRef = useRef<HTMLDivElement>(null);
 
@@ -295,8 +306,14 @@ export default function NewsDetail({
 
   const handleBookingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !clientPhone.trim()) {
-      onShowNotification("Vui lòng cung cấp đầy đủ tên và số điện thoại", "error");
+    const errors = validateConsultation({
+      name: clientName,
+      phone: clientPhone,
+      email: clientEmail,
+    });
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      onShowNotification(Object.values(errors)[0] || "Thông tin liên hệ chưa hợp lệ.", "error");
       return;
     }
     if (!agreeTerms || !agreePrivacy) {
@@ -304,6 +321,7 @@ export default function NewsDetail({
       return;
     }
 
+    setFieldErrors({});
     setIsSubmitting(true);
     try {
       const { addDoc, collection, db } = await import('../firebase');
@@ -768,17 +786,24 @@ export default function NewsDetail({
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleBookingSubmit} className="space-y-2 pt-[5px] mt-1">
+              <form onSubmit={handleBookingSubmit} className="space-y-2 pt-[5px] mt-1" noValidate>
                 <div className="space-y-1 text-left">
                   <input
                     type="text"
                     aria-label="Họ tên"
                     value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
+                    onChange={(e) => {
+                      setClientName(e.target.value);
+                      if (fieldErrors.name) refreshFieldError('name', e.target.value);
+                    }}
+                    onBlur={(e) => refreshFieldError('name', e.target.value)}
                     placeholder="Họ tên *"
+                    aria-invalid={Boolean(fieldErrors.name)}
+                    aria-describedby={fieldErrors.name ? 'news-consultation-name-error' : undefined}
                     className="w-full appearance-none bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-colors"
                     required
                   />
+                  {fieldErrors.name && <p id="news-consultation-name-error" className="text-[10px] font-semibold text-error">{fieldErrors.name}</p>}
                 </div>
 
                 <div className="space-y-1 text-left">
@@ -786,11 +811,19 @@ export default function NewsDetail({
                     type="tel"
                     aria-label="Số điện thoại"
                     value={clientPhone}
-                    onChange={(e) => setClientPhone(e.target.value)}
+                    onChange={(e) => {
+                      setClientPhone(e.target.value);
+                      if (fieldErrors.phone) refreshFieldError('phone', e.target.value);
+                    }}
+                    onBlur={(e) => refreshFieldError('phone', e.target.value)}
                     placeholder="Số điện thoại *"
+                    aria-invalid={Boolean(fieldErrors.phone)}
+                    aria-describedby={fieldErrors.phone ? 'news-consultation-phone-error' : undefined}
+                    inputMode="tel"
                     className="w-full appearance-none bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-colors"
                     required
                   />
+                  {fieldErrors.phone && <p id="news-consultation-phone-error" className="text-[10px] font-semibold text-error">{fieldErrors.phone}</p>}
                 </div>
 
                 <div className="space-y-1 text-left">
@@ -798,10 +831,18 @@ export default function NewsDetail({
                     type="email"
                     aria-label="Email"
                     value={clientEmail}
-                    onChange={(e) => setClientEmail(e.target.value)}
+                    onChange={(e) => {
+                      setClientEmail(e.target.value);
+                      if (fieldErrors.email) refreshFieldError('email', e.target.value);
+                    }}
+                    onBlur={(e) => refreshFieldError('email', e.target.value)}
                     placeholder="Email (Tùy chọn)"
+                    aria-invalid={Boolean(fieldErrors.email)}
+                    aria-describedby={fieldErrors.email ? 'news-consultation-email-error' : undefined}
+                    inputMode="email"
                     className="w-full appearance-none bg-bg-surface border border-border-color text-text-primary text-[13px] py-2 px-3.5 rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-colors"
                   />
+                  {fieldErrors.email && <p id="news-consultation-email-error" className="text-[10px] font-semibold text-error">{fieldErrors.email}</p>}
                 </div>
 
                 <div className="space-y-1 text-left">

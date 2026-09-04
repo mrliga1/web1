@@ -3153,7 +3153,7 @@ export default function AdminPanel({
     >
       {/* 1. wordpress left sidebar navigation panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r border-emerald-900/15 bg-emerald-950 text-white transition-[width,transform] duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r border-emerald-900/15 bg-emerald-950 text-white transition-[width,transform,top] duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } ${desktopSidebarOpen ? "lg:w-64" : "lg:w-0 lg:border-r-0"}`}
         id="wp-admin-sidebar"
       >
@@ -3422,6 +3422,7 @@ export default function AdminPanel({
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
+          id="wp-admin-sidebar-overlay"
           className="lg:hidden fixed inset-0 bg-black/65 z-40 backdrop-blur-sm"
         />
       )}

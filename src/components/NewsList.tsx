@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { optimizeImageUrl, generateSlug, generateSrcSet, formatVietnamDate } from '../lib/utils';
 
 function handleKeyboardActivation(event: React.KeyboardEvent, action: () => void) {
@@ -474,7 +475,12 @@ export default function NewsList({
                   <div className="grid grid-cols-1 md:grid-cols-10 lg:grid-cols-12 gap-6 items-start text-left">
                     <h2 className="sr-only">Danh sách bài viết</h2>
                     {/* Cover highlight */}
-                    <div className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors">
+                    <Link
+                      href={`/tin-tuc/${generateSlug(displayArticle?.title || '')}`}
+                      prefetch
+                      data-content-link="news"
+                      className="md:col-span-5 lg:col-span-5 bg-bg-surface border border-border-color rounded overflow-hidden flex flex-col group cursor-pointer hover:border-primary transition-colors"
+                    >
                       <div className="h-[260px] overflow-hidden relative">
                         {displayArticleMobileImage && <link rel="preload" as="image" href={displayArticleMobileImage} type="image/webp" media="(max-width: 767px)" fetchPriority="high" />}
                         <link rel="preload" as="image" href={displayArticleAvif || displayArticleImage} type={displayArticleAvif ? 'image/avif' : undefined} media={displayArticleAvif ? '(min-width: 768px)' : undefined} fetchPriority="high" />
@@ -492,17 +498,13 @@ export default function NewsList({
                             fetchPriority="high"
                             decoding="sync"
                             referrerPolicy="no-referrer"
-                            onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
                             className="motion-media block w-full h-full object-cover group-hover:scale-105"
                           />
                         </picture>
                       </div>
 
                       <div className="p-5 flex flex-col border-t border-border-color bg-bg-surface">
-                        <h3 
-                          className="font-extrabold text-lg text-text-primary mb-2.5 leading-snug line-clamp-2 hover:text-primary"
-                          onClick={() => displayArticle && onNavigate({ screen: 'news-detail', newsId: displayArticle.id, slug: generateSlug(displayArticle.title) })}
-                        >
+                        <h3 className="font-extrabold text-lg text-text-primary mb-2.5 leading-snug line-clamp-2 hover:text-primary">
                           {displayArticle?.title}
                         </h3>
                         <p className="text-text-secondary text-[13px] mb-2.5 line-clamp-3 leading-[1.5]">
@@ -513,25 +515,24 @@ export default function NewsList({
                           {displayArticle ? formatVietnamDate(displayArticle.createdAt) : ''}
                         </div>
                       </div>
-                    </div>
+                    </Link>
 
                     {/* Middle grid (Hover List) */}
                     <div className="md:col-span-5 lg:col-span-4 flex flex-col">
                       <div className="space-y-0 relative border-l border-border-color md:border-none pl-4 md:pl-0">
                         {filteredNews.slice(0, 8).map((article) => (
-                          <div
+                          <Link
                             key={article.id}
-                            role="link"
-                            tabIndex={0}
+                            href={`/tin-tuc/${generateSlug(article.title)}`}
+                            prefetch
+                            data-content-link="news"
                             onMouseEnter={() => setHoveredArticle(article)}
-                            onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
-                            onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) }))}
                             className={`p-3 border-b border-dashed border-border-color cursor-pointer text-[#a1a1aa] font-medium text-[13px] transition-all leading-[1.4] ${
                               displayArticle?.id === article.id ? 'bg-primary/5 text-primary border-l-[3px] border-l-yellow-500 pl-4 border-b-yellow-500/20' : 'border-l-[3px] border-l-transparent'
                             }`}
                           >
                             <span className="line-clamp-2">{article.title}</span>
-                          </div>
+                          </Link>
                         ))}
                       </div>
                     </div>
@@ -544,12 +545,11 @@ export default function NewsList({
 
                       <div className="space-y-0">
                         {trendingNews.slice(0, 5).map((article) => (
-                          <div
+                          <Link
                             key={article.id}
-                            role="link"
-                            tabIndex={0}
-                            onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
-                            onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) }))}
+                            href={`/tin-tuc/${generateSlug(article.title)}`}
+                            prefetch
+                            data-content-link="news"
                             className="cursor-pointer group flex items-center gap-2.5 mb-4"
                           >
                             <div className="w-[70px] h-[50px] shrink-0 rounded overflow-hidden border border-border-inverse">
@@ -564,7 +564,7 @@ export default function NewsList({
                                 <span>{formatVietnamDate(article.createdAt)}</span>
                               </div>
                             </div>
-                          </div>
+                          </Link>
                         ))}
                       </div>
                     </div>
@@ -584,12 +584,11 @@ export default function NewsList({
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-[20px] items-start content-start">
                       {interestNews.map((article) => (
-                        <div
+                        <Link
                           key={article.id}
-                          role="link"
-                          tabIndex={0}
-                          onClick={() => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) })}
-                          onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) }))}
+                          href={`/tin-tuc/${generateSlug(article.title)}`}
+                          prefetch
+                          data-content-link="news"
                           className="flex gap-3 pb-[15px] border-b border-dashed border-border-color transition-colors cursor-pointer group hover:border-b-yellow-500 items-center"
                         >
                           <div className="w-[90px] h-[65px] rounded overflow-hidden shrink-0 border border-border-color relative">
@@ -605,7 +604,7 @@ export default function NewsList({
                               {formatVietnamDate(article.createdAt)}
                             </div>
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
 

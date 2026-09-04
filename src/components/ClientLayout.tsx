@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Navbar from './Navbar';
 import Footer from './Footer';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 import FloatingActionButtons from './FloatingActionButtons';
 import ContentRealtimeRefresh from './ContentRealtimeRefresh';
@@ -25,7 +25,10 @@ export default function ClientLayout({
     initialSettingsLoaded || Boolean(initialLogoUrl),
   );
   const notificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const routeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [routeTransitionActive, setRouteTransitionActive] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   
   useEffect(() => {
     if (initialLogoUrl) {
@@ -45,6 +48,69 @@ export default function ClientLayout({
       clearTimeout(notificationTimerRef.current);
     }
   }, []);
+
+  useEffect(() => {
+    setRouteTransitionActive(false);
+    if (routeTimerRef.current) {
+      clearTimeout(routeTimerRef.current);
+      routeTimerRef.current = null;
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    const getInternalUrl = (target: EventTarget | null) => {
+      if (!(target instanceof Element)) return null;
+      const navigationElement = target.closest<HTMLElement>('a[href], [data-content-href]');
+      if (!navigationElement) return null;
+
+      const nestedControl = target.closest('button, input, select, textarea');
+      if (nestedControl && nestedControl !== navigationElement) return null;
+
+      const href = navigationElement.getAttribute('href') || navigationElement.dataset.contentHref;
+      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return null;
+
+      try {
+        const url = new URL(href, window.location.origin);
+        if (url.origin !== window.location.origin) return null;
+        return `${url.pathname}${url.search}${url.hash}`;
+      } catch {
+        return null;
+      }
+    };
+
+    const prefetchRoute = (event: Event) => {
+      const href = getInternalUrl(event.target);
+      if (href && href !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+        router.prefetch(href);
+      }
+    };
+
+    const showRouteTransition = (event: MouseEvent) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const href = getInternalUrl(event.target);
+      if (!href || href === `${window.location.pathname}${window.location.search}${window.location.hash}`) return;
+
+      setRouteTransitionActive(true);
+      if (routeTimerRef.current) clearTimeout(routeTimerRef.current);
+      routeTimerRef.current = setTimeout(() => {
+        setRouteTransitionActive(false);
+        routeTimerRef.current = null;
+      }, 12000);
+    };
+
+    document.addEventListener('pointerover', prefetchRoute, true);
+    document.addEventListener('focusin', prefetchRoute, true);
+    document.addEventListener('touchstart', prefetchRoute, { capture: true, passive: true });
+    document.addEventListener('click', showRouteTransition, true);
+
+    return () => {
+      document.removeEventListener('pointerover', prefetchRoute, true);
+      document.removeEventListener('focusin', prefetchRoute, true);
+      document.removeEventListener('touchstart', prefetchRoute, true);
+      document.removeEventListener('click', showRouteTransition, true);
+      if (routeTimerRef.current) clearTimeout(routeTimerRef.current);
+    };
+  }, [router]);
 
   const triggerNotification = (message: string, type: 'success' | 'error' = 'success') => {
     if (notificationTimerRef.current) {
@@ -69,6 +135,17 @@ export default function ClientLayout({
         isSettingsLoaded={isSettingsLoaded}
       />
       <ContentRealtimeRefresh />
+
+      {routeTransitionActive && (
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-[12000]" role="status" aria-live="polite">
+          <div className="h-1 w-full overflow-hidden bg-primary/15">
+            <div className="h-full w-2/3 animate-pulse bg-primary shadow-[0_0_12px_rgba(6,78,59,0.45)]" />
+          </div>
+          <span className="absolute right-3 top-2 rounded-full border border-primary/15 bg-white/95 px-3 py-1 text-[11px] font-semibold text-primary shadow-lg backdrop-blur-sm">
+            Đang mở nội dung…
+          </span>
+        </div>
+      )}
       
       <main id="main-content" className="site-decorative-background flex-1 w-full bg-bg-surface">
         {children}

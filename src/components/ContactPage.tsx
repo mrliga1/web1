@@ -20,6 +20,11 @@ import { fetchClientIp } from '../lib/ip';
 import { trackLead } from '../lib/tracking';
 import { generateSrcSet, optimizeImageUrl } from '../lib/utils';
 import FormConsentFields from './FormConsentFields';
+import {
+  ConsultationErrors,
+  validateConsultation,
+  validateConsultationField,
+} from '../lib/consultationValidation';
 
 const MAX_CONTACT_IMAGES = 5;
 const MAX_CONTACT_IMAGE_SIZE = 3 * 1024 * 1024;
@@ -96,11 +101,12 @@ export default function ContactPage({
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
-  const [contactErrors, setContactErrors] = useState<{
-    name?: string;
-    phone?: string;
-    email?: string;
-  }>({});
+  const [contactErrors, setContactErrors] = useState<ConsultationErrors>({});
+
+  const refreshContactError = (field: 'name' | 'phone' | 'email', value: string) => {
+    const error = validateConsultationField(field, value);
+    setContactErrors((current) => ({ ...current, [field]: error }));
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.length) return;
@@ -168,17 +174,11 @@ export default function ContactPage({
 
   const handleContactSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const normalizedPhone = contactPhone.replace(/[\s().-]/g, '');
-    const nextErrors: typeof contactErrors = {};
-    if (contactName.trim().length < 2) {
-      nextErrors.name = 'Vui lòng nhập họ tên có ít nhất 2 ký tự.';
-    }
-    if (!/^(?:\+84|0)\d{9}$/.test(normalizedPhone)) {
-      nextErrors.phone = 'Số điện thoại Việt Nam phải bắt đầu bằng 0 hoặc +84 và đủ số.';
-    }
-    if (contactEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail.trim())) {
-      nextErrors.email = 'Địa chỉ email không đúng định dạng.';
-    }
+    const nextErrors = validateConsultation({
+      name: contactName,
+      phone: contactPhone,
+      email: contactEmail,
+    });
     if (Object.keys(nextErrors).length > 0) {
       setContactErrors(nextErrors);
       onShowNotification(Object.values(nextErrors)[0] || 'Thông tin liên hệ chưa hợp lệ.', 'error');
@@ -387,7 +387,7 @@ export default function ContactPage({
                         </button>
                       </div>
                     ) : (
-                      <form onSubmit={handleContactSubmit} className="space-y-2.5">
+                      <form onSubmit={handleContactSubmit} className="space-y-2.5" noValidate>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                           <div className="space-y-1">
                             <label htmlFor="contact-name" className="text-[10px] font-bold uppercase tracking-wider text-text-secondary block">Danh tánh quý khách *</label>
@@ -397,8 +397,9 @@ export default function ContactPage({
                               value={contactName}
                               onChange={(e) => {
                                 setContactName(e.target.value);
-                                setContactErrors((current) => ({ ...current, name: undefined }));
+                                if (contactErrors.name) refreshContactError('name', e.target.value);
                               }}
+                              onBlur={(e) => refreshContactError('name', e.target.value)}
                               placeholder="Ông / Bà..."
                               className={CONTACT_FIELD_CLASS}
                               aria-invalid={Boolean(contactErrors.name)}
@@ -417,8 +418,9 @@ export default function ContactPage({
                               value={contactPhone}
                               onChange={(e) => {
                                 setContactPhone(e.target.value);
-                                setContactErrors((current) => ({ ...current, phone: undefined }));
+                                if (contactErrors.phone) refreshContactError('phone', e.target.value);
                               }}
+                              onBlur={(e) => refreshContactError('phone', e.target.value)}
                               placeholder="Nhập số di động..."
                               className={CONTACT_FIELD_CLASS}
                               inputMode="tel"
@@ -439,8 +441,9 @@ export default function ContactPage({
                               value={contactEmail}
                               onChange={(e) => {
                                 setContactEmail(e.target.value);
-                                setContactErrors((current) => ({ ...current, email: undefined }));
+                                if (contactErrors.email) refreshContactError('email', e.target.value);
                               }}
+                              onBlur={(e) => refreshContactError('email', e.target.value)}
                               placeholder="Nhập địa chỉ email..."
                               className={CONTACT_FIELD_CLASS}
                               autoComplete="email"

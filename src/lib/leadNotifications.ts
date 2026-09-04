@@ -49,6 +49,7 @@ export async function notifyLeadStakeholders(consultationId: string) {
     propertyTitle?: string;
     spamStatus?: string;
     spamScore?: number;
+    spamReasons?: string[];
   };
   const detail = cleanText(lead.propertyTitle || lead.source || 'Website Greenia Homes', 200);
 
@@ -74,6 +75,18 @@ export async function notifyLeadStakeholders(consultationId: string) {
       const sourceUrl = cleanText(lead.sourceUrl, 500);
       const safeSourceUrl = /^https?:\/\//i.test(sourceUrl) ? escapeHtml(sourceUrl) : '';
       const spamStatus = cleanText(lead.spamStatus || 'clean', 20);
+      const spamStatusLabel = spamStatus === 'clean'
+        ? 'Hợp lệ'
+        : spamStatus === 'review'
+          ? 'Cần kiểm tra thủ công'
+          : 'Chặn khỏi tệp remarketing';
+      const spamScore = Number.isFinite(Number(lead.spamScore)) ? Number(lead.spamScore) : 0;
+      const spamReasons = Array.isArray(lead.spamReasons)
+        ? lead.spamReasons.map((reason) => cleanText(reason, 200)).filter(Boolean)
+        : [];
+      const spamExplanation = spamReasons.length > 0
+        ? `<br><span style="color:#526159;font-size:12px">Lý do: ${escapeHtml(spamReasons.join('; '))}</span>`
+        : '';
       await transporter.sendMail({
         from: `"Greenia Homes - Web System" <${smtpUser}>`,
         to: smtpTo,
@@ -86,7 +99,7 @@ export async function notifyLeadStakeholders(consultationId: string) {
             <tr><td style="font-weight:bold">Email</td><td>${escapeHtml(cleanText(lead.email, 160) || 'Chưa cung cấp')}</td></tr>
             <tr><td style="font-weight:bold">Nhu cầu</td><td>${escapeHtml(cleanText(lead.message || lead.demand || detail, 2000)).replace(/\n/g, '<br/>')}</td></tr>
             <tr><td style="font-weight:bold">Nguồn</td><td>${safeSourceUrl ? `<a href="${safeSourceUrl}">${safeSourceUrl}</a>` : 'Website Greenia Homes'}</td></tr>
-            <tr><td style="font-weight:bold">Sàng lọc</td><td>${escapeHtml(spamStatus)} (${Number(lead.spamScore) || 0} điểm)</td></tr>
+            <tr><td style="font-weight:bold">Sàng lọc chống spam</td><td><strong>${escapeHtml(spamStatusLabel)}</strong> — ${spamScore} điểm${spamExplanation}</td></tr>
           </table>
         `,
       }).finally(() => transporter.close());

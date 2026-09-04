@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { Product, RouteState } from '../types';
 import { MapPin, Layers, Bookmark, Bath, Heart } from 'lucide-react';
 import { formatLocationName } from '../lib/locationMapping';
@@ -15,7 +16,7 @@ interface ProductCardProps {
   headingLevel?: 2 | 3;
 }
 
-export default function ProductCard({ item, onNavigate, badgeText, badgeColor, priority = false, headingLevel = 3 }: ProductCardProps) {
+export default function ProductCard({ item, badgeText, badgeColor, priority = false, headingLevel = 3 }: ProductCardProps) {
   const displayBadgeText = badgeText || (item.type === 'rent' ? 'Cho thuê' : 'Bán');
   const displayBadgeColor = badgeColor || (item.type === 'rent' ? 'bg-primary text-white' : 'bg-rose-700 text-white');
   let safeImageUrl = item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : '/no-image.svg');
@@ -37,6 +38,7 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
   }, [item.id]);
 
   const toggleFavorite = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     const favs: string[] = JSON.parse(localStorage.getItem('saved_favorites') || '[]');
     if (favs.includes(item.id)) {
@@ -55,12 +57,10 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
   };
 
   return (
-    <a
+    <Link
       href={`/san-pham/${generateSlug(item.title)}`}
-      onClick={(e) => {
-        e.preventDefault();
-        onNavigate({ screen: 'product-detail', productId: item.id, slug: generateSlug(item.title) });
-      }}
+      prefetch
+      data-content-link="product"
       className="motion-card w-full shrink-0 bg-bg-surface hover:bg-bg-base border border-border-color hover:border-primary/30 rounded-lg overflow-hidden group cursor-pointer flex flex-row sm:flex-col block"
     >
       <div className="relative w-[90px] h-[90px] sm:h-auto shrink-0 sm:w-full sm:aspect-[4/3] overflow-hidden bg-bg-base flex items-center justify-center">
@@ -120,6 +120,6 @@ export default function ProductCard({ item, onNavigate, badgeText, badgeColor, p
           </div>
         </div>
       </div>
-    </a>
+    </Link>
   );
 }

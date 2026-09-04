@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { optimizeImageUrl, generateSlug, generateSrcSet, formatVietnamDate } from '../lib/utils';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { fetchClientIp } from '../lib/ip';
@@ -12,6 +13,11 @@ import { EditableText } from './EditableComponent';
 import ProductCard from './ProductCard';
 import { trackLead } from '../lib/tracking';
 import FormConsentFields from './FormConsentFields';
+import {
+  ConsultationErrors,
+  validateConsultation,
+  validateConsultationField,
+} from '../lib/consultationValidation';
 
 const HOME_CONSULTATION_FIELD_CLASS =
   'w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-[12px] px-3.5 text-text-primary placeholder-text-secondary';
@@ -40,11 +46,22 @@ const HeroConsultationForm: React.FC<{
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<ConsultationErrors>({});
+
+  const refreshFieldError = (field: 'name' | 'phone' | 'email', value: string) => {
+    const error = validateConsultationField(field, value, { emailRequired: true });
+    setFieldErrors((current) => ({ ...current, [field]: error }));
+  };
 
   const handleConsultationSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !clientPhone.trim()) {
-      onShowNotification('Vui lòng nhập họ tên và số điện thoại.', 'error');
+    const errors = validateConsultation(
+      { name: clientName, phone: clientPhone, email: clientEmail },
+      { emailRequired: true },
+    );
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      onShowNotification(Object.values(errors)[0] || 'Thông tin liên hệ chưa hợp lệ.', 'error');
       return;
     }
     if (!agreeTerms || !agreePrivacy) {
@@ -52,12 +69,7 @@ const HeroConsultationForm: React.FC<{
       return;
     }
 
-    const phoneRegex = /^[0-9+ ]{9,16}$/;
-    if (!phoneRegex.test(clientPhone.trim())) {
-      onShowNotification('Số điện thoại không đúng định dạng. Vui lòng nhập tối thiểu 9 số.', 'error');
-      return;
-    }
-
+    setFieldErrors({});
     setIsSubmitting(true);
     try {
       const { db, collection, addDoc } = await import('../firebase');
@@ -132,39 +144,62 @@ const HeroConsultationForm: React.FC<{
           </button>
         </div>
       ) : (
-        <form onSubmit={handleConsultationSubmit} className="p-[5px]">
+        <form onSubmit={handleConsultationSubmit} className="p-[5px]" noValidate>
           <div className="text-left mb-[5px]">
             <input
               type="text"
               value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
+              onChange={(e) => {
+                setClientName(e.target.value);
+                if (fieldErrors.name) refreshFieldError('name', e.target.value);
+              }}
+              onBlur={(e) => refreshFieldError('name', e.target.value)}
               placeholder="Họ tên *"
               aria-label="Họ tên"
+              aria-invalid={Boolean(fieldErrors.name)}
+              aria-describedby={fieldErrors.name ? 'home-consultation-name-error' : undefined}
               className={`${HOME_CONSULTATION_FIELD_CLASS} h-[35.5px] pt-0`}
               required
             />
+            {fieldErrors.name && <p id="home-consultation-name-error" className="mt-1 text-[10px] font-semibold text-error">{fieldErrors.name}</p>}
           </div>
           <div className="text-left mb-[5px]">
             <input
               type="tel"
               value={clientPhone}
-              onChange={(e) => setClientPhone(e.target.value)}
+              onChange={(e) => {
+                setClientPhone(e.target.value);
+                if (fieldErrors.phone) refreshFieldError('phone', e.target.value);
+              }}
+              onBlur={(e) => refreshFieldError('phone', e.target.value)}
               placeholder="Số điện thoại *"
               aria-label="Số điện thoại"
+              aria-invalid={Boolean(fieldErrors.phone)}
+              aria-describedby={fieldErrors.phone ? 'home-consultation-phone-error' : undefined}
+              inputMode="tel"
               className={`${HOME_CONSULTATION_FIELD_CLASS} h-[35.5px]`}
               required
             />
+            {fieldErrors.phone && <p id="home-consultation-phone-error" className="mt-1 text-[10px] font-semibold text-error">{fieldErrors.phone}</p>}
           </div>
           <div className="text-left mb-[5px]">
             <input
               type="email"
               value={clientEmail}
-              onChange={(e) => setClientEmail(e.target.value)}
+              onChange={(e) => {
+                setClientEmail(e.target.value);
+                if (fieldErrors.email) refreshFieldError('email', e.target.value);
+              }}
+              onBlur={(e) => refreshFieldError('email', e.target.value)}
               placeholder="Email *"
               aria-label="Địa chỉ Email"
+              aria-invalid={Boolean(fieldErrors.email)}
+              aria-describedby={fieldErrors.email ? 'home-consultation-email-error' : undefined}
+              inputMode="email"
               className={`${HOME_CONSULTATION_FIELD_CLASS} h-[35.5px]`}
               required
             />
+            {fieldErrors.email && <p id="home-consultation-email-error" className="mt-1 text-[10px] font-semibold text-error">{fieldErrors.email}</p>}
           </div>
           <div className="text-left mb-[10px]">
             <textarea
@@ -842,15 +877,13 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
             <div className={`${visibleProjects.length >= 4 ? 'animate-sliding-container' : ''} flex w-max`}>
               <div className={`flex w-max ${visibleProjects.length >= 4 ? 'animate-slider-projects' : ''}`}>
                 {projectSlides.map((proj, idx) => (
-                  <a
+                  <Link
                     key={`${proj.id}-${idx}`}
                     aria-hidden={idx >= visibleProjects.length}
                     tabIndex={idx >= visibleProjects.length ? -1 : undefined}
                     href={`/du-an/${generateSlug(proj.title)}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      onNavigate({ screen: 'project-detail', projectId: proj.id, slug: generateSlug(proj.title) });
-                    }}
+                    prefetch
+                    data-content-link="project"
                     className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-primary/30 shadow-md rounded-lg overflow-hidden group cursor-pointer flex flex-col justify-between block"
                   >
                     <div className="relative aspect-[16/10] overflow-hidden">
@@ -897,7 +930,7 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
                         </span>
                       </div>
                     </div>
-                  </a>
+                  </Link>
                 ))}
               </div>
             </div>
@@ -973,15 +1006,13 @@ export const NewsBody: React.FC<NewsProps> = ({
           <div className={`${visibleNews.length >= 4 ? 'animate-sliding-container' : ''} flex w-max`}>
             <div className={`flex w-max ${visibleNews.length >= 4 ? 'animate-slider-news' : ''}`}>
               {newsSlides.map((article, idx) => (
-                <a
+                <Link
                   key={`${article.id}-${idx}`}
                   aria-hidden={idx >= visibleNews.length}
                   tabIndex={idx >= visibleNews.length ? -1 : undefined}
                   href={`/tin-tuc/${generateSlug(article.title)}`}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    onNavigate({ screen: 'news-detail', newsId: article.id, slug: generateSlug(article.title) });
-                  }}
+                  prefetch
+                  data-content-link="news"
                   className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-primary/30 shadow-md rounded-lg overflow-hidden group cursor-pointer flex flex-col justify-between block"
                 >
                   <div className="relative aspect-[16/10] overflow-hidden">
@@ -1016,7 +1047,7 @@ export const NewsBody: React.FC<NewsProps> = ({
                       <span className="text-primary font-bold shrink-0">Xem thêm →</span>
                     </div>
                   </div>
-                </a>
+                </Link>
               ))}
             </div>
           </div>

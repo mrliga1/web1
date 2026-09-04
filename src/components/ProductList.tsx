@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import Link from 'next/link';
 import { formatVietnamDate, generateSlug, generateSrcSet, optimizeImageUrl, getRouteUrl } from '../lib/utils';
 import { useRouter } from 'next/navigation';
 import { collection, getDocs, getDoc, doc, db, type LegacyDocSnapshot } from '../firebase';
@@ -129,6 +130,7 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
           <button
             type="button"
             onClick={openProduct}
+            data-content-href={`/san-pham/${productSlug}`}
             className="group relative row-span-3 overflow-hidden rounded-lg border-0 bg-bg-base p-0 text-left"
             aria-label={`Xem ${item.title}`}
           >
@@ -155,6 +157,7 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
               key={`${item.id}-thumb-${index}`}
               type="button"
               onClick={openProduct}
+              data-content-href={`/san-pham/${productSlug}`}
               className="relative overflow-hidden rounded-md border-0 bg-bg-base p-0"
               aria-label={`Xem ảnh ${index + 2} của ${item.title}`}
             >
@@ -180,7 +183,7 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
         </div>
 
         <div className="flex min-w-0 flex-col p-4 sm:p-5">
-          <button type="button" onClick={openProduct} className="border-0 bg-transparent p-0 text-left">
+          <button type="button" onClick={openProduct} data-content-href={`/san-pham/${productSlug}`} className="border-0 bg-transparent p-0 text-left">
             <h2 className="line-clamp-2 font-display text-base font-semibold leading-snug text-text-primary transition-colors hover:text-primary sm:text-lg">
               {item.title}
             </h2>
@@ -1193,13 +1196,11 @@ export default function ProductList({
                           </h2>
                           <div className="mt-4 space-y-3">
                             {sidebarLatestProducts.map((item) => (
-                              <a
+                              <Link
                                 key={`sidebar-${item.id}`}
                                 href={`/san-pham/${generateSlug(item.title)}`}
-                                onClick={(event) => {
-                                  event.preventDefault();
-                                  onNavigate({ screen: 'product-detail', productId: item.id, slug: generateSlug(item.title) });
-                                }}
+                                prefetch
+                                data-content-link="product"
                                 className="group flex gap-3 border-b border-border-color pb-3 last:border-0 last:pb-0"
                               >
                                 <div className="relative h-[72px] w-[92px] shrink-0 overflow-hidden rounded-lg bg-bg-base">
@@ -1228,7 +1229,7 @@ export default function ProductList({
                                     <span className="flex items-center gap-0.5"><Bath className="h-3 w-3" />{item.toilets ? `${item.toilets} WC` : '-- WC'}</span>
                                   </div>
                                 </div>
-                              </a>
+                              </Link>
                             ))}
                           </div>
                         </aside>

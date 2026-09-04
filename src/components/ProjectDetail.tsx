@@ -97,6 +97,11 @@ const PROJECT_FORM_FIELD_CLASS =
   "w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-[13px] py-2 px-3.5 text-text-primary placeholder-text-secondary";
 import { fetchClientIp } from "../lib/ip";
 import FormConsentFields from "./FormConsentFields";
+import {
+  ConsultationErrors,
+  validateConsultation,
+  validateConsultationField,
+} from "../lib/consultationValidation";
 
 export default function ProjectDetail({
   projectId,
@@ -306,6 +311,12 @@ export default function ProjectDetail({
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<ConsultationErrors>({});
+
+  const refreshFieldError = (field: 'name' | 'phone' | 'email', value: string) => {
+    const error = validateConsultationField(field, value);
+    setFieldErrors((current) => ({ ...current, [field]: error }));
+  };
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
@@ -570,11 +581,14 @@ export default function ProjectDetail({
 
   const handleConsultSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!clientName.trim() || !clientPhone.trim()) {
-      onShowNotification(
-        "Vui lòng điền họ tên và số điện thoại liên lạc.",
-        "error",
-      );
+    const errors = validateConsultation({
+      name: clientName,
+      phone: clientPhone,
+      email: clientEmail,
+    });
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      onShowNotification(Object.values(errors)[0] || "Thông tin liên hệ chưa hợp lệ.", "error");
       return;
     }
     if (!agreeTerms || !agreePrivacy) {
@@ -585,6 +599,7 @@ export default function ProjectDetail({
       return;
     }
 
+    setFieldErrors({});
     setIsSubmitting(true);
     try {
       const { addDoc, collection, db } = await import("../firebase");
@@ -2198,38 +2213,62 @@ export default function ProjectDetail({
                   <form
                     onSubmit={handleConsultSubmit}
                     className="space-y-2 pt-[5px] mt-1"
+                    noValidate
                   >
                     <div className="space-y-1 text-left">
                       <input
                         type="text"
                         aria-label="Họ tên"
                         value={clientName}
-                        onChange={(e) => setClientName(e.target.value)}
+                        onChange={(e) => {
+                          setClientName(e.target.value);
+                          if (fieldErrors.name) refreshFieldError('name', e.target.value);
+                        }}
+                        onBlur={(e) => refreshFieldError('name', e.target.value)}
                         placeholder="Họ tên *"
+                        aria-invalid={Boolean(fieldErrors.name)}
+                        aria-describedby={fieldErrors.name ? 'project-consultation-name-error' : undefined}
                         className={PROJECT_FORM_FIELD_CLASS}
                         required
                       />
+                      {fieldErrors.name && <p id="project-consultation-name-error" className="text-[10px] font-semibold text-error">{fieldErrors.name}</p>}
                     </div>
                     <div className="space-y-1 text-left">
                       <input
                         type="tel"
                         aria-label="Số điện thoại"
                         value={clientPhone}
-                        onChange={(e) => setClientPhone(e.target.value)}
+                        onChange={(e) => {
+                          setClientPhone(e.target.value);
+                          if (fieldErrors.phone) refreshFieldError('phone', e.target.value);
+                        }}
+                        onBlur={(e) => refreshFieldError('phone', e.target.value)}
                         placeholder="Số điện thoại *"
+                        aria-invalid={Boolean(fieldErrors.phone)}
+                        aria-describedby={fieldErrors.phone ? 'project-consultation-phone-error' : undefined}
+                        inputMode="tel"
                         className={PROJECT_FORM_FIELD_CLASS}
                         required
                       />
+                      {fieldErrors.phone && <p id="project-consultation-phone-error" className="text-[10px] font-semibold text-error">{fieldErrors.phone}</p>}
                     </div>
                     <div className="space-y-1 text-left">
                       <input
                         type="email"
                         aria-label="Email"
                         value={clientEmail}
-                        onChange={(e) => setClientEmail(e.target.value)}
+                        onChange={(e) => {
+                          setClientEmail(e.target.value);
+                          if (fieldErrors.email) refreshFieldError('email', e.target.value);
+                        }}
+                        onBlur={(e) => refreshFieldError('email', e.target.value)}
                         placeholder="Email (Tùy chọn)"
+                        aria-invalid={Boolean(fieldErrors.email)}
+                        aria-describedby={fieldErrors.email ? 'project-consultation-email-error' : undefined}
+                        inputMode="email"
                         className={PROJECT_FORM_FIELD_CLASS}
                       />
+                      {fieldErrors.email && <p id="project-consultation-email-error" className="text-[10px] font-semibold text-error">{fieldErrors.email}</p>}
                     </div>
                     <div className="space-y-1 text-left">
                       <textarea

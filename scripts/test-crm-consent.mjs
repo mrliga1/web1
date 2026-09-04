@@ -26,6 +26,24 @@ function loadModule(path, mocks = {}, globals = {}) {
 }
 
 const access = loadModule('src/lib/crmAccess.ts');
+const validation = loadModule('src/lib/consultationValidation.ts');
+
+test('Kiểm tra form trả đúng cảnh báo cho từng trường sai định dạng', () => {
+  assert.equal(validation.validateConsultationField('name', 'A'), 'Vui lòng nhập họ tên có ít nhất 2 ký tự.');
+  assert.match(validation.validateConsultationField('phone', '12345'), /Số điện thoại/);
+  assert.match(validation.validateConsultationField('email', 'sai-email'), /email không đúng định dạng/i);
+  assert.equal(validation.validateConsultationField('phone', '0901 234 567'), undefined);
+  assert.equal(validation.validateConsultationField('email', '', { emailRequired: false }), undefined);
+});
+
+test('Form trang chủ bắt buộc email hợp lệ trước khi gửi', () => {
+  const errors = validation.validateConsultation(
+    { name: 'Khách hàng', phone: '0901234567', email: '' },
+    { emailRequired: true },
+  );
+  assert.equal(errors.email, 'Vui lòng nhập địa chỉ email.');
+});
+
 test('Meta/TikTok tôn trọng từ chối cookie và xóa sự kiện Meta đang chờ', () => {
   const meta = [];
   const tiktok = [];

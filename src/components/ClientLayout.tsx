@@ -58,10 +58,12 @@ export default function ClientLayout({
   }, [pathname]);
 
   useEffect(() => {
+    const prefetchedRoutes = new Set<string>();
     const getInternalUrl = (target: EventTarget | null) => {
       if (!(target instanceof Element)) return null;
       const navigationElement = target.closest<HTMLElement>('a[href], [data-content-href]');
       if (!navigationElement) return null;
+      if (navigationElement.getAttribute('target') === '_blank' || navigationElement.hasAttribute('download')) return null;
 
       const nestedControl = target.closest('button, input, select, textarea');
       if (nestedControl && nestedControl !== navigationElement) return null;
@@ -72,6 +74,7 @@ export default function ClientLayout({
       try {
         const url = new URL(href, window.location.origin);
         if (url.origin !== window.location.origin) return null;
+        if (url.pathname === window.location.pathname && url.search === window.location.search) return null;
         return `${url.pathname}${url.search}${url.hash}`;
       } catch {
         return null;
@@ -80,7 +83,9 @@ export default function ClientLayout({
 
     const prefetchRoute = (event: Event) => {
       const href = getInternalUrl(event.target);
-      if (href && href !== `${window.location.pathname}${window.location.search}${window.location.hash}`) {
+      if (href && !prefetchedRoutes.has(href)) {
+        if (prefetchedRoutes.size >= 60) prefetchedRoutes.clear();
+        prefetchedRoutes.add(href);
         router.prefetch(href);
       }
     };
@@ -110,7 +115,7 @@ export default function ClientLayout({
       document.removeEventListener('click', showRouteTransition, true);
       if (routeTimerRef.current) clearTimeout(routeTimerRef.current);
     };
-  }, [router]);
+  }, [router, pathname]);
 
   const triggerNotification = (message: string, type: 'success' | 'error' = 'success') => {
     if (notificationTimerRef.current) {
@@ -124,7 +129,7 @@ export default function ClientLayout({
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen" data-admin-layout={pathname?.startsWith('/admin') || undefined}>
       {/* Liên kết bỏ qua đến nội dung chính cho accessibility */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999] focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">Bỏ qua đến nội dung chính</a>
       <Navbar 

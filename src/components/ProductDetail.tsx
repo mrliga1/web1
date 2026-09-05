@@ -1,3 +1,4 @@
+import ContentRouteLink from "next/link";
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import NextImage from "next/image";
@@ -1512,10 +1513,10 @@ export default function ProductDetail({
                 if (p.status === "coming_soon") statusText = "Sắp ra mắt";
 
                 return (
-                  <div
+                  <ContentRouteLink
                     key={`${p.id}-${idx}`}
                     aria-hidden={idx >= featuredProjectsList.length}
-                    onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
+                    href={"/du-an/" + generateSlug(p.title)} prefetch
                     className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                   >
                     <div className="relative aspect-[16/10] overflow-hidden">
@@ -1563,7 +1564,7 @@ export default function ProductDetail({
                         </span>
                       </div>
                     </div>
-                  </div>
+                  </ContentRouteLink>
               );
             })}
           </div>

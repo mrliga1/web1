@@ -1,9 +1,10 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Phone, Mail, X, CheckCircle2 } from 'lucide-react';
 import { handleFirestoreError, OperationType } from '../firebase-errors';
 import { useAppContext } from '../contexts/AppContext';
 import { trackLead } from '../lib/tracking';
 import FormConsentFields from './FormConsentFields';
+import { readConsultationContext, type ConsultationContext } from '../lib/consultationContext';
 import {
   ConsultationErrors,
   validateConsultation,
@@ -21,6 +22,17 @@ export default function FloatingActionButtons() {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<ConsultationErrors>({});
+  const popupContextRef = useRef<ConsultationContext | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (showQuotePopup && !popupContextRef.current) popupContextRef.current = readConsultationContext();
+    if (!showQuotePopup) popupContextRef.current = null;
+  }, [showQuotePopup]);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) clearTimeout(closeTimerRef.current);
+  }, []);
 
   const refreshFieldError = (field: 'name' | 'phone' | 'email', value: string) => {
     const error = validateConsultationField(field, value);
@@ -63,13 +75,18 @@ export default function FloatingActionButtons() {
     
     setFieldErrors({});
     setIsSubmitting(true);
+    const submittedContext = readConsultationContext();
+    const openedContext = popupContextRef.current || submittedContext;
     try {
       const { db, addDoc, collection } = await import('../firebase');
       const createdConsultation = await addDoc(collection(db, 'consultations'), {
         name: quoteName,
         phone: quotePhone,
         email: quoteEmail,
-        demand: quoteDemand || 'Tư vấn mua nhà chuyên sâu',
+        demand: quoteDemand.trim(),
+        ...submittedContext,
+        popupOpenedUrl: openedContext.sourceUrl,
+        popupOpenedTitle: openedContext.pageTitle,
         status: 'new',
         createdAt: new Date().toISOString(),
         source: 'quote_popup',
@@ -78,7 +95,7 @@ export default function FloatingActionButtons() {
         marketingConsent: agreePrivacy,
       });
       if (createdConsultation.trackingEligible) {
-        trackLead('quote_popup', 'quote_popup');
+        trackLead('quote_popup', 'quote_popup', submittedContext.propertyId);
       }
       setFormSubmitted(true);
       setQuoteName('');
@@ -88,9 +105,10 @@ export default function FloatingActionButtons() {
       setAgreeTerms(false);
       setAgreePrivacy(false);
       window.dispatchEvent(new Event('greenia_quote_popup_submitted'));
-      setTimeout(() => {
+      closeTimerRef.current = setTimeout(() => {
         setFormSubmitted(false);
         setShowQuotePopup(false);
+        closeTimerRef.current = null;
       }, 3000);
     } catch (err) {
       handleFirestoreError(err, OperationType.WRITE, 'consultations');

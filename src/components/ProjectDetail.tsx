@@ -1,3 +1,4 @@
+import ContentRouteLink from "next/link";
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import NextImage from "next/image";
 import { formatVietnamDate, generateSlug } from "../lib/utils";
@@ -2070,15 +2071,9 @@ export default function ProjectDetail({
               <div className="flex overflow-x-auto gap-6 snap-x snap-mandatory pb-4 hide-scrollbar">
                 {relatedNews.length > 0 ? (
                   relatedNews.map((news) => (
-                    <div
+                    <ContentRouteLink
                       key={news.id}
-                      onClick={() =>
-                        onNavigate({
-                          screen: "news-detail",
-                          newsId: news.id,
-                          slug: generateSlug(news.title),
-                        })
-                      }
+                      href={"/tin-tuc/" + generateSlug(news.title)} prefetch
                       className="w-[85vw] sm:w-[calc(50%-12px)] lg:w-[calc(33.3333%-16px)] shrink-0 bg-bg-surface border border-border-color rounded-xl overflow-hidden cursor-pointer group hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-yellow-500/10 snap-start flex flex-col"
                     >
                       <div className="relative h-48 overflow-hidden">
@@ -2115,7 +2110,7 @@ export default function ProjectDetail({
                           <ChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
                         </div>
                       </div>
-                    </div>
+                    </ContentRouteLink>
                   ))
                 ) : (
                   <div className="text-text-secondary text-[13px] md:text-sm">
@@ -2357,16 +2352,10 @@ export default function ProjectDetail({
               <div className={`${relatedProjects.length >= 4 ? 'animate-project-detail-sliding-container' : ''} flex w-max`}>
                 <div className={`flex w-max ${relatedProjects.length >= 4 ? 'animate-project-detail-slider' : ''}`}>
                   {(relatedProjects.length >= 4 ? [...relatedProjects, ...relatedProjects] : relatedProjects).map((proj, idx) => (
-                    <div
+                    <ContentRouteLink
                       key={`${proj.id}-${idx}`}
                       aria-hidden={idx >= relatedProjects.length}
-                      onClick={() =>
-                        onNavigate({
-                          screen: "project-detail",
-                          projectId: proj.id,
-                          slug: generateSlug(proj.title),
-                        })
-                      }
+                      href={"/du-an/" + generateSlug(proj.title)} prefetch
                       className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-border-color rounded-xl overflow-hidden cursor-pointer group hover:border-primary/50 flex flex-col justify-between shadow-sm"
                     >
                       <div className="relative aspect-[4/3] overflow-hidden">
@@ -2418,7 +2407,7 @@ export default function ProjectDetail({
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </ContentRouteLink>
                   ))}
                 </div>
               </div>

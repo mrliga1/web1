@@ -139,10 +139,20 @@ a:focus:not(:focus-visible) {
   input[type="time"],
   textarea,
   select
-):is(:focus, :focus-visible) {
+) {
   outline: none !important;
   box-shadow: none !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  transition-property: color, background-color, border-color !important;
+}
+
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]), textarea, select):is(:focus, :focus-visible) {
   border-color: var(--color-primary) !important;
+}
+
+:where(input, textarea, select)[aria-invalid="true"] {
+  border-color: #b42318 !important;
 }
 
 /* =========================================================
@@ -583,11 +593,16 @@ html:not([data-has-recently-viewed]) .recently-viewed-shell {
   color: #ffffff !important;
 }
 
-/* Khi menu website mở trên mobile/tablet, sidebar quản trị bắt đầu ngay bên dưới menu. */
+/* Khung và sidebar quản trị cùng dùng kích thước thực của thanh điều hướng. */
 @media (max-width: 1023px) {
-  html[data-mobile-menu-open="true"] #wp-admin-sidebar,
-  html[data-mobile-menu-open="true"] #wp-admin-sidebar-overlay {
-    top: var(--greenia-mobile-nav-height, 2.5rem);
+  [data-admin-layout="true"] .site-nav-spacer {
+    height: var(--greenia-mobile-nav-height, 2.5rem);
+  }
+
+  #wp-admin-sidebar,
+  #wp-admin-sidebar-overlay {
+    top: var(--greenia-header-offset, 2.5rem);
+    bottom: 0;
   }
 }
 

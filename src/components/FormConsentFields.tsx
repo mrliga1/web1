@@ -32,11 +32,11 @@ export default function FormConsentFields({
           className={CHECKBOX_CLASS}
         />
         <span className="text-[10px] leading-snug text-text-secondary">
-          Tôi đồng ý{' '}
+          Tôi đã đọc và đồng ý{' '}
           <a href="/dieu-khoan-su-dung" className="font-medium text-primary underline hover:text-primary-light">
             Điều khoản sử dụng
           </a>
-          .
+          {' '}của Greenia Homes.
         </span>
       </label>
 
@@ -50,11 +50,11 @@ export default function FormConsentFields({
           className={CHECKBOX_CLASS}
         />
         <span className="text-[10px] leading-snug text-text-secondary">
-          Tôi đồng ý{' '}
+          Tôi đã đọc và đồng ý{' '}
           <a href="/chinh-sach-bao-mat" className="font-medium text-primary underline hover:text-primary-light">
             Chính sách bảo mật
           </a>{' '}
-          và nhận thông tin phù hợp.
+          và nhận thông tin phù hợp từ Greenia Homes.
         </span>
       </label>
     </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Home, Building2, ShieldCheck, LogOut, User as UserIcon, Menu, X, Compass, Newspaper, Mail, Phone, Heart } from 'lucide-react';
 import { RouteState, ScreenType } from '../types';
@@ -27,32 +27,31 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
   const router = useRouter();
   const headerRef = useRef<HTMLElement>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
-    if (!mobileMenuOpen) {
-      root.removeAttribute('data-mobile-menu-open');
-      root.style.removeProperty('--greenia-mobile-nav-height');
-      return;
-    }
-
     const updateMenuHeight = () => {
+      const isMobile = window.innerWidth < 1024;
       const height = Math.ceil(headerRef.current?.getBoundingClientRect().height || 40);
-      root.setAttribute('data-mobile-menu-open', 'true');
+      const expanded = mobileMenuOpen && isMobile;
+      root.toggleAttribute('data-mobile-menu-open', expanded);
       root.style.setProperty('--greenia-mobile-nav-height', `${height}px`);
+      root.style.setProperty('--greenia-header-offset', `${expanded || scrollDirection !== 'down' ? height : 0}px`);
     };
-    const frame = window.requestAnimationFrame(updateMenuHeight);
+    updateMenuHeight();
     const observer = typeof ResizeObserver !== 'undefined'
       ? new ResizeObserver(updateMenuHeight)
       : null;
     if (headerRef.current) observer?.observe(headerRef.current);
+    window.addEventListener('resize', updateMenuHeight);
 
     return () => {
-      window.cancelAnimationFrame(frame);
+      window.removeEventListener('resize', updateMenuHeight);
       observer?.disconnect();
       root.removeAttribute('data-mobile-menu-open');
       root.style.removeProperty('--greenia-mobile-nav-height');
+      root.style.removeProperty('--greenia-header-offset');
     };
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, scrollDirection]);
 
   useEffect(() => {
     if (!currentUser) return;
@@ -100,7 +99,7 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
 
   return (
     <>
-      <div className="h-10 md:h-10 w-full shrink-0" />
+      <div className="site-nav-spacer h-10 md:h-10 w-full shrink-0" />
       <header ref={headerRef} className={`fixed top-0 w-full z-[110] transition-transform duration-300 border-b ${mobileMenuOpen || scrollDirection !== 'down' ? 'translate-y-0' : '-translate-y-full'} ${theme === 'dark' ? 'bg-[#0B1F16]/70 backdrop-blur-lg border-border-inverse shadow-lg shadow-black/50' : 'bg-white/70 backdrop-blur-lg border-border-color shadow-sm'}`} id="main-nav">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:bg-transparent`}>
         <div className="flex items-center justify-between h-10 md:h-10 relative">

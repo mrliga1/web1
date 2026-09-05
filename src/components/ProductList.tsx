@@ -545,10 +545,12 @@ export default function ProductList({
     setSearchQuery('');
     setSelectedType('all');
     setSelectedDistrict('all');
-    setSelectedCategory(initialCategory || 'all');
+    setSelectedCategory('all');
     setSelectedPriceRange('all');
     setSelectedAreaRange('all');
     setMainGridLimit(10);
+    setOpenDropdown(null);
+    router.replace('/san-pham', { scroll: false });
   };
 
   const filteredProducts = React.useMemo(() => products.filter(p => {

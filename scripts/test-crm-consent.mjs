@@ -27,6 +27,17 @@ function loadModule(path, mocks = {}, globals = {}) {
 
 const access = loadModule('src/lib/crmAccess.ts');
 const validation = loadModule('src/lib/consultationValidation.ts');
+const sourceContext = loadModule('src/lib/consultationContext.ts', {}, { URL });
+
+test('Popup phân biệt trang mở và trang gửi, giữ tên nội dung và URL', () => {
+  const opened = sourceContext.createConsultationContext('https://greeniahomes.vn/du-an/vinhomes-can-gio#contact', 'Vinhomes Cần Giờ');
+  const submitted = sourceContext.createConsultationContext('https://greeniahomes.vn/san-pham/can-ho-quan-2', 'Căn hộ Quận 2');
+  assert.equal(opened.sourceUrl, 'https://greeniahomes.vn/du-an/vinhomes-can-gio');
+  assert.equal(opened.propertyTitle, 'Vinhomes Cần Giờ');
+  assert.equal(submitted.propertyId, '/san-pham/can-ho-quan-2');
+  assert.notEqual(opened.sourceUrl, submitted.sourceUrl);
+  assert.equal(sourceContext.createConsultationContext('javascript:alert(1)', '').sourceUrl, '');
+});
 
 test('Kiểm tra form trả đúng cảnh báo cho từng trường sai định dạng', () => {
   assert.equal(validation.validateConsultationField('name', 'A'), 'Vui lòng nhập họ tên có ít nhất 2 ký tự.');
@@ -126,6 +137,18 @@ test('Form không phụ thuộc cookie; trường quản trị không do khách 
 });
 test('Khách đồng ý và qua sàng lọc được đánh dấu đủ điều kiện', async () => {
   assert.equal((await consultationHarness().post(validLead)).body.trackingEligible, true);
+});
+test('API giữ nguồn trang popup và nội dung khách nhập trong CRM', async () => {
+  const h = consultationHarness();
+  const context = {
+    sourceUrl: 'https://greeniahomes.vn/san-pham/can-ho-quan-2',
+    pageTitle: 'Căn hộ Quận 2',
+    popupOpenedUrl: 'https://greeniahomes.vn/du-an/vinhomes-can-gio',
+    popupOpenedTitle: 'Vinhomes Cần Giờ',
+  };
+  assert.equal((await h.post({ ...validLead, ...context })).status, 200);
+  for (const key of Object.keys(context)) assert.equal(h.inserts[0].data[key], context[key]);
+  assert.equal(h.inserts[0].data.message, validLead.message);
 });
 test('Yêu cầu spam vẫn lưu CRM nhưng không đủ điều kiện remarketing', async () => {
   const rows = Array.from({ length: 5 }, () => ({ data: { phone: validLead.phone, email: validLead.email, ipAddress: '192.0.2.10' } }));

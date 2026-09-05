@@ -172,6 +172,9 @@ export interface Consultation {
   message?: string;
   demand?: string;
   sourceUrl?: string;
+  pageTitle?: string;
+  popupOpenedUrl?: string;
+  popupOpenedTitle?: string;
   images?: string[];
   termsAccepted?: boolean;
   privacyAccepted?: boolean;

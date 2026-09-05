@@ -1,3 +1,4 @@
+import ContentRouteLink from "next/link";
 import React, { useState, useEffect, useRef } from 'react';
 import NextImage from 'next/image';
 import { optimizeImageUrl, generateSlug, generateSrcSet, formatVietnamDate } from '../lib/utils';
@@ -560,12 +561,10 @@ export default function NewsDetail({
                 ).slice(0, 6);
 
                 return relatedList.map((n) => (
-                  <div
+                  <ContentRouteLink
                     key={n.id}
-                    role="link"
-                    tabIndex={0}
-                    onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
-                    onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
+
+                    href={"/tin-tuc/" + generateSlug(n.title)} prefetch
                     className="basis-[85%] sm:basis-[calc(50%-0.5rem)] lg:basis-[calc(33.333%-0.75rem)] shrink-0 snap-start bg-bg-surface/30 border border-border-color hover:border-primary/40 rounded-lg p-3 space-y-3 cursor-pointer transition-all"
                   >
                     <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} srcSet={generateSrcSet(n.imageUrl)} sizes="(max-width: 639px) 80vw, (max-width: 1023px) 45vw, 400px" alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-28 object-cover rounded-lg" referrerPolicy="no-referrer" />
@@ -575,7 +574,7 @@ export default function NewsDetail({
                         {formatVietnamDate(n.createdAt)}
                       </span>
                     </div>
-                  </div>
+                  </ContentRouteLink>
                 ));
               })()}
             </div>
@@ -596,12 +595,10 @@ export default function NewsDetail({
 
             <div className="space-y-3">
               {sidebarNewestNews.map((n) => (
-                <div
+                <ContentRouteLink
                   key={n.id}
-                  role="link"
-                  tabIndex={0}
-                  onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
-                  onKeyDown={(event) => handleKeyboardActivation(event, () => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) }))}
+
+                  href={"/tin-tuc/" + generateSlug(n.title)} prefetch
                   className="flex gap-2.5 text-left group cursor-pointer border-b border-black pb-2 last:border-0 items-start"
                 >
                   <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 100) || undefined} srcSet={generateSrcSet(n.imageUrl)} sizes="45px" alt={n.title} width={45} height={45} className="w-[45px] h-[45px] object-cover rounded shrink-0" referrerPolicy="no-referrer" />
@@ -613,7 +610,7 @@ export default function NewsDetail({
                       {formatVietnamDate(n.createdAt)}
                     </span>
                   </div>
-                </div>
+                </ContentRouteLink>
               ))}
             </div>
           </div>
@@ -694,9 +691,9 @@ export default function NewsDetail({
 
             <div className="space-y-4">
               {sidebarFeaturedProps.map((p) => (
-                <div
+                <ContentRouteLink
                   key={p.id}
-                  onClick={() => onNavigate({ screen: 'product-detail', productId: p.id, slug: generateSlug(p.title) })}
+                  href={"/san-pham/" + generateSlug(p.title)} prefetch
                   className="flex gap-3 pb-[5px] border-b border-white/5 transition-colors cursor-pointer group last:border-0"
                 >
                   <div className="w-[100px] h-[85px] shrink-0 rounded overflow-hidden border border-border-color relative">
@@ -735,7 +732,7 @@ export default function NewsDetail({
                       <span className="truncate">{p.district || p.location}</span>
                     </div>
                   </div>
-                </div>
+                </ContentRouteLink>
               ))}
             </div>
           </div>
@@ -919,9 +916,9 @@ export default function NewsDetail({
             const displayedPosts = relatedPosts.slice(0, visibleRelatedCount);
             
             return displayedPosts.map((n) => (
-              <div
+              <ContentRouteLink
                 key={n.id}
-                onClick={() => onNavigate({ screen: 'news-detail', newsId: n.id, slug: generateSlug(n.title) })}
+                href={"/tin-tuc/" + generateSlug(n.title)} prefetch
                 className="w-full bg-bg-surface/30 border border-border-color hover:border-amber-555 rounded-lg p-3.5 space-y-3 cursor-pointer transition-all"
               >
                 <img loading="lazy" decoding="async" src={optimizeImageUrl(n.imageUrl, 400) || undefined} srcSet={generateSrcSet(n.imageUrl)} sizes="(max-width: 639px) calc(100vw - 48px), (max-width: 767px) 50vw, (max-width: 1023px) 33vw, 20vw" alt={n.title} width={400} height={240} className="w-full h-40 sm:h-32 lg:h-24 object-cover rounded-lg" referrerPolicy="no-referrer" />
@@ -931,7 +928,7 @@ export default function NewsDetail({
                     {formatVietnamDate(n.createdAt)}
                   </span>
                 </div>
-              </div>
+              </ContentRouteLink>
             ));
           })()}
         </div>
@@ -1019,10 +1016,10 @@ export default function NewsDetail({
                   if (p.status === 'coming_soon') statusText = 'Sắp ra mắt';
 
                   return (
-                    <div
+                    <ContentRouteLink
                       key={`${p.id}-${idx}`}
                       aria-hidden={idx >= featuredProjectsList.length}
-                      onClick={() => onNavigate({ screen: 'project-detail', projectId: p.id, slug: generateSlug(p.title) })}
+                      href={"/du-an/" + generateSlug(p.title)} prefetch
                       className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface border border-primary/20 rounded-xl overflow-hidden flex flex-col h-full hover:border-primary/30 cursor-pointer no-underline group shadow-sm justify-between"
                     >
                       <div className="relative aspect-[16/10] overflow-hidden">
@@ -1070,7 +1067,7 @@ export default function NewsDetail({
                           </span>
                         </div>
                       </div>
-                    </div>
+                    </ContentRouteLink>
                 );
               })}
             </div>

@@ -3153,7 +3153,7 @@ export default function AdminPanel({
     >
       {/* 1. wordpress left sidebar navigation panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r border-emerald-900/15 bg-emerald-950 text-white transition-[width,transform,top] duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 shrink-0 flex-col overflow-hidden border-r border-emerald-900/15 bg-emerald-950 text-white transition-[width,transform] duration-300 lg:static lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"
           } ${desktopSidebarOpen ? "lg:w-64" : "lg:w-0 lg:border-r-0"}`}
         id="wp-admin-sidebar"
       >
@@ -5830,6 +5830,21 @@ export default function AdminPanel({
                               "Chưa xác định"}
                           </div>
                         </div>
+
+                        {(crmSelectedLead.sourceUrl || crmSelectedLead.popupOpenedUrl) && (
+                          <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] border-t border-slate-300">
+                            <div className="border-r border-slate-300 bg-slate-100 p-3 text-[11px] font-semibold text-slate-700">Trang quan tâm</div>
+                            <div className="space-y-2 bg-white p-3 text-xs text-slate-900">
+                              <p>{crmSelectedLead.pageTitle || crmSelectedLead.propertyTitle || 'Trang gửi yêu cầu'}</p>
+                              {crmSelectedLead.sourceUrl && /^https?:\/\//i.test(crmSelectedLead.sourceUrl) && (
+                                <a href={crmSelectedLead.sourceUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-primary underline">{crmSelectedLead.sourceUrl}</a>
+                              )}
+                              {crmSelectedLead.popupOpenedUrl && /^https?:\/\//i.test(crmSelectedLead.popupOpenedUrl) && (
+                                <p>Popup mở tại: <a href={crmSelectedLead.popupOpenedUrl} target="_blank" rel="noopener noreferrer" className="break-all text-primary underline">{crmSelectedLead.popupOpenedTitle || crmSelectedLead.popupOpenedUrl}</a></p>
+                              )}
+                            </div>
+                          </div>
+                        )}
 
                         {crmSelectedLead.images &&
                           crmSelectedLead.images.length > 0 && (

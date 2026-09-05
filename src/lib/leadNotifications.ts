@@ -46,10 +46,14 @@ export async function notifyLeadStakeholders(consultationId: string) {
     demand?: string;
     source?: string;
     sourceUrl?: string;
+    pageTitle?: string;
+    popupOpenedUrl?: string;
+    popupOpenedTitle?: string;
     propertyTitle?: string;
     spamStatus?: string;
     spamScore?: number;
     spamReasons?: string[];
+    remarketingEligible?: boolean;
   };
   const detail = cleanText(lead.propertyTitle || lead.source || 'Website Greenia Homes', 200);
 
@@ -79,7 +83,7 @@ export async function notifyLeadStakeholders(consultationId: string) {
         ? 'Hợp lệ'
         : spamStatus === 'review'
           ? 'Cần kiểm tra thủ công'
-          : 'Chặn khỏi tệp remarketing';
+          : 'Nghi ngờ spam';
       const spamScore = Number.isFinite(Number(lead.spamScore)) ? Number(lead.spamScore) : 0;
       const spamReasons = Array.isArray(lead.spamReasons)
         ? lead.spamReasons.map((reason) => cleanText(reason, 200)).filter(Boolean)
@@ -87,6 +91,13 @@ export async function notifyLeadStakeholders(consultationId: string) {
       const spamExplanation = spamReasons.length > 0
         ? `<br><span style="color:#526159;font-size:12px">Lý do: ${escapeHtml(spamReasons.join('; '))}</span>`
         : '';
+      const popupUrl = cleanText(lead.popupOpenedUrl);
+      const popupRow = /^https?:\/\//i.test(popupUrl)
+        ? `<tr><td style="font-weight:bold">Trang khi popup mở</td><td>${escapeHtml(cleanText(lead.popupOpenedTitle))}<br><a href="${escapeHtml(popupUrl)}">${escapeHtml(popupUrl)}</a></td></tr>`
+        : '';
+      const conversionStatus = lead.remarketingEligible === true
+        ? 'Lượt đăng ký đủ điều kiện gửi sự kiện chuyển đổi theo lựa chọn đồng ý của khách.'
+        : 'Không gửi sự kiện chuyển đổi từ lượt đăng ký này. Khách vẫn được lưu trong CRM; trạng thái này không xóa khách khỏi tệp quảng cáo đã có.';
       await transporter.sendMail({
         from: `"Greenia Homes - Web System" <${smtpUser}>`,
         to: smtpTo,
@@ -99,7 +110,10 @@ export async function notifyLeadStakeholders(consultationId: string) {
             <tr><td style="font-weight:bold">Email</td><td>${escapeHtml(cleanText(lead.email, 160) || 'Chưa cung cấp')}</td></tr>
             <tr><td style="font-weight:bold">Nhu cầu</td><td>${escapeHtml(cleanText(lead.message || lead.demand || detail, 2000)).replace(/\n/g, '<br/>')}</td></tr>
             <tr><td style="font-weight:bold">Nguồn</td><td>${safeSourceUrl ? `<a href="${safeSourceUrl}">${safeSourceUrl}</a>` : 'Website Greenia Homes'}</td></tr>
+            <tr><td style="font-weight:bold">Nội dung khách đang xem</td><td>${escapeHtml(cleanText(lead.pageTitle || lead.propertyTitle || detail))}</td></tr>
+            ${popupRow}
             <tr><td style="font-weight:bold">Sàng lọc chống spam</td><td><strong>${escapeHtml(spamStatusLabel)}</strong> — ${spamScore} điểm${spamExplanation}</td></tr>
+            <tr><td style="font-weight:bold">Xử lý đo lường</td><td>${conversionStatus}</td></tr>
           </table>
         `,
       }).finally(() => transporter.close());

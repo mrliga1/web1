@@ -42,6 +42,7 @@ export async function notifyLeadStakeholders(consultationId: string) {
     name?: string;
     phone?: string;
     email?: string;
+    ipAddress?: string;
     message?: string;
     demand?: string;
     source?: string;
@@ -82,7 +83,7 @@ export async function notifyLeadStakeholders(consultationId: string) {
       const spamStatusLabel = spamStatus === 'clean'
         ? 'Hợp lệ'
         : spamStatus === 'review'
-          ? 'Cần kiểm tra thủ công'
+          ? 'Cảnh báo — cần kiểm tra thủ công, chưa chặn'
           : 'Nghi ngờ spam';
       const spamScore = Number.isFinite(Number(lead.spamScore)) ? Number(lead.spamScore) : 0;
       const spamReasons = Array.isArray(lead.spamReasons)
@@ -96,7 +97,7 @@ export async function notifyLeadStakeholders(consultationId: string) {
         ? `<tr><td style="font-weight:bold">Trang khi popup mở</td><td>${escapeHtml(cleanText(lead.popupOpenedTitle))}<br><a href="${escapeHtml(popupUrl)}">${escapeHtml(popupUrl)}</a></td></tr>`
         : '';
       const conversionStatus = lead.remarketingEligible === true
-        ? 'Lượt đăng ký đủ điều kiện gửi sự kiện chuyển đổi theo lựa chọn đồng ý của khách.'
+        ? 'Lượt đăng ký đủ điều kiện gửi sự kiện chuyển đổi theo lựa chọn đồng ý của khách. Cảnh báo lặp không tự chặn; chỉ danh sách IP chặn thủ công ngăn các lượt tiếp theo. Không tự xóa tệp quảng cáo đã có.'
         : 'Không gửi sự kiện chuyển đổi từ lượt đăng ký này. Khách vẫn được lưu trong CRM; trạng thái này không xóa khách khỏi tệp quảng cáo đã có.';
       await transporter.sendMail({
         from: `"Greenia Homes - Web System" <${smtpUser}>`,
@@ -108,6 +109,7 @@ export async function notifyLeadStakeholders(consultationId: string) {
             <tr><td style="font-weight:bold">Họ và tên</td><td>${escapeHtml(cleanText(lead.name, 120) || 'Chưa cung cấp')}</td></tr>
             <tr><td style="font-weight:bold">Số điện thoại</td><td>${escapeHtml(cleanText(lead.phone, 30) || 'Chưa cung cấp')}</td></tr>
             <tr><td style="font-weight:bold">Email</td><td>${escapeHtml(cleanText(lead.email, 160) || 'Chưa cung cấp')}</td></tr>
+            <tr><td style="font-weight:bold">IP để kiểm tra thủ công</td><td>${escapeHtml(cleanText(lead.ipAddress, 80) || 'Không xác định')}</td></tr>
             <tr><td style="font-weight:bold">Nhu cầu</td><td>${escapeHtml(cleanText(lead.message || lead.demand || detail, 2000)).replace(/\n/g, '<br/>')}</td></tr>
             <tr><td style="font-weight:bold">Nguồn</td><td>${safeSourceUrl ? `<a href="${safeSourceUrl}">${safeSourceUrl}</a>` : 'Website Greenia Homes'}</td></tr>
             <tr><td style="font-weight:bold">Nội dung khách đang xem</td><td>${escapeHtml(cleanText(lead.pageTitle || lead.propertyTitle || detail))}</td></tr>

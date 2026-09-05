@@ -24,7 +24,7 @@ const ALLOWED_FIELDS = new Set([
   "marketingConsent",
 ]);
 
-type SpamStatus = "clean" | "review" | "blocked";
+type SpamStatus = "clean" | "review";
 
 function normalizePhone(value: unknown) {
   return typeof value === "string" ? value.replace(/[\s().-]/g, "") : "";
@@ -36,22 +36,13 @@ function normalizeEmail(value: unknown) {
 
 function evaluateSpam(
   payload: Record<string, unknown>,
-  clientIp: string,
-  existingRows: Array<{ data?: Record<string, unknown> | null }>,
+  matches: { phone: number; email: number; ip: number },
 ) {
-  const phone = normalizePhone(payload.phone);
-  const email = normalizeEmail(payload.email);
   const name = String(payload.name || "").trim().toLowerCase();
   let score = 0;
   const reasons: string[] = [];
 
-  const phoneMatches = existingRows.filter((row) => normalizePhone(row.data?.phone) === phone).length;
-  const emailMatches = email
-    ? existingRows.filter((row) => normalizeEmail(row.data?.email) === email).length
-    : 0;
-  const ipMatches = clientIp === "unknown"
-    ? 0
-    : existingRows.filter((row) => String(row.data?.ipAddress || "") === clientIp).length;
+  const { phone: phoneMatches, email: emailMatches, ip: ipMatches } = matches;
 
   if (phoneMatches >= 3) {
     score += 50;
@@ -66,7 +57,7 @@ function evaluateSpam(
   }
   if (ipMatches >= 5) {
     score += 45;
-    reasons.push("IP gửi quá nhiều yêu cầu");
+    reasons.push("IP đã gửi nhiều yêu cầu, cần kiểm tra thủ công");
   } else if (ipMatches >= 2) {
     score += 20;
     reasons.push("IP gửi nhiều yêu cầu");
@@ -76,7 +67,8 @@ function evaluateSpam(
     reasons.push("Tên có dấu hiệu dữ liệu rác");
   }
 
-  const status: SpamStatus = score >= 70 ? "blocked" : score >= 40 ? "review" : "clean";
+  // Điểm chỉ tạo cảnh báo; quyền chặn do quản trị viên quyết định qua danh sách IP.
+  const status: SpamStatus = score > 0 ? "review" : "clean";
   return { score, status, reasons };
 }
 
@@ -148,19 +140,30 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = createServiceRoleClient();
-    const { data: existingConsultations, error: lookupError } = await supabase
-      .from("consultations")
-      .select("data")
-      .limit(100);
+    // Chỉ lấy số lượng khớp, không tải nội dung khách hàng và không bỏ sót sau 100 bản ghi.
+    const countMatches = async (field: 'phone' | 'email' | 'ipAddress', value: string) => {
+      if (!value) return { count: 0, failed: false };
+      try {
+        const result = await supabase.from('consultations')
+          .select('id', { count: 'exact', head: true }).eq(`data->>${field}`, value);
+        return { count: result.count || 0, failed: Boolean(result.error) };
+      } catch {
+        return { count: 0, failed: true };
+      }
+    };
+    const [phoneMatches, emailMatches, ipMatches] = await Promise.all([
+      countMatches('phone', String(payload.phone)),
+      countMatches('email', String(payload.email || '')),
+      countMatches('ipAddress', clientIp === 'unknown' ? '' : clientIp),
+    ]);
+    const lookupError = phoneMatches.failed || emailMatches.failed || ipMatches.failed;
+    const spam = evaluateSpam(payload, { phone: phoneMatches.count, email: emailMatches.count, ip: ipMatches.count });
     if (lookupError) {
-      console.error("Không thể đối chiếu dữ liệu chống spam:", lookupError.message);
+      spam.status = "review";
+      spam.reasons.push("Chưa đối chiếu được lịch sử đăng ký; cần kiểm tra thủ công");
     }
-    const spam = evaluateSpam(
-      payload,
-      clientIp,
-      (existingConsultations || []) as Array<{ data?: Record<string, unknown> | null }>,
-    );
-    const trackingEligible = !lookupError && payload.marketingConsent === true && spam.status === "clean";
+    // IP bị chặn đã được từ chối ở đầu yêu cầu; cảnh báo không vô hiệu hóa chuyển đổi.
+    const trackingEligible = payload.marketingConsent === true;
     const { data, error } = await supabase
       .from("consultations")
       .insert({

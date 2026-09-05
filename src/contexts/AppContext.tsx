@@ -12,12 +12,15 @@ import {
 } from '../types';
 import {
   flushPendingMetaEvents,
+  canLoadTrackingScripts,
+  hasMarketingTrackingConsent,
   notifyTrackingConsentGranted,
   pushTrackingEvent,
   setTrackingConsent,
   trackContactClick,
 } from '../lib/tracking';
 import { normalizeAdSenseSettings } from '../lib/adsense';
+import { useManualIpTrackingPolicy } from '../hooks/useManualIpTrackingPolicy';
 
 interface AppContextType {
   sections: VisualSection[];
@@ -88,6 +91,7 @@ function usesServerProvidedLayout(docName: string | null) {
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  useManualIpTrackingPolicy(pathname || '/');
   const layoutDocName = getLayoutDocName(pathname || '');
   const [layoutState, setLayoutState] = useState<LayoutState>(() => ({
     docName: layoutDocName,
@@ -187,23 +191,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let cancelled = false;
     let removeConsentListener: () => void = () => undefined;
-    const trackingFlushTimers: number[] = [];
+    const trackingFlushTimers = new Set<number>();
+    let loadTikTokPixel = () => {};
+    const scheduleTrackingTask = (callback: () => void, delay: number) => {
+      const timer = window.setTimeout(() => {
+        trackingFlushTimers.delete(timer);
+        if (!cancelled) callback();
+      }, delay);
+      trackingFlushTimers.add(timer);
+    };
 
     const scheduleMetaFlush = (delays = [1500, 5000, 12000]) => {
       delays.forEach((delay) => {
-        trackingFlushTimers.push(window.setTimeout(flushPendingMetaEvents, delay));
+        scheduleTrackingTask(flushPendingMetaEvents, delay);
       });
     };
 
     const loadTrackingScripts = () => {
+      if (!canLoadTrackingScripts()) return;
       const tagManagerId = getSettingString(
         process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID,
       ).trim();
       if (!tagManagerId || document.getElementById("gtm-tracker-script")) return;
 
       // GTM là nguồn cấu hình Google và Meta duy nhất để tránh nạp trùng thẻ.
-      window.setTimeout(() => {
-        if (cancelled || document.getElementById("gtm-tracker-script")) return;
+      scheduleTrackingTask(() => {
+        if (cancelled || !canLoadTrackingScripts() || document.getElementById("gtm-tracker-script")) return;
         const gtmScript = document.createElement("script");
         gtmScript.id = "gtm-tracker-script";
         gtmScript.text = `
@@ -217,6 +230,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         scheduleMetaFlush();
       }, 2000);
     };
+
+    const handleTrackingPolicy = () => {
+      if (cancelled || !canLoadTrackingScripts()) return;
+      loadTrackingScripts();
+      notifyTrackingConsentGranted();
+      scheduleMetaFlush();
+      loadTikTokPixel();
+    };
+    window.addEventListener('greenia_tracking_policy_changed', handleTrackingPolicy);
 
     getDoc(doc(db, "settings", "general")).then((snapshot) => {
       if (cancelled) return;
@@ -236,7 +258,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           version: Number.isFinite(popupVersion) && popupVersion > 0 ? popupVersion : 2,
         });
 
-        const loadTikTokPixel = () => {
+        loadTikTokPixel = () => {
+          if (!hasMarketingTrackingConsent()) return;
           const pixelId = getSettingString(data.tiktokPixelId).trim();
           if (
             data.tiktokPixelEnabled !== true ||
@@ -294,6 +317,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
       trackingFlushTimers.forEach((timer) => window.clearTimeout(timer));
+      window.removeEventListener('greenia_tracking_policy_changed', handleTrackingPolicy);
       removeConsentListener();
     };
   }, []);

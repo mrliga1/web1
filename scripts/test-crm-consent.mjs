@@ -58,7 +58,7 @@ test('Form trang chủ bắt buộc email hợp lệ trước khi gửi', () => 
 test('Meta/TikTok tôn trọng từ chối cookie và xóa sự kiện Meta đang chờ', () => {
   const meta = [];
   const tiktok = [];
-  const window = { fbq: (...args) => meta.push(args), ttq: { track: (...args) => tiktok.push(args) } };
+  const window = { __greeniaIpTrackingPolicy: 'allowed', fbq: (...args) => { if (args[0] === 'track') meta.push(args); }, ttq: { track: (...args) => tiktok.push(args) } };
   const tracking = loadModule('src/lib/tracking.ts', {}, { window });
   tracking.setTrackingConsent('denied');
   tracking.trackLead('test', 'test');
@@ -98,7 +98,11 @@ function consultationHarness({ rows = [], lookupError = null, insertError = null
     'next/server': { NextResponse: { json: (body, options = {}) => ({ body, status: options.status || 200 }) }, after: (job) => jobs.push(job) },
     '../lib/blockedIps': { getClientIp: () => '192.0.2.10', getBlockedIpsForRequest: async () => [], isBlockedIp: () => blocked },
     '../../../src/lib/serverSupabase': { createServiceRoleClient: () => ({ from: () => ({
-      select: () => ({ limit: async () => ({ data: rows, error: lookupError }) }),
+      select: (_columns, options) => {
+        assert.equal(options.head, true);
+        assert.equal(options.count, 'exact');
+        return { eq: async (path, value) => ({ count: rows.filter(row => String(row.data?.[path.replace('data->>', '')] || '') === value).length, error: lookupError }) };
+      },
       insert: (value) => { inserts.push(value); return { select: () => ({ single: async () => ({ data: insertError ? null : { id: 'lead-test' }, error: insertError }) }) }; },
     }) }) },
     '../../../src/lib/leadNotifications': { notifyLeadStakeholders: async () => { notified += 1; } },
@@ -150,14 +154,47 @@ test('API giữ nguồn trang popup và nội dung khách nhập trong CRM', asy
   for (const key of Object.keys(context)) assert.equal(h.inserts[0].data[key], context[key]);
   assert.equal(h.inserts[0].data.message, validLead.message);
 });
-test('Yêu cầu spam vẫn lưu CRM nhưng không đủ điều kiện remarketing', async () => {
+test('Đăng ký lặp điểm cao chỉ cảnh báo, vẫn đủ điều kiện nếu chưa chặn IP', async () => {
   const rows = Array.from({ length: 5 }, () => ({ data: { phone: validLead.phone, email: validLead.email, ipAddress: '192.0.2.10' } }));
   const h = consultationHarness({ rows });
-  assert.equal((await h.post(validLead)).body.trackingEligible, false);
-  assert.equal(h.inserts[0].data.spamStatus, 'blocked');
+  assert.equal((await h.post(validLead)).body.trackingEligible, true);
+  assert.equal(h.inserts[0].data.spamStatus, 'review');
+  assert.equal(h.inserts[0].data.spamScore, 120);
+  assert.equal(h.jobs.length, 1);
 });
-test('Sàng lọc lỗi không tự cho phép remarketing', async () => {
-  assert.equal((await consultationHarness({ lookupError: { message: 'test' } }).post(validLead)).body.trackingEligible, false);
+test('Lỗi đối chiếu lịch sử chỉ cảnh báo, không tự coi khách là IP bị chặn', async () => {
+  const h = consultationHarness({ lookupError: { message: 'test' } });
+  assert.equal((await h.post(validLead)).body.trackingEligible, true);
+  assert.equal(h.inserts[0].data.spamStatus, 'review');
+  assert.match(h.inserts[0].data.spamReasons.join(' '), /Chưa đối chiếu/);
+});
+for (const propertyId of ['du-an-a', 'du-an-b']) {
+  test(`Khách quay lại hỏi ${propertyId} vẫn hợp lệ khi chưa chặn thủ công`, async () => {
+    const rows = Array.from({ length: 8 }, () => ({ data: { ...validLead, propertyId: 'du-an-a', ipAddress: '192.0.2.10' } }));
+    const h = consultationHarness({ rows });
+    assert.equal((await h.post({ ...validLead, propertyId })).body.trackingEligible, true);
+    assert.equal(h.inserts[0].data.propertyId, propertyId);
+    assert.equal(h.inserts[0].data.spamStatus, 'review');
+  });
+}
+test('Đăng ký lặp vẫn không vượt qua lựa chọn không đồng ý marketing', async () => {
+  const h = consultationHarness({ rows: [{ data: validLead }] });
+  assert.equal((await h.post({ ...validLead, marketingConsent: false })).body.trackingEligible, false);
+});
+test('Cảnh báo khách quay lại không bị giới hạn ở 100 bản ghi đầu', async () => {
+  const rows = [...Array.from({ length: 120 }, () => ({ data: { phone: '0911111111' } })), { data: { phone: validLead.phone } }];
+  const h = consultationHarness({ rows });
+  await h.post(validLead);
+  assert.equal(h.inserts[0].data.spamScore, 15);
+  assert.equal(h.inserts[0].data.spamStatus, 'review');
+  assert.match(h.inserts[0].data.spamReasons.join(' '), /đã từng gửi yêu cầu/);
+});
+test('IP được chặn thủ công ngăn cả lượt đầu và các lượt lặp, bỏ chặn cho phép lại', async () => {
+  const h = consultationHarness({ blocked: true });
+  assert.equal((await h.post(validLead)).status, 403);
+  assert.equal(h.jobs.length, 0);
+  assert.equal(h.inserts.length, 0);
+  assert.equal((await consultationHarness({ blocked: false }).post(validLead)).body.trackingEligible, true);
 });
 test('IP bị chặn và lỗi lưu không phát thông báo', async () => {
   const blocked = consultationHarness({ blocked: true });

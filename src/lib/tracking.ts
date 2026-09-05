@@ -6,7 +6,11 @@ type TrackingPayload = Record<string, TrackingValue>;
 interface TrackingWindow extends Window {
   dataLayer?: Array<Record<string, unknown> | unknown[]>;
   fbq?: (...args: unknown[]) => void;
-  ttq?: { track?: (event: string, payload?: Record<string, unknown>) => void };
+  ttq?: { track?: (event: string, payload?: Record<string, unknown>) => void; revokeConsent?: () => void; grantConsent?: () => void };
+  __greeniaIpTrackingPolicy?: "pending" | "allowed" | "blocked";
+  __greeniaRequestedConsent?: ConsentStatus;
+  __greeniaConsentNotified?: boolean;
+  __greeniaPolicyEvents?: Array<{ event: string; payload: TrackingPayload }>;
   __greeniaTrackingConsent?: ConsentStatus;
   __greeniaPendingMetaEvents?: Array<{
     method: "track" | "trackCustom";
@@ -39,13 +43,38 @@ function sanitizePayload(payload: TrackingPayload) {
   );
 }
 
+export function canLoadTrackingScripts() {
+  return typeof window !== 'undefined' && (window as TrackingWindow).__greeniaIpTrackingPolicy === 'allowed';
+}
+
+export function hasMarketingTrackingConsent() {
+  return canLoadTrackingScripts() && (window as TrackingWindow).__greeniaTrackingConsent === 'granted';
+}
+
+export function setManualIpTrackingPolicy(status: 'pending' | 'allowed' | 'blocked') {
+  if (typeof window === 'undefined') return;
+  const trackingWindow = window as TrackingWindow;
+  if (trackingWindow.__greeniaIpTrackingPolicy === status) return;
+  trackingWindow.__greeniaIpTrackingPolicy = status;
+  if (status !== 'allowed') trackingWindow.__greeniaPendingMetaEvents = [];
+  if (status === 'blocked') trackingWindow.__greeniaPolicyEvents = [];
+  getDataLayer().push(['set', { allow_ad_personalization_signals: status === 'allowed' }]);
+  setTrackingConsent(trackingWindow.__greeniaRequestedConsent || 'denied');
+  if (status === 'allowed') {
+    const pending = trackingWindow.__greeniaPolicyEvents || [];
+    trackingWindow.__greeniaPolicyEvents = [];
+    pending.forEach(({ event, payload }) => pushTrackingEvent(event, payload));
+  }
+  window.dispatchEvent(new Event('greenia_tracking_policy_changed'));
+}
+
 function emitMetaEvent(
   method: "track" | "trackCustom",
   event: string,
   payload: Record<string, TrackingValue>,
 ) {
   const trackingWindow = window as TrackingWindow;
-  if (trackingWindow.__greeniaTrackingConsent !== "granted") return;
+  if (!canLoadTrackingScripts() || trackingWindow.__greeniaTrackingConsent !== "granted") return;
 
   if (typeof trackingWindow.fbq === "function") {
     trackingWindow.fbq(method, event, payload);
@@ -62,7 +91,7 @@ function emitMetaEvent(
 export function flushPendingMetaEvents() {
   if (typeof window === "undefined") return;
   const trackingWindow = window as TrackingWindow;
-  if (trackingWindow.__greeniaTrackingConsent !== "granted") return;
+  if (!canLoadTrackingScripts() || trackingWindow.__greeniaTrackingConsent !== "granted") return;
   if (typeof trackingWindow.fbq !== "function") return;
 
   const pending = trackingWindow.__greeniaPendingMetaEvents || [];
@@ -75,6 +104,14 @@ export function flushPendingMetaEvents() {
 export function pushTrackingEvent(event: string, payload: TrackingPayload = {}) {
   if (typeof window === "undefined" || !event.trim()) return;
   const cleanPayload = sanitizePayload(payload);
+  const policyWindow = window as TrackingWindow;
+  if (!canLoadTrackingScripts()) {
+    if (policyWindow.__greeniaIpTrackingPolicy !== 'blocked') {
+      // Chờ xác minh IP, giới hạn hàng đợi để không giữ dữ liệu vô hạn.
+      policyWindow.__greeniaPolicyEvents = [...(policyWindow.__greeniaPolicyEvents || []).slice(-49), { event, payload: cleanPayload }];
+    }
+    return;
+  }
   const dataLayer = getDataLayer();
   dataLayer.push({
     event: event.trim(),
@@ -115,8 +152,14 @@ export function pushTrackingEvent(event: string, payload: TrackingPayload = {}) 
 export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false) {
   if (typeof window === "undefined") return;
   const trackingWindow = window as TrackingWindow;
+  trackingWindow.__greeniaRequestedConsent = status;
+  if (status === 'denied') trackingWindow.__greeniaConsentNotified = false;
+  status = canLoadTrackingScripts() ? status : 'denied';
   trackingWindow.__greeniaTrackingConsent = status;
   if (status === "denied") trackingWindow.__greeniaPendingMetaEvents = [];
+  if (typeof trackingWindow.fbq === 'function') trackingWindow.fbq('consent', status === 'granted' ? 'grant' : 'revoke');
+  if (status === 'granted') trackingWindow.ttq?.grantConsent?.();
+  else trackingWindow.ttq?.revokeConsent?.();
   const dataLayer = getDataLayer();
   const consent: Record<string, ConsentStatus | number> = {
     analytics_storage: status,
@@ -129,7 +172,11 @@ export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false)
 }
 
 export function notifyTrackingConsentGranted() {
-  if (typeof window === "undefined") return;
+  if (!canLoadTrackingScripts() || (window as TrackingWindow).__greeniaTrackingConsent !== 'granted') return;
+  const trackingWindow = window as TrackingWindow;
+  // Kiểm tra lại IP không phải là một lần đồng ý mới, tránh khởi tạo thẻ trùng.
+  if (trackingWindow.__greeniaConsentNotified) return;
+  trackingWindow.__greeniaConsentNotified = true;
   getDataLayer().push({ event: "consent_granted" });
 }
 

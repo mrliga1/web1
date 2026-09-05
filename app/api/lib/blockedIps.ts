@@ -35,12 +35,13 @@ export function isValidBlockedIpList(value: unknown): value is string[] {
   );
 }
 
-export async function getBlockedIpsForRequest(): Promise<string[]> {
+export async function getBlockedIpsForRequest(options: { strict?: boolean } = {}): Promise<string[]> {
   const environmentIps = normalizeBlockedIps(getEnv("BLOCKED_IPS"));
   const supabaseUrl = getEnv("NEXT_PUBLIC_SUPABASE_URL");
   const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!supabaseUrl || serviceRoleKey.length < 40) {
+    if (options.strict) throw new Error("Chưa cấu hình nguồn kiểm tra IP");
     return environmentIps;
   }
 
@@ -55,6 +56,7 @@ export async function getBlockedIpsForRequest(): Promise<string[]> {
       .maybeSingle();
 
     if (error) {
+      if (options.strict) throw new Error("Không thể xác minh danh sách IP bị chặn");
       console.error("Không thể tải danh sách IP bị chặn:", error.message);
       return environmentIps;
     }
@@ -63,6 +65,7 @@ export async function getBlockedIpsForRequest(): Promise<string[]> {
       new Set([...environmentIps, ...normalizeBlockedIps(data?.data?.ips)]),
     );
   } catch (error) {
+    if (options.strict) throw error;
     console.error(
       "Không thể kết nối Supabase để kiểm tra IP bị chặn:",
       error instanceof Error ? error.message : "Lỗi không xác định",

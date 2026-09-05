@@ -1339,6 +1339,7 @@ export default function AdminPanel({
       if (data.success) {
         setBlockedIps(Array.isArray(data.ips) ? data.ips : ips);
         onShowNotification("Đã lưu danh sách chặn IP", "success");
+        return true;
       } else {
         onShowNotification("Lỗi khi lưu IP", "error");
       }
@@ -1348,17 +1349,18 @@ export default function AdminPanel({
     } finally {
       setLoading(false);
     }
+    return false;
   };
 
-  const handleAddBlockedIp = () => {
-    if (!newBlockedIp) return;
+  const handleAddBlockedIp = async () => {
+    if (!newBlockedIp || loading) return;
     const ip = newBlockedIp.trim();
     if (blockedIps.includes(ip)) {
       setNewBlockedIp("");
       return;
     }
-    saveBlockedIps([...blockedIps, ip]);
-    setNewBlockedIp("");
+    if (!window.confirm(`Chặn IP ${ip}? Các lượt gửi form và tracking remarketing mới từ IP này sẽ bị ngăn. IP dùng chung có thể ảnh hưởng nhiều người; tệp quảng cáo cũ không tự bị xóa.`)) return;
+    if (await saveBlockedIps([...blockedIps, ip])) setNewBlockedIp("");
   };
 
   const handleRemoveBlockedIp = (ip: string) => {
@@ -4930,8 +4932,9 @@ export default function AdminPanel({
                       Danh sách chặn IP (Chống Spam)
                     </h3>
                     <p className="text-sm text-slate-700 mt-1">
-                      Nhập địa chỉ IP của khách hàng vào đây để hệ thống tự động
-                      chặn gửi yêu cầu thư nhắc gửi vào email hoặc hệ thống.
+                      Đăng ký lặp chỉ tạo cảnh báo, không tự chặn khách. Khi bạn xác nhận thêm IP,
+                      hệ thống ngăn lượt gửi form và tracking remarketing mới từ IP đó.
+                      Tab đang mở kiểm tra lại tối đa mỗi 30 giây. Tệp quảng cáo đã có không tự bị xóa.
                     </p>
                   </div>
 
@@ -5830,6 +5833,17 @@ export default function AdminPanel({
                               "Chưa xác định"}
                           </div>
                         </div>
+
+                        {(crmSelectedLead.spamStatus === 'review' || crmSelectedLead.spamStatus === 'blocked' || Number(crmSelectedLead.spamScore) > 0) && (
+                          <div className="border-t border-amber-200 bg-amber-50 p-3 text-xs text-amber-950" role="note">
+                            <p className="font-semibold">Cảnh báo cần kiểm tra thủ công — {crmSelectedLead.spamScore || 0} điểm</p>
+                            <p>{crmSelectedLead.spamReasons?.join('; ') || 'Khách có thông tin cần đối chiếu.'}</p>
+                            <p className="mt-1">Cảnh báo không tự chặn đăng ký mới. IP: {crmSelectedLead.ipAddress || 'Không xác định'}. Khách có thể quay lại quan tâm cùng hoặc khác sản phẩm.</p>
+                            {currentUserRole === 'admin' && crmSelectedLead.ipAddress && (
+                              <button type="button" onClick={() => { setNewBlockedIp(crmSelectedLead.ipAddress || ''); setActiveTab('blocked_ips'); }} className="mt-2 font-semibold text-primary underline">Kiểm tra danh sách chặn IP</button>
+                            )}
+                          </div>
+                        )}
 
                         {(crmSelectedLead.sourceUrl || crmSelectedLead.popupOpenedUrl) && (
                           <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] border-t border-slate-300">

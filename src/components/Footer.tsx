@@ -1,10 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-import { Building2, MapPin, MessageSquare, ArrowUp, Phone, Mail } from 'lucide-react';
+import { Building2, MapPin, MessageSquare, Phone, Mail } from 'lucide-react';
+import BackToTopButton from './BackToTopButton';
 
 export default function Footer() {
   return (
-    <footer className="bg-bg-inverse border-t border-border-color pt-12 pb-8 relative overflow-hidden" id="footer">
+    <footer className="site-footer-deferred bg-bg-inverse border-t border-border-color pt-12 pb-8 relative overflow-hidden" id="footer">
       <div className="absolute inset-0 bg-[radial-gradient(rgba(16,185,129,0.1)_1px,transparent_1px)] bg-[size:40px_40px] opacity-50 pointer-events-none"></div>
       <div className="absolute bottom-0 left-0 w-full h-[300px] bg-gradient-to-t from-primary/10 to-transparent pointer-events-none"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
@@ -48,7 +49,7 @@ export default function Footer() {
               <li><Link href="/category-product/chuyen-nhuong" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chuyển Nhượng</Link></li>
               <li><Link href="/tin-tuc" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Tin Tức & Sự Kiện</Link></li>
               <li className="pb-4 border-b border-white/10"><Link href="/lien-he" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Liên Hệ</Link></li>
-              <li className="hidden pt-2 md:list-item"><Link href="/chinh-sach-bao-mat" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chính sách bảo mật</Link></li>
+              <li className="hidden pt-2 md:list-item"><Link href="/chinh-sach-bao-mat" prefetch={false} className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Chính sách bảo mật</Link></li>
             </ul>
           </div>
           <div className="space-y-6">
@@ -59,7 +60,7 @@ export default function Footer() {
               <li><Link href="/category-product/cho-thue" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Cho thuê</Link></li>
               <li><Link href="/category-product/can-ho" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Căn Hộ</Link></li>
               <li className="pb-4 border-b border-white/10"><Link href="/category-product/nha-pho-biet-thu" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Nhà Phố - Biệt Thự</Link></li>
-              <li className="hidden pt-2 md:list-item"><Link href="/dieu-khoan-su-dung" className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Điều khoản sử dụng</Link></li>
+              <li className="hidden pt-2 md:list-item"><Link href="/dieu-khoan-su-dung" prefetch={false} className="text-white/70 hover:text-accent hover:translate-x-1 transition-all flex items-center gap-2 cursor-pointer bg-transparent border-none text-left"><span className="text-accent text-lg leading-none">›</span> Điều khoản sử dụng</Link></li>
             </ul>
           </div>
           <div className="space-y-6 lg:col-span-1 border-l border-border-inverse pl-0 lg:pl-10">
@@ -83,17 +84,14 @@ export default function Footer() {
         </div>
         <div className="pt-8 border-t border-border-inverse">
           <nav aria-label="Liên kết pháp lý" className="mb-6 flex items-center justify-center gap-3 text-[12px] md:hidden">
-            <Link href="/dieu-khoan-su-dung" className="text-white/80 transition-colors hover:text-accent">Điều khoản sử dụng</Link>
+            <Link href="/dieu-khoan-su-dung" prefetch={false} className="text-white/80 transition-colors hover:text-accent">Điều khoản sử dụng</Link>
             <span aria-hidden="true" className="text-white/30">•</span>
-            <Link href="/chinh-sach-bao-mat" className="text-white/80 transition-colors hover:text-accent">Chính sách bảo mật</Link>
+            <Link href="/chinh-sach-bao-mat" prefetch={false} className="text-white/80 transition-colors hover:text-accent">Chính sách bảo mật</Link>
           </nav>
           <p className="text-[11px] text-white/50 italic leading-relaxed text-justify mb-8">* Thông tin, hình ảnh, các tiện ích trên website chỉ mang tính chất tham khảo và có thể được điều chỉnh theo quy định của Chủ đầu tư hoặc cơ quan nhà nước có thẩm quyền tại từng thời điểm. Các cam kết chính thức sẽ được quy định cụ thể tại Hợp đồng mua bán. Chúng tôi không chịu trách nhiệm cho bất kỳ tổn thất nào phát sinh từ việc sử dụng thông tin trên trang web này mà chưa qua xác nhận trực tiếp từ chuyên viên tư vấn.</p>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[12px] text-white/50 bg-[#0B1F16]/30 px-6 py-4 rounded-xl">
             <p>© {new Date().getFullYear()} <strong className="text-text-inverse">Greenia Homes</strong>. All Rights Reserved.</p>
-            <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-1 hover:text-accent transition-colors cursor-pointer font-medium bg-transparent border-none">
-              <span>Về đầu trang</span>
-              <ArrowUp className="w-3.5 h-3.5" />
-            </button>
+            <BackToTopButton />
           </div>
         </div>
       </div>

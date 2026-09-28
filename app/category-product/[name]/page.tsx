@@ -1,7 +1,8 @@
 // Trang danh mục sản phẩm - nhận tên danh mục từ params và giải mã URI
 import ClientWrapper from "./ClientWrapper";
-import { permanentRedirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { generateSlug } from '../../../src/lib/utils';
+import { CORE_INTERNAL_LINKS } from '../../../src/lib/internalLinks';
 import type { CategoryExt } from '../../../src/types';
 import SchemaMarkup from '../../../src/components/SchemaMarkup';
 import { createCollectionPageSchemas } from '../../../src/lib/contentSchemas';
@@ -44,6 +45,13 @@ export default async function CategoryProductPage({
     getPublicLayout('san-pham'),
   ]);
 
+  const isKnownCoreCategory = CORE_INTERNAL_LINKS.some((link) =>
+    link.href === `/category-product/${requestSlug}`,
+  );
+  const hasPublishedProducts = productRows.some(({ data }) =>
+    generateSlug(data.category || '') === requestSlug,
+  );
+
   try {
     if (generalSettings.productCategoriesExt) {
       const cats = generalSettings.productCategoriesExt as CategoryExt[];
@@ -59,6 +67,8 @@ export default async function CategoryProductPage({
   } catch (e) {
     console.error("Error fetching seo data for category", e);
   }
+
+  if (!selectedCategory && !isKnownCoreCategory && !hasPublishedProducts) notFound();
 
   if (name !== canonicalSlug) {
     permanentRedirect(`/category-product/${canonicalSlug}`);

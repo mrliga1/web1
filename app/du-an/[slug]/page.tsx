@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
 import {
   getProjectBySlug,
@@ -14,6 +14,7 @@ import { createProjectSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { generateSlug, getSocialImageUrl } from "../../../src/lib/utils";
 import { createSearchDescription, getSemanticTerms } from "../../../src/lib/searchIntent";
+import { isContentSearchReady } from "../../../src/lib/searchReadiness";
 
 export const revalidate = 60;
 
@@ -39,7 +40,10 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  const rows = await getPublishedProjects();
+  const rows = await getPublishedProjects().catch((error) => {
+    console.warn('Chưa tạo trước URL dự án vì nguồn dữ liệu chưa sẵn sàng:', error);
+    return [];
+  });
   return rows
     .filter(({ data }) => data.title?.trim())
     .map(({ data }) => ({ slug: generateSlug(data.title) }));
@@ -74,12 +78,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const project = await getProjectBySlug(slug);
 
-  if (!project) {
-    return {
-      title: "Dự án không tồn tại",
-      robots: { index: false, follow: false },
-    };
-  }
+  if (!project) notFound();
+  const metadataSlug = generateSlug(project.title);
+  if (slug !== metadataSlug) permanentRedirect(`/du-an/${metadataSlug}`);
 
   const sourceTitle =
     project.seoTitle?.trim() ||
@@ -107,6 +108,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title,
+    robots: isContentSearchReady(project) ? undefined : { index: false, follow: true },
     description,
     keywords,
     alternates: { canonical },
@@ -148,6 +150,8 @@ export default async function ProjectDetailPage({ params }: Props) {
   ]);
 
   if (!project) notFound();
+  const currentSlug = generateSlug(project.title);
+  if (slug !== currentSlug) permanentRedirect(`/du-an/${currentSlug}`);
 
   const optimizedProject = replaceKnownProjectAssets(project);
 

@@ -565,19 +565,20 @@ export function extractInternalLinkRecords(html: string) {
 export function resolveInternalLinkUrls(html: string, targets: InternalLinkTarget[]) {
   if (!html.trim()) return html;
   const targetMap = new Map(targets.map((target) => [`${target.type}:${target.id}`, target.url]));
-  return html.replace(/<a\b([^>]*)>/gi, (openingTag, attributes: string) => {
+  return html.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/gi, (anchorTag, attributes: string, body: string) => {
     const href = attributes.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
     const marker = href?.match(INTERNAL_LINK_MARKER_PATTERN);
     const type = attributes.match(/\bdata-internal-type=["'](news|product|project)["']/i)?.[1] || marker?.[2];
     const rawId = attributes.match(/\bdata-internal-id=["']([^"']+)["']/i)?.[1] || marker?.[3];
     const id = rawId ? safeDecodeURIComponent(rawId) : "";
-    if (!type || !id) return openingTag;
+    if (!type || !id) return anchorTag;
     const currentUrl = targetMap.get(`${type}:${id}`);
-    if (!currentUrl) return openingTag;
+    // Giữ nội dung chữ khi bài được liên kết đã bị gỡ hoặc chưa được duyệt.
+    if (!currentUrl) return body;
     const safeUrl = escapeHtml(currentUrl);
     if (/\bhref\s*=/i.test(attributes)) {
-      return `<a${attributes.replace(/\bhref\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i, `href="${safeUrl}"`)}>`;
+      return `<a${attributes.replace(/\bhref\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/i, `href="${safeUrl}"`)}>${body}</a>`;
     }
-    return `<a href="${safeUrl}"${attributes}>`;
+    return `<a href="${safeUrl}"${attributes}>${body}</a>`;
   });
 }

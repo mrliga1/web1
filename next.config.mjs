@@ -2,6 +2,8 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 const analyzer = withBundleAnalyzer({ enabled: process.env.ANALYZE === 'true' });
 const nextConfig = {
   reactStrictMode: true,
+  // Chờ xác minh metadata để URL không tồn tại trả 404 trước khi gửi HTML.
+  htmlLimitedBots: /.*/,
   serverExternalPackages: ['nodemailer'],
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -21,6 +23,11 @@ const nextConfig = {
   typescript: { ignoreBuildErrors: false },
   eslint: { ignoreDuringBuilds: false },
   experimental: {
+    // Dựng lần lượt để phù hợp bộ nhớ máy kiểm thử và giới hạn của dự án.
+    cpus: 1,
+    webpackMemoryOptimizations: true,
+    // Gửi CSS cùng HTML để tránh lượt tải chặn lần dựng trang đầu tiên.
+    inlineCss: true,
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js'],
   },
   // Header bảo mật dùng chung cho toàn bộ ứng dụng.

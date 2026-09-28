@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
 
     revalidateTag('public-content');
     revalidateTag('home-page-data');
+    if (body.type === 'settings') revalidateTag('site-settings');
     CONTENT_PATHS[body.type].forEach((contentPath) => {
       revalidatePath(contentPath, 'page');
     });

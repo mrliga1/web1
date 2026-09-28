@@ -6,6 +6,7 @@ import type { RouteState } from '../../src/types';
 
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
+import { useNotification } from '../../src/contexts/NotificationContext';
 
 const AdminPanel = dynamic(() => import('../../src/components/AdminPanel'), {
   ssr: false,
@@ -27,21 +28,17 @@ export default function AdminPage() {
   }, []);
 
   const router = useRouter();
+  const showNotification = useNotification();
 
   const handleNavigate = (route: RouteState) => {
     router.push(getRouteUrl(route));
-  };
-
-  const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    void message;
-    void type;
   };
 
   return (
     <div className="min-h-screen w-full bg-bg-surface text-slate-900 font-sans" id="app-root">
       <AdminPanel 
         onNavigate={handleNavigate}
-        onShowNotification={handleShowNotification}
+        onShowNotification={showNotification}
         logoUrl={logoUrl}
       />
     </div>

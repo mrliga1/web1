@@ -5,3 +5,10 @@ coverage/
 .env*
 !.env.example
 .next/
+.local-backups/
+
+# Giữ báo cáo đo chi tiết tại máy, chỉ lưu bản tổng hợp vào Git.
+docs/**/*.trace.json
+docs/**/lighthouse-*.html
+docs/**/lighthouse-*.json
+!docs/**/lighthouse-summary.json

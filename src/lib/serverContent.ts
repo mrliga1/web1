@@ -23,8 +23,8 @@ const getContentRows = unstable_cache(
     const { data, error } = await supabase.from(table).select("id,data");
 
     if (error) {
-    console.error(`Không thể tải dữ liệu công khai từ bảng ${table}:`, error);
-      return [];
+      console.error(`Không thể tải dữ liệu công khai từ bảng ${table}:`, error);
+      throw error;
     }
 
     return (data || []).filter((row): row is ContentRow<PublicContent> => {
@@ -48,7 +48,7 @@ const getSettingsRow = unstable_cache(
 
     if (error) {
       console.error(`Không thể tải cấu hình công khai ${id}:`, error);
-      return {};
+      throw error;
     }
 
     return (data?.data || {}) as PublicSettingsData;
@@ -71,7 +71,7 @@ const getLayoutSections = unstable_cache(
 
     if (error) {
       console.error(`Không thể tải bố cục công khai ${id}:`, error);
-      return fallback;
+      throw error;
     }
 
     const payload = data?.data as { sections?: unknown } | null | undefined;
@@ -101,7 +101,9 @@ async function getPublishedBySlug<T extends PublicContent>(
       isPublishedContent(row.data) &&
       generateSlug(row.data.title || "") === slug
     );
-  });
+  }) || rows.find((row) =>
+    isPublishedContent(row.data) && row.data.previousSlugs?.includes(slug),
+  );
 
   return matchedRow ? ({ ...matchedRow.data, id: matchedRow.id } as T) : null;
 }

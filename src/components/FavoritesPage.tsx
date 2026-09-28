@@ -1,3 +1,4 @@
+import { readStoredStringList } from '../lib/browserStorage';
 import React, { useState, useEffect } from 'react';
 import { RouteState, Product } from '../types';
 import { db, collection, getDocs } from '../firebase';
@@ -11,7 +12,7 @@ export default function FavoritesPage({ onNavigate }: { onNavigate: (route: Rout
   useEffect(() => {
     const fetchFavs = async () => {
       try {
-        const favIds: string[] = JSON.parse(localStorage.getItem('saved_favorites') || '[]');
+        const favIds: string[] = readStoredStringList('saved_favorites');
         if (favIds.length === 0) {
           setFavorites([]);
           setLoading(false);

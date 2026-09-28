@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { RouteState } from '../types';
 import { FileText, ShieldCheck, Scale, Globe, Copyright, AlertTriangle, RefreshCcw } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import Link from 'next/link';
 import type { Variants } from 'framer-motion';
 
 interface TermsOfUseProps {
@@ -9,6 +10,8 @@ interface TermsOfUseProps {
 }
 
 export default function TermsOfUse({ onNavigate }: TermsOfUseProps) {
+  void onNavigate;
+  const reduceMotion = useReducedMotion();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -84,7 +87,7 @@ export default function TermsOfUse({ onNavigate }: TermsOfUseProps) {
         
         {/* Hero Header */}
         <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
@@ -103,7 +106,7 @@ export default function TermsOfUse({ onNavigate }: TermsOfUseProps) {
         {/* Content Cards */}
         <motion.div 
           variants={containerVariants}
-          initial="hidden"
+          initial={false}
           animate="visible"
           className="space-y-6"
         >
@@ -111,7 +114,7 @@ export default function TermsOfUse({ onNavigate }: TermsOfUseProps) {
             <motion.div 
               key={index}
               variants={itemVariants}
-              whileHover={{ scale: 1.01, translateY: -2 }}
+              whileHover={reduceMotion ? undefined : { scale: 1.01, translateY: -2 }}
               className="bg-bg-surface-alt/80 backdrop-blur-md border border-border-color rounded-2xl p-6 md:p-8 shadow-lg shadow-black/5 hover:shadow-xl hover:border-primary/30 transition-all duration-300"
             >
               <div className="flex items-start gap-4">
@@ -141,13 +144,13 @@ export default function TermsOfUse({ onNavigate }: TermsOfUseProps) {
 
         {/* Footer Note */}
         <motion.div 
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 0.8 }}
           className="mt-16 pt-8 border-t border-border-color text-center"
         >
           <p className="text-sm md:text-base text-text-secondary italic bg-bg-surface-alt/50 inline-block px-6 py-3 rounded-full border border-border-color/50">
-            Cập nhật lần cuối: <span className="font-semibold text-text-primary">Tháng 05/2026</span>. Nếu có bất kỳ câu hỏi nào, vui lòng truy cập trang <button className="text-primary hover:text-primary-dark font-semibold hover:underline inline-flex items-center gap-1 transition-colors" onClick={() => onNavigate({ screen: 'lien-he' })}>Liên hệ</button> để được giải đáp.
+            Cập nhật lần cuối: <span className="font-semibold text-text-primary">Tháng 05/2026</span>. Nếu có bất kỳ câu hỏi nào, vui lòng truy cập trang <Link href="/lien-he" className="text-primary hover:text-primary-dark font-semibold hover:underline inline-flex items-center gap-1 transition-colors">Liên hệ</Link> để được giải đáp.
           </p>
         </motion.div>
 

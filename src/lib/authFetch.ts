@@ -1,6 +1,7 @@
-import { supabase } from '../supabase';
+
 
 export async function authFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const { supabase } = await import('../supabase');
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
 

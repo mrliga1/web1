@@ -1,5 +1,7 @@
 "use client";
 
+import { useNotification } from "../../src/contexts/NotificationContext";
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import NewsList from "../../src/components/NewsList";
@@ -24,11 +26,12 @@ export default function ClientWrapper({
   const sections = !isEditMode && initialSections.length > 0 ? initialSections : contextSections;
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const router = useRouter();
+  const showNotification = useNotification();
 
   return (
     <NewsList
       onNavigate={(route) => router.push(getRouteUrl(route))}
-      onShowNotification={() => undefined}
+      onShowNotification={showNotification}
       isEditMode={isEditMode}
       sections={sections}
       onUpdateSections={setSections}

@@ -1,3 +1,4 @@
+import { readStoredStringList } from '../lib/browserStorage';
 import ContentRouteLink from "next/link";
 import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -35,7 +36,6 @@ import {
 import AdBanner from "./AdBanner";
 import ProductCard from "./ProductCard";
 import StarRatingInteractive from "./StarRatingInteractive";
-import { fetchClientIp } from "../lib/ip";
 
 interface ProductDetailProps {
   productId: string;
@@ -246,7 +246,7 @@ export default function ProductDetail({
             }).catch((error) => console.error("Không thể tăng lượt xem sản phẩm:", error));
           }
 
-          const viewedIds: string[] = JSON.parse(localStorage.getItem("recentlyViewed") || "[]");
+          const viewedIds: string[] = readStoredStringList('recentlyViewed');
           const updatedList = viewedIds.filter((id) => id !== finalProductId);
           if (finalProductId) updatedList.unshift(finalProductId);
           localStorage.setItem("recentlyViewed", JSON.stringify(updatedList.slice(0, 30)));
@@ -392,7 +392,6 @@ export default function ProductDetail({
     setIsSubmitting(true);
     try {
       const { addDoc, collection, db } = await import("../firebase");
-      const clientIp = await fetchClientIp();
       let friendlyUrl = "";
       if (window.location.hostname.includes('aistudio')) {
         friendlyUrl = `https://greeniahomes.vn${window.location.pathname}`;
@@ -412,7 +411,6 @@ export default function ProductDetail({
         propertyId: product?.id || productId || slug || "unknown",
         propertyTitle: `Đăng ký xem căn hộ: ${product?.title}`,
         sourceUrl: friendlyUrl,
-        ipAddress: clientIp,
       });
       notifyNewConsultation(String(createdConsultation.id));
       trackLead('product_inquiry', 'product_detail', product?.id || productId || slug);

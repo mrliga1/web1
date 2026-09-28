@@ -1,5 +1,7 @@
 "use client";
 
+import { useNotification } from "../../../src/contexts/NotificationContext";
+
 import { getRouteUrl } from '../../../src/lib/utils';
 
 import { useRouter } from 'next/navigation';
@@ -21,7 +23,7 @@ export default function ClientWrapper({ slug, initialProject, initialNews, initi
     router.push(getRouteUrl(route));
   };
 
-  const handleShowNotification = () => {};
+  const handleShowNotification = useNotification();
 
   return (
     <ProjectDetail 

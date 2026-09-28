@@ -1,4 +1,5 @@
 import { generateSrcSet, optimizeImageUrl } from "./utils";
+import sanitizeHtml from 'sanitize-html';
 
 const BLOCKED_CONTAINER_TAGS = /<\s*(script|object|embed)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi;
 const BLOCKED_STANDALONE_TAGS = /<\s*\/?\s*(script|object|embed|base|meta|link)\b[^>]*>/gi;
@@ -55,7 +56,47 @@ export function sanitizeRichHtml(value: unknown) {
 
   let previousHeadingLevel = 1;
 
-  return value
+  // Phân tích HTML thật để chặn URI mã hóa, thuộc tính sự kiện và thẻ thực thi.
+  const safeHtml = sanitizeHtml(value, {
+    allowedTags: [...sanitizeHtml.defaults.allowedTags, 'img', 'iframe'],
+    allowedAttributes: {
+      '*': ['class', 'id', 'style', 'title', 'aria-label', 'aria-level'],
+      a: ['href', 'target', 'rel'],
+      img: ['src', 'srcset', 'sizes', 'alt', 'width', 'height', 'loading', 'decoding'],
+      iframe: ['src', 'width', 'height', 'title', 'loading', 'allowfullscreen', 'frameborder'],
+      td: ['colspan', 'rowspan'], th: ['colspan', 'rowspan', 'scope'],
+      ol: ['start', 'type'], li: ['value'],
+    },
+    allowedSchemes: ['https', 'http', 'mailto', 'tel'],
+    allowedSchemesByTag: { img: ['https', 'http', 'data'], iframe: ['https'] },
+    allowedIframeHostnames: ['www.youtube.com', 'www.youtube-nocookie.com', 'maps.google.com', 'www.google.com'],
+    allowIframeRelativeUrls: false,
+    allowProtocolRelative: false,
+    exclusiveFilter: (frame) => frame.tag === 'iframe' && !frame.attribs.src,
+    allowedStyles: { '*': {
+      color: [/^(?:#[\da-f]{3,8}|[a-z]+|rgba?\([\d.,%\s]+\))$/i],
+      'background-color': [/^(?:#[\da-f]{3,8}|[a-z]+|rgba?\([\d.,%\s]+\))$/i],
+      'text-align': [/^(left|right|center|justify)$/],
+      'font-weight': [/^(normal|bold|[1-9]00)$/],
+      'font-style': [/^(normal|italic)$/],
+      'font-size': [/^\d+(?:\.\d+)?(?:px|em|rem|%)$/],
+      'font-family': [/^[\w\s,"'-]+$/],
+      'line-height': [/^\d+(?:\.\d+)?(?:px|em|rem|%)?$/],
+      width: [/^(?:auto|\d+(?:\.\d+)?(?:px|em|rem|%))$/],
+      height: [/^(?:auto|\d+(?:\.\d+)?(?:px|em|rem|%))$/],
+      'max-width': [/^(?:none|\d+(?:\.\d+)?(?:px|em|rem|%))$/],
+      'text-decoration': [/^(none|underline|line-through)$/],
+    } },
+    transformTags: { a: (tagName, attributes) => {
+      // Không biến chuỗi nhập nhầm thành đường dẫn tương đối dưới trang hiện tại.
+      if (attributes.href && !/^(?:\/|#|https?:|mailto:|tel:)/i.test(attributes.href.trim())) {
+        return { tagName: 'span', attribs: {} };
+      }
+      return { tagName, attribs: { ...attributes, ...(attributes.target === '_blank' ? { rel: 'noopener noreferrer' } : {}) } };
+    } },
+  });
+
+  return safeHtml
     .replace(BLOCKED_CONTAINER_TAGS, "")
     .replace(BLOCKED_STANDALONE_TAGS, "")
     .replace(EVENT_HANDLER_ATTRIBUTES, "")

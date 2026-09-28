@@ -1,6 +1,7 @@
 export interface Product {
   id: string;
   title: string;
+  previousSlugs?: string[];
   priceText: string;     // Display price e.g. "45.5 Tỷ" or "12 Triệu/tháng"
   priceVal: number;      // Numerical value for range queries and filters
   type: 'sale' | 'rent'; // 'sale' = Bán, 'rent' = Cho thuê
@@ -61,6 +62,7 @@ export interface CustomSection {
 export interface Project {
   id: string;
   title: string;
+  previousSlugs?: string[];
   priceText: string;     // Display e.g. "Chỉ từ 4 tỷ/căn"
   priceVal: number;
   location: string;      // Vị trí hiển thị
@@ -120,6 +122,7 @@ export interface Project {
 export interface News {
   id: string;
   title: string;
+  previousSlugs?: string[];
   description: string;   // Sơ lược ngắn gọn
   content: string;       // Toàn bộ nội dung bài viết dạng HTML
   category: string;      // Danh mục bài viết (như 'Tin thị trường', 'Lưu ý khi mua nhà',...)
@@ -167,6 +170,8 @@ export interface Consultation {
   assignee?: string;
   assignedTo?: string;
   expectedValue?: number;
+  nextFollowUpAt?: string | null;
+  updatedAt?: string;
   propertyId?: string;
   propertyTitle?: string;
   message?: string;

@@ -1,0 +1,308 @@
+[
+  {
+    "mode": "mobile",
+    "run": 1,
+    "version": "13.5.0",
+    "time": "2026-09-28T17:57:16.157Z",
+    "warnings": [
+      "The page loaded too slowly to finish within the time limit. Results may be incomplete."
+    ],
+    "benchmarkIndex": 330.5,
+    "scores": {
+      "performance": 0.6,
+      "accessibility": 1,
+      "best-practices": 0.96,
+      "seo": 1,
+      "agentic-browsing": 1
+    },
+    "metrics": {
+      "first-contentful-paint": "2.3 s",
+      "largest-contentful-paint": "2.7 s",
+      "total-blocking-time": "4,070 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "5.7 s"
+    },
+    "failed": [
+      {
+        "category": "performance",
+        "id": "first-contentful-paint",
+        "score": 0.75
+      },
+      {
+        "category": "performance",
+        "id": "largest-contentful-paint",
+        "score": 0.86
+      },
+      {
+        "category": "performance",
+        "id": "total-blocking-time",
+        "score": 0.01
+      },
+      {
+        "category": "performance",
+        "id": "speed-index",
+        "score": 0.52
+      },
+      {
+        "category": "best-practices",
+        "id": "errors-in-console",
+        "score": 0
+      }
+    ]
+  },
+  {
+    "mode": "mobile",
+    "run": 2,
+    "version": "13.5.0",
+    "time": "2026-09-28T17:58:31.258Z",
+    "warnings": [
+      "The page loaded too slowly to finish within the time limit. Results may be incomplete."
+    ],
+    "benchmarkIndex": 356.5,
+    "scores": {
+      "performance": 0.65,
+      "accessibility": 1,
+      "best-practices": 0.96,
+      "seo": 1,
+      "agentic-browsing": 1
+    },
+    "metrics": {
+      "first-contentful-paint": "1.6 s",
+      "largest-contentful-paint": "2.7 s",
+      "total-blocking-time": "3,870 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "3.5 s"
+    },
+    "failed": [
+      {
+        "category": "performance",
+        "id": "first-contentful-paint",
+        "score": 0.94
+      },
+      {
+        "category": "performance",
+        "id": "largest-contentful-paint",
+        "score": 0.85
+      },
+      {
+        "category": "performance",
+        "id": "total-blocking-time",
+        "score": 0.01
+      },
+      {
+        "category": "performance",
+        "id": "speed-index",
+        "score": 0.88
+      },
+      {
+        "category": "best-practices",
+        "id": "errors-in-console",
+        "score": 0
+      }
+    ]
+  },
+  {
+    "mode": "mobile",
+    "run": 3,
+    "version": "13.5.0",
+    "time": "2026-09-28T17:59:41.186Z",
+    "warnings": [
+      "The page loaded too slowly to finish within the time limit. Results may be incomplete."
+    ],
+    "benchmarkIndex": 737,
+    "scores": {
+      "performance": 0.73,
+      "accessibility": 1,
+      "best-practices": 0.96,
+      "seo": 1,
+      "agentic-browsing": 1
+    },
+    "metrics": {
+      "first-contentful-paint": "1.6 s",
+      "largest-contentful-paint": "1.8 s",
+      "total-blocking-time": "1,410 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "2.2 s"
+    },
+    "failed": [
+      {
+        "category": "performance",
+        "id": "first-contentful-paint",
+        "score": 0.93
+      },
+      {
+        "category": "performance",
+        "id": "largest-contentful-paint",
+        "score": 0.99
+      },
+      {
+        "category": "performance",
+        "id": "total-blocking-time",
+        "score": 0.15
+      },
+      {
+        "category": "performance",
+        "id": "speed-index",
+        "score": 0.99
+      },
+      {
+        "category": "best-practices",
+        "id": "errors-in-console",
+        "score": 0
+      }
+    ]
+  },
+  {
+    "mode": "desktop",
+    "run": 1,
+    "version": "13.5.0",
+    "time": "2026-09-28T18:00:49.741Z",
+    "warnings": [
+      "The page loaded too slowly to finish within the time limit. Results may be incomplete."
+    ],
+    "benchmarkIndex": 405,
+    "scores": {
+      "performance": 0.75,
+      "accessibility": 1,
+      "best-practices": 0.96,
+      "seo": 1,
+      "agentic-browsing": 1
+    },
+    "metrics": {
+      "first-contentful-paint": "0.6 s",
+      "largest-contentful-paint": "0.8 s",
+      "total-blocking-time": "530 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "1.5 s"
+    },
+    "failed": [
+      {
+        "category": "performance",
+        "id": "first-contentful-paint",
+        "score": 0.99
+      },
+      {
+        "category": "performance",
+        "id": "largest-contentful-paint",
+        "score": 0.97
+      },
+      {
+        "category": "performance",
+        "id": "total-blocking-time",
+        "score": 0.26
+      },
+      {
+        "category": "performance",
+        "id": "speed-index",
+        "score": 0.81
+      },
+      {
+        "category": "best-practices",
+        "id": "errors-in-console",
+        "score": 0
+      }
+    ]
+  },
+  {
+    "mode": "desktop",
+    "run": 2,
+    "version": "13.5.0",
+    "time": "2026-09-28T18:02:01.580Z",
+    "warnings": [
+      "The page loaded too slowly to finish within the time limit. Results may be incomplete."
+    ],
+    "benchmarkIndex": 369,
+    "scores": {
+      "performance": 0.75,
+      "accessibility": 1,
+      "best-practices": 0.96,
+      "seo": 1,
+      "agentic-browsing": 1
+    },
+    "metrics": {
+      "first-contentful-paint": "0.6 s",
+      "largest-contentful-paint": "0.8 s",
+      "total-blocking-time": "550 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "1.4 s"
+    },
+    "failed": [
+      {
+        "category": "performance",
+        "id": "first-contentful-paint",
+        "score": 0.99
+      },
+      {
+        "category": "performance",
+        "id": "largest-contentful-paint",
+        "score": 0.98
+      },
+      {
+        "category": "performance",
+        "id": "total-blocking-time",
+        "score": 0.24
+      },
+      {
+        "category": "performance",
+        "id": "speed-index",
+        "score": 0.87
+      },
+      {
+        "category": "best-practices",
+        "id": "errors-in-console",
+        "score": 0
+      }
+    ]
+  },
+  {
+    "mode": "desktop",
+    "run": 3,
+    "version": "13.5.0",
+    "time": "2026-09-28T18:03:12.986Z",
+    "warnings": [
+      "The page loaded too slowly to finish within the time limit. Results may be incomplete."
+    ],
+    "benchmarkIndex": 424,
+    "scores": {
+      "performance": 0.82,
+      "accessibility": 1,
+      "best-practices": 0.96,
+      "seo": 1,
+      "agentic-browsing": 1
+    },
+    "metrics": {
+      "first-contentful-paint": "0.6 s",
+      "largest-contentful-paint": "0.9 s",
+      "total-blocking-time": "360 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "1.4 s"
+    },
+    "failed": [
+      {
+        "category": "performance",
+        "id": "first-contentful-paint",
+        "score": 0.98
+      },
+      {
+        "category": "performance",
+        "id": "largest-contentful-paint",
+        "score": 0.96
+      },
+      {
+        "category": "performance",
+        "id": "total-blocking-time",
+        "score": 0.47
+      },
+      {
+        "category": "performance",
+        "id": "speed-index",
+        "score": 0.87
+      },
+      {
+        "category": "best-practices",
+        "id": "errors-in-console",
+        "score": 0
+      }
+    ]
+  }
+]

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useAppContext } from '../contexts/AppContext';
+import { useAdSenseReady } from '../contexts/AdSenseContext';
 import {
   isValidAdSensePublisherId,
   isValidAdSenseSlotId,
@@ -24,9 +25,10 @@ export default function AdBanner({
   containerClassName = '',
 }: AdBannerProps) {
   const { adSenseSettings } = useAppContext();
+  const adSenseReady = useAdSenseReady();
   const adRef = useRef<HTMLModElement>(null);
   const slotId = adSenseSettings.slots[slot];
-  const canRender = adSenseSettings.enabled
+  const canRender = adSenseReady && adSenseSettings.enabled
     && adSenseSettings.mode === 'manual'
     && isValidAdSensePublisherId(adSenseSettings.publisherId)
     && isValidAdSenseSlotId(slotId);

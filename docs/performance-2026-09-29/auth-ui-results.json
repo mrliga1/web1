@@ -1,0 +1,11 @@
+{
+  "passed": true,
+  "mockedBackend": true,
+  "results": [
+    "Khách mới không truy vấn lại settings, không gọi API xác thực và không ghi dữ liệu",
+    "Trang liên hệ có bố cục từ máy chủ, không đọc lại layouts ở trình duyệt",
+    "Chân trang dựng trên máy chủ vẫn có nút về đầu trang hoạt động",
+    "Đăng nhập theo nhu cầu cập nhật phiên và hồ sơ",
+    "Tải lại trang khôi phục tài khoản đã đăng nhập"
+  ]
+}

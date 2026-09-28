@@ -179,3 +179,15 @@ test('Dọn bộ kiểm tra IP khi ẩn tab/rời trang, hủy kết nối và k
   window.dispatchEvent(new Event('focus'));
   assert.equal(intervals.size, 0);
 });
+
+test('Chưa cần tracking thì không gửi yêu cầu IP; trạng thái vẫn chưa được xác minh', () => {
+  let effect;
+  const states = [];
+  const api = load('src/hooks/useManualIpTrackingPolicy.ts', {
+    react: { useEffect: callback => { effect = callback; } },
+    '../lib/tracking': { setManualIpTrackingPolicy: state => states.push(state) },
+  }, { fetch: () => { throw new Error('Không được gọi mạng khi chưa cần tracking'); } });
+  api.useManualIpTrackingPolicy('/', false);
+  assert.equal(effect(), undefined);
+  assert.deepEqual(states, ['pending']);
+});

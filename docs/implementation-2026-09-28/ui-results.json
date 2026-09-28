@@ -1,0 +1,15 @@
+{
+  "passed": true,
+  "results": [
+    "CTA banner dẫn tới URL thật",
+    "Lỗi API hiện thông báo và giữ dữ liệu form",
+    "Gửi thành công có xác nhận và số liên hệ",
+    "Desktop và di động không tràn ngang",
+    "Dữ liệu trình duyệt hỏng không làm lỗi trang; có thể lưu yêu thích lại",
+    "Danh mục và chi tiết không tồn tại trả HTTP 404 thật",
+    "Bộ lọc chưa cấu hình noindex và canonical đúng",
+    "API email không xác thực bị từ chối",
+    "Nội dung và liên kết chính có sẵn khi tắt JavaScript",
+    "Quảng cáo chỉ tải sau đồng ý và kiểm tra IP; thu hồi đồng ý dừng trang cũ"
+  ]
+}

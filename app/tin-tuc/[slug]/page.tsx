@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { createHash } from "node:crypto";
 import ClientWrapper from "./ClientWrapper";
 import {
@@ -16,6 +16,7 @@ import { createNewsSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { generateSlug, getSocialImageUrl } from "../../../src/lib/utils";
 import { createSearchDescription, getSemanticTerms } from "../../../src/lib/searchIntent";
+import { isContentSearchReady } from "../../../src/lib/searchReadiness";
 import {
   buildInternalLinkTargets,
   resolveInternalLinkUrls,
@@ -35,7 +36,10 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  const rows = await getPublishedNews();
+  const rows = await getPublishedNews().catch((error) => {
+    console.warn('Chưa tạo trước URL tin tức vì nguồn dữ liệu chưa sẵn sàng:', error);
+    return [];
+  });
   return rows
     .filter(({ data }) => data.title?.trim())
     .map(({ data }) => ({ slug: generateSlug(data.title) }));
@@ -65,12 +69,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = await getNewsBySlug(slug);
 
-  if (!article) {
-    return {
-      title: "Tin tức không tồn tại",
-      robots: { index: false, follow: false },
-    };
-  }
+  if (!article) notFound();
+  const metadataSlug = generateSlug(article.title);
+  if (slug !== metadataSlug) permanentRedirect(`/tin-tuc/${metadataSlug}`);
 
   const sourceTitle =
     article.seoTitle?.trim() ||
@@ -100,6 +101,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title,
+    robots: isContentSearchReady(article) ? undefined : { index: false, follow: true },
     description,
     keywords,
     alternates: { canonical },
@@ -132,6 +134,8 @@ export default async function NewsDetailPage({ params }: Props) {
   ]);
 
   if (!article) notFound();
+  const currentSlug = generateSlug(article.title);
+  if (slug !== currentSlug) permanentRedirect(`/tin-tuc/${currentSlug}`);
 
   const internalLinkTargets = buildInternalLinkTargets({
     news: newsRows.map(({ id, data }) => ({ ...data, id })),

@@ -1,0 +1,53 @@
+[
+  {
+    "mode": "mobile",
+    "run": 1,
+    "version": "13.5.0",
+    "time": "2026-09-28T18:18:48.368Z",
+    "warnings": [
+      "The page loaded too slowly to finish within the time limit. Results may be incomplete."
+    ],
+    "benchmarkIndex": 280,
+    "scores": {
+      "performance": 0.49,
+      "accessibility": 1,
+      "best-practices": 0.96,
+      "seo": 1,
+      "agentic-browsing": 1
+    },
+    "metrics": {
+      "first-contentful-paint": "2.9 s",
+      "largest-contentful-paint": "3.5 s",
+      "total-blocking-time": "8,670 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "7.7 s"
+    },
+    "failed": [
+      {
+        "category": "performance",
+        "id": "first-contentful-paint",
+        "score": 0.54
+      },
+      {
+        "category": "performance",
+        "id": "largest-contentful-paint",
+        "score": 0.64
+      },
+      {
+        "category": "performance",
+        "id": "total-blocking-time",
+        "score": 0
+      },
+      {
+        "category": "performance",
+        "id": "speed-index",
+        "score": 0.25
+      },
+      {
+        "category": "best-practices",
+        "id": "errors-in-console",
+        "score": 0
+      }
+    ]
+  }
+]

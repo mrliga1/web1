@@ -1,0 +1,111 @@
+{
+  "diagnosticOnly": true,
+  "rows": [
+    {
+      "mode": "mobile",
+      "pid": 7160,
+      "tid": 9672,
+      "tasks": [
+        {
+          "wallMs": 1055.446,
+          "threadCpuMs": 0.343,
+          "start": 22694601193
+        },
+        {
+          "wallMs": 624.196,
+          "threadCpuMs": 432.215,
+          "start": 22693713797
+        },
+        {
+          "wallMs": 223.244,
+          "threadCpuMs": 184.591,
+          "start": 22694357530
+        },
+        {
+          "wallMs": 201.981,
+          "threadCpuMs": 173.786,
+          "start": 22693277061
+        },
+        {
+          "wallMs": 98.986,
+          "threadCpuMs": 95.065,
+          "start": 22695772590
+        },
+        {
+          "wallMs": 84.916,
+          "threadCpuMs": 68.607,
+          "start": 22693479140
+        },
+        {
+          "wallMs": 82.886,
+          "threadCpuMs": 73.456,
+          "start": 22699243513
+        },
+        {
+          "wallMs": 71.02,
+          "threadCpuMs": 44.457,
+          "start": 22693570267
+        }
+      ]
+    },
+    {
+      "mode": "mobile",
+      "pid": 10024,
+      "tid": 7740,
+      "tasks": [
+        {
+          "wallMs": 272.779,
+          "threadCpuMs": 4.068,
+          "start": 22694628783
+        }
+      ]
+    },
+    {
+      "mode": "desktop",
+      "pid": 9884,
+      "tid": 7260,
+      "tasks": [
+        {
+          "wallMs": 496.981,
+          "threadCpuMs": 333.427,
+          "start": 22734796958
+        },
+        {
+          "wallMs": 433.854,
+          "threadCpuMs": 372.148,
+          "start": 22735334287
+        },
+        {
+          "wallMs": 205.641,
+          "threadCpuMs": 171.471,
+          "start": 22736285314
+        },
+        {
+          "wallMs": 197.039,
+          "threadCpuMs": 171.449,
+          "start": 22735821189
+        },
+        {
+          "wallMs": 117.106,
+          "threadCpuMs": 84.301,
+          "start": 22736126456
+        },
+        {
+          "wallMs": 86.812,
+          "threadCpuMs": 43.649,
+          "start": 22734642657
+        },
+        {
+          "wallMs": 76.013,
+          "threadCpuMs": 73.284,
+          "start": 22738023202
+        },
+        {
+          "wallMs": 57.357,
+          "threadCpuMs": 33.201,
+          "start": 22734540888
+        }
+      ]
+    }
+  ]
+}

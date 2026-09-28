@@ -96,7 +96,6 @@ const PROJECT_READ_MORE_BUTTON_CLASS =
   "flex items-center gap-2 text-primary hover:text-primary-light font-medium text-[13px] md:text-sm transition-colors mt-3";
 const PROJECT_FORM_FIELD_CLASS =
   "w-full appearance-none bg-bg-base border border-border-color rounded-[10px] !outline-none focus:border-primary focus:ring-0 focus:shadow-none transition-all text-[13px] py-2 px-3.5 text-text-primary placeholder-text-secondary";
-import { fetchClientIp } from "../lib/ip";
 import FormConsentFields from "./FormConsentFields";
 import {
   ConsultationErrors,
@@ -604,7 +603,6 @@ export default function ProjectDetail({
     setIsSubmitting(true);
     try {
       const { addDoc, collection, db } = await import("../firebase");
-      const clientIp = await fetchClientIp();
       let friendlyUrl = "";
       if (window.location.hostname.includes('aistudio')) {
         friendlyUrl = `https://greeniahomes.vn${window.location.pathname}`;
@@ -624,7 +622,6 @@ export default function ProjectDetail({
         propertyId: project?.id || projectId || slug || "unknown",
         propertyTitle: `Đăng ký xem dự án: ${project?.title}`,
         sourceUrl: friendlyUrl,
-        ipAddress: clientIp,
         termsAccepted: agreeTerms,
         privacyAccepted: agreePrivacy,
         marketingConsent: agreePrivacy,

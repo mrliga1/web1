@@ -1,5 +1,7 @@
 "use client";
 
+import { useNotification } from "../../src/contexts/NotificationContext";
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import ProductList from "../../src/components/ProductList";
@@ -26,11 +28,12 @@ export default function ClientWrapper(props: ClientWrapperProps) {
     : contextSections;
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
   const router = useRouter();
+  const showNotification = useNotification();
 
   return (
     <ProductList
       onNavigate={(route) => router.push(getRouteUrl(route))}
-      onShowNotification={() => undefined}
+      onShowNotification={showNotification}
       isEditMode={isEditMode}
       sections={sections}
       onUpdateSections={setSections}

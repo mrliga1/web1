@@ -1,4 +1,6 @@
-import { supabase } from './supabase';
+// Chỉ tải SDK khi thực sự gọi cơ sở dữ liệu hoặc đăng nhập.
+const loadSupabase = async () => (await import('./supabase')).supabase;
+import { generateSlug } from './lib/utils';
 
 type LegacyRecord = Record<string, unknown>;
 
@@ -50,6 +52,22 @@ const normalizePayload = (path: string, data: unknown, id?: string) => {
   return id ? { id, data } : { data };
 };
 
+const preservePreviousSlugs = (path: string, existingData: unknown, nextData: unknown) => {
+  if (!['products', 'projects', 'news'].includes(path) || !isRecord(existingData) || !isRecord(nextData)) {
+    return nextData;
+  }
+  const oldTitle = typeof existingData.title === 'string' ? existingData.title : '';
+  const newTitle = typeof nextData.title === 'string' ? nextData.title : oldTitle;
+  const oldSlug = generateSlug(oldTitle);
+  const newSlug = generateSlug(newTitle);
+  const previous = [existingData.previousSlugs, nextData.previousSlugs]
+    .flatMap((value) => Array.isArray(value) ? value : [])
+    .filter((slug): slug is string => typeof slug === 'string' && Boolean(generateSlug(slug)));
+  if (oldSlug && newSlug && oldSlug !== newSlug) previous.push(oldSlug);
+  if (previous.length === 0) return nextData;
+  return { ...nextData, previousSlugs: [...new Set(previous)].filter((slug) => slug !== newSlug) };
+};
+
 export const db: Record<string, never> = {};
 
 export const collection = (_dbInstance: unknown, path: string): LegacyCollectionRef => {
@@ -65,6 +83,7 @@ export const doc = (_dbInstance: unknown, path: string, id?: string): LegacyDocR
 };
 
 export const getDocs = async (collectionRef: LegacyCollectionRef): Promise<LegacyQuerySnapshot> => {
+  const supabase = await loadSupabase();
   const { data, error } = await supabase.from(collectionRef.path).select('*');
   if (error) throw error;
 
@@ -84,6 +103,7 @@ export const getDocs = async (collectionRef: LegacyCollectionRef): Promise<Legac
 };
 
 export const getDoc = async (docRef: LegacyDocRef): Promise<LegacyDocSnapshot> => {
+  const supabase = await loadSupabase();
   const { data, error } = await supabase.from(docRef.path).select('*').eq('id', docRef.id).maybeSingle();
   if (error) throw error;
 
@@ -124,6 +144,7 @@ export const addDoc = async (
     return { id: result.id, trackingEligible: result.trackingEligible === true };
   }
 
+  const supabase = await loadSupabase();
   const payload = normalizePayload(collectionRef.path, data);
   const { data: result, error } = await supabase.from(collectionRef.path).insert(payload).select().single();
   if (error) throw error;
@@ -131,14 +152,20 @@ export const addDoc = async (
 };
 
 export const setDoc = async (docRef: LegacyDocRef, data: unknown, options?: { merge?: boolean }) => {
+  const supabase = await loadSupabase();
   let nextData = data;
+  let existingData: unknown;
   if (options?.merge) {
     const existing = await getDoc(docRef);
-    const existingData = existing.data();
+    existingData = existing.data();
     if (existing.exists() && isRecord(existingData) && isRecord(data)) {
       nextData = { ...existingData, ...data };
     }
+  } else if (['products', 'projects', 'news'].includes(docRef.path)) {
+    existingData = (await getDoc(docRef)).data();
   }
+
+  nextData = preservePreviousSlugs(docRef.path, existingData, nextData);
 
   const payload = normalizePayload(docRef.path, nextData, docRef.id);
   const { error } = await supabase.from(docRef.path).upsert(payload);
@@ -146,17 +173,45 @@ export const setDoc = async (docRef: LegacyDocRef, data: unknown, options?: { me
 };
 
 export const updateDoc = async (docRef: LegacyDocRef, data: unknown) => {
+  const supabase = await loadSupabase();
+  if (docRef.path === 'consultations') {
+    if (!isRecord(data)) throw new Error('Dữ liệu cập nhật khách hàng không hợp lệ');
+    const { error } = await supabase.rpc('patch_consultation', {
+      p_id: docRef.id,
+      p_patch: data,
+    });
+    if (error) throw error;
+    return;
+  }
+
   const existing = await getDoc(docRef);
   if (!existing.exists()) throw new Error("Document not found");
 
   const existingData = existing.data();
-  const merged = isRecord(existingData) && isRecord(data) ? { ...existingData, ...data } : data;
+  const merged = isRecord(existingData) && isRecord(data)
+    ? preservePreviousSlugs(docRef.path, existingData, { ...existingData, ...data })
+    : data;
   const payload = normalizePayload(docRef.path, merged);
   const { error } = await supabase.from(docRef.path).update(payload).eq('id', docRef.id);
   if (error) throw error;
 };
 
+export const appendConsultationCareHistory = async (id: string, note: string) => {
+  const supabase = await loadSupabase();
+  const { data, error } = await supabase.rpc('append_consultation_care_history', {
+    p_id: id,
+    p_note: note,
+  });
+  if (error) throw error;
+  const result = data as { careHistory?: unknown } | null;
+  if (!Array.isArray(result?.careHistory)) {
+    throw new Error('Không nhận được lịch sử chăm sóc mới từ máy chủ');
+  }
+  return result.careHistory as { time: number; note: string; author: string }[];
+};
+
 export const deleteDoc = async (docRef: LegacyDocRef) => {
+  const supabase = await loadSupabase();
   const { error } = await supabase.from(docRef.path).delete().eq('id', docRef.id);
   if (error) throw error;
 };
@@ -196,6 +251,7 @@ export const getFirestore = getFirestoreRealtime;
 
 /* Lớp tương thích Auth cũ, toàn bộ luồng thật dùng Supabase Auth. */
 export const createUserWithEmailAndPassword = async (_auth: unknown, email: string, password: string) => {
+  const supabase = await loadSupabase();
   void _auth;
   const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) {
@@ -216,6 +272,7 @@ export const createUserWithEmailAndPassword = async (_auth: unknown, email: stri
 };
 
 export const signInWithEmailAndPassword = async (_auth: unknown, email: string, password: string) => {
+  const supabase = await loadSupabase();
   void _auth;
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
@@ -236,12 +293,14 @@ export const signInWithEmailAndPassword = async (_auth: unknown, email: string, 
 };
 
 export const sendPasswordResetEmail = async (_auth: unknown, email: string) => {
+  const supabase = await loadSupabase();
   void _auth;
   const { error } = await supabase.auth.resetPasswordForEmail(email);
   if (error) throw new Error(error.message);
 };
 
 export const signInWithPopup = async (_auth: unknown, _provider: unknown) => {
+  const supabase = await loadSupabase();
   void _auth;
   void _provider;
   const { error } = await supabase.auth.signInWithOAuth({

@@ -1,0 +1,90 @@
+{
+  "diagnosticOnly": true,
+  "results": [
+    {
+      "variant": "current",
+      "metrics": {
+        "Nodes": 831,
+        "LayoutCount": 4,
+        "RecalcStyleCount": 5,
+        "LayoutDuration": 2.250368,
+        "RecalcStyleDuration": 0.077269,
+        "ScriptDuration": 0.475657,
+        "TaskDuration": 3.571616,
+        "JSHeapUsedSize": 5402248
+      },
+      "styles": {
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+        "textRendering": "optimizelegibility"
+      }
+    },
+    {
+      "variant": "auto-text",
+      "metrics": {
+        "Nodes": 831,
+        "LayoutCount": 6,
+        "RecalcStyleCount": 8,
+        "LayoutDuration": 0.818922,
+        "RecalcStyleDuration": 0.07133,
+        "ScriptDuration": 0.303975,
+        "TaskDuration": 1.725185,
+        "JSHeapUsedSize": 5434632
+      },
+      "styles": {
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+        "textRendering": "auto"
+      }
+    },
+    {
+      "variant": "arial",
+      "metrics": {
+        "Nodes": 835,
+        "LayoutCount": 8,
+        "RecalcStyleCount": 11,
+        "LayoutDuration": 0.75845,
+        "RecalcStyleDuration": 0.080428,
+        "ScriptDuration": 0.305931,
+        "TaskDuration": 1.695154,
+        "JSHeapUsedSize": 6056772
+      },
+      "styles": {
+        "font": "Arial, sans-serif",
+        "textRendering": "optimizelegibility"
+      }
+    },
+    {
+      "variant": "arial-auto",
+      "metrics": {
+        "Nodes": 836,
+        "LayoutCount": 8,
+        "RecalcStyleCount": 12,
+        "LayoutDuration": 0.638543,
+        "RecalcStyleDuration": 0.068174,
+        "ScriptDuration": 0.295756,
+        "TaskDuration": 1.506793,
+        "JSHeapUsedSize": 6052268
+      },
+      "styles": {
+        "font": "Arial, sans-serif",
+        "textRendering": "auto"
+      }
+    },
+    {
+      "variant": "current-repeat",
+      "metrics": {
+        "Nodes": 835,
+        "LayoutCount": 7,
+        "RecalcStyleCount": 12,
+        "LayoutDuration": 0.651764,
+        "RecalcStyleDuration": 0.080143,
+        "ScriptDuration": 0.290226,
+        "TaskDuration": 1.583835,
+        "JSHeapUsedSize": 6039380
+      },
+      "styles": {
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+        "textRendering": "optimizelegibility"
+      }
+    }
+  ]
+}

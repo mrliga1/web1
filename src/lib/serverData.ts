@@ -10,6 +10,7 @@ import {
 } from "./layoutUtils";
 import { optimizeImageUrl } from "./utils";
 import type { News, Product, Project, VisualSection } from "../types";
+import { toPublicClientSettings, type PublicClientSettings } from './publicSettings';
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -24,6 +25,7 @@ export interface HomePageInitialData {
 export interface InitialSiteSettings {
   logoUrl: string;
   loaded: boolean;
+  clientSettings: PublicClientSettings;
 }
 
 function isRecord(value: unknown): value is UnknownRecord {
@@ -175,6 +177,9 @@ export async function loadHomePageInitialData(): Promise<HomePageInitialData> {
     if (productsResult.error) reportReadError("sản phẩm trang chủ", productsResult.error);
     if (projectsResult.error) reportReadError("dự án trang chủ", projectsResult.error);
     if (newsResult.error) reportReadError("tin tức trang chủ", newsResult.error);
+    if (layoutResult.error || productsResult.error || projectsResult.error || newsResult.error) {
+      throw new Error("Không thể tải đầy đủ dữ liệu trang chủ.");
+    }
 
     const layoutPayload = isRecord(layoutResult.data?.data)
       ? layoutResult.data.data
@@ -218,16 +223,11 @@ export async function loadHomePageInitialData(): Promise<HomePageInitialData> {
       products,
       projects,
       news,
-      needsClientRefresh: Boolean(
-        layoutResult.error ||
-          productsResult.error ||
-          projectsResult.error ||
-          newsResult.error,
-      ),
+      needsClientRefresh: false,
     };
   } catch (error) {
     reportReadError("dữ liệu trang chủ", error);
-    return fallback;
+    throw error;
   }
 }
 
@@ -251,7 +251,7 @@ async function loadInitialSiteSettings(): Promise<InitialSiteSettings> {
 
     if (error) {
       reportReadError("cấu hình nhận diện thương hiệu", error);
-      return { logoUrl: "", loaded: false };
+      throw error;
     }
 
     const settings = isRecord(data?.data) ? data.data : null;
@@ -260,16 +260,17 @@ async function loadInitialSiteSettings(): Promise<InitialSiteSettings> {
     return {
       logoUrl: getNavigationLogoUrl(logoUrl),
       loaded: true,
+      clientSettings: { ...toPublicClientSettings(settings), logoUrl: getNavigationLogoUrl(logoUrl) },
     };
   } catch (error) {
     reportReadError("cấu hình nhận diện thương hiệu", error);
-    return { logoUrl: "", loaded: false };
+    throw error;
   }
 }
 
 const getCachedInitialSiteSettings = unstable_cache(
   loadInitialSiteSettings,
-  ["initial-site-settings-v1"],
+  ["initial-site-settings-v2"],
   {
     revalidate: 300,
     tags: ["site-settings"],

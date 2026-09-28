@@ -650,6 +650,33 @@ html:not([data-has-recently-viewed]) .recently-viewed-shell {
   }
 }
 
+@keyframes home-hero-appear {
+  from { transform: translateY(14px); }
+  to { transform: translateY(0); }
+}
+
+.home-hero-reveal {
+  animation: home-hero-appear 540ms var(--motion-ease) both;
+}
+
+/* Giữ nội dung trong HTML, chỉ dựng các khối khi gần vùng đang xem. */
+.home-section-deferred {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 720px;
+}
+
+/* Giảm dựng các vùng ngoài màn hình mà vẫn giữ nguyên HTML và liên kết. */
+.home-consultation-deferred { content-visibility: auto; contain-intrinsic-size: auto 600px; }
+.site-footer-deferred { content-visibility: auto; contain-intrinsic-size: auto 600px; }
+
+@media print {
+  .home-section-deferred,
+  .home-consultation-deferred,
+  .site-footer-deferred {
+    content-visibility: visible;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto !important;

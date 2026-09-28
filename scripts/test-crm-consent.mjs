@@ -58,8 +58,8 @@ test('Form trang chủ bắt buộc email hợp lệ trước khi gửi', () => 
 test('Meta/TikTok tôn trọng từ chối cookie và xóa sự kiện Meta đang chờ', () => {
   const meta = [];
   const tiktok = [];
-  const window = { __greeniaIpTrackingPolicy: 'allowed', fbq: (...args) => { if (args[0] === 'track') meta.push(args); }, ttq: { track: (...args) => tiktok.push(args) } };
-  const tracking = loadModule('src/lib/tracking.ts', {}, { window });
+  const window = Object.assign(new EventTarget(), { __greeniaIpTrackingPolicy: 'allowed', fbq: (...args) => { if (args[0] === 'track') meta.push(args); }, ttq: { track: (...args) => tiktok.push(args) } });
+  const tracking = loadModule('src/lib/tracking.ts', {}, { window, Event });
   tracking.setTrackingConsent('denied');
   tracking.trackLead('test', 'test');
   assert.equal(meta.length, 0);

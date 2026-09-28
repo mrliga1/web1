@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { generateSlug } from "../../../src/lib/utils";
-import { supabase } from "../../../src/supabase";
+import { notFound, permanentRedirect } from "next/navigation";
+import { getPublicSettings, getPublishedNews } from "../../../src/lib/serverContent";
+import { CORE_INTERNAL_LINKS } from "../../../src/lib/internalLinks";
 import { createSearchDescription, getSemanticTerms } from "../../../src/lib/searchIntent";
 
 export const revalidate = 60;
@@ -21,30 +23,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   let description = `Cập nhật tin tức mới nhất về ${decodedName.replace(/-/g, " ")}.`;
   let keywords: string | undefined;
 
-  const { data, error } = await supabase
-    .from("settings")
-    .select("data")
-    .eq("id", "general")
-    .maybeSingle();
-
-  if (error) {
-    console.error("Không thể tải metadata danh mục tin tức:", error);
-  } else {
-    const categories = data?.data?.newsCategoriesExt || [];
-    const category = categories.find((item: { name?: string }) => {
-      return (
-        item.name === decodedName ||
-        generateSlug(item.name || "") === generateSlug(decodedName)
-      );
-    });
-
-    if (category?.name) {
-      canonicalSlug = generateSlug(category.name);
-      title = category.seoTitle || category.name || title;
-      description = category.seoDesc || category.description || description;
-      keywords = category.seoKeywords || undefined;
-    }
+  const [settings, rows] = await Promise.all([getPublicSettings("general"), getPublishedNews()]);
+  const categories = settings.newsCategoriesExt || [];
+  const category = categories.find((item) => item.name === decodedName || generateSlug(item.name || "") === canonicalSlug);
+  const known = category || CORE_INTERNAL_LINKS.some((link) => link.href === `/category-news/${canonicalSlug}`) || rows.some(({ data }) => generateSlug(data.category || "") === canonicalSlug);
+  if (!known) notFound();
+  if (category?.name) {
+    canonicalSlug = generateSlug(category.name);
+    title = category.seoTitle || category.name;
+    description = category.seoDesc || category.description || description;
+    keywords = category.seoKeywords || undefined;
   }
+  if (name !== canonicalSlug) permanentRedirect(`/category-news/${canonicalSlug}`);
 
   title = removeTrailingBrand(title) || title;
   const brandedTitle = `${title} | Greenia Homes`;

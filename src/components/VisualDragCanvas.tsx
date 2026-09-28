@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { VisualSection } from '../types';
 import { getImageAltFromUrl } from '../lib/utils';
+import { sanitizeRichHtml } from '../lib/sanitizeRichHtml';
 
 interface CountdownTickerProps {
   targetDate: string;
@@ -1144,7 +1145,7 @@ export default function VisualDragCanvas({
                     padding: el.style.padding || '0px'
                   }}
                   className="w-full overflow-hidden text-xs text-zinc-200"
-                  dangerouslySetInnerHTML={{ __html: el.extraConfig?.rawHtml || '<p className="p-3 text-center text-zinc-400">Mã HTML trống</p>' }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(el.extraConfig?.rawHtml || '<p className="p-3 text-center text-zinc-400">Mã HTML trống</p>') }}
                 />
               );
             } else if (el.type === 'accordion') {

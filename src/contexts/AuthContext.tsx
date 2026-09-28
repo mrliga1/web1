@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../supabase';
-import { User } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
+import type { User } from '@supabase/supabase-js';
 
 export type UserRole = 'admin' | 'editor' | 'member' | 'user';
 
@@ -17,6 +17,7 @@ interface AuthContextType {
   currentUser: User | null;
   userProfile: UserProfile | null;
   loading: boolean;
+  ensureAuthReady: () => Promise<void>;
   logout: () => Promise<void>;
   reloadProfile: () => Promise<void>;
 }
@@ -49,12 +50,19 @@ const withTimeout = <T,>(
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const pathname = usePathname();
+  const initializeRef = useRef<(() => Promise<void>) | null>(null);
+  const ensureAuthReady = useCallback(async () => {
+    if (!initializeRef.current) throw new Error('Chưa thể khởi tạo đăng nhập, vui lòng thử lại.');
+    await initializeRef.current();
+  }, []);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = async (user: User): Promise<UserProfile | null> => {
     try {
+      const { supabase } = await import('../supabase');
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -75,11 +83,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (insertError) throw insertError;
         return newProfile;
       } else {
-        console.error("Error fetching profile from Supabase", error);
+        console.error("Không thể tải hồ sơ từ Supabase", error);
         return null;
       }
     } catch (err) {
-      console.error("Error fetching user profile", err);
+      console.error("Không thể tải hồ sơ người dùng", err);
       return null;
     }
   };
@@ -87,6 +95,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let active = true;
     let authRevision = 0;
+    let initialization: Promise<void> | null = null;
+    let unsubscribe: (() => void) | undefined;
 
     const applyUser = async (user: User | null) => {
       const revision = ++authRevision;
@@ -115,55 +125,60 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Khôi phục đầy đủ phiên và hồ sơ trước khi cho giao diện quản trị hiển thị.
-    const initializeSession = async () => {
-      try {
-        const { data: { session }, error } = await withTimeout(
-          supabase.auth.getSession(),
-          SESSION_RESTORE_TIMEOUT_MS,
-          "Quá thời gian khôi phục phiên đăng nhập",
-        );
-        if (error) throw error;
-        if (!active) return;
-        await applyUser(session?.user || null);
-      } catch (error) {
-        console.error("Không thể khôi phục phiên đăng nhập", error);
-        if (active) {
-          authRevision += 1;
-          setCurrentUser(null);
-          setUserProfile(null);
-          setLoading(false);
+    // Chỉ tải SDK khi có phiên cần khôi phục hoặc người dùng mở đăng nhập.
+    const initializeSession = () => {
+      if (initialization) return initialization;
+      setLoading(true);
+      initialization = (async () => {
+        try {
+          const { supabase } = await withTimeout(import('../supabase'), SESSION_RESTORE_TIMEOUT_MS, 'Quá thời gian tải đăng nhập');
+          if (!active) return;
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (!active) return;
+            const user = session?.user || null;
+            if (event === 'TOKEN_REFRESHED') { setCurrentUser(user); return; }
+            // Không truy vấn hồ sơ bên trong khóa của callback xác thực.
+            setTimeout(() => { if (active) { setLoading(true); void applyUser(user); } }, 0);
+          });
+          unsubscribe = () => subscription.unsubscribe();
+          const { data: { session }, error } = await withTimeout(
+            supabase.auth.getSession(), SESSION_RESTORE_TIMEOUT_MS,
+            'Quá thời gian khôi phục phiên đăng nhập',
+          );
+          if (error) throw error;
+          if (active) await applyUser(session?.user || null);
+        } catch (error) {
+          unsubscribe?.();
+          unsubscribe = undefined;
+          initialization = null;
+          if (active) {
+            authRevision += 1;
+            setCurrentUser(null); setUserProfile(null); setLoading(false);
+          }
+          throw error;
         }
-      }
+      })();
+      return initialization;
     };
-
-    void initializeSession();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      const user = session?.user || null;
-
-      if (event === 'TOKEN_REFRESHED') {
-        if (active) setCurrentUser(user);
-        return;
-      }
-
-      if (active) setLoading(true);
-
-      // Thực hiện truy vấn hồ sơ sau khi callback xác thực kết thúc để tránh chờ chéo.
-      setTimeout(() => {
-        if (active) void applyUser(user);
-      }, 0);
-    });
-
-    return () => {
-      active = false;
-      subscription.unsubscribe();
-    };
+    initializeRef.current = initializeSession;
+    setLoading(false);
+    return () => { active = false; initializeRef.current = null; unsubscribe?.(); };
   }, []);
 
+  useEffect(() => {
+    let shouldRestore = pathname?.startsWith('/admin') || /(?:^|[?&])code=/.test(window.location.search)
+      || /(?:^|[#&])access_token=/.test(window.location.hash);
+    try {
+      const host = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || '').hostname.split('.')[0];
+      shouldRestore ||= Boolean(localStorage.getItem('sb-' + host + '-auth-token'));
+    } catch { /* Nếu lưu trữ bị chặn, vẫn cho phép đăng nhập trực tiếp. */ }
+    if (shouldRestore) void ensureAuthReady().catch(error => console.error('Không thể khôi phục đăng nhập:', error));
+  }, [pathname, ensureAuthReady]);
+
   const logout = async () => {
-    await supabase.auth.signOut();
+    const { supabase } = await import('../supabase');
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
   };
 
   const reloadProfile = async () => {
@@ -182,7 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ currentUser, userProfile, loading, logout, reloadProfile }}>
+    <AuthContext.Provider value={{ currentUser, userProfile, loading, logout, reloadProfile, ensureAuthReady }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import { useNotification } from "../../../src/contexts/NotificationContext";
+
 import React, { useState } from 'react';
 import { getRouteUrl } from '../../../src/lib/utils';
 
@@ -41,10 +43,7 @@ export default function ClientWrapper({
     router.push(getRouteUrl(route));
   };
 
-  const handleShowNotification = (message: string, type: 'success' | 'error') => {
-    void message;
-    void type;
-  };
+  const handleShowNotification = useNotification();
 
   return (
     <ProductList 

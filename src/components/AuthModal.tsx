@@ -306,7 +306,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
   return createPortal(
     <>
       {isOpen && (
-        <div role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" className="fixed inset-0 z-[9999] flex items-center justify-center p-4 mt-10 md:mt-0">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 mt-10 md:mt-0">
           <div 
             className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm animate-in fade-in"
             onClick={onClose}
@@ -315,7 +315,7 @@ export default function AuthModal({ isOpen, onClose, onShowNotification, onLogin
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Đăng nhập"
+            aria-labelledby="auth-modal-title"
             className="relative w-full max-w-md max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-2xl md:p-6 animate-in zoom-in-95 duration-200"
           >
             <button 

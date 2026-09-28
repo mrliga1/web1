@@ -1,12 +1,11 @@
 'use client';
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { db, doc, getDoc, setDoc } from '../firebase';
+import type { PublicClientSettings } from '../lib/publicSettings';
 import { serializeSectionsForDatabase, deserializeSectionsFromDatabase, sanitizeHomeSections } from '../lib/layoutUtils';
 import { getPageDefaultSections } from '../lib/layouts';
 import { optimizeImageUrl } from '../lib/utils';
 import {
-  DEFAULT_ADSENSE_SETTINGS,
   type AdSenseSettingsData,
   type VisualSection,
 } from '../types';
@@ -19,7 +18,6 @@ import {
   setTrackingConsent,
   trackContactClick,
 } from '../lib/tracking';
-import { normalizeAdSenseSettings } from '../lib/adsense';
 import { useManualIpTrackingPolicy } from '../hooks/useManualIpTrackingPolicy';
 
 interface AppContextType {
@@ -30,6 +28,7 @@ interface AppContextType {
   isQuotePopupOpen: boolean;
   setIsQuotePopupOpen: React.Dispatch<React.SetStateAction<boolean>>;
   adSenseSettings: AdSenseSettingsData;
+  cookieConsentEnabled: boolean;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -45,17 +44,6 @@ interface LayoutDocumentData {
   sections?: unknown;
 }
 
-interface ClientSettingsData {
-  logoUrl?: string;
-  metaTitle?: string;
-  cookieConsentEnabled?: boolean;
-  quotePopupEnabled?: boolean;
-  quotePopupVersion?: number;
-  tiktokPixelEnabled?: boolean;
-  tiktokPixelId?: string;
-  adSenseSettings?: AdSenseSettingsData;
-}
-
 interface QuotePopupSettings {
   enabled: boolean;
   version: number;
@@ -63,7 +51,7 @@ interface QuotePopupSettings {
 
 const EMPTY_SECTIONS: VisualSection[] = [];
 const QUOTE_POPUP_INITIAL_DELAY_MS = 60_000;
-const QUOTE_POPUP_FIRST_RETRY_DELAY_MS = 90_000;
+const QUOTE_POPUP_FIRST_RETRY_DELAY_MS = 60_000;
 const QUOTE_POPUP_REPEAT_DELAY_MS = 60_000;
 const QUOTE_POPUP_SUBMITTED_KEY_PREFIX = 'greenia_quote_popup_submitted';
 
@@ -86,12 +74,13 @@ function getDefaultSections(docName: LayoutDocName) {
 }
 
 function usesServerProvidedLayout(docName: string | null) {
-  return docName === 'home' || docName === 'san-pham' || docName === 'du-an' || docName === 'tin-tuc';
+  return docName === 'home' || docName === 'san-pham' || docName === 'du-an' || docName === 'tin-tuc' || docName === 'lien-he';
 }
 
-export function AppProvider({ children }: { children: React.ReactNode }) {
+export function AppProvider({ children, initialSettings }: { children: React.ReactNode; initialSettings: PublicClientSettings }) {
   const pathname = usePathname();
-  useManualIpTrackingPolicy(pathname || '/');
+  const [policyEnabled, setPolicyEnabled] = useState(false);
+  useManualIpTrackingPolicy(pathname || '/', policyEnabled && !pathname?.startsWith('/admin'));
   const layoutDocName = getLayoutDocName(pathname || '');
   const [layoutState, setLayoutState] = useState<LayoutState>(() => ({
     docName: layoutDocName,
@@ -103,11 +92,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     : getDefaultSections(layoutDocName);
   const [isEditMode, setIsEditMode] = useState(false);
   const [isQuotePopupOpen, setIsQuotePopupOpen] = useState(false);
-  const [quotePopupSettings, setQuotePopupSettings] = useState<QuotePopupSettings>({
-    enabled: true,
-    version: 2,
-  });
-  const [adSenseSettings, setAdSenseSettings] = useState<AdSenseSettingsData>(DEFAULT_ADSENSE_SETTINGS);
+  const quotePopupSettings: QuotePopupSettings = {
+    enabled: initialSettings.quotePopupEnabled,
+    version: initialSettings.quotePopupVersion,
+  };
+  const adSenseSettings = initialSettings.adSenseSettings;
   const previousTrackedPath = useRef<string | null>(null);
 
 
@@ -128,24 +117,25 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const defaults = getDefaultSections(docName);
     setLayoutState({ docName, sections: defaults });
 
-    const docRef = doc(db, 'layouts', docName);
-    getDoc(docRef).then((snapshot) => {
+    import('../firebase').then(async ({ db, doc, getDoc, setDoc }) => {
+      const docRef = doc(db, 'layouts', docName);
+      const snapshot = await getDoc(docRef);
       if (snapshot.exists()) {
         const data = (snapshot.data() || {}) as LayoutDocumentData;
         if (Array.isArray(data.sections)) {
           const loaded = deserializeSectionsFromDatabase<VisualSection>(data.sections as VisualSection[]);
           if (loaded.length === 0) {
-            setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
+            if (isEditMode) void setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
             if (!cancelled) setLayoutState({ docName, sections: defaults });
           } else if (!cancelled) {
             setLayoutState({ docName, sections: loaded });
           }
         } else {
-          setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
+          if (isEditMode) void setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
           if (!cancelled) setLayoutState({ docName, sections: defaults });
         }
       } else {
-        setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
+        if (isEditMode) void setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
         if (!cancelled) setLayoutState({ docName, sections: defaults });
       }
     }).catch((e) => {
@@ -157,10 +147,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [layoutDocName]);
+  }, [layoutDocName, isEditMode]);
 
   const setSections = async (newSections: VisualSection[] | ((prev: VisualSection[]) => VisualSection[])) => {
-    // Resolve updater function if used
+    // Giải quyết hàm cập nhật trước khi lưu bố cục.
     const currentSections = layoutState.docName === layoutDocName
       ? layoutState.sections
       : getDefaultSections(layoutDocName);
@@ -176,6 +166,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
     if (isEditMode && docName) {
       try {
+        const { db, doc, setDoc } = await import('../firebase');
         const docRef = doc(db, 'layouts', docName);
         await setDoc(docRef, {
           sections: serializeSectionsForDatabase(sanitized),
@@ -187,7 +178,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Global Settings loading
+  // Cấu hình công khai đã được máy chủ tải và lọc.
   useEffect(() => {
     let cancelled = false;
     let removeConsentListener: () => void = () => undefined;
@@ -240,24 +231,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
     window.addEventListener('greenia_tracking_policy_changed', handleTrackingPolicy);
 
-    getDoc(doc(db, "settings", "general")).then((snapshot) => {
-      if (cancelled) return;
-      if (snapshot.exists()) {
-        const data = (snapshot.data() || {}) as ClientSettingsData;
-        setAdSenseSettings(normalizeAdSenseSettings(data.adSenseSettings));
-        if (data.logoUrl) {
-          localStorage.setItem('greenia_logoUrl', optimizeImageUrl(data.logoUrl, 100));
-        }
-        if (data.metaTitle) {
-          localStorage.setItem("greenia_meta_title", data.metaTitle);
-        }
-
-        const popupVersion = Number(data.quotePopupVersion);
-        setQuotePopupSettings({
-          enabled: data.quotePopupEnabled !== false,
-          version: Number.isFinite(popupVersion) && popupVersion > 0 ? popupVersion : 2,
-        });
-
+    const data = initialSettings;
+    try {
+      if (data.logoUrl) localStorage.setItem('greenia_logoUrl', optimizeImageUrl(data.logoUrl, 100));
+      if (data.metaTitle) localStorage.setItem('greenia_meta_title', data.metaTitle);
+    } catch { /* Không phụ thuộc vào quyền lưu trữ để hiển thị trang. */ }
         loadTikTokPixel = () => {
           if (!hasMarketingTrackingConsent()) return;
           const pixelId = getSettingString(data.tiktokPixelId).trim();
@@ -273,10 +251,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           document.head.appendChild(script);
         };
 
-        const requiresConsent = data.cookieConsentEnabled === true;
-        const consentAccepted = localStorage.getItem('cookie_consent') === 'accepted';
+        const requiresConsent = data.cookieConsentEnabled;
+        let consentAccepted = false;
+        try { consentAccepted = localStorage.getItem('cookie_consent') === 'accepted'; } catch { /* Trình duyệt chặn lưu trữ: giữ trạng thái chưa đồng ý. */ }
         const initialConsentGranted = !requiresConsent || consentAccepted;
         setTrackingConsent(initialConsentGranted ? 'granted' : 'denied', true);
+        const needsPolicy = (accepted: boolean) => Boolean(process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID)
+          || (accepted && (data.adSenseSettings.enabled || data.tiktokPixelEnabled));
+        setPolicyEnabled(needsPolicy(initialConsentGranted));
         // Luôn nạp GTM để Google Consent Mode gửi tín hiệu không cookie khi chưa được đồng ý.
         loadTrackingScripts();
         if (initialConsentGranted) {
@@ -289,6 +271,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const consentEvent = event as CustomEvent<{ status?: string }>;
           const accepted = consentEvent.detail?.status === 'accepted';
           setTrackingConsent(accepted ? 'granted' : 'denied');
+          setPolicyEnabled(needsPolicy(accepted));
           if (accepted) {
             notifyTrackingConsentGranted();
             scheduleMetaFlush([500, 2000, 7000]);
@@ -298,29 +281,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         window.addEventListener('cookie_consent_changed', handleConsent);
         removeConsentListener = () => window.removeEventListener('cookie_consent_changed', handleConsent);
 
-      } else {
-        setQuotePopupSettings({ enabled: true, version: 2 });
-        setTrackingConsent('granted', true);
-        loadTrackingScripts();
-        notifyTrackingConsentGranted();
-        scheduleMetaFlush([3000, 7000, 14000]);
-      }
-    }).catch((error) => {
-      console.error("Không thể tải cấu hình popup tư vấn:", error);
-      setQuotePopupSettings({ enabled: true, version: 2 });
-      setTrackingConsent('granted', true);
-      loadTrackingScripts();
-      notifyTrackingConsentGranted();
-      scheduleMetaFlush([3000, 7000, 14000]);
-    });
-
     return () => {
       cancelled = true;
       trackingFlushTimers.forEach((timer) => window.clearTimeout(timer));
       window.removeEventListener('greenia_tracking_policy_changed', handleTrackingPolicy);
       removeConsentListener();
     };
-  }, []);
+  }, [initialSettings]);
 
   useEffect(() => {
     if (!pathname || pathname.startsWith('/admin')) return;
@@ -419,7 +386,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       sections, setSections,
       isEditMode, setIsEditMode,
       isQuotePopupOpen, setIsQuotePopupOpen,
-      adSenseSettings,
+      adSenseSettings, cookieConsentEnabled: initialSettings.cookieConsentEnabled,
     }}>
       {children}
     </AppContext.Provider>

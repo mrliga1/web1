@@ -1,21 +1,23 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Navbar from './Navbar';
-import Footer from './Footer';
 import { usePathname, useRouter } from 'next/navigation';
 
 import FloatingActionButtons from './FloatingActionButtons';
 import ContentRealtimeRefresh from './ContentRealtimeRefresh';
+import { NotificationContext } from '../contexts/NotificationContext';
 
 interface ClientLayoutProps {
   children: React.ReactNode;
+  footer: React.ReactNode;
   initialLogoUrl?: string;
   initialSettingsLoaded?: boolean;
 }
 
 export default function ClientLayout({
   children,
+  footer,
   initialLogoUrl = '',
   initialSettingsLoaded = false,
 }: ClientLayoutProps) {
@@ -32,14 +34,15 @@ export default function ClientLayout({
   
   useEffect(() => {
     if (initialLogoUrl) {
+      setLogoUrl(initialLogoUrl);
       setIsSettingsLoaded(true);
       return;
     }
 
-    const savedLogo = localStorage.getItem('greenia_logoUrl');
-    if (savedLogo) {
-      setLogoUrl(savedLogo);
-    }
+    try {
+      const savedLogo = localStorage.getItem('greenia_logoUrl');
+      if (savedLogo) setLogoUrl(savedLogo);
+    } catch { /* Vẫn hiển thị trang khi trình duyệt chặn lưu trữ. */ }
     setIsSettingsLoaded(true);
   }, [initialLogoUrl]);
 
@@ -117,7 +120,7 @@ export default function ClientLayout({
     };
   }, [router, pathname]);
 
-  const triggerNotification = (message: string, type: 'success' | 'error' = 'success') => {
+  const triggerNotification = useCallback((message: string, type: 'success' | 'error' = 'success') => {
     if (notificationTimerRef.current) {
       clearTimeout(notificationTimerRef.current);
     }
@@ -126,9 +129,10 @@ export default function ClientLayout({
       setNotification(null);
       notificationTimerRef.current = null;
     }, 5000);
-  };
+  }, []);
 
   return (
+    <NotificationContext.Provider value={triggerNotification}>
     <div className="flex flex-col min-h-screen" data-admin-layout={pathname?.startsWith('/admin') || undefined}>
       {/* Liên kết bỏ qua đến nội dung chính cho accessibility */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999] focus:bg-primary focus:text-white focus:px-4 focus:py-2 focus:rounded-lg focus:text-sm focus:font-semibold">Bỏ qua đến nội dung chính</a>
@@ -156,7 +160,7 @@ export default function ClientLayout({
         {children}
       </main>
       
-      <Footer />
+      {footer}
       
       {!pathname?.startsWith('/admin') && <FloatingActionButtons />}
 
@@ -174,5 +178,6 @@ export default function ClientLayout({
         </div>
       )}
     </div>
+    </NotificationContext.Provider>
   );
 }

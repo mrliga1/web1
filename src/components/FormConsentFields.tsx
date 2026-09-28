@@ -10,7 +10,7 @@ interface FormConsentFieldsProps {
 }
 
 const CHECKBOX_CLASS =
-  'mt-0.5 h-3.5 w-3.5 shrink-0 cursor-pointer rounded border-border-color bg-bg-surface text-primary focus:ring-1 focus:ring-primary focus:ring-offset-1';
+  'h-6 w-6 shrink-0 cursor-pointer rounded border-border-color bg-bg-surface text-primary focus:ring-1 focus:ring-primary focus:ring-offset-1';
 
 export default function FormConsentFields({
   idPrefix,

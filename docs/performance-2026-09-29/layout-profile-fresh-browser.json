@@ -1,0 +1,73 @@
+{
+  "diagnosticOnly": true,
+  "results": [
+    {
+      "variant": "arial-auto",
+      "metrics": {
+        "Nodes": 835,
+        "LayoutCount": 8,
+        "RecalcStyleCount": 10,
+        "LayoutDuration": 0.549159,
+        "RecalcStyleDuration": 0.045782,
+        "ScriptDuration": 0.226128,
+        "TaskDuration": 1.53275,
+        "JSHeapUsedSize": 6171416
+      },
+      "styles": {
+        "font": "Arial, sans-serif",
+        "textRendering": "auto"
+      }
+    },
+    {
+      "variant": "current",
+      "metrics": {
+        "Nodes": 835,
+        "LayoutCount": 8,
+        "RecalcStyleCount": 10,
+        "LayoutDuration": 0.889256,
+        "RecalcStyleDuration": 0.062271,
+        "ScriptDuration": 0.361066,
+        "TaskDuration": 2.453221,
+        "JSHeapUsedSize": 6149668
+      },
+      "styles": {
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+        "textRendering": "optimizelegibility"
+      }
+    },
+    {
+      "variant": "arial-auto-repeat",
+      "metrics": {
+        "Nodes": 835,
+        "LayoutCount": 6,
+        "RecalcStyleCount": 10,
+        "LayoutDuration": 0.510655,
+        "RecalcStyleDuration": 0.093717,
+        "ScriptDuration": 0.538749,
+        "TaskDuration": 2.584555,
+        "JSHeapUsedSize": 6080024
+      },
+      "styles": {
+        "font": "Arial, sans-serif",
+        "textRendering": "auto"
+      }
+    },
+    {
+      "variant": "current-repeat",
+      "metrics": {
+        "Nodes": 835,
+        "LayoutCount": 7,
+        "RecalcStyleCount": 10,
+        "LayoutDuration": 0.493983,
+        "RecalcStyleDuration": 0.051074,
+        "ScriptDuration": 0.224798,
+        "TaskDuration": 1.386904,
+        "JSHeapUsedSize": 6055192
+      },
+      "styles": {
+        "font": "\"Segoe UI Variable Display\", \"Segoe UI\", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, Arial, sans-serif",
+        "textRendering": "optimizelegibility"
+      }
+    }
+  ]
+}

@@ -2,49 +2,35 @@
 
 import React, { useState, useEffect } from "react";
 import { Cookie } from "lucide-react";
-import { db, doc, getDoc } from "../firebase";
-import type { GeneralSettingsData } from "../types";
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { useAppContext } from '../contexts/AppContext';
 import { setTrackingConsent } from "../lib/tracking";
 
 export default function CookieConsent() {
   const [show, setShow] = useState(false);
+  const { cookieConsentEnabled } = useAppContext();
+  const pathname = usePathname();
 
   useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    let cancelled = false;
-
-    getDoc(doc(db, "settings", "general"))
-      .then((snapshot) => {
-        const data = (snapshot.data() || {}) as GeneralSettingsData;
-        if (cancelled || data.cookieConsentEnabled === false) return;
-        // Chỉ trạng thái đồng ý mới tắt thông báo ở các lần tải trang sau.
-        // Nếu người dùng đóng/từ chối, popup sẽ xuất hiện lại sau khi tải lại trang.
-        if (localStorage.getItem("cookie_consent") !== "accepted") {
-          timer = setTimeout(() => setShow(true), 1200);
-        }
-      })
-      .catch((error) => {
-        console.error("Không thể tải cấu hình cookie:", error);
-        if (!cancelled && localStorage.getItem("cookie_consent") !== "accepted") {
-          timer = setTimeout(() => setShow(true), 1200);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-    };
-  }, []);
+    setShow(false);
+    if (!cookieConsentEnabled || pathname?.startsWith('/admin')) return;
+    let accepted = false;
+    try { accepted = localStorage.getItem('cookie_consent') === 'accepted'; } catch { /* Vẫn cho phép chọn khi lưu trữ bị chặn. */ }
+    if (accepted) return;
+    const timer = setTimeout(() => setShow(true), 1200);
+    return () => clearTimeout(timer);
+  }, [cookieConsentEnabled, pathname]);
 
   const acceptCookies = () => {
-    localStorage.setItem("cookie_consent", "accepted");
+    try { localStorage.setItem("cookie_consent", "accepted"); } catch { /* Ghi nhận đồng ý trong phiên hiện tại. */ }
     setTrackingConsent("granted");
     window.dispatchEvent(new CustomEvent("cookie_consent_changed", { detail: { status: "accepted" } }));
     setShow(false);
   };
 
   const declineCookies = () => {
-    localStorage.setItem("cookie_consent", "declined");
+    try { localStorage.setItem("cookie_consent", "declined"); } catch { /* Ghi nhận từ chối trong phiên hiện tại. */ }
     setTrackingConsent("denied");
     window.dispatchEvent(new CustomEvent("cookie_consent_changed", { detail: { status: "declined" } }));
     setShow(false);
@@ -64,15 +50,11 @@ export default function CookieConsent() {
               <h3 className="font-display font-bold text-[15px] text-text-primary pr-6">Chính sách Thu thập và Sử dụng Cookie</h3>
               <p className="text-[11px] text-text-secondary leading-relaxed w-full">
                 Chúng tôi sử dụng cookie để cải thiện trải nghiệm duyệt web của bạn, cung cấp các quảng cáo hoặc nội dung được cá nhân hóa và phân tích lưu lượng truy cập của chúng tôi. Bằng cách nhấp vào "Đồng ý", bạn đồng ý với việc chúng tôi sử dụng cookie. 
-                <a 
+                <Link
                   href="/chinh-sach-bao-mat" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    window.history.pushState(null, '', '/chinh-sach-bao-mat');
-                    window.dispatchEvent(new Event('popstate'));
-                  }}
+                  prefetch={false}
                   className="text-primary hover:underline ml-1"
-                >Đọc thêm về chính sách quyền riêng tư</a>.
+                >Đọc thêm về chính sách quyền riêng tư</Link>.
               </p>
             </div>
           </div>

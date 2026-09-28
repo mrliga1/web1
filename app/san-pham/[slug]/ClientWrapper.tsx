@@ -1,5 +1,7 @@
 "use client";
 
+import { useNotification } from "../../../src/contexts/NotificationContext";
+
 import { useRouter } from 'next/navigation';
 import { getRouteUrl } from '../../../src/lib/utils';
 import ProductDetail from '../../../src/components/ProductDetail';
@@ -20,7 +22,7 @@ export default function ClientWrapper({ slug, initialProduct, initialProducts, i
     router.push(getRouteUrl(route));
   };
 
-  const handleShowNotification = () => {};
+  const handleShowNotification = useNotification();
 
   return (
     <ProductDetail 

@@ -14,7 +14,7 @@ const LazySection = ({ children, sectionId, isEditMode }: { children: React.Reac
     return <>{children}</>;
   }
 
-  return <div>{children}</div>;
+  return <div className="home-section-deferred">{children}</div>;
 };
 
 interface HomeProps {

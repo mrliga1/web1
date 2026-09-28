@@ -2,7 +2,8 @@ import 'server-only';
 
 import type { Metadata } from 'next';
 import { createStaticPageMetadata, DEFAULT_SOCIAL_IMAGE } from './internalLinks';
-import { getPublicSettings } from './serverContent';
+import { getPublicSettings, getPublishedProducts } from './serverContent';
+import { matchesProductLocation } from './productFilters';
 import { STATIC_SEO_DEFAULTS, type StaticSeoPageConfig } from './staticSeoConfig';
 
 export type { StaticSeoPageConfig } from './staticSeoConfig';
@@ -42,17 +43,26 @@ export async function getManagedLocationMetadata(location: string): Promise<Meta
     ? settings.locationSeoPages as Record<string, Partial<StaticSeoPageConfig>>
     : {};
   const configured = pages[normalizedLocation];
+  if (!configured) {
+    const base = await getManagedStaticMetadata('/san-pham');
+    return {
+      ...base,
+      robots: { index: false, follow: true },
+      alternates: { canonical: '/san-pham' },
+    };
+  }
   const title = configured?.title?.trim() || `Bất động sản tại ${normalizedLocation}`;
   const description = configured?.description?.trim()
     || `Danh sách căn hộ, nhà phố, biệt thự mua bán và cho thuê tại ${normalizedLocation}, cập nhật từ Greenia Homes.`;
   const keywords = configured?.keywords?.trim()
     || `bất động sản ${normalizedLocation}, nhà đất ${normalizedLocation}, căn hộ ${normalizedLocation}`;
+  const hasInventory = (await getPublishedProducts()).some(({ data }) => matchesProductLocation(data.district, normalizedLocation));
   return createStaticPageMetadata({
     title,
     description,
     path: `/san-pham?location=${encodeURIComponent(normalizedLocation)}`,
     keywords: keywords.split(',').map(keyword => keyword.trim()).filter(Boolean),
     socialImage: configured?.socialImage?.trim() || DEFAULT_SOCIAL_IMAGE,
-    index: configured?.index !== false,
+    index: configured?.index !== false && hasInventory,
   });
 }

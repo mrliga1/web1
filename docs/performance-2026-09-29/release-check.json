@@ -1,0 +1,12 @@
+{
+  "time": "2026-09-28T23:04:43.348Z",
+  "files": 114,
+  "totalMb": 3.140575408935547,
+  "secretFindings": [],
+  "baselineExampleHasPrivilegedJwt": false,
+  "privateFilesIgnored": [
+    ".local-backups/",
+    ".env",
+    ".env.local"
+  ]
+}

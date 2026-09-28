@@ -1,0 +1,107 @@
+{
+  "origin": "http://127.0.0.1:3001",
+  "checked": 20,
+  "failures": [],
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/category-product/chuyen-nhuong",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/san-pham",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/category-product/cho-thue",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/category-product/can-ho",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/category-product/nha-pho-biet-thu",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/du-an",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/tin-tuc",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/category-news/thi-truong",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/lien-he",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/latest-sales",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/latest-rents",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/chinh-sach-bao-mat",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/dieu-khoan-su-dung",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/san-pham/can-ho-quan-2",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/san-pham/text-san-pham-moi-ban-nha-pho-an-phu-new-cit-quan-2-gia-tot-nhat-thi-truong",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/category-news/tin-du-an",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/category-product/an-phu-new-city",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/du-an/vinhomes-can-gio",
+      "status": 200,
+      "errors": []
+    },
+    {
+      "path": "/tin-tuc/kiem-tra-bai-viet-moi",
+      "status": 200,
+      "errors": []
+    }
+  ]
+}

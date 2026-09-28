@@ -16,7 +16,6 @@ interface ContactPageProps {
   setSelectedSectionId: (id: string | null) => void;
 }
 
-import { fetchClientIp } from '../lib/ip';
 import { trackLead } from '../lib/tracking';
 import { generateSrcSet, optimizeImageUrl } from '../lib/utils';
 import FormConsentFields from './FormConsentFields';
@@ -192,7 +191,6 @@ export default function ContactPage({
 
     setContactSubmitting(true);
     try {
-      const clientIp = await fetchClientIp();
       let friendlyUrl = "";
       if (window.location.hostname.includes('aistudio')) {
         friendlyUrl = `https://greeniahomes.vn${window.location.pathname}`;
@@ -212,7 +210,6 @@ export default function ContactPage({
         status: 'pending',
         propertyTitle: `Giao diện liên hệ: ${contactMessage.trim() || 'Cần tư vấn trực tiếp'}`,
         sourceUrl: friendlyUrl,
-        ipAddress: clientIp,
         termsAccepted: agreeTerms,
         privacyAccepted: agreePrivacy,
         marketingConsent: agreePrivacy,

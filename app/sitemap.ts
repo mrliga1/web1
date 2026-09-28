@@ -6,6 +6,7 @@ import {
 } from "../src/lib/serverContent";
 import { createCoreSitemapRoutes, SITE_URL } from "../src/lib/internalLinks";
 import { generateSlug } from "../src/lib/utils";
+import { isContentSearchReady } from "../src/lib/searchReadiness";
 import { supabase } from "../src/supabase";
 import {
   DEFAULT_SITEMAP_SETTINGS,
@@ -63,7 +64,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getPublishedProjects(),
   ]);
 
-  const productRoutes = sitemapSettings.includeProducts ? products.map(({ data }) =>
+  const productRoutes = sitemapSettings.includeProducts ? products.filter(({ data }) => isContentSearchReady(data)).map(({ data }) =>
     createContentRoute(
       `/san-pham/${generateSlug(data.title)}`,
       data as typeof data & { updatedAt?: string },
@@ -72,7 +73,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ),
   ) : [];
 
-  const newsRoutes = sitemapSettings.includeNews ? news.map(({ data }) =>
+  const newsRoutes = sitemapSettings.includeNews ? news.filter(({ data }) => isContentSearchReady(data)).map(({ data }) =>
     createContentRoute(
       `/tin-tuc/${generateSlug(data.title)}`,
       data as typeof data & { updatedAt?: string },
@@ -81,7 +82,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     ),
   ) : [];
 
-  const projectRoutes = sitemapSettings.includeProjects ? projects.map(({ data }) =>
+  const projectRoutes = sitemapSettings.includeProjects ? projects.filter(({ data }) => isContentSearchReady(data)).map(({ data }) =>
     createContentRoute(
       `/du-an/${generateSlug(data.title)}`,
       data as typeof data & { updatedAt?: string },

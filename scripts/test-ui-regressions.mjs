@@ -14,6 +14,8 @@ const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH 
 const context = await browser.newContext({ viewport: { width: 1366, height: 900 } });
 const page = await context.newPage();
 page.setDefaultTimeout(20000);
+// Kiểm tra nội dung sau khi HTML sẵn sàng; không chờ ảnh hoặc dịch vụ ngoài trang.
+page.setDefaultNavigationTimeout(60000);
 const results = [];
 let submitted;
 await page.route('**/api/consultations', async (route) => {
@@ -98,7 +100,7 @@ try {
   }
 
   await page.setViewportSize({ width: 1366, height: 900 });
-  await page.goto(origin + '/du-an/vinhomes-can-gio');
+  await page.goto(origin + '/du-an/vinhomes-can-gio', { waitUntil: 'domcontentloaded' });
   const expectedTitle = await page.locator('main h1').first().innerText();
   await page.getByRole('button', { name: 'Đăng ký tư vấn', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Tư vấn mua nhà chuyên sâu' });

@@ -169,6 +169,7 @@ export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false)
   };
   if (waitForUpdate) consent.wait_for_update = 500;
   dataLayer.push(["consent", waitForUpdate ? "default" : "update", consent]);
+  window.dispatchEvent(new Event('greenia_tracking_consent_changed'));
 }
 
 export function notifyTrackingConsentGranted() {

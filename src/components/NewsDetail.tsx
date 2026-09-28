@@ -42,7 +42,6 @@ interface NewsDetailProps {
   onShowNotification: (message: string, type: 'success' | 'error') => void;
 }
 
-import { fetchClientIp } from '../lib/ip';
 import FormConsentFields from './FormConsentFields';
 import {
   ConsultationErrors,
@@ -326,7 +325,6 @@ export default function NewsDetail({
     setIsSubmitting(true);
     try {
       const { addDoc, collection, db } = await import('../firebase');
-      const clientIp = await fetchClientIp();
       
       let friendlyUrl = "";
       if (window.location.hostname.includes('aistudio')) {
@@ -347,7 +345,6 @@ export default function NewsDetail({
         propertyId: "news_sidebar",
         propertyTitle: "Từ bài viết: " + (article?.title || ""),
         sourceUrl: friendlyUrl,
-        ipAddress: clientIp,
         termsAccepted: agreeTerms,
         privacyAccepted: agreePrivacy,
         marketingConsent: agreePrivacy,

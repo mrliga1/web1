@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { RouteState } from '../types';
 import { Shield, Lock, Eye, CheckCircle2, UserCheck, HardDrive } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
+import Link from 'next/link';
 import type { Variants } from 'framer-motion';
 
 interface PrivacyPolicyProps {
@@ -9,6 +10,8 @@ interface PrivacyPolicyProps {
 }
 
 export default function PrivacyPolicy({ onNavigate }: PrivacyPolicyProps) {
+  void onNavigate;
+  const reduceMotion = useReducedMotion();
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -85,7 +88,7 @@ export default function PrivacyPolicy({ onNavigate }: PrivacyPolicyProps) {
         
         {/* Hero Header */}
         <motion.div 
-          initial={{ opacity: 0, y: -20 }}
+          initial={false}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
           className="text-center mb-16"
@@ -104,7 +107,7 @@ export default function PrivacyPolicy({ onNavigate }: PrivacyPolicyProps) {
         {/* Content Cards */}
         <motion.div 
           variants={containerVariants}
-          initial="hidden"
+          initial={false}
           animate="visible"
           className="space-y-6"
         >
@@ -112,7 +115,7 @@ export default function PrivacyPolicy({ onNavigate }: PrivacyPolicyProps) {
             <motion.div 
               key={index}
               variants={itemVariants}
-              whileHover={{ scale: 1.01, translateY: -2 }}
+              whileHover={reduceMotion ? undefined : { scale: 1.01, translateY: -2 }}
               className="bg-bg-surface-alt/80 backdrop-blur-md border border-border-color rounded-2xl p-6 md:p-8 shadow-lg shadow-black/5 hover:shadow-xl hover:border-accent/30 transition-all duration-300"
             >
               <div className="flex items-start gap-4">
@@ -142,13 +145,13 @@ export default function PrivacyPolicy({ onNavigate }: PrivacyPolicyProps) {
 
         {/* Footer Note */}
         <motion.div 
-          initial={{ opacity: 0 }}
+          initial={false}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 0.8 }}
           className="mt-16 pt-8 border-t border-border-color text-center"
         >
           <p className="text-sm md:text-base text-text-secondary italic bg-bg-surface-alt/50 inline-block px-6 py-3 rounded-full border border-border-color/50">
-            Văn bản có mục đích tham khảo và thực thi ngay khi phát hành công khai. Nếu quý khách muốn gỡ bỏ dữ liệu khỏi hệ thống, vui lòng truy cập trang <button className="text-accent hover:text-emerald-500 font-semibold hover:underline inline-flex items-center gap-1 transition-colors" onClick={() => onNavigate({ screen: 'lien-he' })}>Liên hệ</button> và gửi yêu cầu, chúng tôi sẽ xử lý ngay lập tức.
+            Văn bản có mục đích tham khảo và thực thi ngay khi phát hành công khai. Nếu quý khách muốn gỡ bỏ dữ liệu khỏi hệ thống, vui lòng truy cập trang <Link href="/lien-he" className="text-accent hover:text-emerald-500 font-semibold hover:underline inline-flex items-center gap-1 transition-colors">Liên hệ</Link> và gửi yêu cầu, chúng tôi sẽ xử lý ngay lập tức.
           </p>
         </motion.div>
 

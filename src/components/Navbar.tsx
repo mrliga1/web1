@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Home, Building2, ShieldCheck, LogOut, User as UserIcon, Menu, X, Compass, Newspaper, Mail, Phone, Heart } from 'lucide-react';
 import { RouteState, ScreenType } from '../types';
@@ -18,7 +18,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSettingsLoaded = false }: NavbarProps) {
-  const { currentUser, userProfile, logout } = useAuth();
+  const { currentUser, userProfile, logout, ensureAuthReady } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -27,38 +27,53 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
   const router = useRouter();
   const headerRef = useRef<HTMLElement>(null);
 
-  useLayoutEffect(() => {
-    const root = document.documentElement;
-    const updateMenuHeight = () => {
-      const isMobile = window.innerWidth < 1024;
-      const height = Math.ceil(headerRef.current?.getBoundingClientRect().height || 40);
-      const expanded = mobileMenuOpen && isMobile;
-      root.toggleAttribute('data-mobile-menu-open', expanded);
-      root.style.setProperty('--greenia-mobile-nav-height', `${height}px`);
-      root.style.setProperty('--greenia-header-offset', `${expanded || scrollDirection !== 'down' ? height : 0}px`);
-    };
-    updateMenuHeight();
-    const observer = typeof ResizeObserver !== 'undefined'
-      ? new ResizeObserver(updateMenuHeight)
-      : null;
-    if (headerRef.current) observer?.observe(headerRef.current);
-    window.addEventListener('resize', updateMenuHeight);
+  const menuHeightRef = useRef(41);
+  const menuStateRef = useRef({ mobileMenuOpen, scrollDirection });
+  const updateMenuRef = useRef<() => void>(() => undefined);
+  menuStateRef.current = { mobileMenuOpen, scrollDirection };
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const setProperty = (name: string, value: string) => {
+      if (root.style.getPropertyValue(name) !== value) root.style.setProperty(name, value);
+    };
+    const updateMenuHeight = () => {
+      if (typeof ResizeObserver === 'undefined' && headerRef.current) menuHeightRef.current = Math.ceil(headerRef.current.getBoundingClientRect().height);
+      const state = menuStateRef.current;
+      const expanded = state.mobileMenuOpen && window.innerWidth < 1024;
+      const height = menuHeightRef.current;
+      if (root.hasAttribute('data-mobile-menu-open') !== expanded) root.toggleAttribute('data-mobile-menu-open', expanded);
+      setProperty('--greenia-mobile-nav-height', height + 'px');
+      setProperty('--greenia-header-offset', (expanded || state.scrollDirection !== 'down' ? height : 0) + 'px');
+    };
+    updateMenuRef.current = updateMenuHeight;
+    // Lấy kích thước đã được trình duyệt tính, tránh ép dựng lại toàn trang khi hydration.
+    const observer = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(entries => {
+      const entry = entries[0];
+      if (!entry) return;
+      menuHeightRef.current = Math.ceil(entry.borderBoxSize?.[0]?.blockSize ?? entry.contentRect.height + 1);
+      updateMenuHeight();
+    }) : null;
+    if (headerRef.current) {
+      if (observer) observer.observe(headerRef.current);
+      else menuHeightRef.current = Math.ceil(headerRef.current.getBoundingClientRect().height);
+    }
+    updateMenuHeight();
+    window.addEventListener('resize', updateMenuHeight);
     return () => {
       window.removeEventListener('resize', updateMenuHeight);
       observer?.disconnect();
+      updateMenuRef.current = () => undefined;
       root.removeAttribute('data-mobile-menu-open');
       root.style.removeProperty('--greenia-mobile-nav-height');
       root.style.removeProperty('--greenia-header-offset');
     };
-  }, [mobileMenuOpen, scrollDirection]);
+  }, []);
+
+  useEffect(() => updateMenuRef.current(), [mobileMenuOpen, scrollDirection]);
 
   useEffect(() => {
     if (!currentUser) return;
-
-    // Nạp trước tuyến và mã giao diện quản trị để mở trực tiếp khi người dùng bấm vào.
-    router.prefetch('/admin');
-    void import('./AdminPanel');
 
     // Hoàn tất chuyển hướng OAuth nếu nhà cung cấp trả người dùng về trang chủ.
     if (sessionStorage.getItem('redirect_after_login') === 'admin') {
@@ -72,10 +87,9 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
     router.push(getRouteUrl(route));
   };
 
-  const openAuthModal = () => {
-    router.prefetch('/admin');
-    void import('./AdminPanel');
-    setAuthModalOpen(true);
+  const openAuthModal = async () => {
+    try { await ensureAuthReady(); setAuthModalOpen(true); }
+    catch { onShowNotification('Không thể khởi tạo đăng nhập. Vui lòng thử lại.', 'error'); }
   };
 
   const handleSignOut = async () => {

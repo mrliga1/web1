@@ -6,6 +6,7 @@ import Home from "../src/components/Home";
 import { useAppContext } from "../src/contexts/AppContext";
 import { getRouteUrl } from "../src/lib/utils";
 import type { News, Product, Project, RouteState, VisualSection } from "../src/types";
+import { useNotification } from "../src/contexts/NotificationContext";
 
 interface HomePageClientProps {
   initialSections: VisualSection[];
@@ -27,6 +28,7 @@ export default function HomePageClient({
   const [hasSyncedInitialSections, setHasSyncedInitialSections] = useState(false);
   const appliedSectionsSignature = useRef<string | null>(null);
   const router = useRouter();
+  const showNotification = useNotification();
 
   const initialSectionsSignature = useMemo(
     () => JSON.stringify(initialSections),
@@ -50,17 +52,10 @@ export default function HomePageClient({
     router.push(getRouteUrl(route));
   };
 
-  const handleShowNotification: (
-    message: string,
-    type: "success" | "error",
-  ) => void = () => {
-    // Thông báo của trang chủ hiện được xử lý ở lớp giao diện dùng chung.
-  };
-
   return (
     <Home
       onNavigate={handleNavigate}
-      onShowNotification={handleShowNotification}
+      onShowNotification={showNotification}
       isEditMode={isEditMode}
       sections={hasSyncedInitialSections ? sections : initialSections}
       onUpdateSections={setSections}

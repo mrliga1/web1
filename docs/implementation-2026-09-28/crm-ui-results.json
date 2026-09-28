@@ -1,0 +1,40 @@
+{
+  "passed": true,
+  "mockedBackend": true,
+  "results": [
+    {
+      "role": "admin",
+      "passed": true,
+      "tests": [
+        "Hiển thị CRM",
+        "Đổi giai đoạn",
+        "Phân công theo vai trò",
+        "Ghi chú chăm sóc",
+        "Quyền hiển thị xóa",
+        "Phân trang 25 + 3"
+      ]
+    },
+    {
+      "role": "editor",
+      "passed": true,
+      "tests": [
+        "Hiển thị CRM",
+        "Đổi giai đoạn",
+        "Phân công theo vai trò",
+        "Ghi chú chăm sóc",
+        "Quyền hiển thị xóa"
+      ]
+    },
+    {
+      "role": "member",
+      "passed": true,
+      "tests": [
+        "Hiển thị CRM",
+        "Đổi giai đoạn",
+        "Phân công theo vai trò",
+        "Ghi chú chăm sóc",
+        "Quyền hiển thị xóa"
+      ]
+    }
+  ]
+}

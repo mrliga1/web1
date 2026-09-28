@@ -1,8 +1,12 @@
 import { useEffect } from 'react';
 import { setManualIpTrackingPolicy } from '../lib/tracking';
 
-export function useManualIpTrackingPolicy(pathname: string) {
+export function useManualIpTrackingPolicy(pathname: string, enabled = true) {
   useEffect(() => {
+    if (!enabled) {
+      setManualIpTrackingPolicy('pending');
+      return;
+    }
     let disposed = false;
     let controller: AbortController | null = null;
     let interval: ReturnType<typeof setInterval> | undefined;
@@ -47,5 +51,5 @@ export function useManualIpTrackingPolicy(pathname: string) {
       document.removeEventListener('visibilitychange', onVisibility);
       setManualIpTrackingPolicy('pending');
     };
-  }, [pathname]);
+  }, [pathname, enabled]);
 }

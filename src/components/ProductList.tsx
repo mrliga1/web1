@@ -1,3 +1,4 @@
+import { readStoredStringList } from '../lib/browserStorage';
 import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import Link from 'next/link';
 import { formatVietnamDate, generateSlug, generateSrcSet, optimizeImageUrl, getRouteUrl } from '../lib/utils';
@@ -12,6 +13,7 @@ import CustomSectionRenderer from './CustomSectionRenderer';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { locationTree, parseLocation, LocationNode, formatLocationName } from '../lib/locationMapping';
+import { matchesProductLocation } from '../lib/productFilters';
 import { trackContentListView, trackSearch, trackShare, trackWishlist } from '../lib/tracking';
 
 interface ProductListProps {
@@ -85,7 +87,7 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
 
   useEffect(() => {
     try {
-      const favorites: string[] = JSON.parse(localStorage.getItem('saved_favorites') || '[]');
+      const favorites: string[] = readStoredStringList('saved_favorites');
       setIsFavorite(favorites.includes(item.id));
     } catch {
       setIsFavorite(false);
@@ -98,7 +100,7 @@ function CategoryProductRow({ item, priority = false, onNavigate, onShowNotifica
 
   const toggleFavorite = () => {
     try {
-      const favorites: string[] = JSON.parse(localStorage.getItem('saved_favorites') || '[]');
+      const favorites: string[] = readStoredStringList('saved_favorites');
       const nextFavorites = favorites.includes(item.id)
         ? favorites.filter((id) => id !== item.id)
         : [...favorites, item.id];
@@ -382,7 +384,7 @@ export default function ProductList({
   useLayoutEffect(() => {
     if (initialProducts.length === 0) return;
     try {
-      const viewedIds: string[] = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+      const viewedIds: string[] = readStoredStringList('recentlyViewed');
       const historyList =
         initialProducts
           .filter((item) => viewedIds.includes(item.id))
@@ -522,7 +524,7 @@ export default function ProductList({
 
         setFilteredLocationTree(dynamicTree);
 
-        const viewedIds: string[] = JSON.parse(localStorage.getItem('recentlyViewed') || '[]');
+        const viewedIds: string[] = readStoredStringList('recentlyViewed');
         if (viewedIds.length > 0) {
           const historyList = list.filter(p => viewedIds.includes(p.id));
           historyList.sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id));
@@ -569,13 +571,7 @@ export default function ProductList({
     const matchesType = selectedType === 'all' || (selectedType === 'sale' ? p.type !== 'rent' : p.type === 'rent');
     
     // District matches exact text OR hierarchical mappings
-    const matchesDistrict = selectedDistrict === 'all' || (() => {
-      const parsed = parseLocation(p.district || '');
-      return p.district?.trim() === selectedDistrict || 
-             parsed.province === selectedDistrict || 
-             parsed.district === selectedDistrict || 
-             parsed.ward === selectedDistrict;
-    })();
+    const matchesDistrict = matchesProductLocation(p.district, selectedDistrict);
     
     // Category matches exact category OR sub-categories of the selected category
     const matchesCategory = selectedCategory === 'all' || (() => {

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
 import {
   getProductBySlug,
@@ -11,6 +11,7 @@ import { createProductSchemas } from "../../../src/lib/contentSchemas";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { generateSlug, getSocialImageUrl } from "../../../src/lib/utils";
 import { createSearchDescription, getSemanticTerms } from "../../../src/lib/searchIntent";
+import { isContentSearchReady } from "../../../src/lib/searchReadiness";
 
 export const revalidate = 60;
 
@@ -21,7 +22,10 @@ type Props = {
 };
 
 export async function generateStaticParams() {
-  const rows = await getPublishedProducts();
+  const rows = await getPublishedProducts().catch((error) => {
+    console.warn('Chưa tạo trước URL sản phẩm vì nguồn dữ liệu chưa sẵn sàng:', error);
+    return [];
+  });
   return rows
     .filter(({ data }) => data.title?.trim())
     .map(({ data }) => ({ slug: generateSlug(data.title) }));
@@ -35,12 +39,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
 
-  if (!product) {
-    return {
-      title: "Sản phẩm không tồn tại",
-      robots: { index: false, follow: false },
-    };
-  }
+  if (!product) notFound();
+  const metadataSlug = generateSlug(product.title);
+  if (slug !== metadataSlug) permanentRedirect(`/san-pham/${metadataSlug}`);
 
   const sourceTitle =
     product.seoTitle?.trim() ||
@@ -71,6 +72,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title,
+    robots: isContentSearchReady(product) ? undefined : { index: false, follow: true },
     description,
     keywords,
     alternates: { canonical },
@@ -114,6 +116,8 @@ export default async function ProductDetailPage({ params }: Props) {
   ]);
 
   if (!product) notFound();
+  const currentSlug = generateSlug(product.title);
+  if (slug !== currentSlug) permanentRedirect(`/san-pham/${currentSlug}`);
 
   const { listing, breadcrumb, webPage } = createProductSchemas(product, slug);
 

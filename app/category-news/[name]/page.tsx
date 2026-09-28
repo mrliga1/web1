@@ -1,8 +1,9 @@
-import { permanentRedirect } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import ClientWrapper from "./ClientWrapper";
 import { generateSlug } from "../../../src/lib/utils";
 import SchemaMarkup from "../../../src/components/SchemaMarkup";
 import { createCollectionPageSchemas } from "../../../src/lib/contentSchemas";
+import { CORE_INTERNAL_LINKS } from "../../../src/lib/internalLinks";
 import type { CategoryExt } from "../../../src/types";
 import {
   getPublicSettings,
@@ -21,7 +22,10 @@ export async function generateStaticParams() {
   const [generalSettings, newsRows] = await Promise.all([
     getPublicSettings("general"),
     getPublishedNews(),
-  ]);
+  ]).catch((error) => {
+    console.warn('Chưa tạo trước URL danh mục tin tức vì nguồn dữ liệu chưa sẵn sàng:', error);
+    return [{} as Awaited<ReturnType<typeof getPublicSettings>>, []] as const;
+  });
   const configuredCategories = (generalSettings.newsCategoriesExt || []) as Array<{ name?: string }>;
   const categoryNames = new Set<string>();
 
@@ -67,6 +71,14 @@ export default async function CategoryNewsPage({
       generateSlug(item.name || "") === generateSlug(decodedName)
     );
   });
+
+  const isKnownCoreCategory = CORE_INTERNAL_LINKS.some((link) =>
+    link.href === `/category-news/${requestSlug}`,
+  );
+  const hasPublishedNews = newsRows.some(({ data }) =>
+    generateSlug(data.category || '') === requestSlug,
+  );
+  if (!category && !isKnownCoreCategory && !hasPublishedNews) notFound();
 
   if (category?.name) {
     categoryName = category.name;

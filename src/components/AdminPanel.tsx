@@ -18,7 +18,10 @@ import {
   onSnapshot,
 } from "../firebase-realtime";
 import { authFetch } from '../lib/authFetch';
-import { isLeadAssignedTo } from '../lib/crmAccess';
+import CrmWorkspace from './CrmWorkspace';
+import { supabase } from '../supabase';
+import { sanitizeRichHtml } from '../lib/sanitizeRichHtml';
+import { getSearchReadinessWarnings } from '../lib/searchReadiness';
 import { generateSlug, getImageAltFromUrl } from '../lib/utils';
 import {
   PlusCircle,
@@ -52,15 +55,12 @@ import {
   ChevronLeft,
   ArrowLeft,
   Users,
-  MessageSquare,
   UserPlus,
   User,
   Filter,
-  Download,
 } from "lucide-react";
 import { handleFirestoreError, OperationType } from "../firebase-errors";
 import {
-  Consultation,
   Product,
   Project,
   News,
@@ -190,7 +190,6 @@ type RealtimeCollectionSnapshot = {
   forEach: (callback: (doc: LegacyDocSnapshot<RealtimeRow>) => void) => void;
 };
 type SubdivisionCard = NonNullable<Project["subdivisionsCards"]>[number];
-type CareHistoryItem = NonNullable<Consultation["careHistory"]>[number];
 type CustomSectionPosition = CustomSection["position"];
 
 const getErrorMessage = (error: unknown, fallback = "Lỗi không xác định") => {
@@ -276,12 +275,10 @@ export default function AdminPanel({
   const [products, setProducts] = useState<Product[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [news, setNews] = useState<News[]>([]);
-  const [consultations, setConsultations] = useState<Consultation[]>([]);
+  const [crmNewCount, setCrmNewCount] = useState(0);
   const [categories, setCategories] = useState<string[]>([]);
   const [newsCategories, setNewsCategories] = useState<string[]>([]);
   const [blockedIps, setBlockedIps] = useState<string[]>([]);
-  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
-  const [bulkAssignee, setBulkAssignee] = useState("");
   const [newBlockedIp, setNewBlockedIp] = useState("");
   const [seoConfig, setSeoConfig] = useState({
     metaTitle: "Greenia Homes - Cố Vấn Bất Động Sản Chuyên Sâu",
@@ -343,12 +340,8 @@ export default function AdminPanel({
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(null);
   const [editingEmployeeName, setEditingEmployeeName] = useState("");
-  const [crmSelectedLead, setCrmSelectedLead] = useState<Consultation | null>(null);
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [dashboardFilter, setDashboardFilter] = useState<
-    "all" | "new" | "contacted" | "negotiating" | "won"
-  >("all");
   const [usersFilter, setUsersFilter] = useState<"all" | "admin" | "editor" | "member" | "user">("all");
 
   // Interactive Create Masters Form states
@@ -1441,27 +1434,26 @@ export default function AdminPanel({
       },
     );
 
-    const unsubConsultations = onSnapshot(
-      collectionRealtime(dbRealtime, "consultations"),
-      (snap) => {
-        const items: Consultation[] = [];
-        const snapshot = snap as RealtimeCollectionSnapshot;
-        snapshot.forEach((d) => {
-          items.push({ ...((d.data() || {}) as Omit<Consultation, 'id'>), id: d.id } as Consultation);
-        });
-        items.sort(
-          (a, b) =>
-            new Date(b.createdAt || "").getTime() -
-            new Date(a.createdAt || "").getTime(),
-        );
-        setConsultations(items);
-        setLoading(false);
-      },
-      (error) => {
-        handleFirestoreError(error, OperationType.GET, "consultations");
-        setLoading(false);
-      },
-    );
+    let summaryStopped = false;
+    let summaryTimer: ReturnType<typeof setTimeout> | undefined;
+    const refreshCrmSummary = () => {
+      void Promise.resolve(supabase.rpc('query_consultations', { p_page_size: 25 })).then(({ data, error }) => {
+        if (summaryStopped) return;
+        if (error) console.warn('Không thể tải thống kê CRM:', error);
+        else setCrmNewCount(Number(data?.stats?.new) || 0);
+      }).catch((error: unknown) => console.warn('Không thể kết nối thống kê CRM:', error));
+    };
+    refreshCrmSummary();
+    const summaryChannel = supabase.channel('crm-admin-summary')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'consultations' }, () => {
+        clearTimeout(summaryTimer);
+        summaryTimer = setTimeout(refreshCrmSummary, 300);
+      }).subscribe();
+    const unsubConsultations = () => {
+      summaryStopped = true;
+      clearTimeout(summaryTimer);
+      void supabase.removeChannel(summaryChannel);
+    };
 
     const unsubSettings = onSnapshot(
       docRealtime(dbRealtime, "settings", "general"),
@@ -2760,268 +2752,6 @@ export default function AdminPanel({
     }
   };
 
-  const handleDeleteLead = async (id: string) => {
-    if (currentUserRole === "member" || currentUserRole === "editor") {
-      onShowNotification(
-        "Lỗi phân quyền: Bạn không được phép xóa khách hàng khỏi hệ thống CRM.",
-        "error",
-      );
-      return;
-    }
-
-    if (!window.confirm("Bạn có chắc chắn muốn xóa khách hàng này khỏi CRM? Dữ liệu lịch sử chăm sóc đi kèm cũng sẽ bị mất.")) {
-      return;
-    }
-
-    try {
-      const response = await authFetch(
-        `/api/admin/content/consultations/${encodeURIComponent(id)}`,
-        { method: "DELETE" },
-      );
-      const result = await response.json().catch(() => ({})) as { error?: string };
-      if (!response.ok) throw new Error(result.error || "Máy chủ từ chối thao tác xóa");
-
-      setConsultations((current) => current.filter((lead) => lead.id !== id));
-      setSelectedLeadIds((current) => current.filter((leadId) => leadId !== id));
-      onShowNotification("Đã xóa dữ liệu khách hàng thành công!", "success");
-      if (crmSelectedLead?.id === id) {
-        setCrmSelectedLead(null);
-      }
-    } catch (err) {
-      console.error(err);
-      onShowNotification("Gặp lỗi khi xóa dữ liệu khách hàng", "error");
-    }
-  };
-
-  const handleUpdateLeadStatus = async (
-    id: string,
-    newStatus: Consultation["status"],
-    name: string,
-  ) => {
-    try {
-      await updateDoc(doc(db, "consultations", id), {
-        status: newStatus,
-      });
-      setConsultations((current) =>
-        current.map((lead) => lead.id === id ? { ...lead, status: newStatus } : lead),
-      );
-      setCrmSelectedLead((current) =>
-        current?.id === id ? { ...current, status: newStatus } : current,
-      );
-      onShowNotification(`Đã chuyển trạng thái khách hàng ${name}`, "success");
-
-      if (currentUserRole === "member" || currentUserRole === "editor") {
-        try {
-          const pushResponse = await authFetch("/api/push/notify-care-history", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              leadId: id,
-              historyTime: Date.now(),
-              eventType: "status",
-              status: newStatus,
-            }),
-          });
-          if (!pushResponse.ok) {
-            const pushResult = await pushResponse.json().catch(() => ({})) as { error?: string };
-            console.warn("Không thể gửi thông báo trạng thái:", pushResult.error || pushResponse.statusText);
-          }
-        } catch (pushError) {
-          console.warn("Không thể kết nối dịch vụ thông báo trạng thái:", pushError);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      onShowNotification("Không thể cập nhật trạng thái", "error");
-    }
-  };
-
-  const handleUpdateLeadField = async (
-    id: string,
-    field: string,
-    value: unknown,
-    labelText: string,
-  ) => {
-    try {
-      await updateDoc(doc(db, "consultations", id), {
-        [field]: value,
-      });
-      onShowNotification(`Đã lưu ${labelText}`, "success");
-    } catch (err) {
-      console.error(err);
-      onShowNotification(`Không thể lưu ${labelText}`, "error");
-    }
-  };
-
-  const handleUpdateAssignee = async (
-    leadId: string,
-    newValue: string,
-    lead: Consultation,
-  ) => {
-    try {
-      await updateDoc(doc(db, "consultations", leadId), {
-        assignee: newValue,
-      });
-      setConsultations((current) =>
-        current.map((item) => item.id === leadId ? { ...item, assignee: newValue } : item),
-      );
-      setCrmSelectedLead((current) =>
-        current?.id === leadId ? { ...current, assignee: newValue } : current,
-      );
-      onShowNotification("Đã lưu Người phụ trách", "success");
-
-      // Tách email nếu trường người phụ trách có chứa email.
-      const emailMatch = newValue.match(
-        /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/,
-      );
-      if (emailMatch && emailMatch[1]) {
-        const email = emailMatch[1];
-        const assignedUser = users.find(u => u.email === email);
-        const empName = assignedUser ? (assignedUser.employeeName || assignedUser.displayName || assignedUser.username || email) : email;
-
-        const htmlContent = `
-          <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; color: #333;">
-            <h2 style="color: #d4af37;">Khách Hàng Mới Được Giao</h2>
-            <p>Chào <b>${empName}</b>,<br/>Admin vừa giao một khách hàng mới cho bạn trên hệ thống CRM.</p>
-            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-              <tr>
-                <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold; width: 150px;">Họ và Tên</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${lead.name || "---"}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Số điện thoại</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${lead.phone || "---"}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Nhu cầu / Sản phẩm</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${lead.propertyTitle || "---"}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Lời nhắn</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${lead.message || lead.demand || "Không có"}</td>
-              </tr>
-              <tr>
-                <td style="padding: 10px; border: 1px solid #ddd; font-weight: bold;">Nguồn truy cập</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">${lead.sourceUrl || "Trang chủ"}</td>
-              </tr>
-            </table>
-            <p style="margin-top: 20px; font-size: 13px; color: #666;">Vui lòng liên hệ và chăm sóc khách hàng trong thời gian sớm nhất.</p>
-          </div>
-        `;
-
-        await fetch("/api/send-email", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            to: email,
-            subject: `[CRM] Bạn được giao khách hàng: ${lead.name}`,
-            html: htmlContent,
-          }),
-        });
-        onShowNotification("Email đã được gửi đến nhân viên", "success");
-
-        try {
-          const pushResponse = await authFetch("/api/push/notify-assignment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ leadId, email }),
-          });
-          if (!pushResponse.ok) {
-            const pushResult = await pushResponse.json().catch(() => ({})) as { error?: string };
-            console.warn("Không thể gửi Web Push giao khách:", pushResult.error || pushResponse.statusText);
-          }
-        } catch (pushError) {
-          // Không để lỗi Web Push làm thất bại thao tác giao khách đã lưu thành công.
-          console.warn("Không thể kết nối Web Push giao khách:", pushError);
-        }
-      }
-    } catch (err) {
-      console.error(err);
-      onShowNotification("Không thể lưu Người phụ trách", "error");
-    }
-  };
-
-  const handleAddCareHistory = async (lead: Consultation, text: string) => {
-    if (!text.trim()) return;
-    try {
-      const currentUserName = userProfile?.username || currentUser?.email || (currentUserRole === "admin" ? "Admin" : currentUserRole === "editor" ? "Editor" : "Nhân viên");
-      const historyItem: CareHistoryItem = {
-        time: Date.now(),
-        note: text.trim(),
-        author: currentUserName,
-      };
-
-      const newHistory = lead.careHistory
-        ? [...lead.careHistory, historyItem]
-        : [historyItem];
-
-      await updateDoc(doc(db, "consultations", lead.id), {
-        careHistory: newHistory,
-      });
-
-      setConsultations((current) =>
-        current.map((item) => item.id === lead.id ? { ...item, careHistory: newHistory } : item),
-      );
-      onShowNotification("Đã cập nhật lịch sử chăm sóc", "success");
-      setCrmSelectedLead({ ...lead, careHistory: newHistory });
-
-      try {
-        const pushResponse = await authFetch("/api/push/notify-care-history", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ leadId: lead.id, historyTime: historyItem.time }),
-        });
-        if (!pushResponse.ok) {
-          const pushResult = await pushResponse.json().catch(() => ({})) as { error?: string };
-          console.warn("Không thể gửi thông báo lịch sử chăm sóc:", pushResult.error || pushResponse.statusText);
-        }
-      } catch (pushError) {
-        console.warn("Không thể kết nối dịch vụ thông báo lịch sử chăm sóc:", pushError);
-      }
-    } catch (err) {
-      console.error(err);
-      onShowNotification("Lỗi khi cập nhật lịch sử", "error");
-    }
-  };
-
-  const toggleLeadSelection = (id: string) => {
-    setSelectedLeadIds((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
-    );
-  };
-
-  const handleBulkAssign = async () => {
-    if (selectedLeadIds.length === 0) {
-      onShowNotification("Vui lòng chọn ít nhất 1 khách hàng", "error");
-      return;
-    }
-    if (!bulkAssignee.trim()) {
-      onShowNotification("Vui lòng nhập tên/email nhân viên", "error");
-      return;
-    }
-
-    setLoading(true);
-    try {
-      for (const id of selectedLeadIds) {
-        const lead = consultations.find((c) => c.id === id);
-        if (lead) {
-          await handleUpdateAssignee(id, bulkAssignee, lead);
-        }
-      }
-      setSelectedLeadIds([]);
-      setBulkAssignee("");
-      onShowNotification(
-        `Đã giao ${selectedLeadIds.length} khách hàng thành công!`,
-        "success",
-      );
-    } catch (error) {
-      console.error(error);
-      onShowNotification("Có lỗi xảy ra khi giao khách hàng", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleUpdateEmployeeName = async (userId: string, newName: string) => {
     setLoading(true);
     try {
@@ -3094,14 +2824,6 @@ export default function AdminPanel({
     }
   };
 
-  const displayConsultations = React.useMemo(() => {
-    if (currentUserRole === "admin" || currentUserRole === "editor")
-      return consultations;
-    return consultations.filter(
-      (c: Consultation) => isLeadAssignedTo(c.assignee, currentMemberEmail),
-    );
-  }, [consultations, currentUserRole, currentMemberEmail]);
-
   // If unauthorized -> Show prompt to login
   if (authLoading) {
     return (
@@ -3139,13 +2861,6 @@ export default function AdminPanel({
       </div>
     );
   }
-
-  // Helper to resolve email to display name
-  const getAssigneeName = (email?: string) => {
-    if (!email) return "-";
-    const user = users.find((u) => u.email === email);
-    return user ? user.username || user.displayName || user.email : email;
-  };
 
   // Authorised layout view
   return (
@@ -3335,18 +3050,7 @@ export default function AdminPanel({
               >
                 <Mail className="w-4 h-4 shrink-0 text-primary" />
                 <span>Kho Khách Hàng (CRM)</span>
-                {displayConsultations.filter((c) => c.status === "pending")
-                  .length > 0 && (
-                    <span
-                      className="admin-count-badge admin-count-badge--alert ml-auto font-mono animate-pulse"
-                      aria-label={`${displayConsultations.filter((c) => c.status === "pending").length} khách hàng đang chờ`}
-                    >
-                      {
-                        displayConsultations.filter((c) => c.status === "pending")
-                          .length
-                      }
-                    </span>
-                  )}
+                {crmNewCount > 0 && <span className="admin-count-badge admin-count-badge--alert ml-auto font-mono" aria-label={crmNewCount + " khách hàng mới"}>{crmNewCount}</span>}
               </button>
             )}
 
@@ -5134,882 +4838,7 @@ export default function AdminPanel({
             {/* =========================================================
             TAB 6: Leads & CRM
             ========================================================= */}
-            {activeTab === "leads" && (
-              <div
-                className="space-y-4 md:space-y-6 text-left relative"
-                id="crm-workspace"
-              >
-                {!crmSelectedLead ? (
-                  <div className="space-y-4 md:space-y-6 flex-1">
-                    {/* CRM Header Dashboard */}
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-200 pb-3 mb-4">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setActiveTab("listings")}
-                          className="p-1.5 bg-slate-100 hover:bg-slate-300 text-slate-800 rounded-lg transition-colors cursor-pointer"
-                          title="Quay lại Bảng Thống Kê"
-                        >
-                          <ArrowLeft className="w-4 h-4" />
-                        </button>
-                        <div>
-                          <h3 className="font-display font-bold text-base sm:text-lg text-slate-900 flex items-center gap-2">
-                            <UserPlus className="w-5 h-5 text-primary" />
-                            Hệ thống CRM
-                          </h3>
-                          <p className="text-[11px] text-slate-700 mt-0.5">
-                            Theo dõi, phân loại và quản lý toàn bộ vòng đời
-                            khách hàng.
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => {
-                            const headers = [
-                              "Họ Tên",
-                              "Số điện thoại",
-                              "Email",
-                              "Sản phẩm/Dự án quan tâm",
-                              "Nội dung tin nhắn (Nhu cầu)",
-                              "Trạng thái",
-                              "Ngày tạo",
-                              "Nhân viên phụ trách",
-                              "Ghi chú (Admin)",
-                              "IP Khách hàng",
-                              "URL Nguồn",
-                            ];
-                            const rows = displayConsultations.map((c) => {
-                              return [
-                                `"${c.name || ""}"`,
-                                `"${c.phone || ""}"`,
-                                `"${c.email || ""}"`,
-                                `"${c.propertyTitle || ""}"`,
-                                `"${(c.message || c.demand || "").replace(/"/g, '""')}"`,
-                                `"${c.status}"`,
-                                `"${new Date(c.createdAt).toLocaleString("vi-VN")}"`,
-                                `"${c.assignee || "Chưa giao"}"`,
-                                `"${(c.notes || "").replace(/"/g, '""')}"`,
-                                `"${c.ipAddress || ""}"`,
-                                `"${c.sourceUrl || ""}"`,
-                              ];
-                            });
-                            const csvContent =
-                              "\uFEFF" +
-                              [
-                                headers.join(","),
-                                ...rows.map((r) => r.join(",")),
-                              ].join("\n");
-                            const blob = new Blob([csvContent], {
-                              type: "text/csv;charset=utf-8;",
-                            });
-                            const url = URL.createObjectURL(blob);
-                            const link = document.createElement("a");
-                            link.setAttribute("href", url);
-                            link.setAttribute(
-                              "download",
-                              `danh_sach_crm_${new Date().getTime()}.csv`,
-                            );
-                            document.body.appendChild(link);
-                            link.click();
-                            document.body.removeChild(link);
-                          }}
-                          className="bg-[#064E3B]/20 text-accent border border-primary/30 hover:bg-primary hover:text-white px-2.5 py-1 text-[11px] font-bold rounded flex items-center gap-1.5 transition-colors"
-                        >
-                          <Download className="w-3.5 h-3.5" /> Xuất Excel
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Quick Metrics */}
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
-                      <div
-                        className={`bg-slate-50 border px-3 py-2 h-[43.5px] rounded-lg cursor-pointer transition-colors ${dashboardFilter === "new" ? "border-primary bg-primary/10" : "border-zinc-800 hover:border-slate-600"}`}
-                        onClick={() =>
-                          setDashboardFilter(
-                            dashboardFilter === "new" ? "all" : "new",
-                          )
-                        }
-                      >
-                        <span
-                          className={`text-[9px] font-bold tracking-wider block mb-1 ${dashboardFilter === "new" ? "text-primary" : "text-slate-600"}`}
-                        >
-                          Khách Mới
-                        </span>
-                        <div
-                          className={`text-[12px] leading-[12px] font-bold ${dashboardFilter === "new" ? "text-primary" : "text-slate-900"}`}
-                        >
-                          {
-                            displayConsultations.filter(
-                              (c) =>
-                                c.status === "pending" || c.status === "new",
-                            ).length
-                          }
-                        </div>
-                      </div>
-                      <div
-                        className={`bg-slate-50 border px-3 py-2 h-[43.5px] rounded-lg cursor-pointer transition-colors ${dashboardFilter === "contacted" ? "border-sky-500 bg-sky-500/10" : "border-zinc-800 hover:border-slate-600"}`}
-                        onClick={() =>
-                          setDashboardFilter(
-                            dashboardFilter === "contacted"
-                              ? "all"
-                              : "contacted",
-                          )
-                        }
-                      >
-                        <span
-                          className={`text-[9px] font-bold tracking-wider block mb-1 ${dashboardFilter === "contacted" ? "text-sky-400" : "text-slate-600"}`}
-                        >
-                          Đã Liên Hệ
-                        </span>
-                        <div
-                          className={`text-[12px] leading-[12px] font-bold ${dashboardFilter === "contacted" ? "text-sky-400" : "text-slate-900"}`}
-                        >
-                          {
-                            displayConsultations.filter(
-                              (c) =>
-                                c.status === "processed" ||
-                                c.status === "contacted",
-                            ).length
-                          }
-                        </div>
-                      </div>
-                      <div
-                        className={`bg-slate-50 border px-3 py-2 h-[43.5px] rounded-lg cursor-pointer transition-colors ${dashboardFilter === "negotiating" ? "border-purple-500 bg-purple-500/10" : "border-zinc-800 hover:border-slate-600"}`}
-                        onClick={() =>
-                          setDashboardFilter(
-                            dashboardFilter === "negotiating"
-                              ? "all"
-                              : "negotiating",
-                          )
-                        }
-                      >
-                        <span
-                          className={`text-[9px] font-bold tracking-wider block mb-1 ${dashboardFilter === "negotiating" ? "text-purple-400" : "text-slate-600"}`}
-                        >
-                          Tiềm Năng
-                        </span>
-                        <div
-                          className={`text-[12px] leading-[12px] font-bold ${dashboardFilter === "negotiating" ? "text-purple-400" : "text-slate-900"}`}
-                        >
-                          {
-                            displayConsultations.filter(
-                              (c) => c.status === "negotiating",
-                            ).length
-                          }
-                        </div>
-                      </div>
-                      <div
-                        className={`bg-slate-50 border px-3 py-2 h-[43.5px] rounded-lg cursor-pointer transition-colors ${dashboardFilter === "won" ? "border-primary bg-accent/10" : "border-zinc-800 hover:border-slate-600"}`}
-                        onClick={() =>
-                          setDashboardFilter(
-                            dashboardFilter === "won" ? "all" : "won",
-                          )
-                        }
-                      >
-                        <span
-                          className={`text-[9px] font-bold tracking-wider block mb-1 ${dashboardFilter === "won" ? "text-emerald-400" : "text-slate-600"}`}
-                        >
-                          Chốt thành công
-                        </span>
-                        <div
-                          className={`text-[12px] leading-[12px] font-bold ${dashboardFilter === "won" ? "text-emerald-400" : "text-slate-900"}`}
-                        >
-                          {
-                            displayConsultations.filter(
-                              (c) => c.status === "won",
-                            ).length
-                          }
-                        </div>
-                      </div>
-                      <div className="bg-slate-50 border px-3 py-2 h-[43.5px] border-slate-200 rounded-lg border-l-2 border-l-rose-500">
-                        <span className="text-[9px] text-slate-700 font-bold tracking-wider block mb-1">
-                          Tỉ lệ chuyển đổi
-                        </span>
-                        <div className="text-[12px] leading-[12px] font-bold text-slate-900">
-                          {displayConsultations.length > 0
-                            ? Math.round(
-                              (displayConsultations.filter(
-                                (c) => c.status === "won",
-                              ).length /
-                                displayConsultations.length) *
-                              100,
-                            )
-                            : 0}
-                          %
-                        </div>
-                      </div>
-                      <div
-                        className={`bg-slate-50 border px-3 py-2 h-[43.5px] rounded-lg cursor-pointer transition-colors ${dashboardFilter === "all" ? "border-primary bg-accent/10" : "border-zinc-800 hover:border-slate-600"}`}
-                        onClick={() => setDashboardFilter("all")}
-                      >
-                        <span
-                          className={`text-[9px] font-bold tracking-wider block mb-1 ${dashboardFilter === "all" ? "text-emerald-400" : "text-slate-600"}`}
-                        >
-                          Số Lượng
-                        </span>
-                        <div
-                          className={`text-[12px] leading-[12px] font-bold ${dashboardFilter === "all" ? "text-emerald-400" : "text-slate-900"}`}
-                        >
-                          {displayConsultations.length}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bulk Selection Toolbar */}
-                    {(currentUserRole === "admin" ||
-                      currentUserRole === "editor") &&
-                      selectedLeadIds.length > 0 && (
-                        <div className="bg-slate-100 border border-primary/30 rounded-xl p-3 flex flex-wrap items-center justify-between gap-4 shadow-lg animate-in fade-in slide-in-from-bottom-2 z-10 sticky top-0">
-                          <div className="flex items-center gap-2">
-                            <div className="bg-primary/20 text-primary px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1.5 shrink-0">
-                              <CheckCircle className="w-4 h-4" /> Đã chọn{" "}
-                              {selectedLeadIds.length} khách
-                            </div>
-                            <button
-                              onClick={() => setSelectedLeadIds([])}
-                              className="text-xs text-slate-700 hover:text-slate-900 px-2 cursor-pointer"
-                            >
-                              Bỏ chọn
-                            </button>
-                          </div>
-
-                          <div className="flex items-center gap-2 w-full md:w-auto">
-                            <UserPlus className="w-4 h-4 text-slate-700 hidden sm:block" />
-                            <select
-                              className="bg-slate-50 border border-slate-300 text-sm text-slate-900 px-3 py-1.5 rounded-lg outline-none focus:border-primary flex-1 min-w-[200px] cursor-pointer"
-                              value={bulkAssignee}
-                              onChange={(e) => setBulkAssignee(e.target.value)}
-                            >
-                              <option value="">-- Chọn nhân viên --</option>
-                              {users
-                                .filter((u) => u.role !== "user")
-                                .map((u) => (
-                                  <option key={u.id} value={u.email}>
-                                    {u.employeeName || u.displayName || u.username || u.email}
-                                  </option>
-                                ))}
-                            </select>
-                            <button
-                              onClick={handleBulkAssign}
-                              className="bg-primary hover:bg-primary/90 text-white font-bold px-4 py-1.5 rounded-lg text-xs tracking-wider shrink-0 transition-colors cursor-pointer shadow-sm"
-                            >
-                              Giao việc
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                    {/* Main CRM View Layer */}
-                    <div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden mt-4">
-                      <div className="w-full overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                          <thead>
-                            <tr className="bg-white border-b border-slate-200 text-[10px] font-bold text-slate-700 tracking-wider h-[30.5px]">
-                              {(currentUserRole === "admin" ||
-                                currentUserRole === "editor") && (
-                                  <th className="px-2 sm:px-4 pt-[3px] pb-0 w-[40px]">
-                                    <input
-                                      type="checkbox"
-                                      checked={
-                                        displayConsultations.length > 0 &&
-                                        selectedLeadIds.length ===
-                                        displayConsultations.length
-                                      }
-                                      onChange={(e) => {
-                                        if (e.target.checked) {
-                                          setSelectedLeadIds(
-                                            displayConsultations.map((c) => c.id),
-                                          );
-                                        } else {
-                                          setSelectedLeadIds([]);
-                                        }
-                                      }}
-                                      className="w-3.5 h-3.5 rounded bg-slate-50 border-slate-300 text-primary focus:ring-primary/30 cursor-pointer"
-                                    />
-                                  </th>
-                                )}
-                              <th className="px-2 sm:px-4 pt-[3px] pb-0 whitespace-nowrap">
-                                Khách hàng
-                              </th>
-                              <th className="hidden md:table-cell px-4 pt-[3px] pb-0 whitespace-nowrap">
-                                IP khách hàng
-                              </th>
-                              <th className="hidden sm:table-cell px-2 sm:px-4 pt-[3px] pb-0">
-                                Nhu cầu
-                              </th>
-                              <th className="hidden sm:table-cell px-2 sm:px-4 pt-[3px] pb-0">
-                                Vị trí điền form
-                              </th>
-                              <th className="px-2 sm:px-4 pt-[3px] pb-0 whitespace-nowrap">
-                                Trạng thái
-                              </th>
-                              <th className="hidden md:table-cell px-4 pt-[3px] pb-0">
-                                Người chăm sóc
-                              </th>
-                              <th className="hidden lg:table-cell px-4 pt-[3px] pb-0 whitespace-nowrap">
-                                Ngày tạo
-                              </th>
-                              <th className="px-2 sm:px-4 pt-[3px] pb-0 whitespace-nowrap"></th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-200">
-                            {displayConsultations
-                              .filter((c) => {
-                                if (dashboardFilter === "all") return true;
-                                if (dashboardFilter === "new")
-                                  return (
-                                    c.status === "pending" || c.status === "new"
-                                  );
-                                if (dashboardFilter === "contacted")
-                                  return (
-                                    c.status === "processed" ||
-                                    c.status === "contacted"
-                                  );
-                                if (dashboardFilter === "negotiating")
-                                  return c.status === "negotiating";
-                                if (dashboardFilter === "won")
-                                  return c.status === "won";
-                                return true;
-                              })
-                              .map((lead) => {
-                                const s = lead.status;
-                                const mappedStatus =
-                                  s === "pending"
-                                    ? "new"
-                                    : s === "processed"
-                                      ? "contacted"
-                                      : s;
-                                return (
-                                  <tr
-                                    key={lead.id}
-                                    className={`hover:bg-slate-100 transition-colors ${selectedLeadIds.includes(lead.id) ? "bg-primary/5" : ""}`}
-                                  >
-                                    {(currentUserRole === "admin" ||
-                                      currentUserRole === "editor") && (
-                                        <td
-                                          className="px-2 sm:px-4 py-2"
-                                          onClick={(e) => e.stopPropagation()}
-                                        >
-                                          <input
-                                            type="checkbox"
-                                            checked={selectedLeadIds.includes(
-                                              lead.id,
-                                            )}
-                                            onChange={(e) => {
-                                              e.stopPropagation();
-                                              toggleLeadSelection(lead.id);
-                                            }}
-                                            className="w-3.5 h-3.5 rounded bg-slate-50 border-slate-300 text-primary focus:ring-primary/30 cursor-pointer"
-                                          />
-                                        </td>
-                                      )}
-                                    <td className="px-2 sm:px-4 py-2">
-                                      <div className="font-bold text-slate-900 sm:text-sm text-xs">
-                                        {lead.name}
-                                      </div>
-                                      <div className="text-[10px] sm:text-xs text-slate-700 font-mono mt-0.5">
-                                        {lead.phone}
-                                      </div>
-                                    </td>
-                                    <td className="hidden md:table-cell px-4 py-0 text-xs font-mono text-slate-700">
-                                      {lead.ipAddress || "---.---.---.---"}
-                                    </td>
-                                    <td className="hidden sm:table-cell px-2 sm:px-4 py-0">
-                                      <div className="text-[11px] sm:text-xs text-slate-700 font-medium py-2 break-words max-w-[250px] whitespace-normal">
-                                        {lead.message || lead.demand || <span className="text-slate-400 italic font-normal">Không có</span>}
-                                      </div>
-                                    </td>
-                                    <td className="hidden sm:table-cell px-2 sm:px-4 py-0">
-                                      <div className="text-[11px] sm:text-xs text-slate-700 font-medium py-2 break-words max-w-[200px] whitespace-normal">
-                                        {lead.sourceUrl ? (
-                                          <a href={lead.sourceUrl} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline hover:text-primary-light transition-colors break-all">
-                                            {lead.sourceUrl}
-                                          </a>
-                                        ) : (
-                                          <span className="text-slate-400 italic font-normal">Không có</span>
-                                        )}
-                                      </div>
-                                    </td>
-                                    <td className="px-2 sm:px-4 py-0">
-                                      <span
-                                        className={`text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 sm:px-2 sm:py-1 rounded inline-block ${mappedStatus === "new"
-                                            ? "bg-blue-500/20 text-blue-400"
-                                            : mappedStatus === "contacted"
-                                              ? "bg-primary/20 text-primary-light"
-                                              : mappedStatus === "negotiating"
-                                                ? "bg-purple-500/20 text-purple-400"
-                                                : mappedStatus === "won"
-                                                  ? "bg-accent/20 text-emerald-400"
-                                                  : "bg-slate-700 text-slate-700"
-                                          }`}
-                                      >
-                                        {mappedStatus === "new"
-                                          ? "Khách mới"
-                                          : mappedStatus === "contacted"
-                                            ? "Đã liên hệ"
-                                            : mappedStatus === "negotiating"
-                                              ? "Tiềm năng"
-                                              : mappedStatus === "won"
-                                                ? "Chốt thành công"
-                                                : mappedStatus}
-                                      </span>
-                                    </td>
-                                    <td className="hidden md:table-cell px-4 py-0 text-xs font-mono font-medium text-primary-light/90">
-                                      <div className="flex items-center gap-1.5 break-all max-w-[150px] py-2">
-                                        <UserCheck className="w-3.5 h-3.5 text-accent/80 shrink-0" />{" "}
-                                        {getAssigneeName(lead.assignee)}
-                                      </div>
-                                    </td>
-                                    <td className="hidden lg:table-cell px-4 py-0 text-xs text-slate-500">
-                                      {new Date(
-                                        lead.createdAt,
-                                      ).toLocaleDateString("vi-VN")}
-                                    </td>
-                                    <td className="px-2 sm:px-4 py-0 text-right">
-                                      <div className="flex items-center justify-end gap-2">
-                                        <button
-                                          onClick={() => {
-                                            setCrmSelectedLead(lead);
-                                            window.scrollTo({ top: 0, behavior: "smooth" });
-                                          }}
-                                          className="bg-slate-100 hover:bg-slate-300 text-slate-900 p-2 rounded-lg transition-colors inline-block"
-                                          title="Xem chi tiết"
-                                        >
-                                          <Eye className="w-4 h-4" />
-                                        </button>
-                                        {(currentUserRole === "admin" ||
-                                          currentUserRole === "editor") && (
-                                            <button
-                                              onClick={() =>
-                                                handleDeleteLead(lead.id)
-                                              }
-                                              className="bg-red-500/10 hover:bg-red-500/20 text-red-500 p-2 rounded-lg transition-colors inline-block"
-                                              title="Xóa khách hàng"
-                                            >
-                                              <Trash2 className="w-4 h-4" />
-                                            </button>
-                                          )}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                );
-                              })}
-                            {displayConsultations.length === 0 && (
-                              <tr>
-                                <td
-                                  colSpan={7}
-                                  className="p-8 text-center text-slate-500"
-                                >
-                                  Hệ thống chưa có khách hàng nào.
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="bg-slate-50 border border-slate-200 rounded-xl overflow-hidden flex flex-col w-full shadow-sm animate-in fade-in zoom-in-95 duration-200">
-                    {/* Header as Excel Tabs / Toolbar */}
-                    <div className="px-3 py-0 border-b border-slate-300 bg-slate-50 flex justify-between items-center z-10 w-full shrink-0">
-                      <div className="flex items-center gap-3">
-                        <button
-                          onClick={() => setCrmSelectedLead(null)}
-                          className="cursor-pointer bg-slate-100 hover:bg-slate-300 text-slate-800 px-2 sm:px-3 py-[5px] rounded text-[10px] font-bold flex items-center gap-1 transition-colors border border-slate-300"
-                        >
-                          <ChevronLeft className="w-4 h-4" /> Đóng
-                        </button>
-                        <div>
-                          <h3 className="font-bold text-xs sm:text-sm text-slate-900 font-mono leading-tight flex items-center gap-2">
-                            <span className="truncate max-w-[150px] sm:max-w-[300px] inline-block">
-                              {crmSelectedLead.name || "Khách hàng"}
-                            </span>
-                          </h3>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {(currentUserRole === "admin" ||
-                          currentUserRole === "editor") && (
-                            <button
-                              onClick={() => handleDeleteLead(crmSelectedLead.id)}
-                              className="cursor-pointer text-[11px] text-rose-500 font-bold hover:text-rose-400 px-3 py-1.5 border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 rounded flex items-center gap-1 transition-colors"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" /> Xóa
-                            </button>
-                          )}
-                      </div>
-                    </div>
-
-                    {/* Body Content - Spreadsheet layout */}
-                    <div className="p-2 sm:p-4 overflow-y-auto w-full bg-white flex-1">
-                      {/* Cập nhật thông tin chung - Dạng bảng ngang */}
-                      <div className="bg-slate-50 border border-slate-300 rounded-lg mb-6 overflow-hidden flex flex-col w-full text-sm text-slate-800">
-                        <div className="bg-slate-100 border-b border-slate-300 p-2 sm:p-3 font-bold text-slate-900 text-[10px] flex items-center gap-2">
-                          <UserCheck className="w-3.5 h-3.5 text-primary" />{" "}
-                          Thông tin liên lạc
-                        </div>
-                        <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] lg:grid-cols-[120px_1fr_120px_1fr]">
-                          {/* Trạng Thái & Phụ Trách */}
-                          <div className="bg-slate-100 text-slate-700 p-2 sm:p-3 border-b border-r border-slate-300 font-semibold text-[10px] sm:text-[11px] flex items-center">
-                            Trạng thái
-                          </div>
-                          <div className="bg-white p-0 border-b lg:border-r border-slate-300 h-9 sm:h-10 lg:h-auto">
-                            <select
-                              value={
-                                crmSelectedLead.status === "pending"
-                                  ? "new"
-                                  : crmSelectedLead.status === "processed"
-                                    ? "contacted"
-                                    : crmSelectedLead.status
-                              }
-                              onChange={(e) => {
-                                const st = e.target.value as Consultation["status"];
-                                handleUpdateLeadStatus(
-                                  crmSelectedLead.id,
-                                  st,
-                                  crmSelectedLead.name,
-                                );
-                                setCrmSelectedLead({
-                                  ...crmSelectedLead,
-                                  status: st,
-                                });
-                              }}
-                              className="w-full h-full bg-transparent border-none text-[11px] sm:text-xs text-primary-light px-2 sm:px-3 py-1 sm:py-2 outline-none cursor-pointer font-bold"
-                            >
-                              {[
-                                "new",
-                                "contacted",
-                                "negotiating",
-                                "won",
-                                "lost",
-                              ].map((st) => (
-                                <option
-                                  key={st}
-                                  value={st}
-                                  className="bg-slate-50 text-slate-800"
-                                >
-                                  {st === "new"
-                                    ? "Khách mới"
-                                    : st === "contacted"
-                                      ? "Đã liên hệ"
-                                      : st === "negotiating"
-                                        ? "Tiềm năng"
-                                        : st === "won"
-                                          ? "Chốt thành công"
-                                          : "Thất bại"}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="bg-slate-100 text-slate-700 p-2 sm:p-3 border-b border-r border-slate-300 font-semibold text-[10px] sm:text-[11px] flex items-center">
-                            NV phụ trách
-                          </div>
-                          <div className="bg-white p-0 border-b border-slate-300 h-9 sm:h-10 lg:h-auto">
-                            <select
-                              className="w-full h-full bg-transparent border-none text-[11px] sm:text-xs text-slate-900 px-2 sm:px-3 py-1 sm:py-2 outline-none disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                              disabled={
-                                currentUserRole !== "admin" &&
-                                currentUserRole !== "editor"
-                              }
-                              value={crmSelectedLead.assignee || ""}
-                              onChange={(e) => {
-                                if (
-                                  currentUserRole !== "admin" &&
-                                  currentUserRole !== "editor"
-                                )
-                                  return;
-                                const val = e.target.value;
-                                if (val !== crmSelectedLead.assignee) {
-                                  handleUpdateAssignee(
-                                    crmSelectedLead.id,
-                                    val,
-                                    crmSelectedLead,
-                                  );
-                                  setCrmSelectedLead({
-                                    ...crmSelectedLead,
-                                    assignee: val,
-                                  });
-                                }
-                              }}
-                            >
-                              <option value="">
-                                -- Chưa giao NV --
-                              </option>
-                              {users
-                                .filter((u) => u.role !== "user")
-                                .map((u) => (
-                                  <option
-                                    key={u.id}
-                                    value={u.email}
-                                  >
-                                    {u.employeeName || u.displayName || u.username || u.email}
-                                  </option>
-                                ))}
-                              {crmSelectedLead.assignee &&
-                                !users.find(
-                                  (u) => u.email === crmSelectedLead.assignee,
-                                ) && (
-                                  <option
-                                    value={crmSelectedLead.assignee}
-                                    className="bg-slate-50"
-                                  >
-                                    {crmSelectedLead.assignee}
-                                  </option>
-                                )}
-                            </select>
-                          </div>
-
-                          {/* Điện thoại & Mức độ */}
-                          <div className="bg-slate-100 text-slate-700 p-2 sm:p-3 border-b border-r border-slate-300 font-semibold text-[10px] sm:text-[11px] flex items-center">
-                            Điện thoại
-                          </div>
-                          <div className="bg-white p-2 sm:p-3 border-b lg:border-r border-slate-300 font-bold text-primary font-mono text-xs sm:text-sm flex items-center">
-                            {crmSelectedLead.phone ? (
-                              <a href={`tel:${crmSelectedLead.phone.replace(/[^0-9+]/g, '')}`} className="hover:underline inline-block">
-                                {crmSelectedLead.phone}
-                              </a>
-                            ) : "Chưa cung cấp"}
-                          </div>
-
-                          <div className="bg-slate-100 text-slate-700 p-2 sm:p-3 border-b border-r border-slate-300 font-semibold text-[10px] sm:text-[11px] flex items-center">
-                            Mức độ ưu tiên
-                          </div>
-                          <div className="bg-white p-0 border-b border-slate-300 h-9 sm:h-10 lg:h-auto">
-                            <select
-                              className="w-full h-full bg-transparent border-none text-[11px] sm:text-xs text-slate-800 px-2 sm:px-3 py-1 sm:py-2 outline-none cursor-pointer"
-                              value={crmSelectedLead.priority || "medium"}
-                              onChange={(e) => {
-                                handleUpdateLeadField(
-                                  crmSelectedLead.id,
-                                  "priority",
-                                  e.target.value,
-                                  "Mức độ ưu tiên",
-                                );
-                                setCrmSelectedLead({
-                                  ...crmSelectedLead,
-                                  priority: e.target.value as Consultation["priority"],
-                                });
-                              }}
-                            >
-                              <option value="high" className="bg-slate-50">
-                                🔴 Cao (Gấp, Tiềm năng)
-                              </option>
-                              <option value="medium" className="bg-slate-50">
-                                ⚡ Trung Bình
-                              </option>
-                              <option value="low" className="bg-slate-50">
-                                ❄️ Thấp (Chỉ tham khảo)
-                              </option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] lg:grid-cols-[120px_1fr]">
-                          <div className="bg-slate-100 text-slate-700 p-2 sm:p-3 border-b border-r border-slate-300 font-semibold text-[10px] sm:text-[11px] flex items-center">
-                            Email
-                          </div>
-                          <div className="bg-white p-2 sm:p-3 border-b border-slate-300 font-medium text-slate-900 break-words text-[11px] sm:text-xs flex items-center">
-                            {crmSelectedLead.email ? (
-                              <a href={`mailto:${crmSelectedLead.email}`} className="text-primary hover:underline">
-                                {crmSelectedLead.email}
-                              </a>
-                            ) : "Chưa cung cấp"}
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] lg:grid-cols-[120px_1fr]">
-                          <div className="bg-slate-100 text-slate-700 p-2 sm:p-3 border-b lg:border-b-0 border-r border-slate-300 font-semibold text-[10px] sm:text-[11px] flex items-center">
-                            Nhu cầu
-                          </div>
-                          <div className="bg-white p-2 sm:p-3 border-b lg:border-b-0 border-slate-300 font-medium text-slate-900 break-words text-[11px] sm:text-xs flex items-center">
-                            {crmSelectedLead.message?.trim() ||
-                              crmSelectedLead.demand?.trim() ||
-                              crmSelectedLead.propertyTitle?.replace?.(
-                                /Giao diện liên hệ:\s*/i,
-                                "",
-                              ) ||
-                              "Chưa xác định"}
-                          </div>
-                        </div>
-
-                        {(crmSelectedLead.spamStatus === 'review' || crmSelectedLead.spamStatus === 'blocked' || Number(crmSelectedLead.spamScore) > 0) && (
-                          <div className="border-t border-amber-200 bg-amber-50 p-3 text-xs text-amber-950" role="note">
-                            <p className="font-semibold">Cảnh báo cần kiểm tra thủ công — {crmSelectedLead.spamScore || 0} điểm</p>
-                            <p>{crmSelectedLead.spamReasons?.join('; ') || 'Khách có thông tin cần đối chiếu.'}</p>
-                            <p className="mt-1">Cảnh báo không tự chặn đăng ký mới. IP: {crmSelectedLead.ipAddress || 'Không xác định'}. Khách có thể quay lại quan tâm cùng hoặc khác sản phẩm.</p>
-                            {currentUserRole === 'admin' && crmSelectedLead.ipAddress && (
-                              <button type="button" onClick={() => { setNewBlockedIp(crmSelectedLead.ipAddress || ''); setActiveTab('blocked_ips'); }} className="mt-2 font-semibold text-primary underline">Kiểm tra danh sách chặn IP</button>
-                            )}
-                          </div>
-                        )}
-
-                        {(crmSelectedLead.sourceUrl || crmSelectedLead.popupOpenedUrl) && (
-                          <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] border-t border-slate-300">
-                            <div className="border-r border-slate-300 bg-slate-100 p-3 text-[11px] font-semibold text-slate-700">Trang quan tâm</div>
-                            <div className="space-y-2 bg-white p-3 text-xs text-slate-900">
-                              <p>{crmSelectedLead.pageTitle || crmSelectedLead.propertyTitle || 'Trang gửi yêu cầu'}</p>
-                              {crmSelectedLead.sourceUrl && /^https?:\/\//i.test(crmSelectedLead.sourceUrl) && (
-                                <a href={crmSelectedLead.sourceUrl} target="_blank" rel="noopener noreferrer" className="block break-all text-primary underline">{crmSelectedLead.sourceUrl}</a>
-                              )}
-                              {crmSelectedLead.popupOpenedUrl && /^https?:\/\//i.test(crmSelectedLead.popupOpenedUrl) && (
-                                <p>Popup mở tại: <a href={crmSelectedLead.popupOpenedUrl} target="_blank" rel="noopener noreferrer" className="break-all text-primary underline">{crmSelectedLead.popupOpenedTitle || crmSelectedLead.popupOpenedUrl}</a></p>
-                              )}
-                            </div>
-                          </div>
-                        )}
-
-                        {crmSelectedLead.images &&
-                          crmSelectedLead.images.length > 0 && (
-                            <div className="grid grid-cols-[100px_1fr] sm:grid-cols-[120px_1fr] lg:grid-cols-[120px_1fr] border-t border-slate-300">
-                              <div className="bg-slate-100 text-slate-700 p-2 sm:p-3 border-b lg:border-b-0 border-r border-slate-300 font-semibold text-[10px] sm:text-[11px] flex items-center">
-                                Ảnh đính kèm
-                              </div>
-                              <div className="bg-white p-2 sm:p-3 border-b lg:border-b-0 border-slate-300">
-                                <div className="flex gap-2 flex-wrap">
-                                  {crmSelectedLead.images.map(
-                                    (img: string, idx: number) => (
-                                      <a
-                                        href={img}
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        key={idx}
-                                        className="block border border-slate-600 w-12 h-12 sm:w-16 sm:h-16 hover:border-primary rounded overflow-hidden"
-                                      >
-                                        <img loading="lazy" decoding="async"
-                                          src={(img) || undefined}
-                                          alt={getImageAltFromUrl(img, "Ảnh đính kèm khách hàng")}
-                                          className="w-full h-full object-cover"
-                                        />
-                                      </a>
-                                    ),
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          )}
-                      </div>
-
-                      {/* Bảng Lịch sử liên hệ - Dạng Excel Dọc */}
-                      <div>
-                        <div className="flex flex-col sm:flex-row justify-between sm:items-end mb-2 gap-2">
-                          <h4 className="text-xs font-bold text-slate-900 flex items-center gap-2">
-                            <MessageSquare className="w-4 h-4 text-accent" />{" "}
-                            Bảng cập nhật lịch sử chăm sóc
-                          </h4>
-                          <span className="text-[10px] text-slate-500 font-mono">
-                            Tạo ngày:{" "}
-                            {new Date(
-                              crmSelectedLead.createdAt,
-                            ).toLocaleDateString("vi-VN")}{" "}
-                            | Nguồn: {crmSelectedLead.source || "Website"}
-                          </span>
-                        </div>
-
-                        <div className="overflow-x-auto w-full rounded-lg border border-slate-300">
-                          <table className="w-full text-left text-sm text-slate-800 border-collapse bg-slate-50">
-                            <thead>
-                              <tr className="bg-slate-100 text-slate-900 text-[10px]">
-                                <th className="border-b md:border-r border-slate-300 p-2 w-[70px] sm:w-[150px] font-bold">
-                                  Thời gian
-                                </th>
-                                <th className="hidden sm:table-cell border-b md:border-r border-slate-300 p-2 w-[120px] font-bold">
-                                  Người xử lý
-                                </th>
-                                <th className="border-b border-slate-300 p-2 font-bold text-primary">
-                                  Nội dung
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              {/* Hàng nhập liệu mới ở trên cùng */}
-                              <tr className="bg-primary/5 ">
-                                <td className="border-b md:border-r border-slate-300 p-0 align-middle text-center text-[9px] sm:text-[10px] font-bold text-primary/50 tracking-widest">
-                                  Ghi chú
-                                </td>
-                                <td
-                                  colSpan={2}
-                                  className="border-b border-slate-300 p-0 bg-white relative"
-                                >
-                                  <div className="flex min-h-[32px]">
-                                    <textarea
-                                      id="care-history-input"
-                                      className="w-full h-full bg-transparent border-none py-1.5 px-2 sm:px-3 text-xs text-slate-900 outline-none resize-none"
-                                      placeholder="Nội dung"
-                                    />
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const el = document.getElementById(
-                                          "care-history-input",
-                                        ) as HTMLTextAreaElement;
-                                        if (el && el.value.trim()) {
-                                          handleAddCareHistory(
-                                            crmSelectedLead,
-                                            el.value.trim(),
-                                          );
-                                          el.value = "";
-                                        }
-                                      }}
-                                      className="bg-amber-600 hover:bg-primary text-white font-bold px-2 sm:px-4 py-0 transition-colors shrink-0 flex flex-row items-center justify-center gap-1 text-[9px] sm:text-[10px]"
-                                    >
-                                      <span>Cập nhật</span>
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-
-                              {!crmSelectedLead.careHistory ||
-                                crmSelectedLead.careHistory.length === 0 ? (
-                                <tr>
-                                  <td
-                                    colSpan={3}
-                                    className="border-b border-slate-300 p-6 text-center text-slate-500 text-xs italic"
-                                  >
-                                    Chưa có ghi chú chăm sóc nào. Hãy nhập ở
-                                    dòng trên.
-                                  </td>
-                                </tr>
-                              ) : (
-                                [...crmSelectedLead.careHistory]
-                                  .reverse()
-                                  .map((item: CareHistoryItem, idx: number) => (
-                                    <tr
-                                      key={idx}
-                                      className="hover:bg-zinc-800/50 transition-colors"
-                                    >
-                                      <td className="border-b md:border-r border-slate-300 p-2 text-[9px] sm:text-[10px] font-mono text-slate-700 align-top">
-                                        <div className="flex flex-col">
-                                          <span>
-                                            {new Date(item.time).toLocaleDateString("vi-VN")} {new Date(item.time).toLocaleTimeString("vi-VN", {
-                                              hour: "2-digit",
-                                              minute: "2-digit",
-                                            })}
-                                          </span>
-                                          <span className="sm:hidden font-bold text-slate-800 mt-1">
-                                            {item.author || "Nhân viên"}
-                                          </span>
-                                        </div>
-                                      </td>
-                                      <td className="hidden sm:table-cell border-b md:border-r border-slate-300 p-2 text-[11px] font-bold text-slate-800 align-top">
-                                        {item.author || "Nhân viên"}
-                                      </td>
-                                      <td className="border-b border-slate-300 p-2 text-[11px] sm:text-xs text-slate-900 max-w-[200px] sm:max-w-none break-words whitespace-pre-wrap leading-relaxed align-top">
-                                        {item.note}
-                                      </td>
-                                    </tr>
-                                  ))
-                              )}
-                            </tbody>
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            {activeTab === "leads" && <CrmWorkspace role={currentUserRole} users={users} onShowNotification={onShowNotification} onNewCount={setCrmNewCount} onBlockIp={(ip) => { setNewBlockedIp(ip); setActiveTab("blocked_ips"); }} />}
 
             {/* =========================================================
             DYNAMIC TAB: new content creation wizard (WordPress-like editor)
@@ -6084,6 +4913,11 @@ export default function AdminPanel({
                         className="w-full bg-white border border-slate-200 rounded-lg px-3 min-h-[32px] py-1.5 text-[10px] text-slate-900 outline-none focus:border-primary"
                         required
                       />
+                      {getSearchReadinessWarnings({ title, content: htmlContent }).length > 0 && (
+                        <p className="rounded-lg bg-amber-50 p-2 text-xs text-amber-900" role="note">
+                          {getSearchReadinessWarnings({ title, content: htmlContent }).join(' ')} Trang này sẽ không được lập chỉ mục hoặc đưa vào sitemap cho đến khi biên tập xong.
+                        </p>
+                      )}
                     </div>
 
                     {createType !== "article" && (
@@ -7074,7 +5908,7 @@ export default function AdminPanel({
                               <div
                                 className="prose prose-invert max-w-none text-slate-800 leading-relaxed max-h-80 overflow-y-auto"
                                 dangerouslySetInnerHTML={{
-                                  __html: htmlContent,
+                                  __html: sanitizeRichHtml(htmlContent),
                                 }}
                               />
                             </div>

@@ -1,0 +1,234 @@
+[
+  {
+    "mode": "mobile",
+    "score": 0.55,
+    "cpuBenchmark": 628.5,
+    "mainThread": [
+      {
+        "group": "other",
+        "groupLabel": "Other",
+        "duration": 7511.544000000002
+      },
+      {
+        "group": "scriptEvaluation",
+        "groupLabel": "Script Evaluation",
+        "duration": 4019.936000000009
+      },
+      {
+        "group": "styleLayout",
+        "groupLabel": "Style & Layout",
+        "duration": 3507.52
+      },
+      {
+        "group": "scriptParseCompile",
+        "groupLabel": "Script Parsing & Compilation",
+        "duration": 646.14
+      },
+      {
+        "group": "parseHTML",
+        "groupLabel": "Parse HTML & CSS",
+        "duration": 483.62
+      },
+      {
+        "group": "paintCompositeRender",
+        "groupLabel": "Rendering",
+        "duration": 263.3719999999999
+      },
+      {
+        "group": "garbageCollection",
+        "groupLabel": "Garbage Collection",
+        "duration": 81.22000000000001
+      }
+    ],
+    "bootup": [
+      {
+        "path": "/Unattributable",
+        "total": 6797.291999999995,
+        "parseCompile": 0
+      },
+      {
+        "path": "/",
+        "total": 5059.072,
+        "parseCompile": 184.5720000000001
+      },
+      {
+        "path": "/_next/static/chunks/1255-0046eeb68b7d2d4d.js",
+        "total": 2446.887999999989,
+        "parseCompile": 118.204
+      },
+      {
+        "path": "/_next/static/chunks/main-app-2cc90aeff71c6f5d.js",
+        "total": 1005.7679999999992,
+        "parseCompile": 1.724
+      },
+      {
+        "path": "/_next/static/chunks/app/layout-4788b16b62e3278c.js",
+        "total": 391.768,
+        "parseCompile": 28.652
+      },
+      {
+        "path": "/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+        "total": 209.0879999999999,
+        "parseCompile": 126.368
+      },
+      {
+        "path": "/_next/static/chunks/8160.f5d07d24087eea3a.js",
+        "total": 161.884,
+        "parseCompile": 20.644000000000002
+      },
+      {
+        "path": "/_next/static/chunks/app/page-8473fae8bf44d2de.js",
+        "total": 159.05999999999997,
+        "parseCompile": 33.296
+      },
+      {
+        "path": "/_next/static/chunks/9106-660410a00af91ea6.js",
+        "total": 65.648,
+        "parseCompile": 56.708
+      }
+    ],
+    "runTasks": 710,
+    "longTasks": 10,
+    "wallMs": 4128.338,
+    "threadCpuMs": 2154.179999999999,
+    "largestTasks": [
+      {
+        "wallMs": 1288.614,
+        "threadCpuMs": 0.733
+      },
+      {
+        "wallMs": 740.448,
+        "threadCpuMs": 596.732
+      },
+      {
+        "wallMs": 253.271,
+        "threadCpuMs": 188.404
+      },
+      {
+        "wallMs": 102.218,
+        "threadCpuMs": 77.349
+      },
+      {
+        "wallMs": 98.532,
+        "threadCpuMs": 65.639
+      },
+      {
+        "wallMs": 87.262,
+        "threadCpuMs": 66.506
+      },
+      {
+        "wallMs": 77.307,
+        "threadCpuMs": 68.989
+      },
+      {
+        "wallMs": 65.101,
+        "threadCpuMs": 43.735
+      },
+      {
+        "wallMs": 54.771,
+        "threadCpuMs": 43.742
+      },
+      {
+        "wallMs": 51.081,
+        "threadCpuMs": 49.001
+      }
+    ]
+  },
+  {
+    "mode": "desktop",
+    "score": 0.73,
+    "cpuBenchmark": 805,
+    "mainThread": [
+      {
+        "group": "styleLayout",
+        "groupLabel": "Style & Layout",
+        "duration": 1212.733
+      },
+      {
+        "group": "other",
+        "groupLabel": "Other",
+        "duration": 556.1019999999996
+      },
+      {
+        "group": "scriptEvaluation",
+        "groupLabel": "Script Evaluation",
+        "duration": 470.03099999999864
+      },
+      {
+        "group": "scriptParseCompile",
+        "groupLabel": "Script Parsing & Compilation",
+        "duration": 102.07000000000008
+      },
+      {
+        "group": "parseHTML",
+        "groupLabel": "Parse HTML & CSS",
+        "duration": 94.64899999999999
+      },
+      {
+        "group": "paintCompositeRender",
+        "groupLabel": "Rendering",
+        "duration": 78.09699999999998
+      }
+    ],
+    "bootup": [
+      {
+        "path": "/",
+        "total": 1517.6400000000003,
+        "parseCompile": 28.976000000000013
+      },
+      {
+        "path": "/Unattributable",
+        "total": 461.53399999999925,
+        "parseCompile": 0
+      },
+      {
+        "path": "/_next/static/chunks/1255-0046eeb68b7d2d4d.js",
+        "total": 254.60499999999928,
+        "parseCompile": 15.272
+      },
+      {
+        "path": "/_next/static/chunks/webpack-613f9e87aed9a45b.js",
+        "total": 143.66299999999987,
+        "parseCompile": 0.7859999999999999
+      }
+    ],
+    "runTasks": 697,
+    "longTasks": 8,
+    "wallMs": 2513.681999999998,
+    "threadCpuMs": 1888.3090000000004,
+    "largestTasks": [
+      {
+        "wallMs": 651.714,
+        "threadCpuMs": 437.341
+      },
+      {
+        "wallMs": 481.639,
+        "threadCpuMs": 382.799
+      },
+      {
+        "wallMs": 150.007,
+        "threadCpuMs": 128.955
+      },
+      {
+        "wallMs": 133.652,
+        "threadCpuMs": 123.728
+      },
+      {
+        "wallMs": 116.272,
+        "threadCpuMs": 68.302
+      },
+      {
+        "wallMs": 72.482,
+        "threadCpuMs": 0.25
+      },
+      {
+        "wallMs": 71.444,
+        "threadCpuMs": 63.232
+      },
+      {
+        "wallMs": 61.342,
+        "threadCpuMs": 42.69
+      }
+    ]
+  }
+]

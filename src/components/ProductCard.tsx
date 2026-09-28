@@ -5,6 +5,8 @@ import { MapPin, Layers, Bookmark, Bath, Heart } from 'lucide-react';
 import { formatLocationName } from '../lib/locationMapping';
 import { generateSlug, optimizeImageUrl, generateSrcSet } from '../lib/utils';
 import { trackWishlist } from '../lib/tracking';
+import { readStoredStringList } from '../lib/browserStorage';
+import { useNotification } from '../contexts/NotificationContext';
 
 interface ProductCardProps {
   key?: React.Key;
@@ -17,6 +19,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ item, badgeText, badgeColor, priority = false, headingLevel = 3 }: ProductCardProps) {
+  const showNotification = useNotification();
   const displayBadgeText = badgeText || (item.type === 'rent' ? 'Cho thuê' : 'Bán');
   const displayBadgeColor = badgeColor || (item.type === 'rent' ? 'bg-primary text-white' : 'bg-rose-700 text-white');
   let safeImageUrl = item.imageUrl || (item.imageUrls && item.imageUrls.length > 0 ? item.imageUrls[0] : '/no-image.svg');
@@ -33,33 +36,37 @@ export default function ProductCard({ item, badgeText, badgeColor, priority = fa
   const HeadingTag = headingLevel === 2 ? 'h2' : 'h3';
 
   useEffect(() => {
-    const favs: string[] = JSON.parse(localStorage.getItem('saved_favorites') || '[]');
+    const favs = readStoredStringList('saved_favorites');
     setIsFavorite(favs.includes(item.id));
   }, [item.id]);
 
   const toggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const favs: string[] = JSON.parse(localStorage.getItem('saved_favorites') || '[]');
-    if (favs.includes(item.id)) {
-      const newFavs = favs.filter(id => id !== item.id);
-      localStorage.setItem('saved_favorites', JSON.stringify(newFavs));
-      setIsFavorite(false);
-      trackWishlist(item.id, item.title, false);
-      window.dispatchEvent(new Event('favorites_changed'));
-    } else {
-      favs.push(item.id);
-      localStorage.setItem('saved_favorites', JSON.stringify(favs));
-      setIsFavorite(true);
-      trackWishlist(item.id, item.title, true);
-      window.dispatchEvent(new Event('favorites_changed'));
+    try {
+      const favs = readStoredStringList('saved_favorites');
+      if (favs.includes(item.id)) {
+        const newFavs = favs.filter(id => id !== item.id);
+        localStorage.setItem('saved_favorites', JSON.stringify(newFavs));
+        setIsFavorite(false);
+        trackWishlist(item.id, item.title, false);
+        window.dispatchEvent(new Event('favorites_changed'));
+      } else {
+        favs.push(item.id);
+        localStorage.setItem('saved_favorites', JSON.stringify(favs));
+        setIsFavorite(true);
+        trackWishlist(item.id, item.title, true);
+        window.dispatchEvent(new Event('favorites_changed'));
+      }
+    } catch {
+      showNotification('Không thể lưu danh sách yêu thích trên trình duyệt này.', 'error');
     }
   };
 
   return (
     <Link
       href={`/san-pham/${generateSlug(item.title)}`}
-      prefetch
+      prefetch={false}
       data-content-link="product"
       className="motion-card w-full shrink-0 bg-bg-surface hover:bg-bg-base border border-border-color hover:border-primary/30 rounded-lg overflow-hidden group cursor-pointer flex flex-row sm:flex-col block"
     >

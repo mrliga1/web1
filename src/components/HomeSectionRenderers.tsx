@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { optimizeImageUrl, generateSlug, generateSrcSet, formatVietnamDate } from '../lib/utils';
-import { handleFirestoreError, OperationType } from '../firebase-errors';
-import { fetchClientIp } from '../lib/ip';
 import { 
   ArrowRight, Phone, CheckCircle2,
   MapPin, ChevronRight, Compass, Shield, Award, Calendar,
@@ -44,6 +43,7 @@ const HeroConsultationForm: React.FC<{
   const [clientDemand, setClientDemand] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [submittedPhone, setSubmittedPhone] = useState('');
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePrivacy, setAgreePrivacy] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<ConsultationErrors>({});
@@ -73,7 +73,6 @@ const HeroConsultationForm: React.FC<{
     setIsSubmitting(true);
     try {
       const { db, collection, addDoc } = await import('../firebase');
-      const clientIp = await fetchClientIp();
       let friendlyUrl = "";
       if (window.location.hostname.includes('aistudio')) {
         friendlyUrl = `https://greeniahomes.vn${window.location.pathname}`;
@@ -93,7 +92,6 @@ const HeroConsultationForm: React.FC<{
         propertyId: 'homepage-consultation',
         propertyTitle: 'Tư vấn chuyên sâu trang chủ',
         sourceUrl: friendlyUrl,
-        ipAddress: clientIp,
         termsAccepted: agreeTerms,
         privacyAccepted: agreePrivacy,
         marketingConsent: agreePrivacy,
@@ -103,6 +101,7 @@ const HeroConsultationForm: React.FC<{
       }
 
       setFormSubmitted(true);
+      setSubmittedPhone(clientPhone.trim());
       setClientName('');
       setClientPhone('');
       setClientEmail('');
@@ -111,7 +110,8 @@ const HeroConsultationForm: React.FC<{
       setAgreePrivacy(false);
       onShowNotification('Đã gửi thông tin yêu cầu tư vấn thành công!', 'success');
     } catch (err) {
-      handleFirestoreError(err, OperationType.WRITE, 'consultations');
+      console.error('Không thể gửi yêu cầu tư vấn trang chủ:', err);
+      onShowNotification('Không thể gửi yêu cầu tư vấn. Vui lòng thử lại hoặc gọi hotline.', 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -124,7 +124,7 @@ const HeroConsultationForm: React.FC<{
       </div>
 
       <h2 className="font-display text-xl font-bold text-primary mb-1">Yêu Cầu Tư Vấn Chuyên Sâu</h2>
-      <p className="text-text-secondary text-xs mb-[15px] font-light">Chủ đầu tư sẽ trực tiếp liên hệ và gửi trọn bộ thông tin pháp lý của các biệt thự cao cấp trong vòng 5 phút.</p>
+      <p className="text-text-secondary text-xs mb-[15px] font-light">Để lại nhu cầu của bạn. Greenia Homes sẽ liên hệ, giới thiệu lựa chọn phù hợp và giải đáp thông tin giao dịch.</p>
 
       {formSubmitted ? (
         <div className="bg-bg-base text-primary border border-border-color rounded-xl p-5 text-center space-y-3 animate-in zoom-in-95">
@@ -133,7 +133,7 @@ const HeroConsultationForm: React.FC<{
           </div>
           <div>
             <h3 className="font-medium text-[15px] text-primary">Đăng ký thành công!</h3>
-            <p className="text-[11px] text-text-secondary mt-1.5 leading-relaxed">Bộ phận chăm sóc giới tinh hoa sẽ gọi đến cho quý khách trong vài phút tới qua Hotline hoặc số điện thoại {clientPhone}.</p>
+            <p className="text-[11px] text-text-secondary mt-1.5 leading-relaxed">Chúng tôi đã nhận được yêu cầu và sẽ liên hệ qua số {submittedPhone}.</p>
           </div>
           <button
             type="button"
@@ -261,79 +261,66 @@ const HeroConsultationForm: React.FC<{
 };
 
 export const HeroSectionBody: React.FC<HeroProps> = ({
-  onNavigate,
   onShowNotification
 }) => {
   return (
-    <section 
-      className="relative flex items-center justify-center py-10 px-6 md:py-12 md:px-12 lg:py-16 lg:px-20 overflow-hidden bg-bg-surface border-b border-border-color" 
-      id="home-hero-banner"
-    >
-      <div className="max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10 pt-[20px] pb-10">
-        
-        {/* Cột trái: nội dung và CTA. */}
-        <div className="lg:col-span-7 space-y-6 text-left w-full" id="banner-intro-txt">
-          <div className="mb-6">
-            <h1 className="text-primary font-display text-4xl sm:text-5xl font-bold tracking-tight mb-2">
-              Greenia Homes
-            </h1>
-            <p className="text-text-secondary text-sm sm:text-base font-medium tracking-wide inline-block border-b border-border-color pb-[1px]">
-              Đồng hành - Tận tâm - An tâm mua nhà
-            </p>
-          </div>
-
-          <div className="text-text-secondary text-sm sm:text-[15px] lg:max-w-[95%] xl:max-w-[600px] font-light leading-relaxed space-y-6">
-            <p>
-              <strong className="text-primary font-bold">Greenia Homes</strong> là điểm tựa, sự đảm bảo và đồng hành xuyên suốt quá trình để sở hữu căn nhà mơ ước của khách hàng mua để ở, đối với quý khách hàng đầu tư <strong className="text-primary font-bold">Greenia Homes</strong> tự tin mang đến khách hàng những sản phẩm đầu tư an toàn, sinh lời ổn định và an tâm về pháp lý BĐS.
-            </p>
-            <p>
-              <strong className="text-primary font-bold">Greenia Homes</strong> chuyên cung cấp và phân phối các sản phẩm từ những CĐT uy tín như: Vinhomes, Masteri Homes, Sun Group... Các dòng sản phẩm chủ lực: Căn hộ Cao cấp, Nhà phố, Biệt thự, Dinh thự...
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-6 w-full">
-            <button
-              onClick={() => onNavigate({ screen: 'san-pham' })}
-              className="motion-button flex items-center justify-center gap-2 bg-primary hover:bg-primary-light text-white font-bold px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-[12px] sm:text-[13px] shadow-lg border-none cursor-pointer"
-            >
-              <span>Xem Sản Phẩm</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            
-            <a 
-              href="tel:0932966700"
-              className="motion-button flex items-center justify-center gap-2 text-primary bg-white border border-primary/30 rounded-full px-4 py-2 sm:px-6 sm:py-2.5 hover:bg-primary/5 font-bold text-[12px] sm:text-[13px] shadow-sm cursor-pointer"
-            >
-              <div className="bg-primary/10 p-1 rounded-full">
-                <Phone className="w-3.5 h-3.5 text-primary" />
-              </div>
-              <span>0932 966 700</span>
+    <section className="overflow-hidden border-b border-emerald-950/10 bg-[#f4f7f3]" id="home-hero-banner">
+      <div className="mx-auto grid w-full max-w-7xl items-center gap-8 px-5 pb-10 pt-12 sm:px-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12 lg:py-16">
+        <div className="home-hero-reveal max-w-[620px] text-left" id="banner-intro-txt">
+          <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" aria-hidden="true" />
+            Greenia Homes · TP. Hồ Chí Minh
+          </p>
+          <h1 className="max-w-[630px] font-display text-[clamp(2.3rem,4.3vw,4.5rem)] font-bold leading-[1.08] tracking-tight text-primary">
+            Tìm bất động sản phù hợp, an tâm trong từng quyết định
+          </h1>
+          <p className="mt-6 max-w-[570px] text-base leading-7 text-text-secondary sm:text-lg">
+            Khám phá căn hộ, nhà phố và biệt thự tại TP. Hồ Chí Minh. Greenia Homes đồng hành từ chọn lựa, tìm hiểu thông tin pháp lý đến các bước giao dịch.
+          </p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link href="/san-pham" prefetch={false} className="motion-button inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary-light">
+              Xem bất động sản <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <a href="#home-hero-consultation" className="motion-button inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-primary/25 bg-white px-6 py-3 text-sm font-bold text-primary hover:bg-primary/5">
+              Nhận tư vấn phù hợp
             </a>
           </div>
-          
-          <div className="mt-12 pt-8 w-full border-t border-border-color hidden sm:block">
-            <p className="text-text-secondary text-[10px] uppercase font-bold tracking-[0.2em] mb-6">ĐỐI TÁC PHÂN PHỐI CHIẾN LƯỢC CAO CẤP CỦA</p>
-            <div className="flex flex-wrap items-center gap-8 opacity-70">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-6 h-6 text-primary" />
-                <span className="font-display text-[15px] font-bold text-primary-dark tracking-widest uppercase">VINHOMES</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Layers className="w-6 h-6 text-primary" />
-                <span className="font-display text-[15px] font-bold text-primary-dark tracking-widest uppercase">MASTERISE</span>
-              </div>
-            </div>
+          <div className="mt-10 grid max-w-[540px] grid-cols-3 gap-3 border-t border-primary/15 pt-6 text-[11px] leading-5 text-text-secondary sm:text-xs">
+            <span><strong className="block text-sm text-primary">Lựa chọn</strong>Theo nhu cầu thực tế</span>
+            <span><strong className="block text-sm text-primary">Thông tin</strong>Dễ xem và đối chiếu</span>
+            <span><strong className="block text-sm text-primary">Đồng hành</strong>Trong quá trình giao dịch</span>
           </div>
         </div>
 
-        {/* Right Column: Form */}
-        <div className="lg:col-span-5 w-full mt-12 lg:mt-0">
-          <div 
-            className="relative z-10 w-full max-w-[420px] mx-auto lg:ml-auto lg:mr-0 bg-bg-base p-4 rounded-3xl border border-border-color"
-            id="hero-banner-consultation-form"
-          >
-            <HeroConsultationForm onShowNotification={onShowNotification} />
-          </div>
+        <figure className="relative m-0 overflow-hidden rounded-[28px] bg-primary shadow-[0_30px_70px_rgba(3,53,42,0.18)] lg:rounded-[36px]">
+          <Image
+            src="/uploads/nha-pho-vinhomes-saigon-park-1780522235670.webp"
+            alt="Phối cảnh dãy nhà phố và đường nội khu trong một dự án bất động sản"
+            width={1443}
+            height={770}
+            sizes="(max-width: 1023px) 100vw, 55vw"
+            priority
+            fetchPriority="high"
+            quality={65}
+            className="aspect-[4/3] w-full object-cover object-center sm:aspect-[16/10] lg:aspect-[4/3]"
+          />
+          <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-emerald-950/85 via-emerald-950/35 to-transparent px-6 pb-5 pt-16 text-xs font-medium text-white sm:px-8 sm:pb-7">
+            Hình ảnh phối cảnh minh họa · Tìm hiểu thông tin chi tiết tại từng dự án
+          </figcaption>
+        </figure>
+      </div>
+
+      <div className="home-consultation-deferred mx-auto grid max-w-7xl items-start gap-7 px-5 pb-14 sm:px-8 lg:grid-cols-[1fr_420px] lg:gap-12" id="home-hero-consultation">
+        <div className="rounded-[28px] bg-primary px-6 py-7 text-white sm:px-9 sm:py-9">
+          <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-200">Bắt đầu từ nhu cầu của bạn</p>
+          <h2 className="mt-3 max-w-xl font-display text-2xl font-bold leading-tight sm:text-3xl">Chia sẻ điều bạn đang tìm kiếm</h2>
+          <p className="mt-3 max-w-xl text-sm leading-6 text-emerald-50/85">Cho chúng tôi biết loại hình, khu vực và ngân sách mong muốn. Bạn cũng có thể gọi trực tiếp để trao đổi.</p>
+          <a href="tel:0932966700" className="mt-6 inline-flex items-center gap-2 text-sm font-bold text-white underline underline-offset-4">
+            <Phone className="h-4 w-4" aria-hidden="true" /> 0932 966 700
+          </a>
+        </div>
+        <div className="relative rounded-[28px] border border-primary/10 bg-white p-3 shadow-[0_18px_48px_rgba(3,53,42,0.1)]" id="hero-banner-consultation-form">
+          <HeroConsultationForm onShowNotification={onShowNotification} />
         </div>
       </div>
     </section>
@@ -882,7 +869,7 @@ export const ProjectsBody: React.FC<ProjectsProps> = ({
                     aria-hidden={idx >= visibleProjects.length}
                     tabIndex={idx >= visibleProjects.length ? -1 : undefined}
                     href={`/du-an/${generateSlug(proj.title)}`}
-                    prefetch
+                    prefetch={false}
                     data-content-link="project"
                     className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-primary/30 shadow-md rounded-lg overflow-hidden group cursor-pointer flex flex-col justify-between block"
                   >
@@ -1011,7 +998,7 @@ export const NewsBody: React.FC<NewsProps> = ({
                   aria-hidden={idx >= visibleNews.length}
                   tabIndex={idx >= visibleNews.length ? -1 : undefined}
                   href={`/tin-tuc/${generateSlug(article.title)}`}
-                  prefetch
+                  prefetch={false}
                   data-content-link="news"
                   className="motion-card w-[260px] sm:w-[280px] md:w-[240px] lg:w-[223px] shrink-0 mr-4 lg:mr-5 bg-bg-surface hover:bg-bg-surface border border-border-color hover:border-primary/30 shadow-md rounded-lg overflow-hidden group cursor-pointer flex flex-col justify-between block"
                 >

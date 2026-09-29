@@ -26,6 +26,8 @@ await page.route(/https:\/\/[^/]*(google-analytics\.com|facebook\.com|analytics\
 
 try {
   await page.goto(origin + '/category-product/nha-pho-biet-thu');
+  assert.equal(await page.locator('#nav-san-pham').getAttribute('aria-current'), 'page', 'Danh mục sản phẩm phải đánh dấu đúng mục điều hướng');
+  assert.notEqual(await page.locator('#nav-home').getAttribute('aria-current'), 'page', 'Trang chủ không được đánh dấu khi xem danh mục');
   await page.getByRole('button', { name: 'Xóa bộ lọc', exact: true }).click();
   await page.waitForURL(origin + '/san-pham');
   await page.getByRole('heading', { name: 'Nhà phố - Biệt thự', exact: true }).waitFor({ state: 'hidden' });
@@ -105,6 +107,10 @@ try {
   await page.getByRole('button', { name: 'Đăng ký tư vấn', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Tư vấn mua nhà chuyên sâu' });
   await dialog.locator('input[type="text"]').fill('Khách kiểm thử cục bộ');
+  await dialog.getByRole('button', { name: 'Đóng popup', exact: true }).click();
+  await dialog.waitFor({ state: 'hidden' });
+  await page.getByRole('button', { name: 'Đăng ký tư vấn', exact: true }).click();
+  assert.equal(await dialog.locator('input[type="text"]').inputValue(), 'Khách kiểm thử cục bộ', 'Đóng rồi mở lại phải giữ nội dung đã nhập');
   await dialog.locator('input[type="tel"]').fill('0901234567');
   await dialog.locator('input[type="email"]').fill('test@example.com');
   await dialog.locator('textarea').fill('Quan tâm phương án thanh toán');
@@ -119,6 +125,24 @@ try {
   assert.equal(submitted.pageTitle, expectedTitle.trim());
   assert.equal(submitted.demand, 'Quan tâm phương án thanh toán');
   results.push({ test: 'Popup giữ đúng nguồn trang và nhu cầu; không gửi CRM thật', passed: true });
+
+  // Giả lập mất mạng khi tải mã popup; trang và nút liên hệ phải tiếp tục hoạt động.
+  const popupFailureContext = await browser.newContext({ serviceWorkers: 'block' });
+  await popupFailureContext.route('**/api/tracking-policy', route => route.fulfill({ contentType: 'application/json', body: '{"blocked":true}' }));
+  const popupFailurePage = await popupFailureContext.newPage();
+  await popupFailurePage.goto(origin, { waitUntil: 'domcontentloaded' });
+  const failureCookieDialog = popupFailurePage.getByRole('alertdialog', { name: 'Thông báo cookie' });
+  await failureCookieDialog.waitFor();
+  await failureCookieDialog.getByRole('button', { name: 'Đóng', exact: true }).click();
+  await popupFailurePage.route('**/_next/static/chunks/*.js', route => route.abort());
+  await popupFailurePage.getByRole('button', { name: 'Đăng ký tư vấn', exact: true }).click();
+  await popupFailurePage.getByRole('alert').filter({ hasText: 'Không thể mở biểu mẫu tư vấn. Vui lòng thử lại.' }).waitFor();
+  assert.equal(await popupFailurePage.getByRole('button', { name: 'Đăng ký tư vấn', exact: true }).isVisible(), true);
+  await popupFailurePage.unroute('**/_next/static/chunks/*.js');
+  await popupFailurePage.getByRole('button', { name: 'Đăng ký tư vấn', exact: true }).click();
+  await popupFailurePage.getByRole('dialog', { name: 'Tư vấn mua nhà chuyên sâu' }).waitFor();
+  await popupFailureContext.close();
+  results.push({ test: 'Lỗi tải popup không làm hỏng trang; có thể tải lại biểu mẫu', passed: true });
 
   for (const type of ['product', 'project', 'news']) {
     await page.goto(origin);

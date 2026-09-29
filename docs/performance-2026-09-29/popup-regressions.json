@@ -1,0 +1,66 @@
+{
+  "passed": true,
+  "scenarioCount": 9,
+  "scenarios": [
+    {
+      "test": "Xóa cả danh mục và URL bộ lọc",
+      "passed": true
+    },
+    {
+      "test": "Viền đơn khi focus, blur và trong lúc chuyển ô",
+      "passed": true
+    },
+    {
+      "test": "Sidebar và khung admin dưới menu",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "passed": true,
+      "rects": {
+        "headerBottom": 435,
+        "sidebarTop": 435,
+        "spacer": 435
+      }
+    },
+    {
+      "test": "Sidebar và khung admin dưới menu",
+      "viewport": {
+        "width": 768,
+        "height": 1024
+      },
+      "passed": true,
+      "rects": {
+        "headerBottom": 435,
+        "sidebarTop": 435,
+        "spacer": 435
+      }
+    },
+    {
+      "test": "Popup giữ đúng nguồn trang và nhu cầu; không gửi CRM thật",
+      "passed": true
+    },
+    {
+      "test": "Lỗi tải popup không làm hỏng trang; có thể tải lại biểu mẫu",
+      "passed": true
+    },
+    {
+      "test": "Mở trang product",
+      "passed": true,
+      "elapsedMs": 1470,
+      "feedbackMs": 38
+    },
+    {
+      "test": "Mở trang project",
+      "passed": true,
+      "elapsedMs": 422,
+      "feedbackMs": 20
+    },
+    {
+      "test": "Mở trang news",
+      "passed": true,
+      "elapsedMs": 660,
+      "feedbackMs": 17
+    }
+  ]
+}

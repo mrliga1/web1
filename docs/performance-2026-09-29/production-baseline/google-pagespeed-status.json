@@ -1,0 +1,15 @@
+{
+  "scope": "Bản production cũ trước phát hành",
+  "reports": [
+    {
+      "strategy": "mobile",
+      "httpStatus": 429,
+      "errorStatus": "RESOURCE_EXHAUSTED"
+    },
+    {
+      "strategy": "desktop",
+      "httpStatus": 429,
+      "errorStatus": "RESOURCE_EXHAUSTED"
+    }
+  ]
+}

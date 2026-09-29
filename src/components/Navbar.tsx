@@ -5,19 +5,18 @@ import { RouteState, ScreenType } from '../types';
 import { useScrollDirection } from '../hooks/useScrollDirection';
 import { useAuth } from '../contexts/AuthContext';
 import dynamic from 'next/dynamic';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { getRouteUrl } from '../lib/utils';
 const AuthModal = dynamic(() => import('./AuthModal'));
 
 interface NavbarProps {
-  currentRoute: RouteState;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   logoUrl?: string;
   isSettingsLoaded?: boolean;
 }
 
-export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSettingsLoaded = false }: NavbarProps) {
+export default function Navbar({ onShowNotification, logoUrl, isSettingsLoaded = false }: NavbarProps) {
   const { currentUser, userProfile, logout, ensureAuthReady } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -25,6 +24,7 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
   const scrollDirection = useScrollDirection();
   const theme: string = 'light';
   const router = useRouter();
+  const pathname = usePathname() || "/";
   const headerRef = useRef<HTMLElement>(null);
 
   const menuHeightRef = useRef(41);
@@ -111,6 +111,21 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
     { label: 'Liên Hệ', screen: 'lien-he' as ScreenType, icon: Mail },
   ];
 
+  // Xác định mục đang xem theo URL thật, gồm cả trang con và danh mục.
+  const isActiveScreen = (screen: ScreenType) => {
+    const url = getRouteUrl({ screen });
+    if (screen === 'san-pham') {
+      return pathname === url || pathname.startsWith('/san-pham/')
+        || pathname.startsWith('/category-product/')
+        || pathname === '/latest-sales' || pathname === '/latest-rents';
+    }
+    if (screen === 'tin-tuc') {
+      return pathname === url || pathname.startsWith('/tin-tuc/')
+        || pathname.startsWith('/category-news/');
+    }
+    return pathname === url || (url !== '/' && pathname.startsWith(url + '/'));
+  };
+
   return (
     <>
       <div className="site-nav-spacer h-10 md:h-10 w-full shrink-0" />
@@ -160,13 +175,13 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
           <nav aria-label="Điều hướng chính" className="hidden lg:flex items-center gap-1" id="desktop-menu">
             <ul className="flex items-center gap-1 m-0 p-0 list-none">
             {menuItems.map((item) => {
-              // Exact active status matching screen type
-              const active = currentRoute.screen === item.screen;
+              const active = isActiveScreen(item.screen);
               return (
                 <li key={item.screen}>
                   <Link
                     id={`nav-${item.screen}`}
                     href={getRouteUrl({ screen: item.screen })}
+                    aria-current={active ? "page" : undefined}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`motion-button relative inline-block px-3.5 py-1.5 rounded-full text-[12.5px] font-semibold cursor-pointer ${
                       active 
@@ -350,12 +365,13 @@ export default function Navbar({ currentRoute, onShowNotification, logoUrl, isSe
             <div className="space-y-1 px-4 pb-6 pt-3 sm:px-6">
               <ul className="m-0 p-0 list-none space-y-1">
               {menuItems.map((item) => {
-                const active = currentRoute.screen === item.screen;
+                const active = isActiveScreen(item.screen);
                 const Icon = item.icon;
                 return (
                   <li key={item.screen}>
                     <Link
                       href={getRouteUrl({ screen: item.screen })}
+                      aria-current={active ? "page" : undefined}
                       onClick={() => setMobileMenuOpen(false)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border font-semibold text-sm transition-all duration-200 ${
                         active 

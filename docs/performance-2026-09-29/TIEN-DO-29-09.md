@@ -59,3 +59,19 @@ Kỹ năng điều khiển máy tính đang có dùng chung chuột Windows. The
 - Kiểm tra 20 URL trong sitemap bằng scripts/audit-search-output.mjs: 0 lỗi trong các tiêu chí HTTP, title, description, canonical, robots, JSON-LD/schema; 3 cảnh báo dữ liệu thử ở sản phẩm, bài viết và dự án. Không coi phép kiểm tra này là toàn bộ đánh giá semantic/intent hoặc xác nhận điểm SEO 100. [Chi tiết SEO](production-before-seo.txt).
 - Kiểm tra quyền production bằng scripts/verify-production-security.mjs đạt (exit 0): anon không đọc dữ liệu nhạy cảm, bảng legacy/RPC đặc quyền bị chặn, dữ liệu công khai vẫn đọc được. Đây chưa phải UAT vai trò nhân viên và migration CRM mới.
 - Các lượt kiểm tra trên chỉ đọc dữ liệu; không tạo hồ sơ khách hay gửi email/thông báo. Chưa chạy phép đo Performance mới để tránh gán kết quả bản cũ cho bản nâng cấp.
+
+## Tiếp tục theo yêu cầu tối ưu 100 trước bàn giao
+
+Người dùng yêu cầu cập nhật và phát hành bản chính thức, tối ưu đến 100 điểm rồi mới bàn giao. Chưa xem bất kỳ kết quả dưới 100 nào là nghiệm thu.
+
+- Kiểm tra Supabase trực tiếp vẫn chưa có consultation_activity (HTTP 404/PGRST205) và query_consultations (HTTP 404/PGRST202). Supabase CLI vẫn Unauthorized 401. Đã gửi lại bước chạy SQL cho người dùng; không đưa mã yêu cầu RPC lên main khi RPC chưa tồn tại.
+- Đã đo Lighthouse 13.5.0 trên tên miền chính thức, một lượt mỗi chế độ bằng máy cục bộ. Bản đang chạy là main cũ: Performance mobile 35, desktop 50; LCP 10,9s/1,4s, TBT 21.590ms/730ms, CLS 0/0,307. Không dùng các điểm này làm nghiệm thu mã mới chưa phát hành. [Tổng hợp](production-baseline/lighthouse-summary.json).
+- Google PageSpeed API không có hạn mức còn lại: mobile và desktop đều HTTP 429 RESOURCE_EXHAUSTED. Không thay kết quả lỗi API bằng điểm ước đoán. [Trạng thái](production-baseline/google-pagespeed-status.json).
+- Phân tích trace: bố cục và JavaScript là tác vụ chính; bản cũ tải Google Ads/AdSense trước đồng ý và bị cảnh báo cookie bên thứ ba. Các sửa banner/SSR/consent đã commit nhằm xử lý nhóm này; vẫn cần đo trên production sau khi phát hành.
+- Đang tách popup tư vấn sang mô-đun chỉ tải khi cần mở, giữ mã nút liên hệ trong HTML và giữ nội dung đang nhập qua lần đóng/mở. Có trạng thái đang tải, thông báo nếu tải mã thất bại và cho phép thử lại. Đã bổ sung kiểm tra trình duyệt cho việc giữ dữ liệu, lỗi tải chunk và thử lại. Bản dựng chứa tách popup đã qua lint, TypeScript và 35/35 trang; chỉ số First Load JS của báo cáo dựng vẫn làm tròn ở 164 KB, chưa coi đây là bằng chứng tăng điểm Performance. 9 lượt kiểm tra giao diện đạt, gồm dữ liệu popup không mất sau đóng/mở, lỗi tải chunk không làm mất nút liên hệ, mở lại sau lỗi, nguồn tư vấn đúng và điều hướng. [Kết quả](popup-regressions.json).
+- Đã hỏi lựa chọn Consent Mode cơ bản (chỉ tải sau đồng ý) hoặc tiếp tục tín hiệu ẩn danh trước đồng ý. Theo [Google](https://developers.google.com/tag-platform/security/concepts/consent-mode), hai chế độ có hành vi và khả năng mô hình hóa khác nhau; chưa thay chế độ trong khi chờ lựa chọn.
+
+- Phát hiện menu luôn đánh dấu Trang chủ vì root truyền currentRoute cố định. Đã chuyển sang nhận diện URL thật cho sản phẩm, dự án, tin tức, danh mục con và thêm aria-current. Kiểm tra trình duyệt ở trang danh mục đã đạt; bản dựng 35/35 trang, lint và TypeScript đạt.
+
+- Bản dựng mới: 17 URL trong sitemap đạt 0 lỗi và 0 cảnh báo theo bộ kiểm tra; ba URL có nội dung thử vẫn HTTP 200 nhưng metadata noindex. [Chi tiết](candidate-search-results.txt), [metadata ba URL](candidate-noindex.json). Dự án Vinhomes Cần Giờ hiện có chuỗi ký tự lặp dài 594 ký tự trong nội dung nguồn, nên đang noindex cho đến khi được biên tập bằng thông tin thật. Không tự tạo dữ kiện kinh doanh hoặc pháp lý.
+- Sau sửa menu, 9/9 tình huống giao diện đạt trên bản dựng mới, gồm lựa chọn mục điều hướng đúng và thử lại popup khi tải mã thất bại. [Kết quả](popup-regressions.json).

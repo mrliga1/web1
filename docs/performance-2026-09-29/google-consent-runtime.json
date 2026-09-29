@@ -1,0 +1,60 @@
+{
+  "passed": true,
+  "realGoogleContainer": true,
+  "externalRequestsBlocked": true,
+  "blockedRequests": 2,
+  "denied": {
+    "ad_storage": {
+      "default": false,
+      "update": false
+    },
+    "analytics_storage": {
+      "default": false,
+      "update": false
+    },
+    "ad_user_data": {
+      "default": false,
+      "update": false
+    },
+    "ad_personalization": {
+      "default": false,
+      "update": false
+    }
+  },
+  "granted": {
+    "ad_storage": {
+      "default": false,
+      "update": true
+    },
+    "analytics_storage": {
+      "default": false,
+      "update": true
+    },
+    "ad_user_data": {
+      "default": false,
+      "update": true
+    },
+    "ad_personalization": {
+      "default": false,
+      "update": true
+    }
+  },
+  "revoked": {
+    "ad_storage": {
+      "default": false,
+      "update": false
+    },
+    "analytics_storage": {
+      "default": false,
+      "update": false
+    },
+    "ad_user_data": {
+      "default": false,
+      "update": false
+    },
+    "ad_personalization": {
+      "default": false,
+      "update": false
+    }
+  }
+}

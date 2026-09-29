@@ -203,18 +203,19 @@ test('Migration CRM thực thi trong PostgreSQL và giữ đúng quyền dữ li
       create schema auth; create schema private;
       create function auth.uid() returns uuid language sql stable as
         $$ select nullif(current_setting('test.uid', true), '')::uuid $$;
-      create function private.current_app_role() returns text language sql stable as
-        $$ select current_setting('test.app_role', true) $$;
-      create table public.users (uid text primary key, email text, role text);
+      create table public.users (id uuid primary key, uid text unique, email text, role text, username text, phone text, avatarurl text);
       create table public.consultations (id text primary key, data jsonb);
       alter table public.consultations enable row level security;
       grant usage on schema public, auth, private to anon, authenticated;
-      grant select, update on public.consultations to authenticated;
-      grant select on public.consultations to anon;
-      insert into users values
-        ('00000000-0000-0000-0000-000000000001','admin@example.com','admin'),
-        ('00000000-0000-0000-0000-000000000002','a@example.com','member'),
-        ('00000000-0000-0000-0000-000000000003','b@example.com','member');
+      grant select, insert, update, delete on public.consultations to authenticated;
+      grant insert on public.consultations to anon;
+      grant select, insert, update, delete on public.users to authenticated;
+      alter table public.users enable row level security;
+      insert into users (id, uid, email, role) values
+        ('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','admin@example.com','admin'),
+        ('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000002','a@example.com','member'),
+        ('00000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000003','b@example.com','member'),
+        ('00000000-0000-0000-0000-000000000004','00000000-0000-0000-0000-000000000004','editor@example.com','editor');
       insert into consultations values
         ('lead-a','{"status":"new","assignee":"a@example.com","careHistory":[]}'),
         ('lead-b','{"status":"new","assignee":"b@example.com","careHistory":[]}');
@@ -224,8 +225,18 @@ test('Migration CRM thực thi trong PostgreSQL và giữ đúng quyền dữ li
       from generate_series(1,26) i;
     `);
     const roleMigration = readFileSync('supabase/migrations/202609020001_enable_crm_realtime_roles.sql', 'utf8');
-    await db.exec(roleMigration.split('drop policy if exists "authenticated_read_users"')[0] + 'commit;');
-    await db.exec(readFileSync('supabase/migrations/202609280001_atomic_crm_updates.sql', 'utf8'));
+    // Schema đã đối chiếu với production: khóa users.id là UUID và vai trò đọc từ hồ sơ thật.
+    const hardening = readFileSync('supabase/migrations/202607170002_harden_legacy_and_engagement.sql', 'utf8');
+    await db.exec(hardening.split('do $')[0] + 'commit;');
+    await db.exec(roleMigration.split('alter table public.consultations replica identity full;')[0] + 'commit;');
+    const beforeRelease = (await db.query('select id, data from consultations order by id')).rows;
+    // Kiểm tra đúng tệp giao dịch sẽ chạy trên Supabase, gồm đối soát trước và sau.
+    const releaseResults = await db.exec(readFileSync('docs/performance-2026-09-29/AP-DUNG-CRM.sql', 'utf8'));
+    assert.deepEqual(releaseResults.at(-1).rows[0].crm_release_status, {
+      crm_migration_applied: true, lead_count: 28,
+      query_rpc_exists: true, patch_rpc_exists: true, history_rpc_exists: true,
+    });
+    assert.deepEqual((await db.query('select id, data from consultations order by id')).rows, beforeRelease);
     await db.exec(`set role authenticated; set test.uid = '00000000-0000-0000-0000-000000000001'; set test.app_role = 'admin';`);
 
     const firstPage = (await db.query('select query_consultations() as result')).rows[0].result;
@@ -292,8 +303,14 @@ test('Migration CRM thực thi trong PostgreSQL và giữ đúng quyền dữ li
     assert.ok((await db.query('select * from consultation_activity')).rows.every(row => row.lead_id === 'lead-a'));
     await db.exec(`set test.uid = '00000000-0000-0000-0000-000000000003';`);
     assert.equal((await db.query('select * from consultation_activity')).rows.length, 0);
+    await db.exec("set test.uid = '00000000-0000-0000-0000-000000000004';");
+    assert.equal((await db.query('select query_consultations() as result')).rows[0].result.total, 28);
+    await db.query('select patch_consultation($1,$2::jsonb)', ['lead-b', '{"assignee":"a@example.com","priority":"medium"}']);
+    assert.ok((await db.query("select * from consultation_activity where lead_id='lead-b'")).rows.length > 0);
+    await db.exec("set test.uid = '00000000-0000-0000-0000-000000000099';");
+    await assert.rejects(db.query('select query_consultations()'), /Không có quyền/);
     await db.exec('reset role; set role anon;');
-    assert.equal((await db.query('select id from consultations')).rows.length, 0);
+    await assert.rejects(db.query('select id from consultations'), /permission denied/);
     await assert.rejects(db.query('select query_consultations()'), /permission denied/);
     await assert.rejects(db.query('select patch_consultation($1,$2::jsonb)', ['lead-a', '{"status":"won"}']), /permission denied/);
   } finally {

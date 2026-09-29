@@ -1,4 +1,5 @@
 import HomePageClient from "./HomePageClient";
+import HomeHeroBanner from "../src/components/HomeHeroBanner";
 import SchemaMarkup from "../src/components/SchemaMarkup";
 import { createHomePageSchema } from "../src/lib/internalLinks";
 import { getHomePageInitialData } from "../src/lib/serverData";
@@ -12,6 +13,7 @@ export default async function HomePage() {
     <>
       <SchemaMarkup schema={createHomePageSchema()} />
       <HomePageClient
+        heroBanner={<HomeHeroBanner />}
         initialSections={initialData.sections}
         initialProducts={initialData.products}
         initialProjects={initialData.projects}

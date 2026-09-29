@@ -4,7 +4,7 @@ type TrackingValue = string | number | boolean | null | undefined | TrackingValu
 type TrackingPayload = Record<string, TrackingValue>;
 
 interface TrackingWindow extends Window {
-  dataLayer?: Array<Record<string, unknown> | unknown[]>;
+  dataLayer?: Array<Record<string, unknown> | unknown[] | IArguments>;
   fbq?: (...args: unknown[]) => void;
   ttq?: { track?: (event: string, payload?: Record<string, unknown>) => void; revokeConsent?: () => void; grantConsent?: () => void };
   __greeniaIpTrackingPolicy?: "pending" | "allowed" | "blocked";
@@ -35,6 +35,14 @@ function getDataLayer() {
   return trackingWindow.dataLayer;
 }
 
+// Google đọc lệnh gtag dưới dạng arguments; mảng thông thường không truyền trạng thái consent.
+function pushGoogleCommand(...command: unknown[]) {
+  if (command.length === 0) return;
+  // Giao thức gtag bắt buộc dùng arguments; mảng rest sẽ bị Google bỏ qua.
+  // eslint-disable-next-line prefer-rest-params
+  getDataLayer().push(arguments);
+}
+
 function sanitizePayload(payload: TrackingPayload) {
   return Object.fromEntries(
     Object.entries(payload).filter(([key, value]) => {
@@ -58,7 +66,6 @@ export function setManualIpTrackingPolicy(status: 'pending' | 'allowed' | 'block
   trackingWindow.__greeniaIpTrackingPolicy = status;
   if (status !== 'allowed') trackingWindow.__greeniaPendingMetaEvents = [];
   if (status === 'blocked') trackingWindow.__greeniaPolicyEvents = [];
-  getDataLayer().push(['set', { allow_ad_personalization_signals: status === 'allowed' }]);
   setTrackingConsent(trackingWindow.__greeniaRequestedConsent || 'denied');
   if (status === 'allowed') {
     const pending = trackingWindow.__greeniaPolicyEvents || [];
@@ -160,7 +167,6 @@ export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false)
   if (typeof trackingWindow.fbq === 'function') trackingWindow.fbq('consent', status === 'granted' ? 'grant' : 'revoke');
   if (status === 'granted') trackingWindow.ttq?.grantConsent?.();
   else trackingWindow.ttq?.revokeConsent?.();
-  const dataLayer = getDataLayer();
   const consent: Record<string, ConsentStatus | number> = {
     analytics_storage: status,
     ad_storage: status,
@@ -168,7 +174,8 @@ export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false)
     ad_personalization: status,
   };
   if (waitForUpdate) consent.wait_for_update = 500;
-  dataLayer.push(["consent", waitForUpdate ? "default" : "update", consent]);
+  pushGoogleCommand('set', { ads_data_redaction: true, allow_ad_personalization_signals: status === 'granted' });
+  pushGoogleCommand('consent', waitForUpdate ? 'default' : 'update', consent);
   window.dispatchEvent(new Event('greenia_tracking_consent_changed'));
 }
 

@@ -102,7 +102,7 @@ Kết thúc toàn bộ yêu cầu cần nghiệm thu các mục trên. Bản nà
 
 Bằng chứng: [giao diện công khai](implementation-2026-09-28/ui-results.json), [CRM](implementation-2026-09-28/crm-ui-results.json), [crawl](implementation-2026-09-28/internal-links.json), [SEO sitemap](implementation-2026-09-28/search-output-final.txt), [Lighthouse](implementation-2026-09-28/lighthouse-summary.json).
 
-Danh sách tệp thay đổi/thêm/xóa: [changed-files.txt](implementation-2026-09-28/changed-files.txt). Các tệp mã chưa được commit/push; thư mục báo cáo chứa JSON/HTML và ảnh kiểm thử, không chứa biến môi trường.
+Danh sách tệp thay đổi/thêm/xóa: [changed-files.txt](implementation-2026-09-28/changed-files.txt). Tại thời điểm kiểm tra ngày 28/09, các tệp mã chưa được commit/push; thư mục báo cáo chứa JSON/HTML và ảnh kiểm thử, không chứa biến môi trường.
 
 Ảnh: [trang chủ desktop](implementation-2026-09-28/home-desktop.png), [di động](implementation-2026-09-28/home-mobile.png), [danh sách CRM](implementation-2026-09-28/crm-list-local-test.png), [hồ sơ khách thử](implementation-2026-09-28/crm-detail-local-test.png).
 
@@ -142,3 +142,15 @@ Hồ sơ này **không xác nhận toàn bộ yêu cầu đã hoàn tất** khi 
 - Lighthouse 13.5.0/Chrome, một lượt chuẩn mỗi chế độ của bản mới: Performance mobile 55, desktop 73; Accessibility/Best Practices/SEO đều 100, Agentic Browsing 3/3, CLS 0, không cảnh báo tải. TBT tương ứng 9.460ms và 630ms. Đây là lượt chẩn đoán, chưa đạt mục tiêu 100.
 - Người dùng đã cho phép commit/đẩy nhánh kiểm thử để tạo Vercel Preview trước khi đạt Performance 100; chưa cho phép xem bản kiểm thử này là nghiệm thu hiệu suất. Website chính chưa được phát hành lại.
 - Tệp cấu hình mẫu được giữ trống khóa máy chủ trước khi đưa vào Git. Backup CRM, môi trường riêng và trace/báo cáo Lighthouse chi tiết được giữ cục bộ; Git lưu bản tổng hợp.
+
+### Đo Vercel và sửa Consent Mode — tối 29/09/2026
+
+Nhánh thử đã đẩy commit c5ccfbe và dựng Vercel thành công. Đã đo đúng trang qua liên kết chia sẻ: Performance mobile 51, desktop 70, một lượt mỗi chế độ trên máy chạy đo cục bộ; các nhóm khác chịu ảnh hưởng noindex và SSO của bản thử. Báo cáo Google chuyển sang trang đăng nhập đã bị loại.
+
+Đã sửa trang chủ giữ snapshot cũ, tách banner tĩnh sang server và sửa định dạng lệnh Consent Mode. Kiểm tra Home 3 nhóm đạt, CRM 10/10 và tracking 10/10 đạt. Bộ xử lý Google thật nhận đúng denied/granted/revoke trong phép thử chặn mạng. Bản chứa sửa tracking đang được dựng và kiểm tra giao diện. Ngoại lệ tên miền thử chưa xác nhận lưu; chưa áp migration hay phát hành production.
+
+Chi tiết và bằng chứng: [Tiến độ 29/09](performance-2026-09-29/TIEN-DO-29-09.md).
+
+### Phát hành theo tên miền chính thức — cập nhật yêu cầu
+
+Người dùng yêu cầu commit lên GitHub rồi kiểm tra trực tiếp https://greeniahomes.vn, ngừng dùng bản xem trước. Bản mới qua build 35/35 trang, lint và TypeScript. Tệp SQL phát hành CRM qua kiểm tra PostgreSQL với đối soát đầy đủ trước/sau; các bài thử nâng cấp đều đạt. Đã tạo backup riêng mới của 10 hồ sơ, checksum đạt; chưa có backup toàn schema. Phiên quản trị Supabase CLI hết hiệu lực (401); đã gửi tệp SQL cho người dùng chạy trong dashboard. Chưa đưa mã mới lên main khi ba RPC CRM chưa được xác nhận tồn tại. Performance 100 chưa đạt.

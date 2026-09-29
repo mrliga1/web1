@@ -18,6 +18,7 @@ const LazySection = ({ children, sectionId, isEditMode }: { children: React.Reac
 };
 
 interface HomeProps {
+  heroBanner: React.ReactNode;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   isEditMode: boolean;
@@ -45,15 +46,22 @@ export default function Home({
   initialProjects,
   initialNews,
   refreshOnMount = false,
+  heroBanner,
 }: HomeProps) {
   const hasInitialData =
     initialProducts !== undefined &&
     initialProjects !== undefined &&
     initialNews !== undefined;
-  const [products, setProducts] = useState<Product[]>(initialProducts ?? []);
-  const [projects, setProjects] = useState<Project[]>(initialProjects ?? []);
-  const [news, setNews] = useState<News[]>(initialNews ?? []);
-  const [loading, setLoading] = useState(!hasInitialData);
+  const [loadedProducts, setProducts] = useState<Product[]>(initialProducts ?? []);
+  const [loadedProjects, setProjects] = useState<Project[]>(initialProjects ?? []);
+  const [loadedNews, setNews] = useState<News[]>(initialNews ?? []);
+  const [isLoading, setLoading] = useState(!hasInitialData);
+  // Ưu tiên snapshot mới của máy chủ sau router.refresh, tránh giữ nội dung cũ trong state.
+  const usesServerSnapshot = hasInitialData && !refreshOnMount;
+  const products = usesServerSnapshot ? initialProducts ?? [] : loadedProducts;
+  const projects = usesServerSnapshot ? initialProjects ?? [] : loadedProjects;
+  const news = usesServerSnapshot ? initialNews ?? [] : loadedNews;
+  const loading = usesServerSnapshot ? false : isLoading;
 
   // Bộ đếm xem thêm cho lưới sản phẩm.
   const [productClickCount, setProductClickCount] = useState(0);
@@ -147,6 +155,7 @@ export default function Home({
           } else if (section.id === 'hero') {
             cardContent = (
               <HeroSectionBody 
+                heroBanner={heroBanner}
                 sec={getSection('hero')}
                 isEditMode={isEditMode}
                 onNavigate={onNavigate}

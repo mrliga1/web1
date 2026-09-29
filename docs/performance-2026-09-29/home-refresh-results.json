@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "presentationMocked": true,
+  "externalNetworkBlocked": true,
+  "results": [
+    "Ba danh sách nhận snapshot mới khi component không bị tháo",
+    "Dữ liệu SSR đầy đủ không bị gọi lại qua API",
+    "Giữ nội dung dự phòng khi API làm mới bị lỗi"
+  ]
+}

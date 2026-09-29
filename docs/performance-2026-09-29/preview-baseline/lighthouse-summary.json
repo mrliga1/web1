@@ -1,0 +1,126 @@
+[
+  {
+    "mode": "mobile",
+    "run": 1,
+    "url": "https://web1-git-codex-performance-release-greenia-homes.vercel.app/",
+    "version": "13.5.0",
+    "time": "2026-09-29T15:30:39.905Z",
+    "warnings": [
+      "The page may not be loading as expected because your test URL (https://web1-git-codex-performance-release-greenia-homes.vercel.app/?_vercel_share=[đã ẩn]) was redirected to https://web1-git-codex-performance-release-greenia-homes.vercel.app/. Try testing the second URL directly."
+    ],
+    "benchmarkIndex": 394.5,
+    "scores": {
+      "performance": 0.51,
+      "accessibility": 1,
+      "best-practices": 0.96,
+      "seo": 0.69,
+      "agentic-browsing": 1
+    },
+    "metrics": {
+      "first-contentful-paint": "2.0 s",
+      "largest-contentful-paint": "3.6 s",
+      "total-blocking-time": "9,050 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "7.7 s"
+    },
+    "failed": [
+      {
+        "category": "performance",
+        "id": "first-contentful-paint",
+        "score": 0.85
+      },
+      {
+        "category": "performance",
+        "id": "largest-contentful-paint",
+        "score": 0.6
+      },
+      {
+        "category": "performance",
+        "id": "total-blocking-time",
+        "score": 0
+      },
+      {
+        "category": "performance",
+        "id": "speed-index",
+        "score": 0.24
+      },
+      {
+        "category": "best-practices",
+        "id": "errors-in-console",
+        "score": 0
+      },
+      {
+        "category": "seo",
+        "id": "is-crawlable",
+        "score": 0
+      }
+    ]
+  },
+  {
+    "mode": "desktop",
+    "run": 1,
+    "url": "https://web1-git-codex-performance-release-greenia-homes.vercel.app/",
+    "version": "13.5.0",
+    "time": "2026-09-29T15:31:23.137Z",
+    "warnings": [
+      "The page may not be loading as expected because your test URL (https://web1-git-codex-performance-release-greenia-homes.vercel.app/?_vercel_share=[đã ẩn]) was redirected to https://web1-git-codex-performance-release-greenia-homes.vercel.app/. Try testing the second URL directly."
+    ],
+    "benchmarkIndex": 499,
+    "scores": {
+      "performance": 0.7,
+      "accessibility": 1,
+      "best-practices": 0.73,
+      "seo": 0.69,
+      "agentic-browsing": 0.67
+    },
+    "metrics": {
+      "first-contentful-paint": "0.4 s",
+      "largest-contentful-paint": "0.8 s",
+      "total-blocking-time": "1,240 ms",
+      "cumulative-layout-shift": "0",
+      "speed-index": "1.0 s"
+    },
+    "failed": [
+      {
+        "category": "performance",
+        "id": "largest-contentful-paint",
+        "score": 0.98
+      },
+      {
+        "category": "performance",
+        "id": "total-blocking-time",
+        "score": 0.02
+      },
+      {
+        "category": "performance",
+        "id": "speed-index",
+        "score": 0.97
+      },
+      {
+        "category": "best-practices",
+        "id": "third-party-cookies",
+        "score": 0
+      },
+      {
+        "category": "best-practices",
+        "id": "errors-in-console",
+        "score": 0
+      },
+      {
+        "category": "best-practices",
+        "id": "inspector-issues",
+        "score": 0
+      },
+      {
+        "category": "seo",
+        "id": "is-crawlable",
+        "score": 0
+      },
+      {
+        "category": "agentic-browsing",
+        "id": "llms-txt",
+        "score": 0
+      }
+    ]
+  }
+]

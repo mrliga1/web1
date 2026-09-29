@@ -9,6 +9,7 @@ import type { News, Product, Project, RouteState, VisualSection } from "../src/t
 import { useNotification } from "../src/contexts/NotificationContext";
 
 interface HomePageClientProps {
+  heroBanner: React.ReactNode;
   initialSections: VisualSection[];
   initialProducts: Product[];
   initialProjects: Project[];
@@ -22,6 +23,7 @@ export default function HomePageClient({
   initialProjects,
   initialNews,
   needsClientRefresh,
+  heroBanner,
 }: HomePageClientProps) {
   const { sections, setSections, isEditMode } = useAppContext();
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
@@ -54,6 +56,7 @@ export default function HomePageClient({
 
   return (
     <Home
+      heroBanner={heroBanner}
       onNavigate={handleNavigate}
       onShowNotification={showNotification}
       isEditMode={isEditMode}

@@ -191,3 +191,23 @@ test('Chưa cần tracking thì không gửi yêu cầu IP; trạng thái vẫn 
   assert.equal(effect(), undefined);
   assert.deepEqual(states, ['pending']);
 });
+
+
+test('ConsentMode gửi lệnh arguments đúng giao thức Google và giữ lựa chọn qua kiểm tra IP', () => {
+  const h = trackingHarness();
+  h.api.setTrackingConsent('denied', true);
+  h.api.setManualIpTrackingPolicy('allowed');
+  const defaults = h.window.dataLayer.filter(row => row[0] === 'consent');
+  assert.equal(defaults[0][1], 'default');
+  for (const entry of defaults) {
+    assert.equal(Object.prototype.toString.call(entry), '[object Arguments]');
+    for (const field of ['analytics_storage', 'ad_storage', 'ad_user_data', 'ad_personalization']) assert.equal(entry[2][field], 'denied');
+  }
+  h.api.setTrackingConsent('granted');
+  const granted = h.window.dataLayer.filter(row => row[0] === 'consent').at(-1);
+  assert.equal(granted[2].ad_storage, 'granted');
+  h.api.setManualIpTrackingPolicy('blocked');
+  const revoked = h.window.dataLayer.filter(row => row[0] === 'consent').at(-1);
+  assert.equal(revoked[2].ad_storage, 'denied');
+  for (const entry of h.window.dataLayer.filter(row => row[0] === 'consent' || row[0] === 'set')) assert.equal(Object.prototype.toString.call(entry), '[object Arguments]');
+});

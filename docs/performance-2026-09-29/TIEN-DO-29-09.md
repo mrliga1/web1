@@ -51,3 +51,11 @@ Kỹ năng điều khiển máy tính đang có dùng chung chuột Windows. The
 - Phép thử mới thất bại trên mã cũ và đạt sau sửa; 10/10 kiểm tra tracking đạt.
 - Kiểm tra bộ xử lý của container Google thật tại máy, chặn toàn bộ mạng ngoài: default denied, update granted và revoke denied được Google nhận đúng cho analytics_storage, ad_storage, ad_user_data, ad_personalization. [Kết quả](google-consent-runtime.json). Chưa xác nhận bằng network trên bản Vercel mới.
 - Bản banner dựng trên máy chủ đã qua build 35/35 trang, lint và TypeScript; mã riêng homepage giảm 13,7 KB xuống 12,8 KB, First Load JS 164 KB. Bản chứa cả sửa tracking đã qua build production: biên dịch, lint, TypeScript và 35/35 trang đạt.
+
+## GitHub và kiểm tra trực tiếp production
+
+- Commit e0a38a7f4725dbf9d622bb324b89d98203ae75af đã đẩy thành công lên origin/codex/performance-release. Chưa đẩy main hoặc phát hành bản mới do migration CRM đang chờ xác nhận.
+- Kiểm tra trực tiếp https://greeniahomes.vn xác nhận đang chạy bản cũ: chưa có nội dung banner mới; đã lưu danh sách tài nguyên để đối chiếu sau phát hành. Trang chủ, robots.txt, sitemap.xml, llms.txt, manifest.json và tracking-policy đều HTTP 200, không chuyển đến Vercel đăng nhập. [Kết quả HTTP](production-before-release.json).
+- Kiểm tra 20 URL trong sitemap bằng scripts/audit-search-output.mjs: 0 lỗi trong các tiêu chí HTTP, title, description, canonical, robots, JSON-LD/schema; 3 cảnh báo dữ liệu thử ở sản phẩm, bài viết và dự án. Không coi phép kiểm tra này là toàn bộ đánh giá semantic/intent hoặc xác nhận điểm SEO 100. [Chi tiết SEO](production-before-seo.txt).
+- Kiểm tra quyền production bằng scripts/verify-production-security.mjs đạt (exit 0): anon không đọc dữ liệu nhạy cảm, bảng legacy/RPC đặc quyền bị chặn, dữ liệu công khai vẫn đọc được. Đây chưa phải UAT vai trò nhân viên và migration CRM mới.
+- Các lượt kiểm tra trên chỉ đọc dữ liệu; không tạo hồ sơ khách hay gửi email/thông báo. Chưa chạy phép đo Performance mới để tránh gán kết quả bản cũ cho bản nâng cấp.

@@ -1,0 +1,75 @@
+{
+  "time": "2026-09-29T16:14:08.531Z",
+  "scope": "Tên miền chính thức trước khi phát hành mã mới",
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "finalUrl": "https://greeniahomes.vn/",
+      "xRobotsTag": null,
+      "contentType": "text/html; charset=utf-8",
+      "title": "Greenia Homes - Đồng Hành - Tận Tâm - AN Tâm Mua Nhà",
+      "newHeroPresent": false,
+      "manifestUrl": "https://greeniahomes.vn/manifest.json",
+      "scripts": [
+        "/_next/static/chunks/4bd1b696-f785427dddbba9fb.js",
+        "/_next/static/chunks/1255-d90f22433f14e976.js",
+        "/_next/static/chunks/main-app-5eb0d9c55a395822.js",
+        "/_next/static/chunks/44530001-a2d65df546af1ff5.js",
+        "/_next/static/chunks/3149-ff64bfb934c82189.js",
+        "/_next/static/chunks/1728-7f5e88a8b49d8bf4.js",
+        "/_next/static/chunks/4056-dc6a2b88fa34757d.js",
+        "/_next/static/chunks/6413-9ba0aa988a6d0e5e.js",
+        "/_next/static/chunks/8650-b97fd4a8b2d9ebb0.js",
+        "/_next/static/chunks/app/layout-75f94056b08453e7.js",
+        "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3011026316612541",
+        "/_next/static/chunks/9002-18abd8562b5db841.js",
+        "/_next/static/chunks/9106-eefc7f4731930bc3.js",
+        "/_next/static/chunks/6712-f382ca72bcc5e5dc.js",
+        "/_next/static/chunks/app/page-6421b0993d3484aa.js",
+        "/_next/static/chunks/polyfills-42372ed130431b0a.js",
+        "/_next/static/chunks/webpack-cf125ae699659666.js"
+      ]
+    },
+    {
+      "path": "/robots.txt",
+      "status": 200,
+      "finalUrl": "https://greeniahomes.vn/robots.txt",
+      "xRobotsTag": null,
+      "contentType": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "/sitemap.xml",
+      "status": 200,
+      "finalUrl": "https://greeniahomes.vn/sitemap.xml",
+      "xRobotsTag": null,
+      "contentType": "application/xml",
+      "urlCount": 20
+    },
+    {
+      "path": "/llms.txt",
+      "status": 200,
+      "finalUrl": "https://greeniahomes.vn/llms.txt",
+      "xRobotsTag": null,
+      "contentType": "text/plain; charset=utf-8"
+    },
+    {
+      "path": "/api/tracking-policy",
+      "status": 200,
+      "finalUrl": "https://greeniahomes.vn/api/tracking-policy",
+      "xRobotsTag": null,
+      "contentType": "application/json",
+      "policyKeys": [
+        "blocked"
+      ],
+      "blocked": false
+    },
+    {
+      "path": "/manifest.json",
+      "status": 200,
+      "finalUrl": "https://greeniahomes.vn/manifest.json",
+      "xRobotsTag": null,
+      "contentType": "application/json; charset=utf-8"
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+Tên miền chính thức, bản cũ trước phát hành 2026-09-29T16:13:06.703Z
+┌─────────┬─────────────────────────────────────────────────────────────────────────────────────────┬──────┬────────┬─────┬──────────┐
+│ (index) │ URL                                                                                     │ HTTP │ Schema │ Lỗi │ Cảnh báo │
+├─────────┼─────────────────────────────────────────────────────────────────────────────────────────┼──────┼────────┼─────┼──────────┤
+│ 0       │ '/'                                                                                     │ 200  │ 7      │ 0   │ 0        │
+│ 1       │ '/san-pham'                                                                             │ 200  │ 6      │ 0   │ 0        │
+│ 2       │ '/category-product/chuyen-nhuong'                                                       │ 200  │ 6      │ 0   │ 0        │
+│ 3       │ '/category-product/cho-thue'                                                            │ 200  │ 6      │ 0   │ 0        │
+│ 4       │ '/category-product/can-ho'                                                              │ 200  │ 6      │ 0   │ 0        │
+│ 5       │ '/category-product/nha-pho-biet-thu'                                                    │ 200  │ 6      │ 0   │ 0        │
+│ 6       │ '/du-an'                                                                                │ 200  │ 6      │ 0   │ 0        │
+│ 7       │ '/tin-tuc'                                                                              │ 200  │ 6      │ 0   │ 0        │
+│ 8       │ '/category-news/thi-truong'                                                             │ 200  │ 6      │ 0   │ 0        │
+│ 9       │ '/latest-sales'                                                                         │ 200  │ 6      │ 0   │ 0        │
+│ 10      │ '/latest-rents'                                                                         │ 200  │ 6      │ 0   │ 0        │
+│ 11      │ '/lien-he'                                                                              │ 200  │ 5      │ 0   │ 0        │
+│ 12      │ '/chinh-sach-bao-mat'                                                                   │ 200  │ 5      │ 0   │ 0        │
+│ 13      │ '/dieu-khoan-su-dung'                                                                   │ 200  │ 5      │ 0   │ 0        │
+│ 14      │ '/san-pham/text-san-pham-moi-ban-nha-pho-an-phu-new-cit-quan-2-gia-tot-nhat-thi-truong' │ 200  │ 9      │ 0   │ 1        │
+│ 15      │ '/san-pham/can-ho-quan-2'                                                               │ 200  │ 9      │ 0   │ 0        │
+│ 16      │ '/tin-tuc/kiem-tra-bai-viet-moi'                                                        │ 200  │ 7      │ 0   │ 1        │
+│ 17      │ '/du-an/vinhomes-can-gio'                                                               │ 200  │ 8      │ 0   │ 1        │
+│ 18      │ '/category-product/an-phu-new-city'                                                     │ 200  │ 6      │ 0   │ 0        │
+│ 19      │ '/category-news/tin-du-an'                                                              │ 200  │ 6      │ 0   │ 0        │
+└─────────┴─────────────────────────────────────────────────────────────────────────────────────────┴──────┴────────┴─────┴──────────┘
+
+/san-pham/text-san-pham-moi-ban-nha-pho-an-phu-new-cit-quan-2-gia-tot-nhat-thi-truong
+  CẢNH BÁO: Tiêu đề có dấu hiệu dữ liệu thử nghiệm
+
+/tin-tuc/kiem-tra-bai-viet-moi
+  CẢNH BÁO: Tiêu đề có dấu hiệu dữ liệu thử nghiệm
+
+/du-an/vinhomes-can-gio
+  CẢNH BÁO: Nội dung có chuỗi ký tự lặp, nghi là dữ liệu thử nghiệm
+
+Đã kiểm tra 20 URL: 0 lỗi, 3 cảnh báo.

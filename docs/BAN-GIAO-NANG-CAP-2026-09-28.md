@@ -154,3 +154,5 @@ Chi tiết và bằng chứng: [Tiến độ 29/09](performance-2026-09-29/TIEN-
 ### Phát hành theo tên miền chính thức — cập nhật yêu cầu
 
 Người dùng yêu cầu commit lên GitHub rồi kiểm tra trực tiếp https://greeniahomes.vn, ngừng dùng bản xem trước. Bản mới qua build 35/35 trang, lint và TypeScript. Tệp SQL phát hành CRM qua kiểm tra PostgreSQL với đối soát đầy đủ trước/sau; các bài thử nâng cấp đều đạt. Đã tạo backup riêng mới của 10 hồ sơ, checksum đạt; chưa có backup toàn schema. Phiên quản trị Supabase CLI hết hiệu lực (401); đã gửi tệp SQL cho người dùng chạy trong dashboard. Chưa đưa mã mới lên main khi ba RPC CRM chưa được xác nhận tồn tại. Performance 100 chưa đạt.
+
+Commit e0a38a7 đã đẩy GitHub. Kiểm tra trực tiếp tên miền chính thức trước phát hành: 20 URL SEO có 0 lỗi kỹ thuật trong các tiêu chí của script, 3 cảnh báo nội dung thử; quyền production đạt. Tên miền chính vẫn phục vụ bản cũ. Đang chờ kết quả giao dịch CRM từ Supabase để phát hành mã mới và kiểm tra lại. Chi tiết trong [tiến độ 29/09](performance-2026-09-29/TIEN-DO-29-09.md).

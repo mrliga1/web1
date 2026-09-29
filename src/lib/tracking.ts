@@ -112,7 +112,8 @@ export function pushTrackingEvent(event: string, payload: TrackingPayload = {}) 
   if (typeof window === "undefined" || !event.trim()) return;
   const cleanPayload = sanitizePayload(payload);
   const policyWindow = window as TrackingWindow;
-  if (!canLoadTrackingScripts()) {
+  if (policyWindow.__greeniaRequestedConsent === 'denied') return;
+  if (policyWindow.__greeniaRequestedConsent !== 'granted' || !hasMarketingTrackingConsent()) {
     if (policyWindow.__greeniaIpTrackingPolicy !== 'blocked') {
       // Chờ xác minh IP, giới hạn hàng đợi để không giữ dữ liệu vô hạn.
       policyWindow.__greeniaPolicyEvents = [...(policyWindow.__greeniaPolicyEvents || []).slice(-49), { event, payload: cleanPayload }];
@@ -160,7 +161,10 @@ export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false)
   if (typeof window === "undefined") return;
   const trackingWindow = window as TrackingWindow;
   trackingWindow.__greeniaRequestedConsent = status;
-  if (status === 'denied') trackingWindow.__greeniaConsentNotified = false;
+  if (status === 'denied') {
+    trackingWindow.__greeniaConsentNotified = false;
+    trackingWindow.__greeniaPolicyEvents = [];
+  }
   status = canLoadTrackingScripts() ? status : 'denied';
   trackingWindow.__greeniaTrackingConsent = status;
   if (status === "denied") trackingWindow.__greeniaPendingMetaEvents = [];
@@ -177,6 +181,11 @@ export function setTrackingConsent(status: ConsentStatus, waitForUpdate = false)
   pushGoogleCommand('set', { ads_data_redaction: true, allow_ad_personalization_signals: status === 'granted' });
   pushGoogleCommand('consent', waitForUpdate ? 'default' : 'update', consent);
   window.dispatchEvent(new Event('greenia_tracking_consent_changed'));
+  if (status === 'granted') {
+    const pending = trackingWindow.__greeniaPolicyEvents || [];
+    trackingWindow.__greeniaPolicyEvents = [];
+    pending.forEach(({ event, payload }) => pushTrackingEvent(event, payload));
+  }
 }
 
 export function notifyTrackingConsentGranted() {

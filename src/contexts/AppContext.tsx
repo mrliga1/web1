@@ -11,7 +11,6 @@ import {
 } from '../types';
 import {
   flushPendingMetaEvents,
-  canLoadTrackingScripts,
   hasMarketingTrackingConsent,
   notifyTrackingConsentGranted,
   pushTrackingEvent,
@@ -199,7 +198,7 @@ export function AppProvider({ children, initialSettings }: { children: React.Rea
     };
 
     const loadTrackingScripts = () => {
-      if (!canLoadTrackingScripts()) return;
+      if (!hasMarketingTrackingConsent()) return;
       const tagManagerId = getSettingString(
         process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID,
       ).trim();
@@ -207,7 +206,7 @@ export function AppProvider({ children, initialSettings }: { children: React.Rea
 
       // GTM là nguồn cấu hình Google và Meta duy nhất để tránh nạp trùng thẻ.
       scheduleTrackingTask(() => {
-        if (cancelled || !canLoadTrackingScripts() || document.getElementById("gtm-tracker-script")) return;
+        if (cancelled || !hasMarketingTrackingConsent() || document.getElementById("gtm-tracker-script")) return;
         const gtmScript = document.createElement("script");
         gtmScript.id = "gtm-tracker-script";
         gtmScript.text = `
@@ -223,7 +222,13 @@ export function AppProvider({ children, initialSettings }: { children: React.Rea
     };
 
     const handleTrackingPolicy = () => {
-      if (cancelled || !canLoadTrackingScripts()) return;
+      if (cancelled) return;
+      if (!hasMarketingTrackingConsent()) {
+        // Sau khi chặn IP, tải lại trang để dừng mã GTM đã khởi tạo trước đó.
+        const state = window as Window & { __greeniaIpTrackingPolicy?: string };
+        if (state.__greeniaIpTrackingPolicy === 'blocked' && document.getElementById('gtm-tracker-script')) window.location.reload();
+        return;
+      }
       loadTrackingScripts();
       notifyTrackingConsentGranted();
       scheduleMetaFlush();
@@ -256,10 +261,12 @@ export function AppProvider({ children, initialSettings }: { children: React.Rea
         try { consentAccepted = localStorage.getItem('cookie_consent') === 'accepted'; } catch { /* Trình duyệt chặn lưu trữ: giữ trạng thái chưa đồng ý. */ }
         const initialConsentGranted = !requiresConsent || consentAccepted;
         setTrackingConsent(initialConsentGranted ? 'granted' : 'denied', true);
-        const needsPolicy = (accepted: boolean) => Boolean(process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID)
-          || (accepted && (data.adSenseSettings.enabled || data.tiktokPixelEnabled));
+        const needsPolicy = (accepted: boolean) => accepted && (
+          Boolean(process.env.NEXT_PUBLIC_GOOGLE_TAG_MANAGER_ID)
+          || data.adSenseSettings.enabled || data.tiktokPixelEnabled
+        );
         setPolicyEnabled(needsPolicy(initialConsentGranted));
-        // Luôn nạp GTM để Google Consent Mode gửi tín hiệu không cookie khi chưa được đồng ý.
+        // Chỉ nạp thẻ khi đã đồng ý và IP được phép; lệnh consent chờ sẵn trong dataLayer.
         loadTrackingScripts();
         if (initialConsentGranted) {
           notifyTrackingConsentGranted();
@@ -272,6 +279,8 @@ export function AppProvider({ children, initialSettings }: { children: React.Rea
           const accepted = consentEvent.detail?.status === 'accepted';
           setTrackingConsent(accepted ? 'granted' : 'denied');
           setPolicyEnabled(needsPolicy(accepted));
+          // Thu hồi đồng ý dừng toàn bộ mã Google đã khởi tạo trong phiên hiện tại.
+          if (!accepted && document.getElementById('gtm-tracker-script')) window.location.reload();
           if (accepted) {
             notifyTrackingConsentGranted();
             scheduleMetaFlush([500, 2000, 7000]);

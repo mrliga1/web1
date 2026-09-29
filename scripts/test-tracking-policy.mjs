@@ -211,3 +211,24 @@ test('ConsentMode gửi lệnh arguments đúng giao thức Google và giữ l�
   assert.equal(revoked[2].ad_storage, 'denied');
   for (const entry of h.window.dataLayer.filter(row => row[0] === 'consent' || row[0] === 'set')) assert.equal(Object.prototype.toString.call(entry), '[object Arguments]');
 });
+
+
+test('Từ chối cookie loại sự kiện chờ; cấp quyền sau đó không phát lại sự kiện cũ', () => {
+  const h = trackingHarness();
+  h.api.trackLead('form', 'trước khi chọn');
+  assert.equal(h.window.__greeniaPolicyEvents.length, 1);
+  h.api.setTrackingConsent('denied', true);
+  assert.equal(h.window.__greeniaPolicyEvents.length, 0);
+  h.api.setManualIpTrackingPolicy('allowed');
+  h.api.trackLead('form', 'đã từ chối');
+  assert.equal(h.googleEvents().length, 0);
+  assert.equal(h.metaEvents().length, 0);
+  h.api.setTrackingConsent('granted');
+  h.api.trackLead('form', 'đã đồng ý');
+  assert.equal(h.googleEvents().length, 1);
+  assert.equal(h.metaEvents().length, 1);
+  h.api.setTrackingConsent('denied');
+  h.api.trackLead('form', 'đã thu hồi');
+  assert.equal(h.googleEvents().length, 1);
+  assert.equal(h.metaEvents().length, 1);
+});

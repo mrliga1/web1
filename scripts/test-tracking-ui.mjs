@@ -50,7 +50,9 @@ try {
   results.push('Bỏ chặn thủ công cho phép khởi tạo tracking');
 
   blocked = true;
+  const blockedReload = page.waitForEvent('load');
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await blockedReload;
   await page.waitForFunction(() => window.__greeniaIpTrackingPolicy === 'blocked');
   await page.evaluate(() => window.dispatchEvent(new CustomEvent('cookie_consent_changed', { detail: { status: 'accepted' } })));
   const state = await page.evaluate(() => ({
@@ -69,12 +71,16 @@ try {
   assert.equal(await page.evaluate(() => (window.__greeniaPolicyEvents || []).length), 0);
   results.push('Chuyển trang kiểm tra lại IP và hủy sự kiện chờ của IP đã chặn');
 
-  await page.evaluate(() => window.dispatchEvent(new CustomEvent('cookie_consent_changed', { detail: { status: 'declined' } })));
+  await page.evaluate(() => {
+    localStorage.setItem('cookie_consent', 'declined');
+    window.dispatchEvent(new CustomEvent('cookie_consent_changed', { detail: { status: 'declined' } }));
+  });
   blocked = false;
+  await page.waitForFunction(() => window.__greeniaIpTrackingPolicy === 'pending');
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
-  await page.waitForFunction(() => window.__greeniaIpTrackingPolicy === 'allowed');
+  assert.equal(await page.evaluate(() => window.__greeniaIpTrackingPolicy), 'pending');
   assert.equal(await page.evaluate(() => window.__greeniaTrackingConsent), 'denied');
-  results.push('Bỏ chặn không tự cấp lại đồng ý cookie');
+  results.push('Từ chối cookie ngừng kiểm tra IP và không tự cấp lại quyền');
   console.log(JSON.stringify({ passed: results.length, results }, null, 2));
 } finally {
   await context.close();

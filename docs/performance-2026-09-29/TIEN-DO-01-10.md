@@ -56,3 +56,16 @@ Lượt GitHub: https://github.com/mrliga1/web1/actions/runs/36755439667, commit
 Benchmark 2.226–2.496. Lượt mobile đầu có TBT 1.216 ms; hai lượt sau 42 và 52 ms. LCP mobile còn khoảng 1,97–2,28 giây. **Desktop đã đạt trong ba lượt; mobile chưa đạt yêu cầu.**
 
 Báo cáo đầy đủ ban đầu không được lưu vì action tải artifact mặc định bỏ qua thư mục bắt đầu bằng dấu chấm. Đã bật `include-hidden-files` chỉ cho thư mục báo cáo `.audit-reports/`, đồng thời đổi sang báo lỗi nếu không có tệp. Cần đo lại để thu báo cáo và dấu vết đầy đủ; số liệu lần đầu vẫn được giữ lại.
+
+## Báo cáo đầy đủ của commit 03bbc5c
+
+Lượt https://github.com/mrliga1/web1/actions/runs/36762218529 đã lưu thành công artifact chứa cả JSON, HTML và dấu vết của sáu lượt đo. Bản tổng hợp được lưu tại `official-independent-03bbc5c-summary.json`.
+
+- Performance mobile: 86, 99, 99; desktop: 100, 100, 100.
+- Accessibility, Best Practices, SEO và Agentic: 100 ở cả sáu lượt; Agentic 3/3.
+- LCP mobile là H1 của banner. Lượt đầu có chờ hiển thị khoảng 1,25 giây; lượt thứ hai khoảng 87 ms.
+- Mã Realtime nền xuất hiện trong giai đoạn khởi tạo, có một tác vụ dài khoảng 85 ms ở lượt mobile đầu.
+
+Đã điều chỉnh `ContentRealtimeRefresh`: đợi trang tải xong, ưu tiên kết nối khi người dùng tương tác; khách chỉ đọc tự kết nối sau 5 giây và khi luồng chính có thời gian rảnh. Dọn đầy đủ listener, timer và kết nối khi chuyển trang. Áp dụng cho mọi khách, không dựa vào user-agent hoặc nhận diện công cụ đo.
+
+Kiểm tra trước phát hành: 10/10 tình huống chức năng của component thực tế đã biên dịch; kiểm tra kiểu dữ liệu và lint đạt. **Chưa có điểm Lighthouse mới của thay đổi này; chưa đủ điều kiện bàn giao.**

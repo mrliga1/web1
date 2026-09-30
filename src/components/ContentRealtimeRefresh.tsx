@@ -28,7 +28,6 @@ export default function ContentRealtimeRefresh() {
 
     let channel: RealtimeChannel | undefined;
     let client: RealtimeClient | undefined;
-    // Đồng bộ nền sau khi trình duyệt hoàn tất dựng trang đầu tiên.
     const connect = async () => {
       try {
         const { RealtimeClient } = await import('@supabase/realtime-js');
@@ -50,13 +49,46 @@ export default function ContentRealtimeRefresh() {
         });
       } catch (error) { if (!disposed) console.warn('Không thể khởi tạo đồng bộ nội dung:', error); }
     };
-    const idle = window.requestIdleCallback?.(() => void connect(), { timeout: 1500 });
-    const timer = idle === undefined ? setTimeout(() => void connect(), 500) : undefined;
+
+    // Trang có snapshot máy chủ; kết nối nền sau tải trang để ưu tiên lần hiển thị đầu.
+    let pageLoaded = document.readyState === 'complete';
+    let interactionRequested = false;
+    let connectionScheduled = false;
+    let idle: number | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+    const interactionEvents = ['pointerdown', 'keydown', 'scroll'] as const;
+    const removeInteractionListeners = () => {
+      for (const event of interactionEvents) window.removeEventListener(event, scheduleConnection);
+    };
+    function scheduleConnection() {
+      if (disposed || connectionScheduled) return;
+      interactionRequested = true;
+      if (!pageLoaded) return;
+      connectionScheduled = true;
+      removeInteractionListeners();
+      if (fallbackTimer !== undefined) clearTimeout(fallbackTimer);
+      idle = window.requestIdleCallback?.(() => void connect(), { timeout: 5000 });
+      if (idle === undefined) timer = setTimeout(() => void connect(), 0);
+    }
+    const onPageLoad = () => {
+      if (disposed) return;
+      pageLoaded = true;
+      if (interactionRequested) scheduleConnection();
+      // Khách chỉ đọc vẫn được đồng bộ sau 5 giây, không cần thao tác bắt buộc.
+      else fallbackTimer = setTimeout(scheduleConnection, 5000);
+    };
+    for (const event of interactionEvents) window.addEventListener(event, scheduleConnection, { once: true, passive: true });
+    if (pageLoaded) onPageLoad();
+    else window.addEventListener('load', onPageLoad, { once: true });
 
     return () => {
       disposed = true;
+      window.removeEventListener('load', onPageLoad);
+      removeInteractionListeners();
       if (idle !== undefined) window.cancelIdleCallback(idle);
       if (timer !== undefined) clearTimeout(timer);
+      if (fallbackTimer !== undefined) clearTimeout(fallbackTimer);
       if (refreshTimer) clearTimeout(refreshTimer);
       if (client) {
         const activeClient = client;

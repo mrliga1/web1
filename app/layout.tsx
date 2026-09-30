@@ -8,6 +8,7 @@ import {
 } from "../src/lib/internalLinks";
 import { getInitialSiteSettings } from "../src/lib/serverData";
 import { getManagedStaticMetadata } from "../src/lib/staticSeo";
+import { COOKIE_CHOICE_BOOTSTRAP } from '../src/lib/cookieConsentChoice';
 import "../src/index.css";
 
 /* Metadata mặc định cho toàn bộ site */
@@ -43,8 +44,9 @@ export default async function RootLayout({
   const initialSiteSettings = await getInitialSiteSettings();
 
   return (
-    <html lang="vi">
+    <html lang="vi" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: COOKIE_CHOICE_BOOTSTRAP }} />
         <script
           dangerouslySetInnerHTML={{
             __html: `try{var recentlyViewedIds=JSON.parse(localStorage.getItem('recentlyViewed')||'[]');if(Array.isArray(recentlyViewedIds)&&recentlyViewedIds.length>0){document.documentElement.setAttribute('data-has-recently-viewed','true');document.documentElement.style.setProperty('--recently-viewed-count',String(Math.min(recentlyViewedIds.length,5)));}}catch(e){}`,

@@ -52,6 +52,10 @@ try {
       await page.getByRole('heading', { level: 1, name: 'Tìm bất động sản phù hợp, an tâm trong từng quyết định' }).waitFor();
       assert.equal(await page.locator('h1').count(), 1);
       await page.getByRole('alertdialog', { name: 'Thông báo cookie' }).getByRole('button', { name: 'Đóng', exact: true }).click();
+      assert.equal(await page.evaluate(() => localStorage.getItem('cookie_consent')), 'declined');
+      await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
+      assert.equal(await page.evaluate(() => document.documentElement.getAttribute('data-greenia-cookie-choice')), 'declined');
+      await page.getByRole('alertdialog', { name: 'Thông báo cookie' }).waitFor({ state: 'hidden' });
       const hero = page.locator('#home-hero-banner img').first();
       await hero.scrollIntoViewIfNeeded();
       await hero.evaluate(image => image.decode());
@@ -91,7 +95,7 @@ try {
       await page.getByRole('link', { name: 'Xem bất động sản', exact: true }).click();
       await page.waitForURL(origin + '/san-pham');
       assert.deepEqual(errors, [], 'Có lỗi JavaScript trong phiên kiểm tra');
-      const result = { mode, passed: true, checks: ['H1', 'ảnh tải đủ', 'nhập biểu mẫu', 'checkbox', 'thêm/xóa yêu thích', 'CTA', 'thanh điều hướng sau cuộn', 'không tràn ngang', 'không lỗi JavaScript'], mobileMenu: mode === 'mobile' };
+      const result = { mode, passed: true, checks: ['H1', 'ghi nhớ từ chối cookie sau tải lại', 'ảnh tải đủ', 'nhập biểu mẫu', 'checkbox', 'thêm/xóa yêu thích', 'CTA', 'thanh điều hướng sau cuộn', 'không tràn ngang', 'không lỗi JavaScript'], mobileMenu: mode === 'mobile' };
       results.push(result);
       console.log(JSON.stringify(result));
     } catch (error) {

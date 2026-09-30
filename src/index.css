@@ -508,6 +508,11 @@ html:not([data-has-recently-viewed]) .recently-viewed-shell {
   display: none;
 }
 
+/* Lựa chọn đã lưu được đọc trước khi vẽ, tránh hiện lại thông báo cookie. */
+html[data-greenia-cookie-choice] .cookie-consent-banner {
+  display: none;
+}
+
 .recently-viewed-reserve {
   min-height: calc(38px + (var(--recently-viewed-count, 1) * 110px));
 }

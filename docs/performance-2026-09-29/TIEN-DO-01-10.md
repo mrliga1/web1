@@ -125,3 +125,15 @@ Commit `f47c382` đã được Vercel phát hành thành công. Lượt [3678468
 Đã bổ sung kiểm tra tương tác sau Lighthouse trên cùng máy GitHub, bằng Playwright 1.62.1 đã xác minh với registry npm. Chạy tuần tự desktop/mobile trên tên miền chính thức, kiểm tra H1, ảnh, nhập biểu mẫu/checkbox, thêm/xóa yêu thích, CTA, menu di động, thanh điều hướng sau cuộn, tràn ngang và lỗi JavaScript. Lưu ảnh và kết quả cùng artifact. Không gửi biểu mẫu CRM; loại GITHUB_TOKEN khỏi môi trường tiến trình trình duyệt.
 
 Kiểm tra cú pháp đạt; cấu hình YAML xác nhận đúng thứ tự, phiên bản cố định và bước lưu artifact. Thử điều kiện xác nhận phát hành: sai kho mã bị từ chối trước khi mở trình duyệt. Chưa có kết quả chạy UI thực tế trên GitHub cho kịch bản mới; cần đọc kết quả sau khi đẩy. Quy tắc chấm điểm Lighthouse giữ nguyên; chưa bàn giao.
+
+## Kết quả kiểm tra tương tác và thông báo cookie
+
+Commit `5f01d6d` đã phát hành thành công. Lượt [36787112194](https://github.com/mrliga1/web1/actions/runs/36787112194): mobile **74, 100, 100**, desktop **100, 100, 100**. Accessibility, Best Practices, SEO và Agentic đều 100, Agentic 3/3. Lưu báo cáo ở `official-independent-5f01d6d-summary.json`. Trung vị mobile đạt 100, nhưng điều kiện hiện tại yêu cầu cả ba lượt đạt; chưa chốt bàn giao.
+
+Kiểm tra tương tác thực tế trên GitHub đạt cả desktop và mobile: H1, ảnh, biểu mẫu, checkbox, yêu thích, CTA, menu di động, thanh điều hướng sau cuộn, không tràn ngang và không có lỗi JavaScript. Đã xem ảnh chụp của hai kích thước. Kết quả riêng lưu ở `official-ui-5f01d6d-results.json`.
+
+Lượt mobile đầu có TBT 936 ms, LCP 2,34 giây, Speed Index 4,21 giây. Mã giao diện giống bản `f47c382`; kiểm tra tương tác chạy sau Lighthouse. Dấu vết ghi một lần dựng bố cục mất 60 ms thời gian thực, khoảng 5,94 ms CPU của luồng; chưa đủ bằng chứng quy toàn bộ dao động điểm cho mã giao diện.
+
+Thông báo cookie đang xuất hiện sau bộ hẹn giờ 1.200 ms và hiệu ứng 500 ms, đồng thời chỉ nhớ lựa chọn đồng ý. Đã chuyển thông báo khách mới vào HTML dựng sẵn, đọc cả lựa chọn đồng ý/từ chối trước lần vẽ đầu tiên, bỏ lần xuất hiện trễ và ghi nhớ lựa chọn trong phiên nếu lưu trữ bị chặn. Không đổi chính sách tải tracking sau đồng ý. Cần kiểm thử, xác nhận bản dựng và đo lại tên miền chính thức để kết luận tác động.
+
+Kiểm thử `test-cookie-consent-render.mjs` đạt 11/11: HTML máy chủ, cấu hình tắt/trang quản trị, cả hai lựa chọn trước lần vẽ và sau khởi tạo, dữ liệu không hợp lệ, đồng ý/từ chối khi lưu trữ hoạt động hoặc bị chặn. Kiểm tra kiểu dữ liệu toàn dự án và lint các tệp TypeScript đã sửa đều đạt, không lỗi/cảnh báo. Kịch bản UI trên GitHub bổ sung tải lại trang sau từ chối để xác nhận lựa chọn được ghi nhớ ở bản chính thức. Chưa có kết quả hiệu suất của thay đổi cookie; chưa bàn giao.

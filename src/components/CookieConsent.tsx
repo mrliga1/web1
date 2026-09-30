@@ -6,41 +6,36 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAppContext } from '../contexts/AppContext';
 import { setTrackingConsent } from "../lib/tracking";
+import { readCookieConsentChoice, saveCookieConsentChoice } from '../lib/cookieConsentChoice';
 
 export default function CookieConsent() {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(true);
   const { cookieConsentEnabled } = useAppContext();
   const pathname = usePathname();
 
   useEffect(() => {
-    setShow(false);
-    if (!cookieConsentEnabled || pathname?.startsWith('/admin')) return;
-    let accepted = false;
-    try { accepted = localStorage.getItem('cookie_consent') === 'accepted'; } catch { /* Vẫn cho phép chọn khi lưu trữ bị chặn. */ }
-    if (accepted) return;
-    const timer = setTimeout(() => setShow(true), 1200);
-    return () => clearTimeout(timer);
+    setShow(Boolean(cookieConsentEnabled && !pathname?.startsWith('/admin') && !readCookieConsentChoice()));
   }, [cookieConsentEnabled, pathname]);
 
   const acceptCookies = () => {
-    try { localStorage.setItem("cookie_consent", "accepted"); } catch { /* Ghi nhận đồng ý trong phiên hiện tại. */ }
+    saveCookieConsentChoice('accepted');
     setTrackingConsent("granted");
     window.dispatchEvent(new CustomEvent("cookie_consent_changed", { detail: { status: "accepted" } }));
     setShow(false);
   };
 
   const declineCookies = () => {
-    try { localStorage.setItem("cookie_consent", "declined"); } catch { /* Ghi nhận từ chối trong phiên hiện tại. */ }
+    saveCookieConsentChoice('declined');
     setTrackingConsent("denied");
     window.dispatchEvent(new CustomEvent("cookie_consent_changed", { detail: { status: "declined" } }));
     setShow(false);
   };
 
-  if (!show) return null;
+  if (!show || !cookieConsentEnabled || pathname?.startsWith('/admin')) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6 pb-[80px] md:pb-6 pointer-events-none">
-      <div role="alertdialog" aria-label="Thông báo cookie" className="relative w-full md:w-[830px] max-w-4xl mx-auto bg-bg-surface border border-border-inverse/60 shadow-2xl rounded-2xl overflow-hidden pointer-events-auto animate-in slide-in-from-bottom-10 fade-in duration-500">
+    <div className="cookie-consent-banner fixed bottom-0 left-0 right-0 z-50 p-4 md:p-6 pb-[80px] md:pb-6 pointer-events-none">
+      <div role="alertdialog" aria-label="Thông báo cookie" className="relative w-full md:w-[830px] max-w-4xl mx-auto bg-bg-surface border border-border-inverse/60 shadow-2xl rounded-2xl overflow-hidden pointer-events-auto">
         <div className="w-full md:w-[830px] flex flex-col md:grid md:grid-cols-[1fr_auto] gap-4 md:gap-6 p-[10px] items-start md:items-center text-[10px]">
           <div className="flex gap-4 items-start w-full">
             <div className="w-[30px] h-[30px] text-[10px] rounded-full bg-[#064E3B]/10 flex items-center justify-center shrink-0">

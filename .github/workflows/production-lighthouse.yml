@@ -1,0 +1,40 @@
+name: Kiểm tra hiệu suất bản chính thức
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  statuses: write
+
+concurrency:
+  group: greenia-production-audit
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Cài Lighthouse đúng phiên bản
+        run: npm install --prefix "$RUNNER_TEMP/greenia-lighthouse" --no-save --package-lock=false lighthouse@13.5.0
+      - name: Đo tên miền chính thức
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          LIGHTHOUSE_CLI: ${{ runner.temp }}/greenia-lighthouse/node_modules/lighthouse/cli/index.js
+        run: node scripts/audit-production-ci.mjs
+      - name: Lưu báo cáo và dấu vết hiệu suất
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: greenia-official-lighthouse-${{ github.sha }}
+          path: .audit-reports/
+          retention-days: 7
+          if-no-files-found: warn

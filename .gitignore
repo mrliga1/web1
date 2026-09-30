@@ -12,3 +12,4 @@ docs/**/*.trace.json
 docs/**/lighthouse-*.html
 docs/**/lighthouse-*.json
 !docs/**/lighthouse-summary.json
+.audit-reports/

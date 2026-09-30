@@ -1,11 +1,37 @@
 import React from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
+import { getImageProps } from 'next/image';
 import { ArrowRight } from 'lucide-react';
 
 // Nội dung banner tĩnh được dựng tại máy chủ, không tải mã trình bày vào component trang chủ.
 export default function HomeHeroBanner() {
+  const { props: heroImage } = getImageProps({
+    src: '/uploads/nha-pho-vinhomes-saigon-park-1780522235670.webp',
+    alt: 'Phối cảnh dãy nhà phố và đường nội khu trong một dự án bất động sản',
+    width: 1443,
+    height: 770,
+    sizes: '(max-width: 1023px) 100vw, 55vw',
+    quality: 65,
+    loading: 'lazy',
+    className: 'aspect-[4/3] w-full object-cover object-center sm:aspect-[16/10] lg:aspect-[4/3]',
+  });
+  // React 18 dùng tên thuộc tính HTML; React mới hỗ trợ fetchPriority trực tiếp.
+  const preloadPriority = 'use' in React
+    ? { fetchPriority: 'high' as const }
+    : { fetchpriority: 'high' };
+
   return (
+    <>
+      {/* Ảnh nằm cạnh tiêu đề trên desktop; di động chỉ tải khi gần vùng đang xem. */}
+      <link
+        rel="preload"
+        as="image"
+        href={heroImage.src}
+        imageSrcSet={heroImage.srcSet}
+        imageSizes={heroImage.sizes}
+        media="(min-width: 1024px)"
+        {...preloadPriority}
+      />
       <div className="mx-auto grid w-full max-w-7xl items-center gap-8 px-5 pb-10 pt-12 sm:px-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12 lg:py-16">
         <div className="home-hero-reveal max-w-[620px] text-left" id="banner-intro-txt">
           <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-white px-4 py-2 text-[11px] font-bold uppercase tracking-[0.16em] text-primary">
@@ -34,21 +60,12 @@ export default function HomeHeroBanner() {
         </div>
 
         <figure className="relative m-0 overflow-hidden rounded-[28px] bg-primary shadow-[0_30px_70px_rgba(3,53,42,0.18)] lg:rounded-[36px]">
-          <Image
-            src="/uploads/nha-pho-vinhomes-saigon-park-1780522235670.webp"
-            alt="Phối cảnh dãy nhà phố và đường nội khu trong một dự án bất động sản"
-            width={1443}
-            height={770}
-            sizes="(max-width: 1023px) 100vw, 55vw"
-            priority
-            fetchPriority="high"
-            quality={65}
-            className="aspect-[4/3] w-full object-cover object-center sm:aspect-[16/10] lg:aspect-[4/3]"
-          />
+          <img {...heroImage} alt={heroImage.alt} />
           <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-emerald-950/85 via-emerald-950/35 to-transparent px-6 pb-5 pt-16 text-xs font-medium text-white sm:px-8 sm:pb-7">
             Hình ảnh phối cảnh minh họa · Tìm hiểu thông tin chi tiết tại từng dự án
           </figcaption>
         </figure>
       </div>
+    </>
   );
 }

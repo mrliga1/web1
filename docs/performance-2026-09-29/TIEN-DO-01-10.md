@@ -93,3 +93,11 @@ Kiểm thử đối chiếu trực tiếp với Intl: 6.075 trường hợp trê
 Commit `7bc9105` đã phát hành; mobile 96, 99, 99, desktop 100, 100, 100. Các mục còn lại đạt 100 và Agentic 3/3 trong cả sáu lượt. Báo cáo: `official-independent-7bc9105-summary.json`; [GitHub run 36776766237](https://github.com/mrliga1/web1/actions/runs/36776766237).
 
 `ProductCard` chỉ cần rút gọn tên địa điểm nhưng nhập module chứa toàn bộ danh mục địa giới, khởi tạo JSON và danh sách gợi ý ngay khi mở trang. Tệp JavaScript tương ứng có 69.755 byte trước nén. Đã tách hàm định dạng sang `locationFormat.ts` và giữ nguyên re-export cho các trang tìm kiếm, chi tiết và quản trị. Không đổi dữ liệu hay cách hiển thị địa điểm. Kiểm tra kiểu dữ liệu và lint đạt; cần xác nhận mạng và hiệu suất ở bản phát hành mới. Chưa đủ điều kiện bàn giao.
+
+## Ưu tiên tải ảnh theo bố cục màn hình
+
+Commit `3c19667` đã được Vercel phát hành. Lượt [36778245211](https://github.com/mrliga1/web1/actions/runs/36778245211): mobile 95, 99, 99; desktop 100, 100, 100; các mục còn lại đều 100 và Agentic 3/3. Báo cáo ở `official-independent-3c19667-summary.json`. Cả ba lượt mobile đều không còn tải chunk danh mục địa giới; giảm dữ liệu đã được xác nhận qua nhật ký mạng, nhưng chưa đạt Performance 100.
+
+Ảnh banner đang có preload ưu tiên cao trên mọi kích thước màn hình, trong khi phần tử LCP mobile là H1. Đã dùng `getImageProps` của Next.js để dựng ảnh tối ưu trực tiếp ở máy chủ; preload có media chỉ cho desktop từ 1024px, dùng cùng srcset và sizes với ảnh. Ảnh trên mobile dùng lazy loading của trình duyệt. Giữ kích thước, alt, chất lượng và nội dung banner.
+
+Kiểm thử dựng component thật ở máy chủ xác nhận một H1, đủ liên kết, ảnh có kích thước và alt, preload khớp biến thể ảnh và chỉ áp dụng desktop. Kiểm tra kiểu dữ liệu và lint phiên bản cuối đều đạt, không có lỗi hoặc cảnh báo lint. Kiểm thử Node có thông báo về cấu hình chất lượng ảnh khi nâng cấp lên Next.js 16; hiện dự án dùng Next.js 15 và không thay đổi chất lượng ảnh. Cần kiểm tra bản dựng, nhật ký tải ảnh và điểm hai thiết bị sau phát hành; chưa bàn giao.

@@ -43,3 +43,16 @@ Phiên bản 13.5.0, một lượt cho mỗi thiết bị, không có cảnh bá
 2. Sửa phần gây chậm được chứng minh bởi báo cáo và dấu vết thực tế.
 3. Kiểm tra chức năng liên quan, phát hành và đo lại đúng tên miền chính thức.
 4. Chỉ bàn giao khi các điều kiện được đáp ứng bằng bằng chứng kiểm thử.
+
+## Kết quả độc lập đầu tiên
+
+Lượt GitHub: https://github.com/mrliga1/web1/actions/runs/36755439667, commit `fa4cfd5`. Số liệu được trích nguyên từ nhật ký của lượt chạy vào `official-independent-first-summary.json`.
+
+| Thiết bị | Performance lượt 1 | Lượt 2 | Lượt 3 | Các mục còn lại |
+|---|---:|---:|---:|---|
+| Di động | 74 | 99 | 99 | 100 mỗi lượt, Agentic 3/3 |
+| Desktop | 100 | 100 | 100 | 100 mỗi lượt, Agentic 3/3 |
+
+Benchmark 2.226–2.496. Lượt mobile đầu có TBT 1.216 ms; hai lượt sau 42 và 52 ms. LCP mobile còn khoảng 1,97–2,28 giây. **Desktop đã đạt trong ba lượt; mobile chưa đạt yêu cầu.**
+
+Báo cáo đầy đủ ban đầu không được lưu vì action tải artifact mặc định bỏ qua thư mục bắt đầu bằng dấu chấm. Đã bật `include-hidden-files` chỉ cho thư mục báo cáo `.audit-reports/`, đồng thời đổi sang báo lỗi nếu không có tệp. Cần đo lại để thu báo cáo và dấu vết đầy đủ; số liệu lần đầu vẫn được giữ lại.

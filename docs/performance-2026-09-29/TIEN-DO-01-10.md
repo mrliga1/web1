@@ -109,3 +109,11 @@ Commit `d5a7dbc` đã phát hành thành công. Lượt [36780124017](https://gi
 Nhật ký mạng xác nhận ảnh banner mobile đã chuyển sang ưu tiên thấp. Hai lượt sau có LCP khoảng 1,82 giây nhưng TBT còn 81–88 ms, với một tác vụ dựng giao diện dài khoảng 131–138 ms. Đã bổ sung Suspense theo từng khối trang chủ để React có thể khởi tạo tương tác theo khối và ưu tiên thao tác người dùng. Chế độ chỉnh sửa giữ cấu trúc hiện tại. Cơ chế dựa trên [Selective Hydration của React](https://react.dev/reference/react/Suspense); cần đo thực tế để xác nhận tác động.
 
 Lint và kiểm tra kiểu dữ liệu đều đạt. Kiểm tra chức năng trực tiếp trên bản `d5a7dbc`, bằng hai phiên trình duyệt chạy nền riêng: H1, tải ảnh, nhập biểu mẫu và chọn hai checkbox, thêm/xóa yêu thích, CTA dẫn tới trang sản phẩm, không tràn ngang, không lỗi JavaScript; menu di động mở/đóng đúng. Không gửi biểu mẫu CRM. Cần chạy lại cùng kiểm tra trên bản mới sau phát hành; chưa đủ điều kiện bàn giao.
+
+### Gỡ thay đổi chưa chứng minh được hiệu quả
+
+Lượt [36781671821](https://github.com/mrliga1/web1/actions/runs/36781671821), commit `3cbb0e3`: mobile 63, 99, 99; desktop 100, 100, 100. Lượt mobile đầu có TBT khoảng 3.193 ms, LCP 3,08 giây và CLS 0,018; hai lượt sau không đạt 100. Benchmark 2.391–2.444, không có cảnh báo thu thập. Giữ nguyên bằng chứng trong `official-independent-3cbb0e3-summary.json`.
+
+Chưa có bằng chứng Suspense theo khối giúp đạt mục tiêu, trong khi lượt đầu ghi nhận thời gian chặn tăng mạnh. Đã khôi phục riêng `Home.tsx` về đúng nội dung của commit `d5a7dbc`, giữ các cải tiến ngày tháng, tách địa giới và ưu tiên ảnh theo màn hình. Không ghi đè lịch sử Git.
+
+Kiểm tra UI sau phát hành `3cbb0e3` chưa thực hiện được: trình duyệt chạy nền bị quá thời gian khởi động, trước khi truy cập trang. Máy lúc kiểm tra còn khoảng 725 MB RAM trống; đây là hạn chế của lượt kiểm thử cục bộ, không phải bằng chứng lỗi chức năng website. Không dùng kết quả UI cũ để công nhận bản mới đạt. Cần xác nhận phát hành bản khôi phục và đo tiếp; chưa bàn giao.

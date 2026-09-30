@@ -27,6 +27,7 @@ const runs = Number(process.env.AUDIT_RUNS || 3);
 assert.ok(Number.isInteger(runs) && runs >= 1 && runs <= 3);
 const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', headless: true, timeout: 60000, args: ['--remote-debugging-port=9223'] });
 const summaries = [];
+let auditError;
 try {
   const modes = process.env.AUDIT_MODE ? [process.env.AUDIT_MODE] : ['mobile', 'desktop'];
   assert.ok(modes.every(mode => ['mobile', 'desktop'].includes(mode)));
@@ -56,8 +57,16 @@ try {
     writeFileSync(resolve(output, 'lighthouse-summary.json'), JSON.stringify(summaries, null, 2));
     console.log(JSON.stringify(summary));
   }
+} catch (error) {
+  auditError = error;
+  throw error;
 } finally {
   let closeTimer;
   try { await Promise.race([browser.close(), new Promise((_, reject) => { closeTimer = setTimeout(() => reject(new Error('Quá thời gian đóng trình duyệt đo hiệu suất')), 30000); })]); }
+  catch (error) {
+    // Giữ nguyên lỗi đo để việc dọn trình duyệt không che mất nguyên nhân thất bại.
+    if (auditError) console.error('Lỗi bổ sung khi đóng trình duyệt đo hiệu suất:', error.message);
+    else throw error;
+  }
   finally { clearTimeout(closeTimer); }
 }

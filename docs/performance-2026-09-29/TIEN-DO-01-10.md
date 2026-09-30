@@ -101,3 +101,11 @@ Commit `3c19667` đã được Vercel phát hành. Lượt [36778245211](https:/
 Ảnh banner đang có preload ưu tiên cao trên mọi kích thước màn hình, trong khi phần tử LCP mobile là H1. Đã dùng `getImageProps` của Next.js để dựng ảnh tối ưu trực tiếp ở máy chủ; preload có media chỉ cho desktop từ 1024px, dùng cùng srcset và sizes với ảnh. Ảnh trên mobile dùng lazy loading của trình duyệt. Giữ kích thước, alt, chất lượng và nội dung banner.
 
 Kiểm thử dựng component thật ở máy chủ xác nhận một H1, đủ liên kết, ảnh có kích thước và alt, preload khớp biến thể ảnh và chỉ áp dụng desktop. Kiểm tra kiểu dữ liệu và lint phiên bản cuối đều đạt, không có lỗi hoặc cảnh báo lint. Kiểm thử Node có thông báo về cấu hình chất lượng ảnh khi nâng cấp lên Next.js 16; hiện dự án dùng Next.js 15 và không thay đổi chất lượng ảnh. Cần kiểm tra bản dựng, nhật ký tải ảnh và điểm hai thiết bị sau phát hành; chưa bàn giao.
+
+## Chia khởi tạo tương tác theo khối trang chủ
+
+Commit `d5a7dbc` đã phát hành thành công. Lượt [36780124017](https://github.com/mrliga1/web1/actions/runs/36780124017): mobile 96, 99, 99; desktop 100, 100, 100; các mục còn lại 100 và Agentic 3/3. Báo cáo ở `official-independent-d5a7dbc-summary.json`.
+
+Nhật ký mạng xác nhận ảnh banner mobile đã chuyển sang ưu tiên thấp. Hai lượt sau có LCP khoảng 1,82 giây nhưng TBT còn 81–88 ms, với một tác vụ dựng giao diện dài khoảng 131–138 ms. Đã bổ sung Suspense theo từng khối trang chủ để React có thể khởi tạo tương tác theo khối và ưu tiên thao tác người dùng. Chế độ chỉnh sửa giữ cấu trúc hiện tại. Cơ chế dựa trên [Selective Hydration của React](https://react.dev/reference/react/Suspense); cần đo thực tế để xác nhận tác động.
+
+Lint và kiểm tra kiểu dữ liệu đều đạt. Kiểm tra chức năng trực tiếp trên bản `d5a7dbc`, bằng hai phiên trình duyệt chạy nền riêng: H1, tải ảnh, nhập biểu mẫu và chọn hai checkbox, thêm/xóa yêu thích, CTA dẫn tới trang sản phẩm, không tràn ngang, không lỗi JavaScript; menu di động mở/đóng đúng. Không gửi biểu mẫu CRM. Cần chạy lại cùng kiểm tra trên bản mới sau phát hành; chưa đủ điều kiện bàn giao.

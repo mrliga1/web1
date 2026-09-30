@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Product, Project, News, RouteState, VisualSection } from '../types';
 import AdBanner from './AdBanner';
 import { 
@@ -10,11 +10,12 @@ import { EditableText, EditableImage } from './EditableComponent';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
 
 const LazySection = ({ children, sectionId, isEditMode }: { children: React.ReactNode, sectionId: string, isEditMode: boolean }) => {
-  if (sectionId === 'hero' || isEditMode) {
+  if (isEditMode) {
     return <>{children}</>;
   }
-
-  return <div className="home-section-deferred">{children}</div>;
+  // React có thể khởi tạo tương tác từng khối, ưu tiên khối người dùng đang thao tác.
+  const content = <Suspense fallback={null}>{children}</Suspense>;
+  return sectionId === 'hero' ? content : <div className="home-section-deferred">{content}</div>;
 };
 
 interface HomeProps {

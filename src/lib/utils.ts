@@ -15,9 +15,7 @@ export function generateSlug(text: string): string {
     .replace(/-+$/, '');
 }
 
-const vietnamDateFormatter = new Intl.DateTimeFormat('vi-VN', {
-  timeZone: 'Asia/Ho_Chi_Minh',
-});
+let historicalVietnamDateFormatter: Intl.DateTimeFormat | undefined;
 
 export function formatVietnamDate(
   value: string | number | Date | null | undefined,
@@ -25,9 +23,21 @@ export function formatVietnamDate(
   if (value === null || value === undefined || value === '') return '';
 
   const date = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  const timestamp = date.getTime();
+  if (Number.isNaN(timestamp)) return '';
 
-  return vietnamDateFormatter.format(date);
+  // Ngày từ năm 1976 dùng múi giờ UTC+7, tránh khởi tạo ICU khi mở trang công khai.
+  const vietnamDate = new Date(timestamp + 7 * 60 * 60 * 1000);
+  const year = vietnamDate.getUTCFullYear();
+  if (year >= 1976 && year <= 9999) {
+    return `${vietnamDate.getUTCDate()}/${vietnamDate.getUTCMonth() + 1}/${year}`;
+  }
+
+  // Giữ cách định dạng cũ cho ngày lịch sử, năm mở rộng và giới hạn của Date.
+  historicalVietnamDateFormatter ??= new Intl.DateTimeFormat('vi-VN', {
+    timeZone: 'Asia/Ho_Chi_Minh',
+  });
+  return historicalVietnamDateFormatter.format(date);
 }
 
 export function getImageAltFromUrl(url: string | undefined | null, fallback = "Hình ảnh") {

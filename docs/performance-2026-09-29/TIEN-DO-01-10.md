@@ -77,3 +77,13 @@ Commit `caef706`: Performance mobile 72, 99, 99; desktop 100, 100, 100. Các m�
 Đo trực tiếp HTML trang chủ: 354.716 byte trước nén, CSS inline 114.004 byte, dữ liệu Flight 157.700 byte. Snapshot tin và cấu hình công khai đã được giới hạn trường; không gửi nội dung bài viết dài vào trang chủ.
 
 Đã tắt `experimental.inlineCss` để Next.js xuất stylesheet thành tệp riêng, giảm dữ liệu lặp trong HTML và dữ liệu dựng trang. Không sửa các quy tắc CSS. Kiểm tra cú pháp cấu hình và khoảng trắng đạt; cần xác nhận bản dựng Vercel và phép đo mới trước khi kết luận hiệu quả.
+
+## Kết quả CSS và giảm khởi tạo bộ định dạng ngày
+
+Commit `ec1bdb2` đã được Vercel phát hành thành công. Lượt đo https://github.com/mrliga1/web1/actions/runs/36772431466: mobile 79, 99, 98; desktop 100, 100, 100. Accessibility, Best Practices, SEO và Agentic đều 100 trong sáu lượt; Agentic 3/3. Lưu số liệu tại `official-independent-ec1bdb2-summary.json`.
+
+HTML trang chủ giảm từ 354.716 xuống 124.099 byte; dữ liệu Flight giảm từ 157.700 xuống 41.117 byte. Đây là giảm dung lượng thực tế, nhưng điểm mobile vẫn chưa đạt yêu cầu.
+
+Tệp tiện ích công khai khởi tạo `Intl.DateTimeFormat` ngay khi nạp module. Đã chuyển ngày hiện đại sang phép tính UTC+7 và giữ bộ định dạng Intl dùng chung, khởi tạo khi cần cho ngày lịch sử hoặc năm mở rộng. Quy tắc múi giờ được đối chiếu với [dữ liệu IANA](https://data.iana.org/time-zones/tzdb/asia). Không thay đổi nội dung ngày tháng hiển thị.
+
+Kiểm thử đối chiếu trực tiếp với Intl: 6.075 trường hợp trên ba múi giờ UTC, Los Angeles và Hồ Chí Minh đều đạt, gồm ngày nhuận, ranh giới ngày, đầu vào lỗi, ngày lịch sử và giới hạn Date. Ngày hiện đại không khởi tạo bộ định dạng; ngày lịch sử dùng lại một bộ định dạng. Cần đo bản phát hành mới để xác định tác động hiệu suất; chưa bàn giao.

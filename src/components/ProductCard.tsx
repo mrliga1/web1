@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Product, RouteState } from '../types';
 import { MapPin, Layers, Bookmark, Bath, Heart } from 'lucide-react';
-import { formatLocationName } from '../lib/locationMapping';
+import { formatLocationName } from '../lib/locationFormat';
 import { generateSlug, optimizeImageUrl, generateSrcSet } from '../lib/utils';
 import { trackWishlist } from '../lib/tracking';
 import { readStoredStringList } from '../lib/browserStorage';

@@ -1,4 +1,6 @@
 import locationData from './locationData.json';
+import { formatLocationName } from './locationFormat';
+export { formatLocationName } from './locationFormat';
 
 export interface LocationNode {
   name: string;
@@ -7,14 +9,6 @@ export interface LocationNode {
 }
 
 export const locationTree = locationData as LocationNode[];
-
-export function formatLocationName(name: string): string {
-  if (!name) return '';
-  return name
-    .replace(/^Tỉnh\s+/i, '')
-    .replace(/Tp\.?\s*Hồ\s*Chí\s*Minh/i, 'TP. HCM')
-    .replace(/Thành phố Hồ Chí Minh/i, 'TP. HCM');
-}
 
 // Export a flat list of all locations for autocomplete (Province, Ward)
 export const allLocationsList: string[] = [];

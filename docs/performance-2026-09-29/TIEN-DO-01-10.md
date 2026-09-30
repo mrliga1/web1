@@ -87,3 +87,9 @@ HTML trang chủ giảm từ 354.716 xuống 124.099 byte; dữ liệu Flight gi
 Tệp tiện ích công khai khởi tạo `Intl.DateTimeFormat` ngay khi nạp module. Đã chuyển ngày hiện đại sang phép tính UTC+7 và giữ bộ định dạng Intl dùng chung, khởi tạo khi cần cho ngày lịch sử hoặc năm mở rộng. Quy tắc múi giờ được đối chiếu với [dữ liệu IANA](https://data.iana.org/time-zones/tzdb/asia). Không thay đổi nội dung ngày tháng hiển thị.
 
 Kiểm thử đối chiếu trực tiếp với Intl: 6.075 trường hợp trên ba múi giờ UTC, Los Angeles và Hồ Chí Minh đều đạt, gồm ngày nhuận, ranh giới ngày, đầu vào lỗi, ngày lịch sử và giới hạn Date. Ngày hiện đại không khởi tạo bộ định dạng; ngày lịch sử dùng lại một bộ định dạng. Cần đo bản phát hành mới để xác định tác động hiệu suất; chưa bàn giao.
+
+## Giảm dữ liệu địa giới trong trang chủ
+
+Commit `7bc9105` đã phát hành; mobile 96, 99, 99, desktop 100, 100, 100. Các mục còn lại đạt 100 và Agentic 3/3 trong cả sáu lượt. Báo cáo: `official-independent-7bc9105-summary.json`; [GitHub run 36776766237](https://github.com/mrliga1/web1/actions/runs/36776766237).
+
+`ProductCard` chỉ cần rút gọn tên địa điểm nhưng nhập module chứa toàn bộ danh mục địa giới, khởi tạo JSON và danh sách gợi ý ngay khi mở trang. Tệp JavaScript tương ứng có 69.755 byte trước nén. Đã tách hàm định dạng sang `locationFormat.ts` và giữ nguyên re-export cho các trang tìm kiếm, chi tiết và quản trị. Không đổi dữ liệu hay cách hiển thị địa điểm. Kiểm tra kiểu dữ liệu và lint đạt; cần xác nhận mạng và hiệu suất ở bản phát hành mới. Chưa đủ điều kiện bàn giao.

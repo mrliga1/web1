@@ -69,3 +69,11 @@ Lượt https://github.com/mrliga1/web1/actions/runs/36762218529 đã lưu thàn
 Đã điều chỉnh `ContentRealtimeRefresh`: đợi trang tải xong, ưu tiên kết nối khi người dùng tương tác; khách chỉ đọc tự kết nối sau 5 giây và khi luồng chính có thời gian rảnh. Dọn đầy đủ listener, timer và kết nối khi chuyển trang. Áp dụng cho mọi khách, không dựa vào user-agent hoặc nhận diện công cụ đo.
 
 Kiểm tra trước phát hành: 10/10 tình huống chức năng của component thực tế đã biên dịch; kiểm tra kiểu dữ liệu và lint đạt. **Chưa có điểm Lighthouse mới của thay đổi này; chưa đủ điều kiện bàn giao.**
+
+## Giảm dữ liệu CSS trong HTML
+
+Commit `caef706`: Performance mobile 72, 99, 99; desktop 100, 100, 100. Các mục còn lại đều 100 và Agentic 3/3. Báo cáo đầy đủ vẫn được lưu; bản tổng hợp ở `official-independent-caef706-summary.json`.
+
+Đo trực tiếp HTML trang chủ: 354.716 byte trước nén, CSS inline 114.004 byte, dữ liệu Flight 157.700 byte. Snapshot tin và cấu hình công khai đã được giới hạn trường; không gửi nội dung bài viết dài vào trang chủ.
+
+Đã tắt `experimental.inlineCss` để Next.js xuất stylesheet thành tệp riêng, giảm dữ liệu lặp trong HTML và dữ liệu dựng trang. Không sửa các quy tắc CSS. Kiểm tra cú pháp cấu hình và khoảng trắng đạt; cần xác nhận bản dựng Vercel và phép đo mới trước khi kết luận hiệu quả.

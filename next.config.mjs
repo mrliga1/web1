@@ -26,8 +26,8 @@ const nextConfig = {
     // Dựng lần lượt để phù hợp bộ nhớ máy kiểm thử và giới hạn của dự án.
     cpus: 1,
     webpackMemoryOptimizations: true,
-    // Gửi CSS cùng HTML để tránh lượt tải chặn lần dựng trang đầu tiên.
-    inlineCss: true,
+    // Tải CSS thành tệp riêng để giảm HTML và tránh lặp stylesheet trong dữ liệu dựng trang.
+    inlineCss: false,
     optimizePackageImports: ['lucide-react', '@supabase/supabase-js'],
   },
   // Header bảo mật dùng chung cho toàn bộ ứng dụng.

@@ -15,3 +15,10 @@
 - Một lượt Lighthouse 13.5.0 desktop trên https://greeniahomes.vn/ lúc 23:24 ngày 30/09/2026: Performance 11, Accessibility 97, Best Practices 77, SEO 100, Agentic Browsing 79. LCP 5,8 giây, TBT 4570 ms, CLS 0,307. Máy còn 853 MB RAM trống trước lượt đo; cần đo lặp khi tài nguyên ổn định để đánh giá hiệu suất.
 - Báo cáo JSON và HTML đã lưu trong .local-backups/lighthouse-official-recovery-20260930. Lỗi quá hạn đóng trình duyệt xảy ra sau khi báo cáo đã được ghi; tiến trình đo kết thúc với mã lỗi 1, trình duyệt nền đã dừng.
 - Lỗi xác nhận trên bản chính thức: ô đồng ý 14 px, dịch chuyển footer, cookie test_cookie và IDE từ Google Ads. Mã mới đã dùng ô đồng ý 24 px và GTM chỉ tải sau đồng ý; các thay đổi đó chưa được xác minh trên bản chính thức vì main chưa phát hành.
+## Áp dụng CRM production qua kết nối Supabase
+
+- Kết nối Supabase đã được xác thực với dự án rorvzyxjoenlrpxoptnu. Migration atomic_crm_updates đã áp dụng thành công, phiên bản remote 20260930164042; tên tệp local được đồng bộ theo phiên bản thực tế.
+- Sao lưu trước nâng cấp: 10 hồ sơ, checksum kiểm chứng đạt. Sau migration: đủ ba RPC query_consultations, patch_consultation, append_consultation_care_history; consultation_activity bật RLS; checksum toàn bộ 10 hồ sơ giữ nguyên.
+- Kiểm chứng trên PostgreSQL production bằng hai hồ sơ thử trong giao dịch hoàn tác: quản trị truy vấn/cập nhật/ghi chú/nhật ký đạt; nhân viên chỉ xem và cập nhật hồ sơ được phân công, không tự đổi phân công, không xóa lịch sử và không đọc nhật ký ngoài quyền; anon và người ngoài nhóm CRM bị chặn. Sau kiểm thử: 0 hồ sơ thử còn lại, 10 hồ sơ thật giữ nguyên checksum.
+- Security Advisor không báo lỗi schema CRM mới. Hai bảng push có RLS không có policy theo thiết kế chỉ máy chủ truy cập; các chỉ mục mới chưa được sử dụng là thông tin thống kê sau tạo.
+- Cảnh báo Leaked Password Protection cần gói Pro trở lên, trong khi dự án đang dùng Free. Giới hạn được đối chiếu tài liệu chính thức: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection. Chưa thay đổi gói dịch vụ.

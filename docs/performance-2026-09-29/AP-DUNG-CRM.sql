@@ -1,5 +1,5 @@
 -- Áp dụng CRM lên cơ sở dữ liệu đang chạy; giao dịch hoàn tác nếu có lỗi.
--- Nguồn: supabase/migrations/202609280001_atomic_crm_updates.sql.
+-- Nguồn: supabase/migrations/20260930164042_atomic_crm_updates.sql.
 begin;
 set local statement_timeout='30s';
 set local lock_timeout='5s';

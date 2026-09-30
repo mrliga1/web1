@@ -57,7 +57,7 @@ Liên kết theo hành trình: bài hướng dẫn → dự án → sản phẩm
 1. Đăng nhập Supabase CLI qua luồng an toàn; xác minh đúng dự án. Không gửi khóa/mật khẩu trong chat.
 2. Xác minh backup/khôi phục và số khách trước migration bằng kênh quản trị an toàn.
 3. Chạy `npx supabase db push --dry-run`; đối chiếu migration dự kiến. Có migration cũ chưa áp thì đối chiếu lịch sử trước.
-4. Áp migration `202609280001_atomic_crm_updates.sql`; kiểm tra ba RPC, trigger và activity; thử quyền admin/editor/member với khách thử được phép.
+4. Áp migration `20260930164042_atomic_crm_updates.sql`; kiểm tra ba RPC, trigger và activity; thử quyền admin/editor/member với khách thử được phép.
 5. Chạy `npm run verify:production` chỉ đọc, đối soát số khách; triển khai Vercel với biến môi trường đúng.
 6. Kiểm tra từng form, giao khách, ghi chú, lịch, CSV, URL cũ, 404, sitemap/canonical/schema; chỉ gửi email thử tới người nhận được cho phép.
 7. Đo Lighthouse mobile/desktop nhiều lượt trên production; kiểm tra Search Console và dữ liệu thực ngày 7/28.

@@ -30,6 +30,18 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           LIGHTHOUSE_CLI: ${{ runner.temp }}/greenia-lighthouse/node_modules/lighthouse/cli/index.js
         run: node scripts/audit-production-ci.mjs
+      - name: Cài công cụ kiểm tra tương tác
+        if: always()
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm install --prefix "$RUNNER_TEMP/greenia-lighthouse" --no-save --package-lock=false playwright@1.62.1
+      - name: Kiểm tra tương tác trên bản chính thức
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          UI_PACKAGE_ROOT: ${{ runner.temp }}/greenia-lighthouse/node_modules
+          UI_CHROME_PATH: /usr/bin/google-chrome
+        run: node scripts/test-production-home-ui.mjs
       - name: Lưu báo cáo và dấu vết hiệu suất
         if: always()
         uses: actions/upload-artifact@v7

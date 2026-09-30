@@ -117,3 +117,11 @@ Lượt [36781671821](https://github.com/mrliga1/web1/actions/runs/36781671821),
 Chưa có bằng chứng Suspense theo khối giúp đạt mục tiêu, trong khi lượt đầu ghi nhận thời gian chặn tăng mạnh. Đã khôi phục riêng `Home.tsx` về đúng nội dung của commit `d5a7dbc`, giữ các cải tiến ngày tháng, tách địa giới và ưu tiên ảnh theo màn hình. Không ghi đè lịch sử Git.
 
 Kiểm tra UI sau phát hành `3cbb0e3` chưa thực hiện được: trình duyệt chạy nền bị quá thời gian khởi động, trước khi truy cập trang. Máy lúc kiểm tra còn khoảng 725 MB RAM trống; đây là hạn chế của lượt kiểm thử cục bộ, không phải bằng chứng lỗi chức năng website. Không dùng kết quả UI cũ để công nhận bản mới đạt. Cần xác nhận phát hành bản khôi phục và đo tiếp; chưa bàn giao.
+
+## Bản khôi phục và kiểm tra tương tác trên GitHub
+
+Commit `f47c382` đã được Vercel phát hành thành công. Lượt [36784683568](https://github.com/mrliga1/web1/actions/runs/36784683568): mobile 96, 99, **100**; desktop 100, 100, 100. Accessibility, Best Practices, SEO và Agentic đều 100, Agentic 3/3 trong cả sáu lượt. Đây là lượt mobile 100 đầu tiên của chuỗi kiểm thử này; vẫn chưa đạt điều kiện tất cả lượt đều 100. Báo cáo đầy đủ được lưu; bản tổng hợp ở `official-independent-f47c382-summary.json`.
+
+Đã bổ sung kiểm tra tương tác sau Lighthouse trên cùng máy GitHub, bằng Playwright 1.62.1 đã xác minh với registry npm. Chạy tuần tự desktop/mobile trên tên miền chính thức, kiểm tra H1, ảnh, nhập biểu mẫu/checkbox, thêm/xóa yêu thích, CTA, menu di động, thanh điều hướng sau cuộn, tràn ngang và lỗi JavaScript. Lưu ảnh và kết quả cùng artifact. Không gửi biểu mẫu CRM; loại GITHUB_TOKEN khỏi môi trường tiến trình trình duyệt.
+
+Kiểm tra cú pháp đạt; cấu hình YAML xác nhận đúng thứ tự, phiên bản cố định và bước lưu artifact. Thử điều kiện xác nhận phát hành: sai kho mã bị từ chối trước khi mở trình duyệt. Chưa có kết quả chạy UI thực tế trên GitHub cho kịch bản mới; cần đọc kết quả sau khi đẩy. Quy tắc chấm điểm Lighthouse giữ nguyên; chưa bàn giao.

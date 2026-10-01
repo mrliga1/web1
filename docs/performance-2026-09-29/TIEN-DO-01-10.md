@@ -149,3 +149,19 @@ FCP mobile 1,22–1,26 giây, LCP 2,12–2,27 giây, TBT 91–115,5 ms; Speed In
 CSS công khai trước nén giảm **113.934 → 100.967 byte**; gzip **20.878 → 19.043 byte** khi biên dịch cùng công cụ. Đây là phép so sánh cục bộ; chưa dùng để công nhận dung lượng mạng hay điểm sau phát hành. `test-css-split.mjs` đối chiếu **1.949 nhóm quy tắc**, xác nhận không mất hoặc đổi khai báo CSS cũ khi hợp hai đầu vào mới, và không loại tệp nào trong 110 phụ thuộc công khai. Lưu bằng chứng tại `official-css-split-verification.json`.
 
 Kiểm tra kiểu dữ liệu toàn dự án, lint các tệp TypeScript sửa đổi và kiểm tra khoảng trắng đều đạt. Cần xác nhận bản dựng Vercel, CSS tải thực tế, điểm Lighthouse và UI trên tên miền chính thức. Chưa đủ điều kiện bàn giao.
+
+## Kết quả bản 528bd16 và chuẩn bị phép đo ổn định
+
+Commit `528bd16` đã phát hành thành công. Lượt [36891484338](https://github.com/mrliga1/web1/actions/runs/36891484338): mobile **68, 99, 100**, desktop **100, 100, 100**. Một lượt xác minh riêng cùng commit [36893790561](https://github.com/mrliga1/web1/actions/runs/36893790561): mobile **64, 99, 99**, desktop **100, 100, 100**. Các mục còn lại đều 100, Agentic 3/3; UI hai thiết bị đạt. Giữ cả hai bộ kết quả tại `official-independent-528bd16-summary.json` và `official-independent-528bd16-repeat-summary.json`. Chưa đạt điều kiện bàn giao.
+
+CSS thực tế trên trang chủ có một tệp 101.103 byte giải nén; tuyến admin tải thêm CSS quản trị. Đối chiếu 54 lớp chỉ dùng cho admin: không xuất hiện trong CSS công khai, có đầy đủ trong CSS admin. Bằng chứng: `official-live-css-528bd16-verification.json`. Đây là xác nhận tải CSS; chưa kiểm tra màn hình quản trị sau đăng nhập trong phép kiểm này.
+
+Dấu vết lượt mobile đầu của lần xác minh có tác vụ Layout 117,55 ms nhưng CPU 3,36 ms; ParseHTML 21,31 ms nhưng CPU 0,94 ms. Có cả tác vụ nội bộ Chrome tại chrome://omnibox-popup.top-chrome. Hai lượt sau vẫn còn TBT 65–76 ms. Chưa thể quy toàn bộ dao động cho mã website; không bỏ bất kỳ lượt nào khỏi điều kiện đạt.
+
+Đã sửa phép đo để khởi tạo Chrome với hồ sơ riêng ở about:blank, chờ 10 giây rồi mới đo tên miền chính thức. Giữ sáu lượt, phiên bản Lighthouse 13.5.0, mô phỏng mạng/CPU mặc định, đủ năm nhóm điểm, không tải website để làm nóng trước lượt đầu. Thêm kiểm tra mỗi báo cáo phải có disableStorageReset=false; Chrome được dọn khi thành công hoặc lỗi. Cơ chế gắn vào cổng Chrome đã mở được hỗ trợ trong [mã CLI Lighthouse](https://github.com/GoogleChrome/lighthouse/blob/v13.5.0/cli/run.js); hồ sơ mới và trang trống theo [chrome-launcher](https://github.com/GoogleChrome/chrome-launcher/blob/main/README.md).
+
+Đã chuyển bộ mẫu bố cục mặc định sang import động khi bật chỉnh sửa. Khách công khai tiếp tục dùng bố cục do máy chủ gửi; bỏ nhánh đọc/ghi layout ở client vốn không thể chạy với các tuyến hiện tại. Giữ lưu sửa đổi, định dạng bảng, làm sạch bố cục trang chủ và chặn kết quả tải sau khi rời trang. Kiểm thử hành vi bố cục **7/7 đạt**, gồm HTML thực của bảy thành phần trang, mẫu cho năm trang, chuyển tuyến, lưu và lỗi quyền. Kiểm thử phép đo **5/5 đạt**.
+
+API PageSpeed không dùng khóa hiện trả HTTP 429 vì hết hạn mức truy vấn; chưa có kết quả Google bổ sung. Chưa xác nhận hiệu quả của thay đổi khởi tạo mới bằng phép đo sau phát hành.
+
+Kiểm tra kiểu dữ liệu toàn dự án đạt; lint bốn tệp sửa/thêm đạt, không lỗi hoặc cảnh báo; kiểm tra khoảng trắng đạt. Cần Vercel dựng thành công và phép đo cùng kiểm thử UI trên bản phát hành mới trước khi kết luận.

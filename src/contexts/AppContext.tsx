@@ -2,8 +2,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import type { PublicClientSettings } from '../lib/publicSettings';
-import { serializeSectionsForDatabase, deserializeSectionsFromDatabase, sanitizeHomeSections } from '../lib/layoutUtils';
-import { getPageDefaultSections } from '../lib/layouts';
+import { serializeSectionsForDatabase, sanitizeHomeSections } from '../lib/layoutUtils';
 import { optimizeImageUrl } from '../lib/utils';
 import {
   type AdSenseSettingsData,
@@ -39,10 +38,6 @@ interface LayoutState {
   sections: VisualSection[];
 }
 
-interface LayoutDocumentData {
-  sections?: unknown;
-}
-
 interface QuotePopupSettings {
   enabled: boolean;
   version: number;
@@ -65,17 +60,6 @@ function getLayoutDocName(path: string): LayoutDocName {
   return null;
 }
 
-function getDefaultSections(docName: LayoutDocName) {
-  if (!docName) return EMPTY_SECTIONS;
-
-  const defaults = getPageDefaultSections(docName);
-  return docName === 'home' ? sanitizeHomeSections(defaults) : defaults;
-}
-
-function usesServerProvidedLayout(docName: string | null) {
-  return docName === 'home' || docName === 'san-pham' || docName === 'du-an' || docName === 'tin-tuc' || docName === 'lien-he';
-}
-
 export function AppProvider({ children, initialSettings }: { children: React.ReactNode; initialSettings: PublicClientSettings }) {
   const pathname = usePathname();
   const [policyEnabled, setPolicyEnabled] = useState(false);
@@ -83,12 +67,12 @@ export function AppProvider({ children, initialSettings }: { children: React.Rea
   const layoutDocName = getLayoutDocName(pathname || '');
   const [layoutState, setLayoutState] = useState<LayoutState>(() => ({
     docName: layoutDocName,
-    sections: getDefaultSections(layoutDocName),
+    sections: EMPTY_SECTIONS,
   }));
   // Không truyền sections của trang cũ cho trang mới trong lúc chờ dữ liệu từ máy chủ.
   const sections = layoutState.docName === layoutDocName
     ? layoutState.sections
-    : getDefaultSections(layoutDocName);
+    : EMPTY_SECTIONS;
   const [isEditMode, setIsEditMode] = useState(false);
   const [isQuotePopupOpen, setIsQuotePopupOpen] = useState(false);
   const quotePopupSettings: QuotePopupSettings = {
@@ -101,58 +85,34 @@ export function AppProvider({ children, initialSettings }: { children: React.Rea
 
   useEffect(() => {
     const docName = layoutDocName;
-    let cancelled = false;
-
     if (!docName) {
       setLayoutState({ docName: null, sections: EMPTY_SECTIONS });
       return;
     }
-
-    // Các trang này đã nhận bố cục Supabase từ Server Component, không tải lại ở client.
-    if (usesServerProvidedLayout(docName)) {
-      return;
-    }
-
-    const defaults = getDefaultSections(docName);
-    setLayoutState({ docName, sections: defaults });
-
-    import('../firebase').then(async ({ db, doc, getDoc, setDoc }) => {
-      const docRef = doc(db, 'layouts', docName);
-      const snapshot = await getDoc(docRef);
-      if (snapshot.exists()) {
-        const data = (snapshot.data() || {}) as LayoutDocumentData;
-        if (Array.isArray(data.sections)) {
-          const loaded = deserializeSectionsFromDatabase<VisualSection>(data.sections as VisualSection[]);
-          if (loaded.length === 0) {
-            if (isEditMode) void setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
-            if (!cancelled) setLayoutState({ docName, sections: defaults });
-          } else if (!cancelled) {
-            setLayoutState({ docName, sections: loaded });
-          }
-        } else {
-          if (isEditMode) void setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
-          if (!cancelled) setLayoutState({ docName, sections: defaults });
-        }
-      } else {
-        if (isEditMode) void setDoc(docRef, { sections: serializeSectionsForDatabase(defaults) }).catch(console.error);
-        if (!cancelled) setLayoutState({ docName, sections: defaults });
-      }
-    }).catch((e) => {
+    // Khách xem bố cục từ máy chủ; chỉ tải mẫu dự phòng khi bật chỉnh sửa.
+    if (!isEditMode) return;
+    let cancelled = false;
+    import('../lib/layouts').then(({ getPageDefaultSections }) => {
+      const defaults = getPageDefaultSections(docName);
+      const fallback = docName === 'home' ? sanitizeHomeSections(defaults) : defaults;
+      if (!cancelled) setLayoutState(previous =>
+        previous.docName === docName && previous.sections.length > 0
+          ? previous
+          : { docName, sections: fallback },
+      );
+    }).catch(error => {
       if (cancelled) return;
-      console.error("Lỗi tải layout:", e);
-      setLayoutState({ docName, sections: defaults });
+      console.error('Không thể tải mẫu bố cục để chỉnh sửa:', error);
+      alert('Không thể tải mẫu bố cục. Vui lòng tải lại trang trước khi chỉnh sửa.');
     });
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [layoutDocName, isEditMode]);
 
   const setSections = async (newSections: VisualSection[] | ((prev: VisualSection[]) => VisualSection[])) => {
     // Giải quyết hàm cập nhật trước khi lưu bố cục.
     const currentSections = layoutState.docName === layoutDocName
       ? layoutState.sections
-      : getDefaultSections(layoutDocName);
+      : EMPTY_SECTIONS;
     const updated = typeof newSections === 'function' ? newSections(currentSections) : newSections;
     
     let sanitized = updated;

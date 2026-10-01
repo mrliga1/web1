@@ -1,0 +1,31 @@
+{
+  "sha": "528bd163e1ef093eb458a2120b1bc3b1602dbe67",
+  "passed": true,
+  "time": "2026-10-01T16:41:33.241Z",
+  "officialUrl": "https://greeniahomes.vn",
+  "adminOnlyMarkersChecked": 54,
+  "home": {
+    "url": "https://greeniahomes.vn/",
+    "htmlBytes": 126179,
+    "styles": [
+      {
+        "url": "https://greeniahomes.vn/_next/static/css/4fe9c4f96c859f5c.css",
+        "bytes": 101103
+      }
+    ]
+  },
+  "admin": {
+    "url": "https://greeniahomes.vn/admin",
+    "htmlBytes": 51647,
+    "styles": [
+      {
+        "url": "https://greeniahomes.vn/_next/static/css/4fe9c4f96c859f5c.css",
+        "bytes": 101103
+      },
+      {
+        "url": "https://greeniahomes.vn/_next/static/css/6301cfb8f80e51d3.css",
+        "bytes": 93697
+      }
+    ]
+  }
+}

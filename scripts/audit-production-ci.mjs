@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { createRequire } from 'node:module';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -14,6 +15,7 @@ export function summarizeReport(report, mode, run) {
   assert.equal(new URL(report.finalDisplayedUrl || report.finalUrl).href, officialUrl, 'Báo cáo phải đo trang chủ chính thức');
   assert.equal(report.configSettings.formFactor, mode, 'Cấu hình thiết bị không đúng');
   assert.equal(report.configSettings.throttlingMethod, 'simulate', 'Phải giữ cách mô phỏng chuẩn của Lighthouse');
+  assert.equal(report.configSettings.disableStorageReset, false, 'Mỗi lượt phải xóa dữ liệu và bộ nhớ đệm trình duyệt');
   const scores = Object.fromEntries(categories.map(id => {
     const score = report.categories[id]?.score;
     assert.ok(typeof score === 'number' && score >= 0 && score <= 1, 'Thiếu điểm hợp lệ: ' + id);
@@ -38,6 +40,27 @@ export function passesReleaseGate(reports) {
       && runs.every(report => categories.every(id => report.scores[id] === 100)
         && report.warnings.length === 0 && report.agentic.total === 3 && report.agentic.passed === 3);
   });
+}
+
+export async function withPreparedChrome(launch, measure, {
+  env = process.env,
+  wait = milliseconds => new Promise(done => setTimeout(done, milliseconds)),
+} = {}) {
+  const browserEnv = { ...env };
+  delete browserEnv.GITHUB_TOKEN;
+  // Hồ sơ Chrome riêng ở trang trống; chưa tải website trước phép đo đầu tiên.
+  const chrome = await launch({
+    startingUrl: 'about:blank',
+    chromeFlags: ['--headless', '--no-sandbox'],
+    envVars: browserEnv,
+  });
+  try {
+    assert.ok(Number.isInteger(chrome.port) && chrome.port > 0 && chrome.port <= 65535, 'Cổng Chrome không hợp lệ');
+    await wait(10000);
+    return await measure(chrome);
+  } finally {
+    await chrome.kill();
+  }
 }
 
 async function main() {
@@ -96,35 +119,43 @@ async function main() {
       runner: { os: process.platform, node: process.version }, lighthouseVersion: '13.5.0',
     }, null, 2) + '\n');
 
-    for (const mode of ['mobile', 'desktop']) {
-      await publishStatus(mode, 'pending', 'Đang đo 3 lượt trên tên miền chính thức');
-      for (let run = 1; run <= 3; run++) {
-        await verifyCurrentMain();
-        const prefix = resolve(output, 'lighthouse-' + mode + '-' + run);
-        const args = [cli, officialUrl, '--chrome-flags=--headless --no-sandbox', '--output=json', '--output=html',
-          '--output-path=' + prefix, '--save-assets', '--max-wait-for-load=45000', '--max-wait-for-fcp=30000'];
-        if (mode === 'desktop') args.push('--preset=desktop');
-        // Không chuyển quyền GitHub sang tiến trình duyệt website.
-        const childEnv = { ...process.env };
-        delete childEnv.GITHUB_TOKEN;
-        console.log('Đang đo ' + mode + ', lượt ' + run);
-        await new Promise((resolveChild, reject) => {
-          const child = spawn(process.execPath, args, { stdio: 'inherit', env: childEnv });
-          child.once('error', reject);
-          child.once('exit', (code, signal) => code === 0 ? resolveChild() : reject(new Error('Lighthouse kết thúc lỗi: ' + (signal || code))));
-        });
-        const report = JSON.parse(readFileSync(prefix + '.report.json', 'utf8'));
-        const summary = summarizeReport(report, mode, run);
-        results.push(summary);
-        writeFileSync(resolve(output, 'summary.json'), JSON.stringify({ sha, url: officialUrl, reports: results }, null, 2) + '\n');
-        console.log(JSON.stringify(summary));
+    const requireLighthouse = createRequire(resolve(cli));
+    const { launch } = await import(pathToFileURL(requireLighthouse.resolve('chrome-launcher')).href);
+    await withPreparedChrome(launch, async chrome => {
+      writeFileSync(resolve(output, 'browser-preparation.json'), JSON.stringify({
+        startingUrl: 'about:blank', settleMilliseconds: 10000, freshProfile: true,
+        storageResetPerRun: true, time: new Date().toISOString(),
+      }, null, 2) + '\n');
+      for (const mode of ['mobile', 'desktop']) {
+        await publishStatus(mode, 'pending', 'Đang đo 3 lượt trên tên miền chính thức');
+        for (let run = 1; run <= 3; run++) {
+          await verifyCurrentMain();
+          const prefix = resolve(output, 'lighthouse-' + mode + '-' + run);
+          const args = [cli, officialUrl, '--port=' + chrome.port, '--output=json', '--output=html',
+            '--output-path=' + prefix, '--save-assets', '--max-wait-for-load=45000', '--max-wait-for-fcp=30000'];
+          if (mode === 'desktop') args.push('--preset=desktop');
+          // Không chuyển quyền GitHub sang tiến trình duyệt website.
+          const childEnv = { ...process.env };
+          delete childEnv.GITHUB_TOKEN;
+          console.log('Đang đo ' + mode + ', lượt ' + run);
+          await new Promise((resolveChild, reject) => {
+            const child = spawn(process.execPath, args, { stdio: 'inherit', env: childEnv });
+            child.once('error', reject);
+            child.once('exit', (code, signal) => code === 0 ? resolveChild() : reject(new Error('Lighthouse kết thúc lỗi: ' + (signal || code))));
+          });
+          const report = JSON.parse(readFileSync(prefix + '.report.json', 'utf8'));
+          const summary = summarizeReport(report, mode, run);
+          results.push(summary);
+          writeFileSync(resolve(output, 'summary.json'), JSON.stringify({ sha, url: officialUrl, reports: results }, null, 2) + '\n');
+          console.log(JSON.stringify(summary));
+        }
+        const runs = results.filter(report => report.mode === mode);
+        const minimum = id => Math.min(...runs.map(report => report.scores[id]));
+        const passed = runs.every(report => categories.every(id => report.scores[id] === 100) && report.warnings.length === 0 && report.agentic.passed === 3 && report.agentic.total === 3);
+        await publishStatus(mode, passed ? 'success' : 'failure',
+          '3 lượt; thấp nhất: P ' + minimum('performance') + ', A ' + minimum('accessibility') + ', BP ' + minimum('best-practices') + ', SEO ' + minimum('seo') + ', Agentic ' + minimum('agentic-browsing'));
       }
-      const runs = results.filter(report => report.mode === mode);
-      const minimum = id => Math.min(...runs.map(report => report.scores[id]));
-      const passed = runs.every(report => categories.every(id => report.scores[id] === 100) && report.warnings.length === 0 && report.agentic.passed === 3 && report.agentic.total === 3);
-      await publishStatus(mode, passed ? 'success' : 'failure',
-        '3 lượt; thấp nhất: P ' + minimum('performance') + ', A ' + minimum('accessibility') + ', BP ' + minimum('best-practices') + ', SEO ' + minimum('seo') + ', Agentic ' + minimum('agentic-browsing'));
-    }
+    });
     await verifyCurrentMain();
     measured = true;
     if (!passesReleaseGate(results)) process.exitCode = 1;

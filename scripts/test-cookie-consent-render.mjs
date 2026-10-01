@@ -73,11 +73,16 @@ function buttons(tree) {
 let passed = 0;
 function check(name, callback) { callback(); passed++; console.log('Đạt: ' + name); }
 
-check('khách mới có thông báo ngay trong HTML máy chủ', () => {
+check('HTML máy chủ ưu tiên nội dung chính trước khi khởi tạo thông báo', () => {
   const f = fixture({ server: true });
+  assert.equal(f.html(), '');
+  assert.equal(f.calls.reads, 0);
+});
+
+check('khách mới thấy thông báo ngay sau khởi tạo, không đợi bộ hẹn giờ', () => {
+  const f = fixture(); f.mount();
   assert.match(f.html(), /role="alertdialog"/);
   assert.doesNotMatch(f.html(), /animate-in|fade-in|slide-in-from-bottom/);
-  assert.equal(f.calls.reads, 0);
 });
 
 for (const options of [{ pathname: '/admin/consultations' }, { enabled: false }]) {
@@ -124,4 +129,4 @@ check('head và CSS dùng cùng thuộc tính để tránh hiện lại thông b
   assert.match(readFileSync('src/index.css', 'utf8'), /html\[data-greenia-cookie-choice\] \.cookie-consent-banner\s*\{\s*display: none;/);
 });
 
-console.log('Kiểm thử thông báo cookie: ' + passed + '/11 đạt.');
+console.log('Kiểm thử thông báo cookie: ' + passed + '/12 đạt.');

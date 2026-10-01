@@ -9,7 +9,7 @@ import { setTrackingConsent } from "../lib/tracking";
 import { readCookieConsentChoice, saveCookieConsentChoice } from '../lib/cookieConsentChoice';
 
 export default function CookieConsent() {
-  const [show, setShow] = useState(true);
+  const [show, setShow] = useState(false);
   const { cookieConsentEnabled } = useAppContext();
   const pathname = usePathname();
 

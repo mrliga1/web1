@@ -1,0 +1,4 @@
+@config "../tailwind.config.ts";
+
+/* Giữ toàn bộ lớp giao diện quản trị, chỉ tải ở tuyến quản trị. */
+@tailwind utilities;

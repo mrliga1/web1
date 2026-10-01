@@ -137,3 +137,15 @@ Lượt mobile đầu có TBT 936 ms, LCP 2,34 giây, Speed Index 4,21 giây. M�
 Thông báo cookie đang xuất hiện sau bộ hẹn giờ 1.200 ms và hiệu ứng 500 ms, đồng thời chỉ nhớ lựa chọn đồng ý. Đã chuyển thông báo khách mới vào HTML dựng sẵn, đọc cả lựa chọn đồng ý/từ chối trước lần vẽ đầu tiên, bỏ lần xuất hiện trễ và ghi nhớ lựa chọn trong phiên nếu lưu trữ bị chặn. Không đổi chính sách tải tracking sau đồng ý. Cần kiểm thử, xác nhận bản dựng và đo lại tên miền chính thức để kết luận tác động.
 
 Kiểm thử `test-cookie-consent-render.mjs` đạt 11/11: HTML máy chủ, cấu hình tắt/trang quản trị, cả hai lựa chọn trước lần vẽ và sau khởi tạo, dữ liệu không hợp lệ, đồng ý/từ chối khi lưu trữ hoạt động hoặc bị chặn. Kiểm tra kiểu dữ liệu toàn dự án và lint các tệp TypeScript đã sửa đều đạt, không lỗi/cảnh báo. Kịch bản UI trên GitHub bổ sung tải lại trang sau từ chối để xác nhận lựa chọn được ghi nhớ ở bản chính thức. Chưa có kết quả hiệu suất của thay đổi cookie; chưa bàn giao.
+
+## Tách CSS quản trị và điều chỉnh thời điểm hiện cookie
+
+Commit `c38a171` đã phát hành thành công. Lượt [36791254886](https://github.com/mrliga1/web1/actions/runs/36791254886) đo trực tiếp tên miền chính thức: mobile **98, 98, 98**, desktop **100, 100, 100**; Accessibility, Best Practices, SEO và Agentic đều 100, Agentic 3/3. Kịch bản UI cả hai thiết bị đạt, gồm ghi nhớ từ chối sau tải lại. Lưu số liệu tại `official-independent-c38a171-summary.json` và `official-ui-c38a171-results.json`.
+
+FCP mobile 1,22–1,26 giây, LCP 2,12–2,27 giây, TBT 91–115,5 ms; Speed Index 1,22–1,26 giây. Thay đổi cookie chưa đạt mục tiêu 100. Đã chuyển thông báo khách mới sang hiện ngay sau khởi tạo giao diện, không dựng thông báo trong HTML ban đầu và không khôi phục bộ hẹn giờ 1.200 ms. Giữ ghi nhớ đồng ý/từ chối và xử lý lưu trữ bị chặn. Kiểm thử cookie mới: **12/12 đạt**.
+
+Đã tách CSS bằng cấu hình riêng cho mỗi đầu vào theo [tài liệu Tailwind v3](https://v3.tailwindcss.com/docs/functions-and-directives#config). Phân tích toàn bộ import từ 42 tệp trang công khai tới 110 tệp phụ thuộc xác nhận chỉ `AdminPanel.tsx` và hai tệp tuyến admin bị loại khỏi CSS công khai. CSS quản trị vẫn dùng cấu hình đầy đủ, được nhập ở `app/admin/layout.tsx`. Các quy tắc CSS tùy chỉnh dùng chung được giữ nguyên.
+
+CSS công khai trước nén giảm **113.934 → 100.967 byte**; gzip **20.878 → 19.043 byte** khi biên dịch cùng công cụ. Đây là phép so sánh cục bộ; chưa dùng để công nhận dung lượng mạng hay điểm sau phát hành. `test-css-split.mjs` đối chiếu **1.949 nhóm quy tắc**, xác nhận không mất hoặc đổi khai báo CSS cũ khi hợp hai đầu vào mới, và không loại tệp nào trong 110 phụ thuộc công khai. Lưu bằng chứng tại `official-css-split-verification.json`.
+
+Kiểm tra kiểu dữ liệu toàn dự án, lint các tệp TypeScript sửa đổi và kiểm tra khoảng trắng đều đạt. Cần xác nhận bản dựng Vercel, CSS tải thực tế, điểm Lighthouse và UI trên tên miền chính thức. Chưa đủ điều kiện bàn giao.

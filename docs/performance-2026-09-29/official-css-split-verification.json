@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "checkedRuleBodies": 1949,
+  "publicDependencyFiles": 110,
+  "missingRules": 0,
+  "missingPublicFiles": 0,
+  "sizes": [
+    {
+      "kind": "before",
+      "bytes": 113934,
+      "gzipBytes": 20878
+    },
+    {
+      "kind": "public",
+      "bytes": 100967,
+      "gzipBytes": 19043
+    },
+    {
+      "kind": "admin",
+      "bytes": 93598,
+      "gzipBytes": 15908
+    }
+  ],
+  "time": "2026-10-01T16:18:30.502Z",
+  "baselineCommit": "c38a171f77cb32b8a0541f99917c3424bb9205b4",
+  "sourceSha256": {
+    "src/index.css": "2a52f206333277a01af385af90bd73adcfca99f1be7d2f7eb9875b9d66c0485a",
+    "src/admin.css": "9478148470a1e3b1670f1ef1509b39a35cebbce9713f2d692dcf05e470841390",
+    "tailwind.public.config.ts": "a10c50c1558ee98567dd404d279e3a45f34e019c6bf8a032345c365e3b67cdc0",
+    "scripts/test-css-split.mjs": "f8e5e72ff67ee9e564b8501297e9cd652e49f0a99c58ff242bc47c3e55259388"
+  }
+}

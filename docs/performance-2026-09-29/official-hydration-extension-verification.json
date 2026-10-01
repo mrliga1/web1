@@ -1,0 +1,40 @@
+{
+  "time": "2026-10-01T22:23:50.904Z",
+  "basedOn": "83ed9762d80da89fc47d9b90abf6775287f3023f",
+  "preflightTests": {
+    "passed": 5,
+    "total": 5
+  },
+  "instrumentationTests": {
+    "passed": 4,
+    "total": 4
+  },
+  "performanceGateTests": {
+    "passed": 5,
+    "total": 5
+  },
+  "syntaxChecks": 3,
+  "lintExitCode": 0,
+  "manualWorkflowYamlValid": true,
+  "performanceScriptUnchanged": true,
+  "performanceWorkflowUnchanged": true,
+  "pendingProductionDiagnostic": true,
+  "files": [
+    {
+      "file": "scripts/diagnose-production-hydration.mjs",
+      "sha256": "b4e52761572e994068629776fd406bcdced29e675e6c8bae234372f06c3b8040"
+    },
+    {
+      "file": "scripts/prepare-production-diagnostic.mjs",
+      "sha256": "b21ca0f2d1ba299a523ec1af364b32f9f539a5523e2e5c7bbd8aea6615bc3e05"
+    },
+    {
+      "file": "scripts/test-production-diagnostic.mjs",
+      "sha256": "24053cf799ecbcb712ab3655446f14b5885ad6364e21701a1c2c6c33ae351374"
+    },
+    {
+      "file": ".github/workflows/production-hydration.yml",
+      "sha256": "771cf500408a046efce2b6923780c7ce55ce7a4a6c6b066da96e6af78244928f"
+    }
+  ]
+}

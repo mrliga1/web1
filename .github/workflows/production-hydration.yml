@@ -1,0 +1,46 @@
+name: Chẩn đoán HTML trên tên miền chính thức
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: greenia-production-hydration-diagnostic
+  cancel-in-progress: true
+
+jobs:
+  hydration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Xác nhận bản chính thức hiện tại
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/prepare-production-diagnostic.mjs
+      - name: Cài công cụ quan sát
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+        run: npm install --prefix "$RUNNER_TEMP/greenia-hydration" --no-save --package-lock=false playwright@1.62.1
+      - name: Quan sát HTML và lỗi React
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          UI_PACKAGE_ROOT: ${{ runner.temp }}/greenia-hydration/node_modules
+          UI_CHROME_PATH: /usr/bin/google-chrome
+          HYDRATION_DIAGNOSTIC_MODE: '1'
+        run: node scripts/diagnose-production-hydration.mjs
+      - name: Lưu kết quả chẩn đoán
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: greenia-official-hydration-${{ github.sha }}
+          path: .audit-reports/
+          retention-days: 7
+          include-hidden-files: true
+          if-no-files-found: error

@@ -104,3 +104,29 @@ Runtime dùng trong phiên quan sát chỉ được thay tại phản hồi củ
 Công cụ quan sát kiểm tra đúng một điểm rD(e) tạo lỗi 418; từ chối runtime không khớp hoặc đã gắn quan sát. Đã kiểm tra với runtime thực tế SHA-256 5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b và xác nhận cú pháp hợp lệ sau chèn. Các phép kiểm thử xác nhận giữ lỗi HTML/chữ, fiber và cách ném lỗi ngay cả khi quan sát tự lỗi hoặc không có window: **4/4 đạt**. Kiểm thử phép đo chính thức **5/5 đạt**. Lint bốn tệp đạt, không lỗi/cảnh báo. Workflow YAML hợp lệ, bước chẩn đoán nằm sau UI và trước upload artifact.
 
 Bằng chứng trước phát hành: official-nav-hydration-diagnostics-verification.json. Cần bản dựng Vercel và báo cáo mới trước khi kết luận đã khắc phục lỗi HTML hoặc đạt điểm.
+
+
+## Kết quả 83ed976 và mở rộng chẩn đoán di động
+
+Commit 83ed9762d80da89fc47d9b90abf6775287f3023f đã được phát hành thành công trên Vercel. [Lượt 36931898237](https://github.com/mrliga1/web1/actions/runs/36931898237) đo trực tiếp tên miền chính thức:
+
+| Thiết bị | Performance lượt 1 | Lượt 2 | Lượt 3 |
+|---|---:|---:|---:|
+| Mobile | 87 | 99 | 99 |
+| Desktop | 100 | 100 | 100 |
+
+Accessibility, Best Practices, SEO và Agentic đều 100 trong sáu lượt, Agentic 3/3, không có cảnh báo thu thập. CLS desktop lượt 3 là 0,0004117; các lượt khác 0. UI đạt mười mục mỗi thiết bị và kiểm tra menu mobile; không gửi biểu mẫu CRM. **Chưa đủ điều kiện bàn giao.**
+
+Tổng JavaScript desktop giải nén giảm từ 594.682 xuống 502.244 byte. Bốn tệp tải trước, tổng 92.474 byte, đã biến mất; phần mã cơ sở tăng 36 byte so với 43b5300. Sáu phiên chẩn đoán nguyên gốc không tải mã các trang dự án/tin tức/liên hệ/sản phẩm. Thay đổi menu đạt mục tiêu giảm tải trước.
+
+Mobile lượt đầu có TBT mô phỏng 446,5 ms; hai lượt sau 71 / 75 ms. BenchmarkIndex 2.129 / 2.428 / 2.443,5, thấp hơn lượt 43b5300. Dấu vết cho thấy tác vụ React core 71,766 ms theo thời gian thực, CPU 36,322 ms; Layout 38,762 ms theo thời gian thực, CPU 4,579 ms. Đây là bằng chứng có chênh lệch lịch xử lý; không loại lượt đầu hoặc quy toàn bộ mất điểm cho máy đo.
+
+Chẩn đoán vẫn ghi nhận lỗi HTML React 418 ở phiên mobile nguyên gốc số 1. Mười hai phiên desktop có quan sát không bắt được lỗi; chưa xác định phần tử gây lệch. Bằng chứng giữ nguyên tại official-independent-83ed976-summary.json, official-ui-83ed976-results.json, official-hydration-83ed976-results.json.
+
+Đã chẩn đoán thêm trên Edge 154 bằng trình duyệt headless riêng, không dùng hồ sơ hay chuột của người dùng. Các phiên hoàn tất chưa tái hiện lỗi; một lượt CPU giảm tốc dừng vì chưa nhận mã React trong thời gian quan sát. Thử riêng thứ tự tải bằng mã React chính thức đã xác minh checksum không bắt được lỗi trong 15 phiên. Đây là chẩn đoán, không phải báo cáo nghiệm thu Lighthouse.
+
+Đã mở rộng quan sát sang mobile và thêm thời gian chờ nhận đúng runtime, nhằm tránh bỏ sót chẩn đoán khi phản hồi đến muộn. Quy trình riêng production-hydration.yml chỉ chạy khi được kích hoạt; xác nhận đúng main, Vercel thành công và HTTP 200 trước khi quan sát. Quy trình này không ghi điểm hiệu suất và không thay thế sáu lượt Lighthouse. Nó chỉ có quyền đọc GitHub; quyền GitHub không đi vào trình duyệt hoặc yêu cầu website công khai.
+
+Chế độ chẩn đoán riêng tải mã React công khai từ đúng HTML chính thức, kiểm tra điểm chèn, ghi checksum và phục vụ bản quan sát trong bộ nhớ của trình duyệt riêng để kiểm tra thứ tự tải. Các lượt có nhãn rõ và chỉ dùng tìm lỗi. Quy trình Lighthouse giữ cấu hình, runtime nguyên gốc, xóa cache và điều kiện điểm 100 như trước.
+
+Kiểm thử xác nhận bản chẩn đoán 5/5 đạt (chặn sai kho/nhánh/commit, main đổi, API lỗi, Vercel chưa hoàn tất, lỗi HTTP/chuyển hướng); quan sát lỗi 4/4 đạt; điều kiện nghiệm thu 5/5 đạt. Cú pháp ba script và workflow YAML hợp lệ, lint ba script đạt không cảnh báo. Đã đối chiếu mã tính điểm và workflow đo chính với commit 83ed976: không thay đổi. Bằng chứng tại official-hydration-extension-verification.json. Cần chạy quy trình quan sát trên GitHub để xác định phần tử lỗi; chưa kết luận đã sửa lỗi React.

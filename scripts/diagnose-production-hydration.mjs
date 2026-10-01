@@ -9,6 +9,8 @@ const output = resolve('.audit-reports/hydration');
 const runs = [];
 let browser;
 let failure = null;
+const diagnosticMode = process.env.HYDRATION_DIAGNOSTIC_MODE === '1';
+let preparedRuntime = null;
 mkdirSync(output, { recursive: true });
 
 async function verifyRelease() {
@@ -59,8 +61,21 @@ function installHydrationObserver() {
   };
 }
 
+
+async function loadVerifiedDiagnosticRuntime() {
+  const home=await fetch(origin+'/',{signal:AbortSignal.timeout(15000)});
+  assert.equal(home.status,200);assert.equal(home.url,origin+'/');
+  const match=(await home.text()).match(/src="([^"]*\/_next\/static\/chunks\/4bd1b696-[^"]+\.js(?:\?[^"]*)?)"/);
+  assert.ok(match,'Không tìm thấy mã React tại bản chính thức');
+  const url=new URL(match[1],origin);assert.equal(url.origin,origin);
+  const response=await fetch(url,{signal:AbortSignal.timeout(15000),redirect:'error'});
+  assert.equal(response.status,200);assert.equal(response.url,url.href);
+  return {url:url.href,observation:instrumentReactHydrationCapture(await response.text())};
+}
+
 try {
   await verifyRelease();
+  if(diagnosticMode) preparedRuntime=await loadVerifiedDiagnosticRuntime();
   assert.ok(process.env.UI_PACKAGE_ROOT);
   const requireRuntime = createRequire(resolve(process.env.UI_PACKAGE_ROOT, '__hydration.cjs'));
   assert.equal(requireRuntime('playwright/package.json').version, '1.62.1');
@@ -68,11 +83,14 @@ try {
   const browserEnv = { ...process.env };
   delete browserEnv.GITHUB_TOKEN;
   browser = await chromium.launch({ executablePath: process.env.UI_CHROME_PATH || '/usr/bin/google-chrome', headless: true, timeout: 30000, env: browserEnv });
-  const plan = [
-    ...Array.from({ length: 3 }, (_, index) => ({ mode: 'desktop', index: index + 1, instrumented: false, width: 1350, height: 940 })),
-    ...Array.from({ length: 3 }, (_, index) => ({ mode: 'mobile', index: index + 1, instrumented: false, width: 412, height: 823 })),
-    ...Array.from({ length: 12 }, (_, index) => ({ mode: 'desktop', index: index + 1, instrumented: true, width: 1350, height: 940 })),
-  ];
+
+  const originalDesktop = Array.from({ length:3 }, (_,index) => ({ mode:'desktop',index:index+1,instrumented:false,width:1350,height:940 }));
+  const originalMobile = Array.from({ length:3 }, (_,index) => ({ mode:'mobile',index:index+1,instrumented:false,width:412,height:823 }));
+  const observedMobile = Array.from({ length:12 }, (_,index) => ({ mode:'mobile',index:index+1,instrumented:true,width:412,height:823,rate:index<6?1:4 }));
+  const observedDesktop = Array.from({ length:12 }, (_,index) => ({ mode:'desktop',index:index+1,instrumented:true,width:1350,height:940 }));
+  const plan = diagnosticMode
+    ? [...originalDesktop,...observedMobile,...originalMobile,...observedDesktop]
+    : [...originalDesktop,...originalMobile,...observedMobile,...observedDesktop];
   // Các lượt quan sát chạy sau Lighthouse trên phiên trống, chỉ dùng tìm lỗi.
   for (const sample of plan) {
     const context = await browser.newContext({ viewport: { width: sample.width, height: sample.height } });
@@ -84,6 +102,10 @@ try {
     try {
       page = await context.newPage();
       page.setDefaultTimeout(20000);
+      if(sample.rate&&sample.rate!==1){
+        const cdp=await context.newCDPSession(page);
+        await cdp.send('Emulation.setCPUThrottlingRate',{rate:sample.rate});
+      }
       page.on('pageerror', error => errors.push(error.message));
       page.on('response', response => {
         const url = new URL(response.url());
@@ -93,13 +115,15 @@ try {
         await page.addInitScript(installHydrationObserver);
         await page.route(/^https:\/\/greeniahomes\.vn\/_next\/static\/chunks\/4bd1b696-[^/]+\.js(?:\?.*)?$/, async route => {
           try {
-            const response = await route.fetch({ timeout: 30000, maxRedirects: 0 });
-            assert.equal(response.status(), 200);
-            const observation = instrumentReactHydrationCapture(await response.text());
-            runtime.push({ url: response.url(), originalSha256: observation.originalSha256, instrumentedSha256: observation.instrumentedSha256 });
-            const headers = response.headers();
-            delete headers['content-length']; delete headers['content-encoding'];
-            await route.fulfill({ response, body: observation.code, headers });
+
+            if(preparedRuntime) assert.equal(route.request().url(),preparedRuntime.url);
+            const response=preparedRuntime?null:await route.fetch({timeout:30000,maxRedirects:0});
+            if(response) assert.equal(response.status(),200);
+            const observation=preparedRuntime?.observation||instrumentReactHydrationCapture(await response.text());
+            runtime.push({url:response?response.url():preparedRuntime.url,originalSha256:observation.originalSha256,instrumentedSha256:observation.instrumentedSha256,servedFromVerifiedMemory:Boolean(preparedRuntime)});
+            const headers=response?response.headers():{'content-type':'application/javascript'};
+            delete headers['content-length'];delete headers['content-encoding'];
+            await route.fulfill({...response?{response}:{status:200},body:observation.code,headers});
           } catch (error) {
             routeErrors.push(error.message);
             await route.abort('failed');
@@ -111,6 +135,11 @@ try {
       assert.equal(page.url(), origin + '/');
       await page.getByRole('heading', { level: 1, name: 'Tìm bất động sản phù hợp, an tâm trong từng quyết định' }).waitFor();
       // Chờ tác vụ gắn tương tác ban đầu, không thao tác hay gửi biểu mẫu.
+
+      if(sample.instrumented){
+        for(let attempt=0;runtime.length===0&&routeErrors.length===0&&attempt<60;attempt++) await page.waitForTimeout(500);
+        assert.equal(runtime.length,1,'Chưa quan sát đúng runtime React');
+      }
       await page.waitForTimeout(1500);
       const snapshots = sample.instrumented ? await page.evaluate(() => window.__greeniaHydrationSnapshots || []) : [];
       if (errors.length || snapshots.length) await page.screenshot({ path: resolve(output, sample.mode + '-' + sample.index + '-' + (sample.instrumented ? 'observed' : 'original') + '.png') });
@@ -135,7 +164,7 @@ try {
 } finally {
   writeFileSync(resolve(output, 'results.json'), JSON.stringify({
     sha: process.env.GITHUB_SHA, url: origin + '/', time: new Date().toISOString(),
-    diagnosticOnlyForInstrumentedRuns: true, performanceGateUnchanged: true, runs, failure,
+    diagnosticOnlyForInstrumentedRuns: true, performanceGateUnchanged: true, servedVerifiedRuntimeFromMemory: diagnosticMode, runs, failure,
   }, null, 2) + '\n');
   if (browser) await browser.close();
 }

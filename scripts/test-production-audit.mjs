@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { passesReleaseGate, summarizeReport, withPreparedChrome, officialUrl } from './audit-production-ci.mjs';
+import { passesReleaseGate, summarizeReport, withPreparedChrome, officialUrl, auditPreparationUrl } from './audit-production-ci.mjs';
 
 let passed = 0;
 async function check(name, callback) { await callback(); passed++; console.log('Đạt: ' + name); }
@@ -20,7 +20,11 @@ await check('chuẩn bị trang trống, giữ môi trường đo, không đưa 
   const order = [];
   const chrome = { port: 32123, async kill() { order.push('kill'); } };
   const result = await withPreparedChrome(async options => {
-    assert.equal(options.startingUrl, 'about:blank');
+    assert.equal(options.startingUrl, auditPreparationUrl);
+    assert.match(options.startingUrl, /^data:text\/html,/);
+    const preparationHtml = decodeURIComponent(options.startingUrl.split(',')[1]);
+    assert.match(preparationHtml, /<body><\/body>/);
+    assert.doesNotMatch(preparationHtml, /script|link|img|iframe|greeniahomes\.vn/i);
     assert.equal(options.userDataDir, undefined);
     assert.deepEqual(options.chromeFlags, ['--headless', '--no-sandbox']);
     assert.deepEqual(options.envVars, { CHROME_PATH: '/usr/bin/google-chrome' });

@@ -1,0 +1,42 @@
+{
+  "sha": "7515ddc23200759401201aa228e019a1a9a5420c",
+  "url": "https://greeniahomes.vn/",
+  "time": "2026-10-01T17:34:40.441Z",
+  "results": [
+    {
+      "mode": "desktop",
+      "passed": true,
+      "checks": [
+        "H1",
+        "ghi nhớ từ chối cookie sau tải lại",
+        "ảnh tải đủ",
+        "nhập biểu mẫu",
+        "checkbox",
+        "thêm/xóa yêu thích",
+        "CTA",
+        "thanh điều hướng sau cuộn",
+        "không tràn ngang",
+        "không lỗi JavaScript"
+      ],
+      "mobileMenu": false
+    },
+    {
+      "mode": "mobile",
+      "passed": true,
+      "checks": [
+        "H1",
+        "ghi nhớ từ chối cookie sau tải lại",
+        "ảnh tải đủ",
+        "nhập biểu mẫu",
+        "checkbox",
+        "thêm/xóa yêu thích",
+        "CTA",
+        "thanh điều hướng sau cuộn",
+        "không tràn ngang",
+        "không lỗi JavaScript"
+      ],
+      "mobileMenu": true
+    }
+  ],
+  "failure": null
+}

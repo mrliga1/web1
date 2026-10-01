@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const officialUrl = 'https://greeniahomes.vn/';
+export const auditPreparationUrl = 'data:text/html,' + encodeURIComponent('<!doctype html><html><head><title>Chuẩn bị phép đo</title></head><body></body></html>');
 const categories = ['performance', 'accessibility', 'best-practices', 'seo', 'agentic-browsing'];
 const metricIds = ['first-contentful-paint', 'largest-contentful-paint', 'total-blocking-time', 'cumulative-layout-shift', 'speed-index'];
 
@@ -48,9 +49,9 @@ export async function withPreparedChrome(launch, measure, {
 } = {}) {
   const browserEnv = { ...env };
   delete browserEnv.GITHUB_TOKEN;
-  // Hồ sơ Chrome riêng ở trang trống; chưa tải website trước phép đo đầu tiên.
+  // Điều hướng tài liệu trống trong bộ nhớ để Chrome hoàn tất khởi tạo giao diện nội bộ.
   const chrome = await launch({
-    startingUrl: 'about:blank',
+    startingUrl: auditPreparationUrl,
     chromeFlags: ['--headless', '--no-sandbox'],
     envVars: browserEnv,
   });
@@ -123,7 +124,7 @@ async function main() {
     const { launch } = await import(pathToFileURL(requireLighthouse.resolve('chrome-launcher')).href);
     await withPreparedChrome(launch, async chrome => {
       writeFileSync(resolve(output, 'browser-preparation.json'), JSON.stringify({
-        startingUrl: 'about:blank', settleMilliseconds: 10000, freshProfile: true,
+        startingUrl: auditPreparationUrl, settleMilliseconds: 10000, freshProfile: true,
         storageResetPerRun: true, time: new Date().toISOString(),
       }, null, 2) + '\n');
       for (const mode of ['mobile', 'desktop']) {

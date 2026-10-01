@@ -148,7 +148,7 @@ export default function Home({
           let cardContent = null;
 
           const serverEntry = serverStaticSections[section.id];
-          if (!isEditMode && usesServerSnapshot && serverEntry && serverEntry.signature === JSON.stringify(section)) {
+          if (!isEditMode && usesServerSnapshot && serverEntry && serverEntry.section === section) {
             cardContent = serverEntry.content;
           } else if (section.id.startsWith('custom_')) {
             cardContent = (

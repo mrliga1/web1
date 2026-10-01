@@ -130,3 +130,20 @@ Chẩn đoán vẫn ghi nhận lỗi HTML React 418 ở phiên mobile nguyên g�
 Chế độ chẩn đoán riêng tải mã React công khai từ đúng HTML chính thức, kiểm tra điểm chèn, ghi checksum và phục vụ bản quan sát trong bộ nhớ của trình duyệt riêng để kiểm tra thứ tự tải. Các lượt có nhãn rõ và chỉ dùng tìm lỗi. Quy trình Lighthouse giữ cấu hình, runtime nguyên gốc, xóa cache và điều kiện điểm 100 như trước.
 
 Kiểm thử xác nhận bản chẩn đoán 5/5 đạt (chặn sai kho/nhánh/commit, main đổi, API lỗi, Vercel chưa hoàn tất, lỗi HTTP/chuyển hướng); quan sát lỗi 4/4 đạt; điều kiện nghiệm thu 5/5 đạt. Cú pháp ba script và workflow YAML hợp lệ, lint ba script đạt không cảnh báo. Đã đối chiếu mã tính điểm và workflow đo chính với commit 83ed976: không thay đổi. Bằng chứng tại official-hydration-extension-verification.json. Cần chạy quy trình quan sát trên GitHub để xác định phần tử lỗi; chưa kết luận đã sửa lỗi React.
+
+
+## Kết quả ef3595b và giảm dữ liệu khối máy chủ
+
+Commit ef3595b337fd424f1c9c67f2a9a815560daf1034 đã được Vercel phát hành. [Lượt đo 36935087546](https://github.com/mrliga1/web1/actions/runs/36935087546) trên tên miền chính thức: Performance mobile **74 / 99 / 99**, desktop **100 / 100 / 100**. Accessibility, Best Practices, SEO và Agentic đều 100 trong sáu lượt, Agentic 3/3, không có cảnh báo thu thập; CLS 0. UI đạt mười mục mỗi thiết bị và menu mobile, không gửi biểu mẫu CRM.
+
+Mobile lượt đầu: FCP 1.400 ms, LCP 1.780 ms, TBT 1.388 ms, Speed Index 2.109 ms, BenchmarkIndex 1.292,5. Hai lượt sau: TBT 85 / 83 ms, BenchmarkIndex 2.273 / 2.278,5. Không dùng hai lượt 99 hoặc kết quả desktop để kết luận đủ điều kiện bàn giao.
+
+Chẩn đoán sau Lighthouse hoàn tất 30 phiên, gồm sáu phiên nguyên gốc và 24 phiên có quan sát; không ghi lỗi React, lỗi tải runtime hoặc capture. [Quy trình chẩn đoán riêng 36935738208](https://github.com/mrliga1/web1/actions/runs/36935738208) cũng hoàn tất 30 phiên với cùng số lượng, phục vụ mã quan sát đã xác minh từ bộ nhớ; không ghi lỗi/capture. Tổng cộng 12 phiên nguyên gốc và 48 phiên có quan sát trong hai quy trình. Chưa xác định nguyên nhân hoặc phần tử của lỗi React 418 từng gặp ở 43b5300 / 83ed976, không coi việc chưa tái hiện là đã sửa lỗi. Các báo cáo được giữ tại official-hydration-ef3595b-ci-results.json và official-hydration-ef3595b-timing-results.json.
+
+Đã đổi HomeStaticSectionEntry sang giữ tham chiếu section thay cho chuỗi JSON.stringify(section) gửi lặp. React Flight giữ cùng tham chiếu giữa initialSections và các slot; Home dùng nội dung máy chủ khi cùng đối tượng, không ở chế độ chỉnh sửa và không cần làm mới API. Khối đã thay đổi hoặc bản sao riêng dùng phần dựng hiện tại theo nhu cầu. Không đổi nội dung, HTML, thứ tự, liên kết, hình ảnh hoặc hành vi biểu mẫu.
+
+Đã kiểm tra vòng truyền bằng bộ mã hóa/giải mã React Server Components được đóng gói trong Next.js, với ánh xạ React như App Router. Hai thứ tự trường đều giữ tham chiếu; bản sao riêng không bị gộp. Mẫu kiểm thử giảm từ 11.789 byte xuống 6.006 / 6.033 byte, tiết kiệm 5.783 / 5.756 byte. Đây là mẫu kiểm thử, chưa phải dung lượng trang chính thức.
+
+Kiểm thử truyền dữ liệu **6/6 đạt**. Kiểm thử HTML, nội dung đã chỉnh, danh sách, khối ẩn/tùy chỉnh, bật/tắt chỉnh sửa, bản sao riêng và API làm mới thành công/lỗi **9/9 đạt** bằng React trong dự án; cũng **9/9 đạt** bằng React 19.2.0-canary-0bdb9206-20250818 dùng trong App Router. Typecheck toàn dự án đạt, lint bốn tệp đạt không cảnh báo. Bằng chứng trước phát hành: official-shared-home-sections-verification.json.
+
+Cần xác nhận phát hành, tham chiếu dữ liệu thực được giải mã trong trình duyệt, dung lượng HTML/Flight, UI và cả sáu lượt Lighthouse của bản mới. **Chưa đủ điều kiện bàn giao.**

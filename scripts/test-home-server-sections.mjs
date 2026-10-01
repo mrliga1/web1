@@ -146,9 +146,17 @@ await check('các khối tĩnh không có hook/sự kiện và vẫn hiển th�
   const result = html(currentHome, base);
   assertMarkup(result, normalizeHome(html(baselineHome, base)));
   const slots = staticBodies.createHomeStaticSectionContent(sections, projects, news);
-  for (const entry of Object.values(slots)) { assert.equal(typeof entry.signature, 'string'); assert.ok(React.isValidElement(entry.content)); }
+  for (const entry of Object.values(slots)) { assert.equal(entry.section, sections.find(section => section.id === entry.section.id)); assert.ok(React.isValidElement(entry.content)); }
 });
 
+
+await check('bản sao riêng dùng khối hiện tại và không nhầm với bản chụp máy chủ', () => {
+  const serverStaticSections = staticBodies.createHomeStaticSectionContent(sections, projects, news);
+  const copied = sections.map(section => ({ ...section }));
+  loaded.length = 0;
+  assertMarkup(html(currentHome, { ...base, sections: copied, serverStaticSections }), normalizeHome(html(baselineHome, { ...base, sections: copied })));
+  assert.deepEqual(loaded, ['CorporateIntroBody', 'ReasonsBody', 'ProjectsBody', 'NewsBody']);
+});
 
 function refreshFixture(fails = false) {
   const states = [];
@@ -204,4 +212,4 @@ await check('API làm mới lỗi vẫn giữ nội dung ban đầu và xử lý
   assert.equal(fixture.errors.length, 1);
 });
 
-console.log('Kiểm thử khối trang chủ dựng máy chủ: ' + passed + '/8 đạt.');
+console.log('Kiểm thử khối trang chủ dựng máy chủ: ' + passed + '/9 đạt.');

@@ -1,0 +1,551 @@
+{
+  "sha": "ef3595b337fd424f1c9c67f2a9a815560daf1034",
+  "url": "https://greeniahomes.vn/",
+  "time": "2026-10-01T22:34:41.887Z",
+  "diagnosticOnlyForInstrumentedRuns": true,
+  "performanceGateUnchanged": true,
+  "servedVerifiedRuntimeFromMemory": true,
+  "runs": [
+    {
+      "mode": "desktop",
+      "index": 1,
+      "instrumented": false,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 2,
+      "instrumented": false,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 3,
+      "instrumented": false,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 1,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 1,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 2,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 1,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 3,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 1,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 4,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 1,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 5,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 1,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 6,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 1,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 7,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 4,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 8,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 4,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 9,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 4,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 10,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 4,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 11,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 4,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 12,
+      "instrumented": true,
+      "width": 412,
+      "height": 823,
+      "rate": 4,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 1,
+      "instrumented": false,
+      "width": 412,
+      "height": 823,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 2,
+      "instrumented": false,
+      "width": 412,
+      "height": 823,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "mobile",
+      "index": 3,
+      "instrumented": false,
+      "width": 412,
+      "height": 823,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 1,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 2,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 3,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 4,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 5,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 6,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 7,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 8,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 9,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 10,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 11,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    },
+    {
+      "mode": "desktop",
+      "index": 12,
+      "instrumented": true,
+      "width": 1350,
+      "height": 940,
+      "errors": [],
+      "routeScripts": [],
+      "runtime": [
+        {
+          "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+          "originalSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+          "instrumentedSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+          "servedFromVerifiedMemory": true
+        }
+      ],
+      "routeErrors": [],
+      "snapshots": []
+    }
+  ],
+  "failure": null
+}

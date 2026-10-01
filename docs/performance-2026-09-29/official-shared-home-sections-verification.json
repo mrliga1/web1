@@ -1,0 +1,43 @@
+{
+  "time": "2026-10-01T23:03:14.437Z",
+  "basedOn": "ef3595b337fd424f1c9c67f2a9a815560daf1034",
+  "flightTransportTests": {
+    "passed": 6,
+    "total": 6
+  },
+  "homeServerTests": {
+    "passed": 9,
+    "total": 9
+  },
+  "homeServerNextReactTests": {
+    "passed": 9,
+    "total": 9,
+    "reactVersion": "19.2.0-canary-0bdb9206-20250818"
+  },
+  "typecheckExitCode": 0,
+  "lintExitCode": 0,
+  "fixtureWireBytes": {
+    "previous": 11789,
+    "sectionsFirst": 6006,
+    "entryFirst": 6033
+  },
+  "pendingProductionVerification": true,
+  "files": [
+    {
+      "file": "src/components/Home.tsx",
+      "sha256": "21218c7d8581b1faa87dccae6328d52d590fd39c2e30994d90df21fec61ef536"
+    },
+    {
+      "file": "src/components/HomeStaticSectionBodies.tsx",
+      "sha256": "881ec8704fa4004667c7eeee07dfa6c3698dddc8e585f3c639eedee6d43639b2"
+    },
+    {
+      "file": "scripts/test-home-server-sections.mjs",
+      "sha256": "bb4040d8ae41dece7406e38a9bb8f2167f2a1175c3ef7bff7f5b84e117595bfb"
+    },
+    {
+      "file": "scripts/test-home-section-flight.mjs",
+      "sha256": "c440282753239a620fc70b1fbefcc566587487966a0b5357c0754b7541123451"
+    }
+  ]
+}

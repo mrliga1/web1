@@ -13,7 +13,7 @@ interface SectionRendererProps {
 }
 
 export interface HomeStaticSectionEntry {
-  signature: string;
+  section: VisualSection;
   content: React.ReactNode;
 }
 export type HomeStaticSectionContent = Record<string, HomeStaticSectionEntry>;
@@ -658,7 +658,7 @@ export function createHomeStaticSectionContent(
       case 'news': body = <NewsBody {...props} news={news} />; break;
       default: continue;
     }
-    content[section.id] = { signature: JSON.stringify(section), content: body };
+    content[section.id] = { section, content: body };
   }
   return content;
 }

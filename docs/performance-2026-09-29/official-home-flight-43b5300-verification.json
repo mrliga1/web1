@@ -1,0 +1,44 @@
+{
+  "htmlBytes": 162156,
+  "rscBytes": 70561,
+  "recordCount": 41,
+  "needsClientRefresh": false,
+  "sections": [
+    {
+      "id": "hero",
+      "visible": true,
+      "hasSlot": false,
+      "signatureMatches": null
+    },
+    {
+      "id": "corporate_intro",
+      "visible": true,
+      "hasSlot": true,
+      "signatureMatches": true
+    },
+    {
+      "id": "reasons",
+      "visible": true,
+      "hasSlot": true,
+      "signatureMatches": true
+    },
+    {
+      "id": "featured_listings",
+      "visible": true,
+      "hasSlot": false,
+      "signatureMatches": null
+    },
+    {
+      "id": "projects",
+      "visible": true,
+      "hasSlot": true,
+      "signatureMatches": true
+    },
+    {
+      "id": "news",
+      "visible": true,
+      "hasSlot": true,
+      "signatureMatches": true
+    }
+  ]
+}

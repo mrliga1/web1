@@ -137,7 +137,8 @@ export default function Navbar({ onShowNotification, logoUrl, isSettingsLoaded =
           <div className="block lg:hidden w-10" />
 
           {/* Brand Logo Identity */}
-          <Link 
+          <Link
+            prefetch={false}
             href="/"
             aria-label="Trang chủ Greenia Homes"
             className="flex items-center gap-2 cursor-pointer group absolute left-1/2 -translate-x-1/2 lg:relative lg:left-0 lg:transform-none z-10"
@@ -179,6 +180,7 @@ export default function Navbar({ onShowNotification, logoUrl, isSettingsLoaded =
               return (
                 <li key={item.screen}>
                   <Link
+                    prefetch={false}
                     id={`nav-${item.screen}`}
                     href={getRouteUrl({ screen: item.screen })}
                     aria-current={active ? "page" : undefined}
@@ -370,6 +372,7 @@ export default function Navbar({ onShowNotification, logoUrl, isSettingsLoaded =
                 return (
                   <li key={item.screen}>
                     <Link
+                      prefetch={false}
                       href={getRouteUrl({ screen: item.screen })}
                       aria-current={active ? "page" : undefined}
                       onClick={() => setMobileMenuOpen(false)}

@@ -69,3 +69,38 @@ Cách truyền nội dung máy chủ vào component có tương tác dựa trên
 Kiểm thử khối trang chủ dựng máy chủ **8/8 đạt**: so sánh HTML với bản 9dc4f2c, nội dung đã sửa, danh sách 0/1/4/7 mục, thứ tự, khối ẩn/tùy chỉnh, bật/tắt chỉnh sửa, bản chụp mới và API làm mới thành công/lỗi. Chỉ chấp nhận hai thay đổi nút sang liên kết có chủ đích. Kiểm thử tách biên tập **7/7 đạt**. Typecheck toàn dự án đạt; lint bảy tệp đạt, không cảnh báo. Xác nhận mã: official-home-server-sections-verification.json.
 
 Cần xác nhận bản dựng Vercel, dung lượng script thực, UI và cả sáu lượt Lighthouse của bản tiếp theo. Không dùng hai lượt mobile 100 để thay cho đủ điều kiện nghiệm thu.
+
+
+## Kết quả 43b5300 và vấn đề còn cần xử lý
+
+Commit 43b5300854de209ce4f6c7ca6403a30a287ee096 đã được GitHub main tiếp nhận và Vercel phát hành thành công. [Lượt 36926449109](https://github.com/mrliga1/web1/actions/runs/36926449109) đo trực tiếp tên miền chính thức:
+
+| Thiết bị | Performance lượt 1 | Lượt 2 | Lượt 3 | Best Practices |
+|---|---:|---:|---:|---|
+| Mobile | 88 | 100 | 100 | 100 cả ba lượt |
+| Desktop | 100 | 100 | 100 | 100 / 96 / 100 |
+
+Accessibility và SEO đều 100, Agentic 100 và 3/3 trong sáu lượt; không có cảnh báo thu thập, CLS 0. UI cả hai thiết bị đạt mười mục mỗi thiết bị và menu mobile. Không gửi biểu mẫu CRM. Bằng chứng: official-independent-43b5300-summary.json và official-ui-43b5300-results.json.
+
+JavaScript mobile thực tải 502.208 byte giải nén, so với 517.433 byte ở e5d090d. Desktop tải 594.682 byte; phần thêm 92.474 byte thuộc chunk và trang tin tức/dự án/liên hệ được tải trước. Cần điều chỉnh việc tải trước ở Navbar; ClientLayout đã có cơ chế tải khi người dùng trỏ, tập trung hoặc chạm liên kết.
+
+Mobile lượt đầu: FCP mô phỏng 1.370 ms, LCP 2.190 ms, TBT 354 ms, Speed Index 4.130 ms. FCP thực quan sát 2.400 ms dù DOMContentLoaded 446 ms và load 628 ms. Hai lượt sau TBT 13,5 / 14,5 ms, LCP khoảng 1.526–1.529 ms. BenchmarkIndex lần lượt 3.234 / 4.094,5 / 4.091, khác máy đo trước; không suy diễn toàn bộ cải thiện là do refactor.
+
+Desktop lượt 2 có lỗi errors-in-console: Minified React error #418, HTML không khớp khi gắn tương tác. Đây là lỗi thật cần chẩn đoán; không bỏ audit hoặc che cảnh báo. [Tài liệu React](https://react.dev/errors/418) giải thích loại lỗi này. Không có HTTP >=400 trong báo cáo. Hai lượt desktop còn lại và phiên UI không ghi lỗi này; chưa đủ để kết luận đã sửa.
+
+Đã phân tích giao thức Flight từ HTML công khai thực tế, gồm bản ghi chữ dài theo độ dài byte: needsClientRefresh=false, cả bốn dấu nội dung máy chủ khớp với dữ liệu được gửi tới trình duyệt. Xác nhận tại official-home-flight-43b5300-verification.json. Kiểm tra này chỉ loại bớt giả thuyết chọn sai bản chụp; không chứng minh toàn bộ hydration đúng.
+
+**Chưa đạt điều kiện bàn giao.** Công việc tiếp theo: xử lý tải trước không cần thiết ở Navbar, thu bằng chứng cụ thể cho lỗi HTML/React và tiếp tục tối ưu lượt mobile đầu. Giữ đủ sáu lượt và mọi nhóm điểm 100 trong điều kiện nghiệm thu.
+
+
+## Điều chỉnh tải trước menu và ghi nhận vị trí lỗi HTML
+
+Đã đặt prefetch=false cho ba vị trí Link trong Navbar: logo, menu desktop và menu mobile. Giữ href, nhãn, trạng thái mục đang xem, đóng menu và class; ClientLayout tiếp tục tải trước khi có tín hiệu trỏ/chạm/tập trung. Cần báo cáo mạng bản mới để xác nhận giảm 92.474 byte mã trang khác đã quan sát ở desktop.
+
+Đã thêm bước chẩn đoán sau Lighthouse và kiểm tra UI trong workflow hiện tại. Sáu phiên nguyên gốc (ba desktop 1350×940, ba mobile 412×823) kiểm tra lỗi ban đầu và việc tải trước các trang khác. Mười hai phiên desktop riêng dùng phần quan sát đặt ngay trước chỗ React tạo lỗi 418 để ghi fiber, props và DOM của các phần tử liên quan. Không gửi form, đăng nhập hoặc thao tác CRM.
+
+Runtime dùng trong phiên quan sát chỉ được thay tại phản hồi của trình duyệt riêng; không sửa file đang phục vụ website. Lượt quan sát có nhãn instrumented và chỉ dùng chẩn đoán; sáu báo cáo Lighthouse dùng runtime nguyên gốc và điều kiện đạt giữ nguyên. Không loại lỗi React khỏi báo cáo.
+
+Công cụ quan sát kiểm tra đúng một điểm rD(e) tạo lỗi 418; từ chối runtime không khớp hoặc đã gắn quan sát. Đã kiểm tra với runtime thực tế SHA-256 5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b và xác nhận cú pháp hợp lệ sau chèn. Các phép kiểm thử xác nhận giữ lỗi HTML/chữ, fiber và cách ném lỗi ngay cả khi quan sát tự lỗi hoặc không có window: **4/4 đạt**. Kiểm thử phép đo chính thức **5/5 đạt**. Lint bốn tệp đạt, không lỗi/cảnh báo. Workflow YAML hợp lệ, bước chẩn đoán nằm sau UI và trước upload artifact.
+
+Bằng chứng trước phát hành: official-nav-hydration-diagnostics-verification.json. Cần bản dựng Vercel và báo cáo mới trước khi kết luận đã khắc phục lỗi HTML hoặc đạt điểm.

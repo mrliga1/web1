@@ -1,0 +1,44 @@
+{
+  "time": "2026-10-01T21:47:27.138Z",
+  "originalRuntimeSha256": "5421e13a91a9389517b66179f3b4b5eaa0d95245438066d4d7b19ac30aeb809b",
+  "instrumentedRuntimeSha256": "6804bbaa53b19a31f1fd13abeb98552b289c52bda3716a3ea45415e601065fea",
+  "realRuntimeSyntaxValid": true,
+  "workflowParsed": true,
+  "diagnosisAfterPerformanceAndUI": true,
+  "originalLighthouseConfigurationUnchanged": true,
+  "observerTests": {
+    "passed": 4,
+    "total": 4
+  },
+  "auditGateTests": {
+    "passed": 5,
+    "total": 5
+  },
+  "source": [
+    {
+      "file": "src/components/Navbar.tsx",
+      "sha256": "36c781314d45652cf3681984027e05c42791a05c0c299e59650f36b622f2651e"
+    },
+    {
+      "file": ".github/workflows/production-lighthouse.yml",
+      "sha256": "602da27ed75c87540ef452777c329ff9b185a8da361f2f45d16d0cece63ced4e"
+    },
+    {
+      "file": "scripts/hydration-diagnostics.mjs",
+      "sha256": "5f67ab75d6d27585ade1bf16e1a67ab43a607bd57def50c9235577ec70b87165"
+    },
+    {
+      "file": "scripts/diagnose-production-hydration.mjs",
+      "sha256": "0f7ac8a10664c962d8eba44944395c974bbcc078ab17aa768d05fba29c16d922"
+    },
+    {
+      "file": "scripts/test-hydration-diagnostics.mjs",
+      "sha256": "744aabbd4d924d47f5449285af396a2a52b5405b7d52cf3855f4ef3ce42162ee"
+    }
+  ],
+  "productionVerificationPending": true,
+  "lint": {
+    "exitCode": 0,
+    "warnings": 0
+  }
+}

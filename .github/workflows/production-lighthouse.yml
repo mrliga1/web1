@@ -42,6 +42,13 @@ jobs:
           UI_PACKAGE_ROOT: ${{ runner.temp }}/greenia-lighthouse/node_modules
           UI_CHROME_PATH: /usr/bin/google-chrome
         run: node scripts/test-production-home-ui.mjs
+      - name: Chẩn đoán lỗi gắn tương tác
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          UI_PACKAGE_ROOT: ${{ runner.temp }}/greenia-lighthouse/node_modules
+          UI_CHROME_PATH: /usr/bin/google-chrome
+        run: node scripts/diagnose-production-hydration.mjs
       - name: Lưu báo cáo và dấu vết hiệu suất
         if: always()
         uses: actions/upload-artifact@v7

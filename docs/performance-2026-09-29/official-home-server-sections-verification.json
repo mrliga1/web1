@@ -1,0 +1,59 @@
+{
+  "time": "2026-10-01T21:04:37.016Z",
+  "baseline": "9dc4f2cb93a987d2edf70a706719f72f2d233d1d",
+  "purpose": "Dựng bốn khối thông tin tại máy chủ; tải lại module khối khi chỉnh sửa, thiếu bản chụp hoặc cần làm mới API.",
+  "sections": [
+    "corporate_intro",
+    "reasons",
+    "projects",
+    "news"
+  ],
+  "tests": {
+    "homeServerSections": {
+      "passed": 8,
+      "total": 8
+    },
+    "editableSplit": {
+      "passed": 7,
+      "total": 7
+    },
+    "typecheck": {
+      "exitCode": 0
+    },
+    "lint": {
+      "exitCode": 0,
+      "warnings": 0
+    }
+  },
+  "source": [
+    {
+      "file": "app/page.tsx",
+      "sha256": "d1fa0a18a6945060020dc5522d0794a05de1bcc99919abe139ee9583b6dace13"
+    },
+    {
+      "file": "app/HomePageClient.tsx",
+      "sha256": "fda4ad0cb5a0cd7b0cac0dcfc95f018ac62851b4471d0a6a9eaca1e54b6e2631"
+    },
+    {
+      "file": "src/components/Home.tsx",
+      "sha256": "44135299d737f622c696bb96b8fb0974b787c5718e969b0c28996b809c1bcafe"
+    },
+    {
+      "file": "src/components/HomeSectionRenderers.tsx",
+      "sha256": "80e9fad1a48d43eda36dc6ee49bf2953d54e45449fedca6870a572f9e2ac3628"
+    },
+    {
+      "file": "src/components/HomeStaticSectionBodies.tsx",
+      "sha256": "4be5d3161b3a6684a0dba81cf7266db959464b1c3a54329c200d5be62945d613"
+    },
+    {
+      "file": "src/components/EditableComponentEditor.tsx",
+      "sha256": "e0bef922d8a54e6058b15f89b8acc2d344abff00ed2f2eb59603edb0a2ec7ab6"
+    },
+    {
+      "file": "scripts/test-home-server-sections.mjs",
+      "sha256": "6189672d2bc337cd8f44c17029f755a6f2a77c59ce41bbcda51c9b9d20ecd5f5"
+    }
+  ],
+  "productionVerificationPending": true
+}

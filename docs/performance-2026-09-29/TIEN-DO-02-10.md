@@ -45,3 +45,27 @@ Trang chủ đã có ISR revalidate=60; manifest bản dựng xác nhận và HT
 Đã chuyển nền thanh điều hướng sang màu đồng nhất, bỏ backdrop-blur ở header ban đầu. Banner mobile không còn chuyển động translate khi mở trang; desktop từ 1024px vẫn dùng hiệu ứng 540 ms. Không đổi nội dung, ảnh, liên kết hoặc logic menu. Đây là thay đổi cần đo thực tế; chưa khẳng định hiệu ứng là nguyên nhân của độ trễ.
 
 Kiểm thử banner dựng máy chủ đạt: đủ nội dung, preload chỉ desktop và đúng ảnh. Biên dịch CSS đạt; phân tích CSS đầu ra xác nhận hiệu ứng banner chỉ ở media min-width 1024px; header không còn backdrop-filter. Bằng chứng cấu hình: `official-first-paint-effects-verification.json`. Thông báo công cụ về images.qualities áp dụng khi lên Next.js 16 và caniuse-lite cũ; dự án hiện dùng Next.js 15, chưa thay đổi chất lượng ảnh. Lint Navbar đạt, không lỗi/cảnh báo. Cần xác nhận phát hành và chạy đủ Lighthouse/UI trên bản mới.
+
+
+## Kết quả 9dc4f2c và dựng khối thông tin tại máy chủ
+
+Commit 9dc4f2cb93a987d2edf70a706719f72f2d233d1d đã được Vercel phát hành. [Lượt 36909267938](https://github.com/mrliga1/web1/actions/runs/36909267938) đo tên miền chính thức:
+
+| Thiết bị | Lượt 1 | Lượt 2 | Lượt 3 |
+|---|---:|---:|---:|
+| Performance mobile | 79 | 100 | 100 |
+| Performance desktop | 100 | 100 | 100 |
+
+Accessibility, Best Practices, SEO và Agentic đều 100 trong cả sáu lượt, Agentic 3/3 và không có cảnh báo. Kiểm tra UI desktop/mobile đạt mười mục mỗi thiết bị, có kiểm tra menu mobile; không gửi biểu mẫu CRM. CLS mobile 0; desktop lượt 3 là 0,0004117, không coi là chính xác 0. Bằng chứng: official-independent-9dc4f2c-summary.json, official-ui-9dc4f2c-results.json. **Chưa đủ điều kiện bàn giao.**
+
+Mobile lượt đầu có TBT mô phỏng 892 ms, hai lượt sau 45 / 37 ms. FCP thực được quan sát của lượt đầu 793 ms, thay vì thời gian mô phỏng 1.445 ms. Dấu vết có Layout 74,503 ms nhưng CPU 4,383 ms; tác vụ GC 56,360 ms nhưng CPU 0,680 ms. Sự khác biệt thời gian thực/CPU cho thấy phép đo có nhiễu; không khẳng định toàn bộ nghẽn này do mã website hoặc loại lượt đầu khỏi điều kiện đạt. Phân tích có kiểm tra cả sự kiện X và cặp B/E; không tìm được ProfileChunk để gán CPU tự dùng cho từng hàm.
+
+Đã tách CorporateIntroBody, ReasonsBody, ProjectsBody, NewsBody sang HomeStaticSectionBodies.tsx. Trang máy chủ dựng các khối này và truyền nội dung cho HomePageClient. Home dùng bản chụp khi dữ liệu máy chủ còn khớp; chỉnh sửa hoặc dữ liệu thay đổi sẽ dùng module tải theo nhu cầu. Nếu máy chủ yêu cầu làm mới API, Home tiếp tục dùng dữ liệu tải lại để không giữ bản chụp cũ. Bản chụp mới sau router.refresh chứa dữ liệu dự án/tin mới.
+
+Hai nút xem thêm dự án/tin tức chuyển sang Link có href /du-an và /tin-tuc, prefetch=false, giữ lớp trình bày. Trình sửa chữ/ảnh khai báo use client để tách đúng ranh giới khi được tham chiếu từ khối dựng máy chủ. Biểu mẫu, sản phẩm, yêu thích, quảng cáo và khối tùy chỉnh tiếp tục dùng các component hiện tại.
+
+Cách truyền nội dung máy chủ vào component có tương tác dựa trên [tài liệu Next.js 15](https://nextjs.org/docs/15/app/getting-started/server-and-client-components#interleaving-server-and-client-components). Không bật Suspense cho từng section hoặc đổi tham số Lighthouse.
+
+Kiểm thử khối trang chủ dựng máy chủ **8/8 đạt**: so sánh HTML với bản 9dc4f2c, nội dung đã sửa, danh sách 0/1/4/7 mục, thứ tự, khối ẩn/tùy chỉnh, bật/tắt chỉnh sửa, bản chụp mới và API làm mới thành công/lỗi. Chỉ chấp nhận hai thay đổi nút sang liên kết có chủ đích. Kiểm thử tách biên tập **7/7 đạt**. Typecheck toàn dự án đạt; lint bảy tệp đạt, không cảnh báo. Xác nhận mã: official-home-server-sections-verification.json.
+
+Cần xác nhận bản dựng Vercel, dung lượng script thực, UI và cả sáu lượt Lighthouse của bản tiếp theo. Không dùng hai lượt mobile 100 để thay cho đủ điều kiện nghiệm thu.

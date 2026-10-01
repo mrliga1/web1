@@ -1,13 +1,19 @@
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
+import type { HomeStaticSectionContent } from './HomeStaticSectionBodies';
 import { Product, Project, News, RouteState, VisualSection } from '../types';
 import AdBanner from './AdBanner';
-import { 
-  HeroSectionBody, CorporateIntroBody, ReasonsBody, 
-  FeaturedListingsBody, ProjectsBody, NewsBody 
+import {
+  HeroSectionBody, FeaturedListingsBody
 } from './HomeSectionRenderers';
 import CustomSectionRenderer from './CustomSectionRenderer';
 import { EditableText, EditableImage } from './EditableComponent';
 import SectionHeaderToolbar from './SectionHeaderToolbar';
+
+const CorporateIntroBody = dynamic(() => import('./HomeStaticSectionBodies').then(module => module.CorporateIntroBody));
+const ReasonsBody = dynamic(() => import('./HomeStaticSectionBodies').then(module => module.ReasonsBody));
+const ProjectsBody = dynamic(() => import('./HomeStaticSectionBodies').then(module => module.ProjectsBody));
+const NewsBody = dynamic(() => import('./HomeStaticSectionBodies').then(module => module.NewsBody));
 
 const LazySection = ({ children, sectionId, isEditMode }: { children: React.ReactNode, sectionId: string, isEditMode: boolean }) => {
   if (sectionId === 'hero' || isEditMode) {
@@ -19,6 +25,7 @@ const LazySection = ({ children, sectionId, isEditMode }: { children: React.Reac
 
 interface HomeProps {
   heroBanner: React.ReactNode;
+  serverStaticSections?: HomeStaticSectionContent;
   onNavigate: (route: RouteState) => void;
   onShowNotification: (message: string, type: 'success' | 'error') => void;
   isEditMode: boolean;
@@ -34,8 +41,8 @@ interface HomeProps {
 
 
 
-export default function Home({ 
-  onNavigate, 
+export default function Home({
+  onNavigate,
   onShowNotification,
   isEditMode,
   sections,
@@ -47,6 +54,7 @@ export default function Home({
   initialNews,
   refreshOnMount = false,
   heroBanner,
+  serverStaticSections = {},
 }: HomeProps) {
   const hasInitialData =
     initialProducts !== undefined &&
@@ -132,16 +140,19 @@ export default function Home({
 
   return (
     <div className="relative min-h-screen overflow-x-hidden w-full">
-      
+
       <div className="space-y-4 pb-0 font-sans" id="home-view-root">
         {sections.map((section, index) => {
           if (!section.visible && !isEditMode) return null;
 
           let cardContent = null;
-          
-          if (section.id.startsWith('custom_')) {
+
+          const serverEntry = serverStaticSections[section.id];
+          if (!isEditMode && usesServerSnapshot && serverEntry && serverEntry.signature === JSON.stringify(section)) {
+            cardContent = serverEntry.content;
+          } else if (section.id.startsWith('custom_')) {
             cardContent = (
-              <CustomSectionRenderer 
+              <CustomSectionRenderer
                 section={getSection(section.id)}
                 isEditMode={isEditMode}
                 EditableText={EditableText}
@@ -154,7 +165,7 @@ export default function Home({
             );
           } else if (section.id === 'hero') {
             cardContent = (
-              <HeroSectionBody 
+              <HeroSectionBody
                 heroBanner={heroBanner}
                 sec={getSection('hero')}
                 isEditMode={isEditMode}
@@ -167,27 +178,25 @@ export default function Home({
             );
           } else if (section.id === 'corporate_intro') {
             cardContent = (
-              <CorporateIntroBody 
+              <CorporateIntroBody
                 sec={getSection('corporate_intro')}
                 isEditMode={isEditMode}
-                onNavigate={onNavigate}
                 sections={sections}
                 onUpdateSections={onUpdateSections}
               />
             );
           } else if (section.id === 'reasons') {
             cardContent = (
-              <ReasonsBody 
+              <ReasonsBody
                 sec={getSection('reasons')}
                 isEditMode={isEditMode}
-                onNavigate={onNavigate}
                 sections={sections}
                 onUpdateSections={onUpdateSections}
               />
             );
           } else if (section.id === 'featured_listings') {
             cardContent = (
-              <FeaturedListingsBody 
+              <FeaturedListingsBody
                 sec={getSection('featured_listings')}
                 isEditMode={isEditMode}
                 onNavigate={onNavigate}
@@ -202,10 +211,9 @@ export default function Home({
             );
           } else if (section.id === 'projects') {
             cardContent = (
-              <ProjectsBody 
+              <ProjectsBody
                 sec={getSection('projects')}
                 isEditMode={isEditMode}
-                onNavigate={onNavigate}
                 sections={sections}
                 onUpdateSections={onUpdateSections}
                 projects={projects}
@@ -213,10 +221,9 @@ export default function Home({
             );
           } else if (section.id === 'news') {
             cardContent = (
-              <NewsBody 
+              <NewsBody
                 sec={getSection('news')}
                 isEditMode={isEditMode}
-                onNavigate={onNavigate}
                 sections={sections}
                 onUpdateSections={onUpdateSections}
                 news={news}
@@ -226,7 +233,7 @@ export default function Home({
 
           return (
             <LazySection key={section.id} sectionId={section.id} isEditMode={isEditMode}>
-              <div 
+              <div
                 id={`section-wrapper-${section.id}`}
                 style={{
                   paddingTop: section.id === 'corporate_intro' ? '0px' : section.id === 'reasons' ? '25px' : section.id === 'featured_listings' ? '35px' : section.id === 'projects' ? '5px' : section.id === 'news' ? '35px' : `${section.paddingTop}px`,
@@ -234,12 +241,12 @@ export default function Home({
                   marginBottom: section.id === 'hero' || section.id === 'reasons' || section.id === 'projects' ? '0px' : undefined
                 }}
                 className={`relative transition-all duration-300 ${
-                  isEditMode 
+                  isEditMode
                     ? `border-2 ${
-                        selectedSectionId === section.id 
-                          ? 'border-primary bg-primary/[0.01]' 
+                        selectedSectionId === section.id
+                          ? 'border-primary bg-primary/[0.01]'
                           : 'border-dashed border-border-color hover:border-primary/30'
-                      }` 
+                      }`
                     : ''
                 } ${!section.visible ? 'opacity-40 bg-bg-inverse/20' : ''}`}
                 onClick={() => {

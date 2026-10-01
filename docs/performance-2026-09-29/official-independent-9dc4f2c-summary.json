@@ -1,0 +1,292 @@
+{
+  "sha": "9dc4f2cb93a987d2edf70a706719f72f2d233d1d",
+  "url": "https://greeniahomes.vn/",
+  "reports": [
+    {
+      "mode": "mobile",
+      "run": 1,
+      "url": "https://greeniahomes.vn/",
+      "time": "2026-10-01T18:47:54.046Z",
+      "version": "13.5.0",
+      "benchmarkIndex": 2308,
+      "warnings": [],
+      "scores": {
+        "performance": 79,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100,
+        "agentic-browsing": 100
+      },
+      "agentic": {
+        "passed": 3,
+        "total": 3
+      },
+      "metrics": {
+        "first-contentful-paint": {
+          "value": 1444.571,
+          "display": "1.4 s"
+        },
+        "largest-contentful-paint": {
+          "value": 1732.571,
+          "display": "1.7 s"
+        },
+        "total-blocking-time": {
+          "value": 892,
+          "display": "890 ms"
+        },
+        "cumulative-layout-shift": {
+          "value": 0,
+          "display": "0"
+        },
+        "speed-index": {
+          "value": 1930.9166632326549,
+          "display": "1.9 s"
+        }
+      },
+      "failed": [
+        {
+          "category": "performance",
+          "id": "first-contentful-paint",
+          "score": 0.96
+        },
+        {
+          "category": "performance",
+          "id": "largest-contentful-paint",
+          "score": 0.99
+        },
+        {
+          "category": "performance",
+          "id": "total-blocking-time",
+          "score": 0.32
+        }
+      ]
+    },
+    {
+      "mode": "mobile",
+      "run": 2,
+      "url": "https://greeniahomes.vn/",
+      "time": "2026-10-01T18:48:08.377Z",
+      "version": "13.5.0",
+      "benchmarkIndex": 2428.5,
+      "warnings": [],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100,
+        "agentic-browsing": 100
+      },
+      "agentic": {
+        "passed": 3,
+        "total": 3
+      },
+      "metrics": {
+        "first-contentful-paint": {
+          "value": 960.8115,
+          "display": "1.0 s"
+        },
+        "largest-contentful-paint": {
+          "value": 1776.8115,
+          "display": "1.8 s"
+        },
+        "total-blocking-time": {
+          "value": 45,
+          "display": "50 ms"
+        },
+        "cumulative-layout-shift": {
+          "value": 0,
+          "display": "0"
+        },
+        "speed-index": {
+          "value": 1104.368890657703,
+          "display": "1.1 s"
+        }
+      },
+      "failed": [
+        {
+          "category": "performance",
+          "id": "largest-contentful-paint",
+          "score": 0.99
+        }
+      ]
+    },
+    {
+      "mode": "mobile",
+      "run": 3,
+      "url": "https://greeniahomes.vn/",
+      "time": "2026-10-01T18:48:20.883Z",
+      "version": "13.5.0",
+      "benchmarkIndex": 2459,
+      "warnings": [],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100,
+        "agentic-browsing": 100
+      },
+      "agentic": {
+        "passed": 3,
+        "total": 3
+      },
+      "metrics": {
+        "first-contentful-paint": {
+          "value": 994.7411,
+          "display": "1.0 s"
+        },
+        "largest-contentful-paint": {
+          "value": 1701.2411,
+          "display": "1.7 s"
+        },
+        "total-blocking-time": {
+          "value": 37,
+          "display": "40 ms"
+        },
+        "cumulative-layout-shift": {
+          "value": 0,
+          "display": "0"
+        },
+        "speed-index": {
+          "value": 994.7411,
+          "display": "1.0 s"
+        }
+      },
+      "failed": [
+        {
+          "category": "performance",
+          "id": "largest-contentful-paint",
+          "score": 0.99
+        }
+      ]
+    },
+    {
+      "mode": "desktop",
+      "run": 1,
+      "url": "https://greeniahomes.vn/",
+      "time": "2026-10-01T18:48:34.146Z",
+      "version": "13.5.0",
+      "benchmarkIndex": 2418.5,
+      "warnings": [],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100,
+        "agentic-browsing": 100
+      },
+      "agentic": {
+        "passed": 3,
+        "total": 3
+      },
+      "metrics": {
+        "first-contentful-paint": {
+          "value": 309.12829999999997,
+          "display": "0.3 s"
+        },
+        "largest-contentful-paint": {
+          "value": 572.1283,
+          "display": "0.6 s"
+        },
+        "total-blocking-time": {
+          "value": 0,
+          "display": "0 ms"
+        },
+        "cumulative-layout-shift": {
+          "value": 0,
+          "display": "0"
+        },
+        "speed-index": {
+          "value": 370.8722835557858,
+          "display": "0.4 s"
+        }
+      },
+      "failed": []
+    },
+    {
+      "mode": "desktop",
+      "run": 2,
+      "url": "https://greeniahomes.vn/",
+      "time": "2026-10-01T18:48:46.749Z",
+      "version": "13.5.0",
+      "benchmarkIndex": 2423.5,
+      "warnings": [],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100,
+        "agentic-browsing": 100
+      },
+      "agentic": {
+        "passed": 3,
+        "total": 3
+      },
+      "metrics": {
+        "first-contentful-paint": {
+          "value": 296.7998,
+          "display": "0.3 s"
+        },
+        "largest-contentful-paint": {
+          "value": 553.7998,
+          "display": "0.6 s"
+        },
+        "total-blocking-time": {
+          "value": 0,
+          "display": "0 ms"
+        },
+        "cumulative-layout-shift": {
+          "value": 0,
+          "display": "0"
+        },
+        "speed-index": {
+          "value": 338.45798404655795,
+          "display": "0.3 s"
+        }
+      },
+      "failed": []
+    },
+    {
+      "mode": "desktop",
+      "run": 3,
+      "url": "https://greeniahomes.vn/",
+      "time": "2026-10-01T18:48:59.282Z",
+      "version": "13.5.0",
+      "benchmarkIndex": 2469.5,
+      "warnings": [],
+      "scores": {
+        "performance": 100,
+        "accessibility": 100,
+        "best-practices": 100,
+        "seo": 100,
+        "agentic-browsing": 100
+      },
+      "agentic": {
+        "passed": 3,
+        "total": 3
+      },
+      "metrics": {
+        "first-contentful-paint": {
+          "value": 297.0984,
+          "display": "0.3 s"
+        },
+        "largest-contentful-paint": {
+          "value": 556.147,
+          "display": "0.6 s"
+        },
+        "total-blocking-time": {
+          "value": 0,
+          "display": "0 ms"
+        },
+        "cumulative-layout-shift": {
+          "value": 0.0004116944083894172,
+          "display": "0"
+        },
+        "speed-index": {
+          "value": 309.9087750801482,
+          "display": "0.3 s"
+        }
+      },
+      "failed": []
+    }
+  ]
+}

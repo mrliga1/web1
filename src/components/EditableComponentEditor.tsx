@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import { authFetch } from '../lib/authFetch';

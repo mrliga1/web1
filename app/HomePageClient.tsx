@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Home from "../src/components/Home";
+import type { HomeStaticSectionContent } from "../src/components/HomeStaticSectionBodies";
 import { useAppContext } from "../src/contexts/AppContext";
 import { getRouteUrl } from "../src/lib/utils";
 import type { News, Product, Project, RouteState, VisualSection } from "../src/types";
@@ -10,6 +11,7 @@ import { useNotification } from "../src/contexts/NotificationContext";
 
 interface HomePageClientProps {
   heroBanner: React.ReactNode;
+  serverStaticSections?: HomeStaticSectionContent;
   initialSections: VisualSection[];
   initialProducts: Product[];
   initialProjects: Project[];
@@ -24,6 +26,7 @@ export default function HomePageClient({
   initialNews,
   needsClientRefresh,
   heroBanner,
+  serverStaticSections,
 }: HomePageClientProps) {
   const { sections, setSections, isEditMode } = useAppContext();
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
@@ -57,6 +60,7 @@ export default function HomePageClient({
   return (
     <Home
       heroBanner={heroBanner}
+      serverStaticSections={serverStaticSections}
       onNavigate={handleNavigate}
       onShowNotification={showNotification}
       isEditMode={isEditMode}

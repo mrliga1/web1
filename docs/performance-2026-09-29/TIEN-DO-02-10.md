@@ -31,3 +31,17 @@ Lượt đầu vẫn có tác vụ Layout 55,23 ms, CPU 4,78 ms; UpdateLayoutTre
 Kiểm tra kiểu dữ liệu toàn dự án đạt. Lint sáu tệp sửa/thêm đạt, không lỗi hoặc cảnh báo. CSS công khai biên dịch lại giống từng byte với bản trước: 100.967 byte; không thay đổi quy tắc giao diện. Kiểm tra khoảng trắng đạt.
 
 **Chưa đạt điều kiện bàn giao.** Cần xác nhận bản dựng Vercel, mạng thực tế, điểm và UI của bản tiếp theo.
+
+## Kết quả e5d090d và giảm hiệu ứng màn hình đầu
+
+Bản `e5d090d` được Vercel phát hành thành công. Lượt [36903689717](https://github.com/mrliga1/web1/actions/runs/36903689717): mobile **96, 99, 99**, desktop **100, 100, 100**. Các mục còn lại 100, Agentic 3/3, CLS 0, không cảnh báo. UI cả hai thiết bị đạt. Chưa đủ điều kiện bàn giao. Bằng chứng: `official-independent-e5d090d-summary.json`, `official-ui-e5d090d-results.json`.
+
+Kiểm tra các script liên kết từ HTML trang chủ xác nhận không còn ba chuỗi đặc trưng của trình sửa chữ/ảnh. Báo cáo Lighthouse trình duyệt hiện đại ghi 517.433 byte JavaScript giải nén, giảm từ 523.213 byte của 7515ddc. Tệp polyfill nomodule có trong HTML không thuộc tổng tải trình duyệt hiện đại. Lưu xác nhận tại `official-public-editor-assets-e5d090d.json`.
+
+Lượt mobile đầu: TBT 100 ms, LCP mô phỏng 1,98 giây, Speed Index mô phỏng 4,11 giây. Video đo ghi trang trắng tới mẫu 2,25 giây, nội dung xuất hiện ở mẫu 2,625 giây. Lần vẽ thực được quan sát 2,473 giây; HTML tải xong 0,298 giây, CSS 0,520 giây. Hai lượt sau quan sát lần vẽ 0,152 / 0,129 giây. Không nhầm thời gian thực trong dấu vết với các chỉ số mô phỏng dùng chấm điểm.
+
+Trang chủ đã có ISR revalidate=60; manifest bản dựng xác nhận và HTTP chính thức có cache STALE. Chưa có bằng chứng cần đổi cache máy chủ; giữ cơ chế hiện tại. Không quy chậm trễ cho Supabase khi HTML đã tải xong.
+
+Đã chuyển nền thanh điều hướng sang màu đồng nhất, bỏ backdrop-blur ở header ban đầu. Banner mobile không còn chuyển động translate khi mở trang; desktop từ 1024px vẫn dùng hiệu ứng 540 ms. Không đổi nội dung, ảnh, liên kết hoặc logic menu. Đây là thay đổi cần đo thực tế; chưa khẳng định hiệu ứng là nguyên nhân của độ trễ.
+
+Kiểm thử banner dựng máy chủ đạt: đủ nội dung, preload chỉ desktop và đúng ảnh. Biên dịch CSS đạt; phân tích CSS đầu ra xác nhận hiệu ứng banner chỉ ở media min-width 1024px; header không còn backdrop-filter. Bằng chứng cấu hình: `official-first-paint-effects-verification.json`. Thông báo công cụ về images.qualities áp dụng khi lên Next.js 16 và caniuse-lite cũ; dự án hiện dùng Next.js 15, chưa thay đổi chất lượng ảnh. Lint Navbar đạt, không lỗi/cảnh báo. Cần xác nhận phát hành và chạy đủ Lighthouse/UI trên bản mới.

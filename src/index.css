@@ -662,8 +662,11 @@ html[data-greenia-cookie-choice] .cookie-consent-banner {
   to { transform: translateY(0); }
 }
 
-.home-hero-reveal {
-  animation: home-hero-appear 540ms var(--motion-ease) both;
+/* Tiêu đề di động hiển thị ngay; desktop giữ chuyển động khi mở trang. */
+@media (min-width: 1024px) {
+  .home-hero-reveal {
+    animation: home-hero-appear 540ms var(--motion-ease) both;
+  }
 }
 
 /* Giữ nội dung trong HTML, chỉ dựng các khối khi gần vùng đang xem. */

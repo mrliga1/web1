@@ -129,7 +129,7 @@ export default function Navbar({ onShowNotification, logoUrl, isSettingsLoaded =
   return (
     <>
       <div className="site-nav-spacer h-10 md:h-10 w-full shrink-0" />
-      <header ref={headerRef} className={`fixed top-0 w-full z-[110] transition-transform duration-300 border-b ${mobileMenuOpen || scrollDirection !== 'down' ? 'translate-y-0' : '-translate-y-full'} ${theme === 'dark' ? 'bg-[#0B1F16]/70 backdrop-blur-lg border-border-inverse shadow-lg shadow-black/50' : 'bg-white/70 backdrop-blur-lg border-border-color shadow-sm'}`} id="main-nav">
+      <header ref={headerRef} className={`fixed top-0 w-full z-[110] transition-transform duration-300 border-b ${mobileMenuOpen || scrollDirection !== 'down' ? 'translate-y-0' : '-translate-y-full'} ${theme === 'dark' ? 'bg-[#0B1F16] border-border-inverse shadow-lg shadow-black/50' : 'bg-white border-border-color shadow-sm'}`} id="main-nav">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 sm:bg-transparent`}>
         <div className="flex items-center justify-between h-10 md:h-10 relative">
           

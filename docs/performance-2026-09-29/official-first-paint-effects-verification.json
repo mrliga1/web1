@@ -1,0 +1,10 @@
+{
+  "passed": true,
+  "time": "2026-10-01T18:39:40.520Z",
+  "heroAnimationMinWidth": 1024,
+  "navbarBackdropFilter": false,
+  "sourceHashes": {
+    "src/components/Navbar.tsx": "77649eed121884924ba839345ccb4db6be97cc0c5575152dcbc6658c0a424e42",
+    "src/index.css": "1525c27fe650d6307e5df0c74c83ea60545421f6f7a09fb1c3acdbf5972b7795"
+  }
+}

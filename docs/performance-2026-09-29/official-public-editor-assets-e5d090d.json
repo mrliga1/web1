@@ -1,0 +1,86 @@
+{
+  "passed": true,
+  "sha": "e5d090de450576ad0db171e96f98f291fe7d5f9d",
+  "time": "2026-10-01T18:06:27.888Z",
+  "url": "https://greeniahomes.vn/",
+  "htmlBytes": 126179,
+  "markersChecked": [
+    "group-hover/edit:opacity-100",
+    "Nhập ảnh gốc cục bộ (Base64) thành công!",
+    "Cập Nhật Ảnh Sắp Đặt"
+  ],
+  "scripts": [
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/1255-0046eeb68b7d2d4d.js",
+      "bytes": 174198,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/2619-04bc32f026a0d946.js",
+      "bytes": 8564,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/3020-5b9353e6a9426fdc.js",
+      "bytes": 15146,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/3176-7c6d788c9a903028.js",
+      "bytes": 7713,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/4bd1b696-100b9d70ed4e49c1.js",
+      "bytes": 173025,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/6712-b5fc696dd216e5af.js",
+      "bytes": 19426,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/9412-6dfff2dfa70688f8.js",
+      "bytes": 18691,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/9663-e0af62c4f71b5e6f.js",
+      "bytes": 7982,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/app/error-1f3f77108dec1734.js",
+      "bytes": 1183,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/app/layout-70c3be36bc7696bc.js",
+      "bytes": 35401,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/app/page-3149afc70daff287.js",
+      "bytes": 49769,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/main-app-b7ac91ae224968d9.js",
+      "bytes": 572,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/polyfills-42372ed130431b0a.js",
+      "bytes": 112594,
+      "editorMarkers": []
+    },
+    {
+      "url": "https://greeniahomes.vn/_next/static/chunks/webpack-72e815d88d160c9d.js",
+      "bytes": 5763,
+      "editorMarkers": []
+    }
+  ],
+  "scriptBytes": 630027,
+  "note": "Kiểm tra tệp script liên kết từ HTML, gồm cả polyfill nomodule; dung lượng tải của trình duyệt hiện đại dùng báo cáo Lighthouse."
+}

@@ -13,3 +13,8 @@ docs/**/lighthouse-*.html
 docs/**/lighthouse-*.json
 !docs/**/lighthouse-summary.json
 .audit-reports/
+.tmp/
+supabase/.temp/
+*.tsbuildinfo
+playwright-report/
+test-results/

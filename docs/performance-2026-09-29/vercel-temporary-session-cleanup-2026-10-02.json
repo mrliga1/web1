@@ -1,0 +1,8 @@
+{
+  "time": "2026-10-02T17:21:47.450Z",
+  "metadataHttp": 200,
+  "ownTemporarySession": true,
+  "revocationHttp": 200,
+  "verificationHttp": 403,
+  "revoked": true
+}

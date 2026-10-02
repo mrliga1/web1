@@ -2,6 +2,10 @@
 
 Website bất động sản Greenia Homes được xây dựng bằng Next.js App Router, quản lý nội dung qua Supabase, triển khai trên Vercel và lưu trữ hình ảnh tại Cloudflare R2.
 
+## Hồ sơ bàn giao
+
+[Bàn giao chính thức 03/10/2026](docs/BAN-GIAO-CHINH-THUC-2026-10-03.md) ghi tiêu chí nghiệm thu trên 95 điểm, bản đã phát hành, kết quả kiểm thử và hướng dẫn vận hành.
+
 ## Công nghệ chính
 
 - Next.js 15, React 18 và TypeScript

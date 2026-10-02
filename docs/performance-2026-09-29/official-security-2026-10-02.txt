@@ -1,0 +1,4 @@
+Kiểm tra bằng scripts/verify-production-security.mjs, ngày 02/10/2026.
+Mã kết thúc: 0.
+
+Bảo mật production đạt: dữ liệu công khai hoạt động, dữ liệu nhạy cảm, bảng legacy và RPC đặc quyền đều bị chặn đúng.

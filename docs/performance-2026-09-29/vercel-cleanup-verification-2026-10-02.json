@@ -1,0 +1,19 @@
+{
+  "time": "2026-10-02T16:53:10.101Z",
+  "projectId": "prj_Q7aWUxKu5h8Ara0p2TfCuPTOzFXv",
+  "productionId": "dpl_FiUaRxSE6uPN8Ur1HE9veiL4Z6SX",
+  "remainingTaskPreviews": 0,
+  "previewAliasExists": false,
+  "previewAliasRemoved": true,
+  "previewAliasId": "a9affb67e67f9b526a6de7bbdd4fd5115c6686ccefe87588b90764b9a1ed5ce64c3e624d2986b9befd59ae36b82432f2d4f3789714d1b3db86901e1a17a9ccaf",
+  "previewAliasBypassScopes": [],
+  "revokedBypassScopes": [
+    "shareable-link"
+  ],
+  "projectBypassScopes": [],
+  "protectionFieldNames": [
+    "gitForkProtection",
+    "ssoProtection",
+    "protectedSourcemaps"
+  ]
+}

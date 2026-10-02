@@ -1,0 +1,54 @@
+{
+  "time": "2026-10-02T16:47:15.060Z",
+  "sha": "6f7b3fc460e72b09b91b76e1688edabac92d3026",
+  "acceptance": {
+    "scoreGreaterThan": 95,
+    "reports": 6,
+    "passed": true
+  },
+  "crm": {
+    "count": 10,
+    "generatedTestLeads": 0,
+    "matchesOriginalBackup": false
+  },
+  "publicChecks": [
+    {
+      "url": "https://greeniahomes.vn/",
+      "status": 200,
+      "location": null
+    },
+    {
+      "url": "https://greeniahomes.vn/robots.txt",
+      "status": 200,
+      "location": null
+    },
+    {
+      "url": "https://greeniahomes.vn/sitemap.xml",
+      "status": 200,
+      "location": null
+    },
+    {
+      "url": "https://greeniahomes.vn/llms.txt",
+      "status": 200,
+      "location": null
+    },
+    {
+      "url": "https://web1-git-codex-performance-release-greenia-homes.vercel.app/",
+      "status": 404,
+      "location": null
+    }
+  ],
+  "backupFilesPreserved": [
+    "crm-20260928224502-a3e3ef34.json",
+    "crm-20260928224502-a3e3ef34.manifest.json",
+    "crm-20260929155742-fc45d9ca.json",
+    "crm-20260929155742-fc45d9ca.manifest.json",
+    "crm-20260929204648-f3cc2ef3.json",
+    "crm-20260929204648-f3cc2ef3.manifest.json",
+    "crm-20260930163914-74568440.json",
+    "crm-20260930163914-74568440.manifest.json",
+    "crm-20261002161521-339d31e3.json",
+    "crm-20261002161521-339d31e3.manifest.json",
+    "crm-schema-before.json"
+  ]
+}

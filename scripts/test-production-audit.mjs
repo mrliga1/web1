@@ -63,18 +63,27 @@ await check('báo cáo giữ xóa cache và cấu hình chuẩn, chặn tên mi�
   }
 });
 
-await check('chỉ đạt khi đủ sáu lượt và tất cả năm nhóm điểm đều là 100', () => {
+await check('chấp nhận đủ sáu lượt khi cả năm nhóm điểm đều trên 95', () => {
   assert.equal(passesReleaseGate(summaries()), true);
+  for (const category of categories) {
+    const rows = summaries();
+    for (const row of rows) row.scores[category] = 96;
+    assert.equal(passesReleaseGate(rows), true);
+  }
+});
+
+await check('chặn điểm 95 trở xuống, dữ liệu sai và lượt thiếu hoặc có cảnh báo', () => {
   for (const change of [
     rows => rows.pop(),
-    rows => { rows[0].scores.performance = 99; },
-    rows => { rows[3].scores.seo = 99; },
+    ...categories.flatMap(category => [95, 94, -1, 101, NaN, undefined].map(score =>
+      rows => { rows[0].scores[category] = score; })),
     rows => { rows[1].warnings.push('Cảnh báo'); },
     rows => { rows[2].agentic.passed = 2; },
     rows => { rows[2].run = rows[0].run; },
+    rows => { rows[2].run = 4; },
   ]) {
     const rows = summaries(); change(rows); assert.equal(passesReleaseGate(rows), false);
   }
 });
 
-console.log('Kiểm thử phép đo chính thức: ' + passed + '/5 đạt.');
+console.log('Kiểm thử phép đo chính thức: ' + passed + '/6 đạt.');

@@ -1,0 +1,69 @@
+{
+  "sha": "6f7b3fc460e72b09b91b76e1688edabac92d3026",
+  "url": "https://greeniahomes.vn/",
+  "audit": {
+    "id": 36938881144,
+    "conclusion": "failure"
+  },
+  "htmlBytes": 158347,
+  "flightBytes": 67178,
+  "results": [
+    {
+      "mode": "mobile",
+      "passed": true,
+      "references": [
+        {
+          "id": "corporate_intro",
+          "sameSectionReference": true,
+          "hasRepeatedSignature": false
+        },
+        {
+          "id": "reasons",
+          "sameSectionReference": true,
+          "hasRepeatedSignature": false
+        },
+        {
+          "id": "projects",
+          "sameSectionReference": true,
+          "hasRepeatedSignature": false
+        },
+        {
+          "id": "news",
+          "sameSectionReference": true,
+          "hasRepeatedSignature": false
+        }
+      ],
+      "errors": [],
+      "scriptCount": 13
+    },
+    {
+      "mode": "desktop",
+      "passed": true,
+      "references": [
+        {
+          "id": "corporate_intro",
+          "sameSectionReference": true,
+          "hasRepeatedSignature": false
+        },
+        {
+          "id": "reasons",
+          "sameSectionReference": true,
+          "hasRepeatedSignature": false
+        },
+        {
+          "id": "projects",
+          "sameSectionReference": true,
+          "hasRepeatedSignature": false
+        },
+        {
+          "id": "news",
+          "sameSectionReference": true,
+          "hasRepeatedSignature": false
+        }
+      ],
+      "errors": [],
+      "scriptCount": 13
+    }
+  ],
+  "verified": true
+}

@@ -1,0 +1,103 @@
+{
+  "time": "2026-10-02T16:45:52.731Z",
+  "applied": true,
+  "projectId": "prj_Q7aWUxKu5h8Ara0p2TfCuPTOzFXv",
+  "teamId": "team_QDjzRRI1gFqPyMYmNQ7jJLxO",
+  "productionIdPreserved": "dpl_FiUaRxSE6uPN8Ur1HE9veiL4Z6SX",
+  "productionSha": "6f7b3fc460e72b09b91b76e1688edabac92d3026",
+  "projectProtectionScopes": [],
+  "previewDeployments": [
+    {
+      "id": "dpl_6ggLyWR5Hs9CtwLCGq5N5P25S2Ut",
+      "url": "web1-ob1gflcri-greenia-homes.vercel.app",
+      "sha": "05898bf4a73ba801a5289a51fe65af20cdbda674",
+      "branch": "codex/performance-release",
+      "target": null,
+      "alias": [
+        "web1-git-codex-performance-release-greenia-homes.vercel.app"
+      ]
+    },
+    {
+      "id": "dpl_9CFrAgEqCownKBzdQrVDPkafK4nS",
+      "url": "web1-m7qwq7kzd-greenia-homes.vercel.app",
+      "sha": "7cc53e645ccb4578eb9abf75da58b73e9c202142",
+      "branch": "codex/performance-release",
+      "target": null,
+      "alias": [
+        "web1-git-codex-performance-release-greenia-homes.vercel.app"
+      ]
+    },
+    {
+      "id": "dpl_5faKoTqMY3sC5cPcrtX1mDHPN5z5",
+      "url": "web1-n5ns88t5l-greenia-homes.vercel.app",
+      "sha": "44d402f2f8b2d1e5863000b7402f0a2bef6f8773",
+      "branch": "codex/performance-release",
+      "target": null,
+      "alias": [
+        "web1-git-codex-performance-release-greenia-homes.vercel.app"
+      ]
+    },
+    {
+      "id": "dpl_DxU5B7JaH1KxonDaZ8FZdiRQ5hbS",
+      "url": "web1-ch484bodw-greenia-homes.vercel.app",
+      "sha": "377d330fa7d4df046ceb642a3049566c24123208",
+      "branch": "codex/performance-release",
+      "target": null,
+      "alias": [
+        "web1-git-codex-performance-release-greenia-homes.vercel.app"
+      ]
+    },
+    {
+      "id": "dpl_Exchu4GrV3PGDmLoFRH9RcejWHmV",
+      "url": "web1-n71w416zq-greenia-homes.vercel.app",
+      "sha": "e0a38a7f4725dbf9d622bb324b89d98203ae75af",
+      "branch": "codex/performance-release",
+      "target": null,
+      "alias": [
+        "web1-git-codex-performance-release-greenia-homes.vercel.app"
+      ]
+    },
+    {
+      "id": "dpl_h6QAF171q7xRe9hC7pU4AQNAc3wQ",
+      "url": "web1-d6t507c1q-greenia-homes.vercel.app",
+      "sha": "c5ccfbeef780182ed20b62a99e32f1849e0ebc13",
+      "branch": "codex/performance-release",
+      "target": null,
+      "alias": [
+        "web1-git-codex-performance-release-greenia-homes.vercel.app"
+      ]
+    }
+  ],
+  "deletions": [
+    {
+      "id": "dpl_6ggLyWR5Hs9CtwLCGq5N5P25S2Ut",
+      "state": "DELETED",
+      "removalVerified": true
+    },
+    {
+      "id": "dpl_9CFrAgEqCownKBzdQrVDPkafK4nS",
+      "state": "DELETED",
+      "removalVerified": true
+    },
+    {
+      "id": "dpl_5faKoTqMY3sC5cPcrtX1mDHPN5z5",
+      "state": "DELETED",
+      "removalVerified": true
+    },
+    {
+      "id": "dpl_DxU5B7JaH1KxonDaZ8FZdiRQ5hbS",
+      "state": "DELETED",
+      "removalVerified": true
+    },
+    {
+      "id": "dpl_Exchu4GrV3PGDmLoFRH9RcejWHmV",
+      "state": "DELETED",
+      "removalVerified": true
+    },
+    {
+      "id": "dpl_h6QAF171q7xRe9hC7pU4AQNAc3wQ",
+      "state": "DELETED",
+      "removalVerified": true
+    }
+  ]
+}

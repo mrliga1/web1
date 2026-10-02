@@ -1,0 +1,1320 @@
+{
+  "time": "2026-10-02T17:26:40.975Z",
+  "applied": true,
+  "scopeVerified": true,
+  "deletedFiles": 10217,
+  "bytesRemoved": 2293827752,
+  "plannedFiles": 10217,
+  "keptBackupFiles": [
+    "crm-20260928224502-a3e3ef34.json",
+    "crm-20260928224502-a3e3ef34.manifest.json",
+    "crm-20260929155742-fc45d9ca.json",
+    "crm-20260929155742-fc45d9ca.manifest.json",
+    "crm-20260929204648-f3cc2ef3.json",
+    "crm-20260929204648-f3cc2ef3.manifest.json",
+    "crm-20260930163914-74568440.json",
+    "crm-20260930163914-74568440.manifest.json",
+    "crm-20261002161521-339d31e3.json",
+    "crm-20261002161521-339d31e3.manifest.json",
+    "crm-schema-before.json"
+  ],
+  "protectedFilesUnchanged": true,
+  "targets": [
+    {
+      "relative": ".next",
+      "files": 514,
+      "bytes": 580803712
+    },
+    {
+      "relative": ".tmp",
+      "files": 8875,
+      "bytes": 563780130
+    },
+    {
+      "relative": ".audit-reports",
+      "files": 1,
+      "bytes": 216
+    },
+    {
+      "relative": "supabase/.temp",
+      "files": 10,
+      "bytes": 4454
+    },
+    {
+      "relative": "docs/performance-2026-09-29/popup-regressions.txt",
+      "files": 1,
+      "bytes": 1509
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-domain-exception.png",
+      "files": 1,
+      "bytes": 38623
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-share-limit.png",
+      "files": 1,
+      "bytes": 42659
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-share-scope.png",
+      "files": 1,
+      "bytes": 37582
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-shared.png",
+      "files": 1,
+      "bytes": 35297
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-desktop-final-1.html",
+      "files": 1,
+      "bytes": 923558
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-desktop-final-1.json",
+      "files": 1,
+      "bytes": 860638
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-desktop-final-2.html",
+      "files": 1,
+      "bytes": 924234
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-desktop-final-2.json",
+      "files": 1,
+      "bytes": 861710
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-desktop-final-3.html",
+      "files": 1,
+      "bytes": 934315
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-desktop-final-3.json",
+      "files": 1,
+      "bytes": 871083
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-mobile-final-1.html",
+      "files": 1,
+      "bytes": 767202
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-mobile-final-1.json",
+      "files": 1,
+      "bytes": 699819
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-mobile-final-2.html",
+      "files": 1,
+      "bytes": 825521
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-mobile-final-2.json",
+      "files": 1,
+      "bytes": 760153
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-mobile-final-3.html",
+      "files": 1,
+      "bytes": 825938
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-mobile-final-3.json",
+      "files": 1,
+      "bytes": 758027
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-mobile.report.html",
+      "files": 1,
+      "bytes": 780349
+    },
+    {
+      "relative": "docs/implementation-2026-09-28/lighthouse-mobile.report.json",
+      "files": 1,
+      "bytes": 724734
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-first/lighthouse-desktop-final-1.html",
+      "files": 1,
+      "bytes": 917822
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-first/lighthouse-desktop-final-1.json",
+      "files": 1,
+      "bytes": 849967
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-first/lighthouse-desktop-final-1.trace.json",
+      "files": 1,
+      "bytes": 4274841
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-first/lighthouse-mobile-final-1.html",
+      "files": 1,
+      "bytes": 740781
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-first/lighthouse-mobile-final-1.json",
+      "files": 1,
+      "bytes": 671399
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-first/lighthouse-mobile-final-1.trace.json",
+      "files": 1,
+      "bytes": 5060250
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-footer/lighthouse-desktop-final-1.html",
+      "files": 1,
+      "bytes": 883074
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-footer/lighthouse-desktop-final-1.json",
+      "files": 1,
+      "bytes": 815439
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-footer/lighthouse-desktop-final-1.trace.json",
+      "files": 1,
+      "bytes": 4448663
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-footer/lighthouse-mobile-final-1.html",
+      "files": 1,
+      "bytes": 765497
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-footer/lighthouse-mobile-final-1.json",
+      "files": 1,
+      "bytes": 697534
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-footer/lighthouse-mobile-final-1.trace.json",
+      "files": 1,
+      "bytes": 4971645
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-sdk-split/lighthouse-desktop-final-1.html",
+      "files": 1,
+      "bytes": 894761
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-sdk-split/lighthouse-desktop-final-1.json",
+      "files": 1,
+      "bytes": 828060
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-sdk-split/lighthouse-desktop-final-1.trace.json",
+      "files": 1,
+      "bytes": 4523634
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-sdk-split/lighthouse-mobile-final-1.html",
+      "files": 1,
+      "bytes": 760632
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-sdk-split/lighthouse-mobile-final-1.json",
+      "files": 1,
+      "bytes": 690075
+    },
+    {
+      "relative": "docs/performance-2026-09-29/after-sdk-split/lighthouse-mobile-final-1.trace.json",
+      "files": 1,
+      "bytes": 11847285
+    },
+    {
+      "relative": "docs/performance-2026-09-29/before/lighthouse-mobile-final-1.html",
+      "files": 1,
+      "bytes": 768519
+    },
+    {
+      "relative": "docs/performance-2026-09-29/before/lighthouse-mobile-final-1.json",
+      "files": 1,
+      "bytes": 702361
+    },
+    {
+      "relative": "docs/performance-2026-09-29/before/lighthouse-mobile-final-1.trace.json",
+      "files": 1,
+      "bytes": 5280876
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-baseline/lighthouse-desktop-final-1.html",
+      "files": 1,
+      "bytes": 969770
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-baseline/lighthouse-desktop-final-1.json",
+      "files": 1,
+      "bytes": 920934
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-baseline/lighthouse-desktop-final-1.trace.json",
+      "files": 1,
+      "bytes": 9310415
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-baseline/lighthouse-mobile-final-1.html",
+      "files": 1,
+      "bytes": 751288
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-baseline/lighthouse-mobile-final-1.json",
+      "files": 1,
+      "bytes": 687275
+    },
+    {
+      "relative": "docs/performance-2026-09-29/preview-baseline/lighthouse-mobile-final-1.trace.json",
+      "files": 1,
+      "bytes": 5482329
+    },
+    {
+      "relative": "docs/performance-2026-09-29/production-baseline/lighthouse-desktop-final-1.html",
+      "files": 1,
+      "bytes": 795578
+    },
+    {
+      "relative": "docs/performance-2026-09-29/production-baseline/lighthouse-desktop-final-1.json",
+      "files": 1,
+      "bytes": 745176
+    },
+    {
+      "relative": "docs/performance-2026-09-29/production-baseline/lighthouse-desktop-final-1.trace.json",
+      "files": 1,
+      "bytes": 10667251
+    },
+    {
+      "relative": "docs/performance-2026-09-29/production-baseline/lighthouse-mobile-final-1.html",
+      "files": 1,
+      "bytes": 762813
+    },
+    {
+      "relative": "docs/performance-2026-09-29/production-baseline/lighthouse-mobile-final-1.json",
+      "files": 1,
+      "bytes": 713027
+    },
+    {
+      "relative": "docs/performance-2026-09-29/production-baseline/lighthouse-mobile-final-1.trace.json",
+      "files": 1,
+      "bytes": 17187229
+    },
+    {
+      "relative": ".local-backups/analyze-home-payload.mjs",
+      "files": 1,
+      "bytes": 982
+    },
+    {
+      "relative": ".local-backups/analyze-official-trace.mjs",
+      "files": 1,
+      "bytes": 1824
+    },
+    {
+      "relative": ".local-backups/analyze-public-imports.mjs",
+      "files": 1,
+      "bytes": 2876
+    },
+    {
+      "relative": ".local-backups/apply-shared-home-sections.mjs",
+      "files": 1,
+      "bytes": 6331
+    },
+    {
+      "relative": ".local-backups/audit-official-recovery.mjs",
+      "files": 1,
+      "bytes": 495
+    },
+    {
+      "relative": ".local-backups/audit-official-release.mjs",
+      "files": 1,
+      "bytes": 490
+    },
+    {
+      "relative": ".local-backups/audit-official-search.mjs",
+      "files": 1,
+      "bytes": 112
+    },
+    {
+      "relative": ".local-backups/audit-official-seo-before.mjs",
+      "files": 1,
+      "bytes": 721
+    },
+    {
+      "relative": ".local-backups/audit-production-baseline.mjs",
+      "files": 1,
+      "bytes": 486
+    },
+    {
+      "relative": ".local-backups/audit-search-local.mjs",
+      "files": 1,
+      "bytes": 560
+    },
+    {
+      "relative": ".local-backups/build-basic-consent.mjs",
+      "files": 1,
+      "bytes": 432
+    },
+    {
+      "relative": ".local-backups/check-hero-delivery.mjs",
+      "files": 1,
+      "bytes": 1144
+    },
+    {
+      "relative": ".local-backups/check-html-delay-e5.mjs",
+      "files": 1,
+      "bytes": 1114
+    },
+    {
+      "relative": ".local-backups/check-official-before-release.mjs",
+      "files": 1,
+      "bytes": 1653
+    },
+    {
+      "relative": ".local-backups/check-pagespeed-official.mjs",
+      "files": 1,
+      "bytes": 1794
+    },
+    {
+      "relative": ".local-backups/check-preview-share.mjs",
+      "files": 1,
+      "bytes": 1348
+    },
+    {
+      "relative": ".local-backups/check-production-workflow.mjs",
+      "files": 1,
+      "bytes": 1276
+    },
+    {
+      "relative": ".local-backups/check-resources.mjs",
+      "files": 1,
+      "bytes": 752
+    },
+    {
+      "relative": ".local-backups/cleanup-handover.mjs",
+      "files": 1,
+      "bytes": 5833
+    },
+    {
+      "relative": ".local-backups/commit-consent.mjs",
+      "files": 1,
+      "bytes": 256
+    },
+    {
+      "relative": ".local-backups/commit-current-release.mjs",
+      "files": 1,
+      "bytes": 268
+    },
+    {
+      "relative": ".local-backups/commit-production-checks.mjs",
+      "files": 1,
+      "bytes": 532
+    },
+    {
+      "relative": ".local-backups/commit-release.mjs",
+      "files": 1,
+      "bytes": 283
+    },
+    {
+      "relative": ".local-backups/crm-transaction-check.sql",
+      "files": 1,
+      "bytes": 20740
+    },
+    {
+      "relative": ".local-backups/css-admin-split.css",
+      "files": 1,
+      "bytes": 93598
+    },
+    {
+      "relative": ".local-backups/css-before-split.css",
+      "files": 1,
+      "bytes": 113934
+    },
+    {
+      "relative": ".local-backups/css-first-paint-effects.css",
+      "files": 1,
+      "bytes": 100943
+    },
+    {
+      "relative": ".local-backups/css-public-editors.css",
+      "files": 1,
+      "bytes": 100967
+    },
+    {
+      "relative": ".local-backups/css-public-split.css",
+      "files": 1,
+      "bytes": 100967
+    },
+    {
+      "relative": ".local-backups/css-split-verification.json",
+      "files": 1,
+      "bytes": 400
+    },
+    {
+      "relative": ".local-backups/current-release-files.json",
+      "files": 1,
+      "bytes": 549
+    },
+    {
+      "relative": ".local-backups/debug-flight-parser-43b.mjs",
+      "files": 1,
+      "bytes": 988
+    },
+    {
+      "relative": ".local-backups/defer-layout-and-prepare-browser.mjs",
+      "files": 1,
+      "bytes": 5667
+    },
+    {
+      "relative": ".local-backups/diagnose-9dc.mjs",
+      "files": 1,
+      "bytes": 3444
+    },
+    {
+      "relative": ".local-backups/diagnose-mobile-83ed976.mjs",
+      "files": 1,
+      "bytes": 4873
+    },
+    {
+      "relative": ".local-backups/diagnose-mobile-timing-83ed976.mjs",
+      "files": 1,
+      "bytes": 5413
+    },
+    {
+      "relative": ".local-backups/diagnose-trace-83ed976.mjs",
+      "files": 1,
+      "bytes": 3444
+    },
+    {
+      "relative": ".local-backups/diagnostic-43b5300.json",
+      "files": 1,
+      "bytes": 16985
+    },
+    {
+      "relative": ".local-backups/diagnostic-6f7b3fc.json",
+      "files": 1,
+      "bytes": 14863
+    },
+    {
+      "relative": ".local-backups/diagnostic-83ed976.json",
+      "files": 1,
+      "bytes": 102430
+    },
+    {
+      "relative": ".local-backups/diagnostic-9dc4f2c.json",
+      "files": 1,
+      "bytes": 98829
+    },
+    {
+      "relative": ".local-backups/dispatch-hydration-ef3595b.mjs",
+      "files": 1,
+      "bytes": 2022
+    },
+    {
+      "relative": ".local-backups/document-43b-results.mjs",
+      "files": 1,
+      "bytes": 4112
+    },
+    {
+      "relative": ".local-backups/document-528-and-bootstrap.mjs",
+      "files": 1,
+      "bytes": 4817
+    },
+    {
+      "relative": ".local-backups/document-7515-and-editors.mjs",
+      "files": 1,
+      "bytes": 4546
+    },
+    {
+      "relative": ".local-backups/document-9dc-and-server-sections.mjs",
+      "files": 1,
+      "bytes": 6162
+    },
+    {
+      "relative": ".local-backups/document-css-split.mjs",
+      "files": 1,
+      "bytes": 4090
+    },
+    {
+      "relative": ".local-backups/document-e5-and-effects.mjs",
+      "files": 1,
+      "bytes": 5370
+    },
+    {
+      "relative": ".local-backups/document-hydration-extension.mjs",
+      "files": 1,
+      "bytes": 5377
+    },
+    {
+      "relative": ".local-backups/document-nav-hydration-changes.mjs",
+      "files": 1,
+      "bytes": 2868
+    },
+    {
+      "relative": ".local-backups/document-shared-home-sections.mjs",
+      "files": 1,
+      "bytes": 5472
+    },
+    {
+      "relative": ".local-backups/download-hydration-ef3595b.mjs",
+      "files": 1,
+      "bytes": 3419
+    },
+    {
+      "relative": ".local-backups/download-lighthouse-6f7b3fc.mjs",
+      "files": 1,
+      "bytes": 3422
+    },
+    {
+      "relative": ".local-backups/download-lighthouse-83ed976.mjs",
+      "files": 1,
+      "bytes": 3422
+    },
+    {
+      "relative": ".local-backups/download-lighthouse-ef3595b.mjs",
+      "files": 1,
+      "bytes": 3422
+    },
+    {
+      "relative": ".local-backups/download-lighthouse-report.mjs",
+      "files": 1,
+      "bytes": 3422
+    },
+    {
+      "relative": ".local-backups/e5-filmstrip-1-0.jpg",
+      "files": 1,
+      "bytes": 1178
+    },
+    {
+      "relative": ".local-backups/e5-filmstrip-1-4.jpg",
+      "files": 1,
+      "bytes": 1178
+    },
+    {
+      "relative": ".local-backups/e5-filmstrip-1-7.jpg",
+      "files": 1,
+      "bytes": 25665
+    },
+    {
+      "relative": ".local-backups/EditableComponent-before-split.tsx",
+      "files": 1,
+      "bytes": 13078
+    },
+    {
+      "relative": ".local-backups/extend-hydration-observation.mjs",
+      "files": 1,
+      "bytes": 12735
+    },
+    {
+      "relative": ".local-backups/extract-audit-zip.mjs",
+      "files": 1,
+      "bytes": 2365
+    },
+    {
+      "relative": ".local-backups/extract-e5-filmstrip.mjs",
+      "files": 1,
+      "bytes": 843
+    },
+    {
+      "relative": ".local-backups/extract-production-ci-log.mjs",
+      "files": 1,
+      "bytes": 852
+    },
+    {
+      "relative": ".local-backups/finalize-editor-validation.mjs",
+      "files": 1,
+      "bytes": 723
+    },
+    {
+      "relative": ".local-backups/finalize-effects-validation.mjs",
+      "files": 1,
+      "bytes": 564
+    },
+    {
+      "relative": ".local-backups/finalize-home-source-whitespace.mjs",
+      "files": 1,
+      "bytes": 665
+    },
+    {
+      "relative": ".local-backups/fix-layout-test-runtime.mjs",
+      "files": 1,
+      "bytes": 553
+    },
+    {
+      "relative": ".local-backups/fix-markup-link-comparison.mjs",
+      "files": 1,
+      "bytes": 811
+    },
+    {
+      "relative": ".local-backups/fix-server-section-tests.mjs",
+      "files": 1,
+      "bytes": 3657
+    },
+    {
+      "relative": ".local-backups/fix-test-module-name.mjs",
+      "files": 1,
+      "bytes": 636
+    },
+    {
+      "relative": ".local-backups/flight-signatures-43b5300.json",
+      "files": 1,
+      "bytes": 812
+    },
+    {
+      "relative": ".local-backups/format-split-editor.mjs",
+      "files": 1,
+      "bytes": 717
+    },
+    {
+      "relative": ".local-backups/github-audit-access.mjs",
+      "files": 1,
+      "bytes": 1023
+    },
+    {
+      "relative": ".local-backups/github-hydration-ef3595b",
+      "files": 2,
+      "bytes": 16481
+    },
+    {
+      "relative": ".local-backups/github-hydration-ef3595b.zip",
+      "files": 1,
+      "bytes": 1183
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-03bbc5c",
+      "files": 28,
+      "bytes": 42461440
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-03bbc5c.zip",
+      "files": 1,
+      "bytes": 15245493
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-3c19667",
+      "files": 27,
+      "bytes": 40112599
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-3c19667.zip",
+      "files": 1,
+      "bytes": 14543350
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-3cbb0e3",
+      "files": 27,
+      "bytes": 41121051
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-3cbb0e3-summary.json",
+      "files": 1,
+      "bytes": 7819
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-3cbb0e3.zip",
+      "files": 1,
+      "bytes": 15069961
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-43b5300",
+      "files": 31,
+      "bytes": 37070747
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-43b5300.zip",
+      "files": 1,
+      "bytes": 13502721
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-528bd16",
+      "files": 30,
+      "bytes": 43632354
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-528bd16-r2",
+      "files": 30,
+      "bytes": 43134692
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-528bd16-r2.zip",
+      "files": 1,
+      "bytes": 16639933
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-528bd16.zip",
+      "files": 1,
+      "bytes": 17074394
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-5f01d6d",
+      "files": 30,
+      "bytes": 40354851
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-5f01d6d.zip",
+      "files": 1,
+      "bytes": 15119980
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-6f7b3fc",
+      "files": 32,
+      "bytes": 35362510
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-6f7b3fc.zip",
+      "files": 1,
+      "bytes": 12906460
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-7515ddc",
+      "files": 31,
+      "bytes": 37290444
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-7515ddc.zip",
+      "files": 1,
+      "bytes": 14462496
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-7bc9105",
+      "files": 27,
+      "bytes": 43345183
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-7bc9105.zip",
+      "files": 1,
+      "bytes": 15206450
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-83ed976",
+      "files": 33,
+      "bytes": 34221614
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-83ed976.zip",
+      "files": 1,
+      "bytes": 12955728
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-9dc4f2c",
+      "files": 31,
+      "bytes": 37616569
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-9dc4f2c.zip",
+      "files": 1,
+      "bytes": 13404139
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-c38a171",
+      "files": 30,
+      "bytes": 40612524
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-c38a171.zip",
+      "files": 1,
+      "bytes": 15857321
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-caef706",
+      "files": 27,
+      "bytes": 41809281
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-caef706.zip",
+      "files": 1,
+      "bytes": 14940545
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-d5a7dbc",
+      "files": 27,
+      "bytes": 40221367
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-d5a7dbc.zip",
+      "files": 1,
+      "bytes": 14701341
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-e5d090d",
+      "files": 31,
+      "bytes": 37046487
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-e5d090d.zip",
+      "files": 1,
+      "bytes": 13927333
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-ec1bdb2",
+      "files": 27,
+      "bytes": 40607827
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-ec1bdb2.zip",
+      "files": 1,
+      "bytes": 14726755
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-ef3595b",
+      "files": 32,
+      "bytes": 34444094
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-ef3595b.zip",
+      "files": 1,
+      "bytes": 12864177
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-f47c382",
+      "files": 27,
+      "bytes": 40222812
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-f47c382.zip",
+      "files": 1,
+      "bytes": 14685816
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-fa4cfd5-logs",
+      "files": 10,
+      "bytes": 429697
+    },
+    {
+      "relative": ".local-backups/github-lighthouse-fa4cfd5-logs.zip",
+      "files": 1,
+      "bytes": 90977
+    },
+    {
+      "relative": ".local-backups/gtm-container.js",
+      "files": 1,
+      "bytes": 386337
+    },
+    {
+      "relative": ".local-backups/home-payload-diagnostic.json",
+      "files": 1,
+      "bytes": 237
+    },
+    {
+      "relative": ".local-backups/home-reference-6f7b3fc",
+      "files": 2,
+      "bytes": 159898
+    },
+    {
+      "relative": ".local-backups/hydration-dispatch-ef3595b.json",
+      "files": 1,
+      "bytes": 184
+    },
+    {
+      "relative": ".local-backups/hydration-mobile-83ed976",
+      "files": 1,
+      "bytes": 8364
+    },
+    {
+      "relative": ".local-backups/hydration-mobile-timing-83ed976",
+      "files": 1,
+      "bytes": 7199
+    },
+    {
+      "relative": ".local-backups/inspect-desktop-extra-43b.mjs",
+      "files": 1,
+      "bytes": 631
+    },
+    {
+      "relative": ".local-backups/inspect-e5-rendering.mjs",
+      "files": 1,
+      "bytes": 1128
+    },
+    {
+      "relative": ".local-backups/inspect-flight-signatures-43b.mjs",
+      "files": 1,
+      "bytes": 2493
+    },
+    {
+      "relative": ".local-backups/inspect-flight-slices-43b.mjs",
+      "files": 1,
+      "bytes": 753
+    },
+    {
+      "relative": ".local-backups/inspect-react-hydration-core.mjs",
+      "files": 1,
+      "bytes": 1110
+    },
+    {
+      "relative": ".local-backups/inspect-report-43b.mjs",
+      "files": 1,
+      "bytes": 1277
+    },
+    {
+      "relative": ".local-backups/inspect-report-6f7b3fc.mjs",
+      "files": 1,
+      "bytes": 1277
+    },
+    {
+      "relative": ".local-backups/inspect-report-83ed976.mjs",
+      "files": 1,
+      "bytes": 1277
+    },
+    {
+      "relative": ".local-backups/inspect-report-ef3595b.mjs",
+      "files": 1,
+      "bytes": 1277
+    },
+    {
+      "relative": ".local-backups/inspect-trace-7515.mjs",
+      "files": 1,
+      "bytes": 1351
+    },
+    {
+      "relative": ".local-backups/lighthouse-candidate-mobile",
+      "files": 0,
+      "bytes": 0
+    },
+    {
+      "relative": ".local-backups/lighthouse-official-recovery-20260930",
+      "files": 3,
+      "bytes": 1456611
+    },
+    {
+      "relative": ".local-backups/lighthouse-official-release-1035f0d",
+      "files": 5,
+      "bytes": 2959126
+    },
+    {
+      "relative": ".local-backups/list-database-access.mjs",
+      "files": 1,
+      "bytes": 665
+    },
+    {
+      "relative": ".local-backups/live-css-split-verification.json",
+      "files": 1,
+      "bytes": 707
+    },
+    {
+      "relative": ".local-backups/mobile-first-film-0.jpg",
+      "files": 1,
+      "bytes": 1198
+    },
+    {
+      "relative": ".local-backups/mobile-first-film-4.jpg",
+      "files": 1,
+      "bytes": 1183
+    },
+    {
+      "relative": ".local-backups/mobile-first-film-7.jpg",
+      "files": 1,
+      "bytes": 25665
+    },
+    {
+      "relative": ".local-backups/nav-and-hydration-diagnostics.mjs",
+      "files": 1,
+      "bytes": 17457
+    },
+    {
+      "relative": ".local-backups/official-1255.js",
+      "files": 1,
+      "bytes": 174198
+    },
+    {
+      "relative": ".local-backups/official-8306.js",
+      "files": 1,
+      "bytes": 32162
+    },
+    {
+      "relative": ".local-backups/official-9106.js",
+      "files": 1,
+      "bytes": 78172
+    },
+    {
+      "relative": ".local-backups/official-home-43b5300.html",
+      "files": 1,
+      "bytes": 162156
+    },
+    {
+      "relative": ".local-backups/official-home-ui",
+      "files": 3,
+      "bytes": 622899
+    },
+    {
+      "relative": ".local-backups/official-home-ui-baseline-d5a7dbc",
+      "files": 3,
+      "bytes": 622899
+    },
+    {
+      "relative": ".local-backups/official-latest-home.html",
+      "files": 1,
+      "bytes": 125593
+    },
+    {
+      "relative": ".local-backups/official-release-status.json",
+      "files": 1,
+      "bytes": 1478
+    },
+    {
+      "relative": ".local-backups/pagespeed-official-528bd16-mobile.json",
+      "files": 1,
+      "bytes": 1346
+    },
+    {
+      "relative": ".local-backups/pagespeed-official-528bd16-summary.json",
+      "files": 1,
+      "bytes": 73
+    },
+    {
+      "relative": ".local-backups/pagespeed-official.mjs",
+      "files": 1,
+      "bytes": 1441
+    },
+    {
+      "relative": ".local-backups/parse-flight-protocol-43b.mjs",
+      "files": 1,
+      "bytes": 2334
+    },
+    {
+      "relative": ".local-backups/prepare-blank-document.mjs",
+      "files": 1,
+      "bytes": 2090
+    },
+    {
+      "relative": ".local-backups/prepare-handover.mjs",
+      "files": 1,
+      "bytes": 4850
+    },
+    {
+      "relative": ".local-backups/preview-audit-url.txt",
+      "files": 1,
+      "bytes": 114
+    },
+    {
+      "relative": ".local-backups/probe-crm-release.mjs",
+      "files": 1,
+      "bytes": 1278
+    },
+    {
+      "relative": ".local-backups/probe-flight-bundled-section-refs.mjs",
+      "files": 1,
+      "bytes": 2614
+    },
+    {
+      "relative": ".local-backups/probe-flight-next-section-refs.mjs",
+      "files": 1,
+      "bytes": 2401
+    },
+    {
+      "relative": ".local-backups/probe-flight-section-refs.mjs",
+      "files": 1,
+      "bytes": 1977
+    },
+    {
+      "relative": ".local-backups/probe-search-warning.mjs",
+      "files": 1,
+      "bytes": 1374
+    },
+    {
+      "relative": ".local-backups/public-imports.json",
+      "files": 1,
+      "bytes": 5522
+    },
+    {
+      "relative": ".local-backups/react-core-43b5300.js",
+      "files": 1,
+      "bytes": 173025
+    },
+    {
+      "relative": ".local-backups/release-stage-files.json",
+      "files": 1,
+      "bytes": 683
+    },
+    {
+      "relative": ".local-backups/retain-home-api-refresh.mjs",
+      "files": 1,
+      "bytes": 3838
+    },
+    {
+      "relative": ".local-backups/retest-dispatch-528bd16.json",
+      "files": 1,
+      "bytes": 306
+    },
+    {
+      "relative": ".local-backups/retest-production-528bd16.mjs",
+      "files": 1,
+      "bytes": 2328
+    },
+    {
+      "relative": ".local-backups/run-consent-edge.mjs",
+      "files": 1,
+      "bytes": 437
+    },
+    {
+      "relative": ".local-backups/run-popup-regressions.mjs",
+      "files": 1,
+      "bytes": 669
+    },
+    {
+      "relative": ".local-backups/run-preview-audit.mjs",
+      "files": 1,
+      "bytes": 461
+    },
+    {
+      "relative": ".local-backups/select-report-43b.mjs",
+      "files": 1,
+      "bytes": 537
+    },
+    {
+      "relative": ".local-backups/select-report-9dc.mjs",
+      "files": 1,
+      "bytes": 724
+    },
+    {
+      "relative": ".local-backups/server-home-sections.mjs",
+      "files": 1,
+      "bytes": 8995
+    },
+    {
+      "relative": ".local-backups/simplify-first-paint-effects.mjs",
+      "files": 1,
+      "bytes": 1272
+    },
+    {
+      "relative": ".local-backups/split-admin-css.mjs",
+      "files": 1,
+      "bytes": 1815
+    },
+    {
+      "relative": ".local-backups/split-editable-tools.mjs",
+      "files": 1,
+      "bytes": 4800
+    },
+    {
+      "relative": ".local-backups/stage-current-release.mjs",
+      "files": 1,
+      "bytes": 639
+    },
+    {
+      "relative": ".local-backups/stage-release.mjs",
+      "files": 1,
+      "bytes": 613
+    },
+    {
+      "relative": ".local-backups/test-audit-error-handling.mjs",
+      "files": 1,
+      "bytes": 1891
+    },
+    {
+      "relative": ".local-backups/test-google-consent.mjs",
+      "files": 1,
+      "bytes": 2865
+    },
+    {
+      "relative": ".local-backups/test-official-home-interactions.mjs",
+      "files": 1,
+      "bytes": 4128
+    },
+    {
+      "relative": ".local-backups/test-production-ci.mjs",
+      "files": 1,
+      "bytes": 3231
+    },
+    {
+      "relative": ".local-backups/test-realtime-scheduling.mjs",
+      "files": 1,
+      "bytes": 7699
+    },
+    {
+      "relative": ".local-backups/update-cookie-after-init.mjs",
+      "files": 1,
+      "bytes": 1732
+    },
+    {
+      "relative": ".local-backups/update-download-7515.mjs",
+      "files": 1,
+      "bytes": 498
+    },
+    {
+      "relative": ".local-backups/update-download-e5.mjs",
+      "files": 1,
+      "bytes": 495
+    },
+    {
+      "relative": ".local-backups/update-release-status-helper.mjs",
+      "files": 1,
+      "bytes": 585
+    },
+    {
+      "relative": ".local-backups/vercel-auth",
+      "files": 4,
+      "bytes": 873
+    },
+    {
+      "relative": ".local-backups/vercel-cleanup.mjs",
+      "files": 1,
+      "bytes": 4470
+    },
+    {
+      "relative": ".local-backups/verify-candidate-noindex.mjs",
+      "files": 1,
+      "bytes": 849
+    },
+    {
+      "relative": ".local-backups/verify-handover-seo.mjs",
+      "files": 1,
+      "bytes": 283
+    },
+    {
+      "relative": ".local-backups/verify-home-next-react.mjs",
+      "files": 1,
+      "bytes": 989
+    },
+    {
+      "relative": ".local-backups/verify-live-css-split.mjs",
+      "files": 1,
+      "bytes": 2669
+    },
+    {
+      "relative": ".local-backups/verify-nav-hydration-diagnostics.mjs",
+      "files": 1,
+      "bytes": 2118
+    },
+    {
+      "relative": ".local-backups/verify-official-release.mjs",
+      "files": 1,
+      "bytes": 1804
+    },
+    {
+      "relative": ".local-backups/verify-public-editor-assets-e5.json",
+      "files": 1,
+      "bytes": 2448
+    },
+    {
+      "relative": ".local-backups/verify-public-editor-assets.mjs",
+      "files": 1,
+      "bytes": 1725
+    },
+    {
+      "relative": ".local-backups/verify-public-home-reference-6f7b3fc.mjs",
+      "files": 1,
+      "bytes": 5024
+    },
+    {
+      "relative": ".local-backups/verify-staged-consent.mjs",
+      "files": 1,
+      "bytes": 1705
+    },
+    {
+      "relative": ".local-backups/verify-vercel-closure.mjs",
+      "files": 1,
+      "bytes": 2967
+    },
+    {
+      "relative": ".local-backups/write-bootstrap-tests.mjs",
+      "files": 1,
+      "bytes": 14124
+    },
+    {
+      "relative": ".local-backups/write-editable-tests.mjs",
+      "files": 1,
+      "bytes": 9809
+    }
+  ],
+  "emptyReportDirectoriesRemoved": []
+}

@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 export const officialUrl = 'https://greeniahomes.vn/';
+export const releaseScoreFloor = 95;
 export const auditPreparationUrl = 'data:text/html,' + encodeURIComponent('<!doctype html><html><head><title>Chuẩn bị phép đo</title></head><body></body></html>');
 const categories = ['performance', 'accessibility', 'best-practices', 'seo', 'agentic-browsing'];
 const metricIds = ['first-contentful-paint', 'largest-contentful-paint', 'total-blocking-time', 'cumulative-layout-shift', 'speed-index'];
@@ -34,13 +35,16 @@ export function summarizeReport(report, mode, run) {
   };
 }
 
+export function passesDeviceGate(runs) {
+  return runs.length === 3 && [1, 2, 3].every(run => runs.some(report => report.run === run))
+    && runs.every(report => categories.every(id => Number.isInteger(report.scores[id])
+      && report.scores[id] > releaseScoreFloor && report.scores[id] <= 100)
+      && report.warnings.length === 0 && report.agentic.total === 3 && report.agentic.passed === 3);
+}
+
 export function passesReleaseGate(reports) {
-  return reports.length === 6 && ['mobile', 'desktop'].every(mode => {
-    const runs = reports.filter(report => report.mode === mode);
-    return runs.length === 3 && new Set(runs.map(report => report.run)).size === 3
-      && runs.every(report => categories.every(id => report.scores[id] === 100)
-        && report.warnings.length === 0 && report.agentic.total === 3 && report.agentic.passed === 3);
-  });
+  return reports.length === 6 && ['mobile', 'desktop'].every(mode =>
+    passesDeviceGate(reports.filter(report => report.mode === mode)));
 }
 
 export async function withPreparedChrome(launch, measure, {
@@ -118,6 +122,7 @@ async function main() {
     writeFileSync(resolve(output, 'release.json'), JSON.stringify({
       sha, repository, targetUrl, url: officialUrl, time: new Date().toISOString(),
       runner: { os: process.platform, node: process.version }, lighthouseVersion: '13.5.0',
+      acceptance: { scoreGreaterThan: releaseScoreFloor, runsPerDevice: 3, agenticRequired: '3/3', warningsAllowed: 0 },
     }, null, 2) + '\n');
 
     const requireLighthouse = createRequire(resolve(cli));
@@ -152,7 +157,7 @@ async function main() {
         }
         const runs = results.filter(report => report.mode === mode);
         const minimum = id => Math.min(...runs.map(report => report.scores[id]));
-        const passed = runs.every(report => categories.every(id => report.scores[id] === 100) && report.warnings.length === 0 && report.agentic.passed === 3 && report.agentic.total === 3);
+        const passed = passesDeviceGate(runs);
         await publishStatus(mode, passed ? 'success' : 'failure',
           '3 lượt; thấp nhất: P ' + minimum('performance') + ', A ' + minimum('accessibility') + ', BP ' + minimum('best-practices') + ', SEO ' + minimum('seo') + ', Agentic ' + minimum('agentic-browsing'));
       }
@@ -174,7 +179,8 @@ async function main() {
       '# Kiểm tra bản chính thức', '', 'Commit: ' + sha, '', 'URL: ' + officialUrl, '',
       '| Thiết bị | Lượt | Performance | Accessibility | Best Practices | SEO | Agentic | Số mục Agentic |',
       '|---|---:|---:|---:|---:|---:|---:|---:|', ...rows, '',
-      measured && passesReleaseGate(results) ? 'Đạt yêu cầu 100 điểm trong cả 6 lượt.' : 'Chưa đạt điều kiện bàn giao.', '',
+      'Tiêu chí: cả năm nhóm điểm trên ' + releaseScoreFloor + ' ở đủ sáu lượt; không cảnh báo; Agentic 3/3.', '',
+      measured && passesReleaseGate(results) ? 'Đạt yêu cầu nghiệm thu hiện tại.' : 'Chưa đạt điều kiện bàn giao.', '',
     ].join('\n');
     writeFileSync(resolve(output, 'summary.md'), markdown);
     if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, markdown);

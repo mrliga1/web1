@@ -157,6 +157,13 @@ a:focus:not(:focus-visible) {
   border-color: #b42318 !important;
 }
 
+/* Thống nhất checkbox ở form công khai và quản trị về kích thước 14px. */
+input[type="checkbox"] {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
 /* =========================================================
    RICH TEXT RENDERING (.prose)
    ========================================================= */

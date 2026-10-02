@@ -10,7 +10,7 @@ interface FormConsentFieldsProps {
 }
 
 const CHECKBOX_CLASS =
-  'h-6 w-6 shrink-0 cursor-pointer rounded border-border-color bg-bg-surface text-primary focus:ring-1 focus:ring-primary focus:ring-offset-1';
+  'h-[14px] w-[14px] shrink-0 cursor-pointer rounded border-border-color bg-bg-surface text-primary focus:ring-1 focus:ring-primary focus:ring-offset-1';
 
 export default function FormConsentFields({
   idPrefix,
@@ -22,7 +22,7 @@ export default function FormConsentFields({
 }: FormConsentFieldsProps) {
   return (
     <div className={`space-y-1.5 ${className}`.trim()}>
-      <label htmlFor={`${idPrefix}-terms`} className="flex items-start gap-2 cursor-pointer">
+      <label htmlFor={`${idPrefix}-terms`} className="flex min-h-6 items-start gap-2 cursor-pointer">
         <input
           id={`${idPrefix}-terms`}
           type="checkbox"
@@ -40,7 +40,7 @@ export default function FormConsentFields({
         </span>
       </label>
 
-      <label htmlFor={`${idPrefix}-privacy`} className="flex items-start gap-2 cursor-pointer">
+      <label htmlFor={`${idPrefix}-privacy`} className="flex min-h-6 items-start gap-2 cursor-pointer">
         <input
           id={`${idPrefix}-privacy`}
           type="checkbox"
